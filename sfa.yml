@@ -1,0 +1,16 @@
+project:
+  name: my-sfa-project
+  language: python
+source_dir: src
+default_visibility: L2
+validation: strict
+allowed_imports:
+- json
+- math
+- typing
+- dataclasses
+sensitive_fields: []
+ai:
+  provider: openai
+  model: gpt-4o
+  api_key_env: OPENAI_API_KEY

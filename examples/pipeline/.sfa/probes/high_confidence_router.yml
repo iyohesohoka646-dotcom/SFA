@@ -1,0 +1,6 @@
+name: high_confidence_router
+type: router
+pipe: pipe_scorer_positive
+condition: $output.score >= 0.8
+on_true: positive
+on_false: negative

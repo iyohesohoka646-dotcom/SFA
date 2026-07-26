@@ -1,0 +1,66 @@
+{
+  "run_id": "f25582be2f674742ac8f7acbce00f8ee",
+  "start_time": "2026-07-25T09:55:04",
+  "end_time": "2026-07-25T09:55:04",
+  "overall_status": "success",
+  "execution_order": [
+    "loader",
+    "featurizer",
+    "scorer",
+    "positive",
+    "negative"
+  ],
+  "modules": [
+    {
+      "id": "loader",
+      "status": "success",
+      "duration_ms": 0,
+      "snapshot": "loader.json"
+    },
+    {
+      "id": "featurizer",
+      "status": "success",
+      "duration_ms": 0,
+      "snapshot": "featurizer.json"
+    },
+    {
+      "id": "scorer",
+      "status": "success",
+      "duration_ms": 0,
+      "snapshot": "scorer.json"
+    },
+    {
+      "id": "positive",
+      "status": "success",
+      "duration_ms": 0,
+      "snapshot": "positive.json"
+    },
+    {
+      "id": "negative",
+      "status": "success",
+      "duration_ms": 0,
+      "snapshot": "negative.json"
+    }
+  ],
+  "probes": [
+    {
+      "probe_id": "high_confidence_router",
+      "type": "router",
+      "pipe": "pipe_scorer_positive",
+      "condition": "$output.score >= 0.8",
+      "condition_result": false,
+      "branch": "on_false",
+      "branch_target": "negative",
+      "source": "scorer"
+    },
+    {
+      "probe_id": "score_threshold",
+      "type": "assertion",
+      "pipe": "pipe_scorer_positive",
+      "condition": "$output.score >= 0.5",
+      "passed": true,
+      "source": "scorer"
+    }
+  ],
+  "input_file": "D:\\LOGOS\\project\\new thing\\examples\\pipeline\\input.json"
+}

@@ -1,0 +1,4 @@
+name: score_threshold
+type: assertion
+pipe: pipe_scorer_positive
+condition: $output.score >= 0.5

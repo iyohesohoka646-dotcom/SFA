@@ -1,0 +1,19 @@
+{
+  "module": "positive",
+  "version_hash": "7cd43c6663d421f1d26d1fe369bcfa75ac0adb5625cccaa2b27939e2c68bc728",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "score": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "score"
+    ]
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "natural_summary": "高置信度正向预测分支。"
+}

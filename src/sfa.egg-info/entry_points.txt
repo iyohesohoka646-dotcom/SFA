@@ -1,0 +1,2 @@
+[console_scripts]
+sfa = sfa.cli:app

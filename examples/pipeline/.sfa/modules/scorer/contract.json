@@ -1,0 +1,19 @@
+{
+  "module": "scorer",
+  "version_hash": "d71e9c895707682eca36276475468bbf6f7d82497d7a41b1a720a9dfada6120d",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "features": {
+        "type": "array"
+      }
+    },
+    "required": [
+      "features"
+    ]
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "natural_summary": "计算归一化置信分数。"
+}

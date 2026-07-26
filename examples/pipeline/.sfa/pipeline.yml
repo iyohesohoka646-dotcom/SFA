@@ -1,0 +1,82 @@
+modules:
+- id: loader
+  name: loader
+  type: atomic
+  path: src/load_data.py
+  entry: load_data
+  method: function
+  owned_elements:
+  - load_data
+  contract: .sfa/modules/loader/contract.json
+  summary: .sfa/modules/loader/summary.md
+  validation: strict
+  parent: null
+- id: featurizer
+  name: featurizer
+  type: atomic
+  path: src/extract_features.py
+  entry: extract_features
+  method: function
+  owned_elements:
+  - extract_features
+  contract: .sfa/modules/featurizer/contract.json
+  summary: .sfa/modules/featurizer/summary.md
+  validation: strict
+  parent: null
+- id: scorer
+  name: scorer
+  type: atomic
+  path: src/score.py
+  entry: score
+  method: function
+  owned_elements:
+  - score
+  contract: .sfa/modules/scorer/contract.json
+  summary: .sfa/modules/scorer/summary.md
+  validation: strict
+  parent: null
+- id: positive
+  name: positive
+  type: atomic
+  path: src/predict_pos.py
+  entry: branch_pos
+  method: function
+  owned_elements:
+  - branch_pos
+  contract: .sfa/modules/positive/contract.json
+  summary: .sfa/modules/positive/summary.md
+  validation: strict
+  parent: null
+- id: negative
+  name: negative
+  type: atomic
+  path: src/predict_neg.py
+  entry: branch_neg
+  method: function
+  owned_elements:
+  - branch_neg
+  contract: .sfa/modules/negative/contract.json
+  summary: .sfa/modules/negative/summary.md
+  validation: strict
+  parent: null
+pipes:
+- id: pipe_loader_featurizer
+  source: loader
+  target: featurizer
+  visibility: L2
+  parent: null
+- id: pipe_featurizer_scorer
+  source: featurizer
+  target: scorer
+  visibility: L2
+  parent: null
+- id: pipe_scorer_positive
+  source: scorer
+  target: positive
+  visibility: L2
+  parent: null
+- id: pipe_scorer_negative
+  source: scorer
+  target: negative
+  visibility: L2
+  parent: null

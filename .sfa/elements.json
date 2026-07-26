@@ -1,0 +1,2121 @@
+{
+  "version": 1,
+  "generated_at": "2026-07-22T13:24:04",
+  "source_dir": "src",
+  "elements": [
+    {
+      "kind": "function",
+      "name": "_version_callback",
+      "qualified_name": "_version_callback",
+      "file": "sfa/cli.py",
+      "line_start": 24,
+      "line_end": 27,
+      "parameters": [
+        {
+          "name": "value",
+          "annotation": "bool",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_main",
+      "qualified_name": "_main",
+      "file": "sfa/cli.py",
+      "line_start": 31,
+      "line_end": 36,
+      "parameters": [
+        {
+          "name": "version",
+          "annotation": "bool",
+          "has_default": true,
+          "default": "typer.Option(\n        None, \"--version\", callback=_version_callback, is_eager=True, help=\"Show version and exit.\"\n    )"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "SFA — structure-centric programming with AI as executor.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "init",
+      "qualified_name": "init",
+      "file": "sfa/cli.py",
+      "line_start": 45,
+      "line_end": 58,
+      "parameters": [
+        {
+          "name": "target",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(\n        Path(\".\"), \"--target\", \"-t\", help=\"Directory to initialize (default: current dir).\"\n    )"
+        },
+        {
+          "name": "force",
+          "annotation": "bool",
+          "has_default": true,
+          "default": "typer.Option(False, \"--force\", help=\"Overwrite existing files.\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "Create the .sfa/ metadata structure and sfa.yml config template.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "extract",
+      "qualified_name": "extract",
+      "file": "sfa/cli.py",
+      "line_start": 62,
+      "line_end": 75,
+      "parameters": [
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(\n        None, \"--project\", \"-p\", help=\"Project root (default: auto-detected).\"\n    )"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "Parse source_dir with tree-sitter and write .sfa/elements.json.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_placeholder",
+      "qualified_name": "_placeholder",
+      "file": "sfa/cli.py",
+      "line_start": 85,
+      "line_end": 87,
+      "parameters": [
+        {
+          "name": "milestone",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_resolve_root",
+      "qualified_name": "_resolve_root",
+      "file": "sfa/cli.py",
+      "line_start": 95,
+      "line_end": 100,
+      "parameters": [
+        {
+          "name": "project",
+          "annotation": "Path | None",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "Path",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_run_m2",
+      "qualified_name": "_run_m2",
+      "file": "sfa/cli.py",
+      "line_start": 103,
+      "line_end": 108,
+      "parameters": [
+        {
+          "name": "args",
+          "annotation": null,
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "kwargs",
+          "annotation": null,
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": null,
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "module_add",
+      "qualified_name": "module_add",
+      "file": "sfa/cli.py",
+      "line_start": 117,
+      "line_end": 133,
+      "parameters": [
+        {
+          "name": "name",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Option(..., \"--name\", \"-n\", help=\"模块显示名称。\")"
+        },
+        {
+          "name": "entry",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Option(..., \"--entry\", \"-e\", help=\"入口元素的 qualified_name（来自 elements.json）。\")"
+        },
+        {
+          "name": "validation",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Option(None, \"--validation\", help=\"校验级别（strict/lenient/none），默认使用项目配置。\")"
+        },
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "从元素列表创建模块。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "module_remove",
+      "qualified_name": "module_remove",
+      "file": "sfa/cli.py",
+      "line_start": 137,
+      "line_end": 151,
+      "parameters": [
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Argument(..., help=\"要删除的模块 ID。\")"
+        },
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "删除模块。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "module_list",
+      "qualified_name": "module_list",
+      "file": "sfa/cli.py",
+      "line_start": 155,
+      "line_end": 171,
+      "parameters": [
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "列出所有模块。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "pipe_add",
+      "qualified_name": "pipe_add",
+      "file": "sfa/cli.py",
+      "line_start": 180,
+      "line_end": 191,
+      "parameters": [
+        {
+          "name": "source",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Argument(..., help=\"源模块 ID。\")"
+        },
+        {
+          "name": "target",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Argument(..., help=\"目标模块 ID。\")"
+        },
+        {
+          "name": "visibility",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Option(None, \"--visibility\", \"-v\", help=\"可见性级别（L1-L4），默认使用项目配置。\")"
+        },
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "建立模块间管道。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "pipe_remove",
+      "qualified_name": "pipe_remove",
+      "file": "sfa/cli.py",
+      "line_start": 195,
+      "line_end": 204,
+      "parameters": [
+        {
+          "name": "pipe_id",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Argument(..., help=\"要删除的管道 ID。\")"
+        },
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "删除管道。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "pipe_list",
+      "qualified_name": "pipe_list",
+      "file": "sfa/cli.py",
+      "line_start": 208,
+      "line_end": 223,
+      "parameters": [
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "列出所有管道。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "group",
+      "qualified_name": "group",
+      "file": "sfa/cli.py",
+      "line_start": 232,
+      "line_end": 243,
+      "parameters": [
+        {
+          "name": "child_ids",
+          "annotation": "list[str]",
+          "has_default": true,
+          "default": "typer.Argument(..., help=\"要打包的子模块 ID 列表。\")"
+        },
+        {
+          "name": "name",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Option(..., \"--name\", \"-n\", help=\"复合模块显示名称。\")"
+        },
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "将若干模块打包为复合模块。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "ungroup",
+      "qualified_name": "ungroup",
+      "file": "sfa/cli.py",
+      "line_start": 247,
+      "line_end": 257,
+      "parameters": [
+        {
+          "name": "composite_id",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Argument(..., help=\"要拆封的复合模块 ID。\")"
+        },
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "拆封复合模块。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "drill",
+      "qualified_name": "drill",
+      "file": "sfa/cli.py",
+      "line_start": 261,
+      "line_end": 282,
+      "parameters": [
+        {
+          "name": "composite_id",
+          "annotation": "str",
+          "has_default": true,
+          "default": "typer.Argument(..., help=\"要查看的复合模块 ID。\")"
+        },
+        {
+          "name": "project",
+          "annotation": "Path",
+          "has_default": true,
+          "default": "typer.Option(None, \"--project\", \"-p\", help=\"项目根目录（默认自动检测）。\")"
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "进入复合模块内部视图。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "generate",
+      "qualified_name": "generate",
+      "file": "sfa/cli.py",
+      "line_start": 286,
+      "line_end": 288,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "为模块生成实现代码（M3）。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "rollback",
+      "qualified_name": "rollback",
+      "file": "sfa/cli.py",
+      "line_start": 292,
+      "line_end": 294,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "回滚模块代码到历史版本（M3）。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "run",
+      "qualified_name": "run",
+      "file": "sfa/cli.py",
+      "line_start": 298,
+      "line_end": 300,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "按拓扑执行管道（M4）。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "observe",
+      "qualified_name": "observe",
+      "file": "sfa/cli.py",
+      "line_start": 304,
+      "line_end": 306,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "查看运行快照摘要（M4）。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "probe_add",
+      "qualified_name": "probe_add",
+      "file": "sfa/cli.py",
+      "line_start": 310,
+      "line_end": 312,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "添加探针。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "probe_list",
+      "qualified_name": "probe_list",
+      "file": "sfa/cli.py",
+      "line_start": 316,
+      "line_end": 318,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "列出探针。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "probe_remove",
+      "qualified_name": "probe_remove",
+      "file": "sfa/cli.py",
+      "line_start": 322,
+      "line_end": 324,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "删除探针。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "list_modules",
+      "qualified_name": "list_modules",
+      "file": "sfa/cli.py",
+      "line_start": 328,
+      "line_end": 330,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "以表格展示所有模块（M6）。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "graph",
+      "qualified_name": "graph",
+      "file": "sfa/cli.py",
+      "line_start": 334,
+      "line_end": 336,
+      "parameters": [],
+      "return_annotation": "None",
+      "docstring": "以 ASCII 图展示数据流（M6）。",
+      "parent_class": null
+    },
+    {
+      "kind": "class",
+      "name": "SFAError",
+      "qualified_name": "SFAError",
+      "file": "sfa/config.py",
+      "line_start": 30,
+      "line_end": 31,
+      "parameters": [],
+      "return_annotation": null,
+      "docstring": "Base error for SFA. Messages always include a path and an actionable hint.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "find_project_root",
+      "qualified_name": "find_project_root",
+      "file": "sfa/config.py",
+      "line_start": 34,
+      "line_end": 51,
+      "parameters": [
+        {
+          "name": "start",
+          "annotation": "Path | None",
+          "has_default": true,
+          "default": "None"
+        }
+      ],
+      "return_annotation": "Path",
+      "docstring": "Walk upward from *start* (defaults to cwd) until a directory containing\n    a ``.sfa/`` metadata dir or a ``sfa.yml`` config is found.\n\n    Raises SFAError with an actionable hint when not found.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "config_path",
+      "qualified_name": "config_path",
+      "file": "sfa/config.py",
+      "line_start": 54,
+      "line_end": 55,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "Path",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "sfa_dir",
+      "qualified_name": "sfa_dir",
+      "file": "sfa/config.py",
+      "line_start": 58,
+      "line_end": 59,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "Path",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "load_config",
+      "qualified_name": "load_config",
+      "file": "sfa/config.py",
+      "line_start": 62,
+      "line_end": 80,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path | None",
+          "has_default": true,
+          "default": "None"
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Load and merge ``sfa.yml`` with defaults. Returns a fully-populated dict.\n\n    Missing optional sections fall back to DEFAULT_CONFIG.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_deep_merge",
+      "qualified_name": "_deep_merge",
+      "file": "sfa/config.py",
+      "line_start": 83,
+      "line_end": 107,
+      "parameters": [
+        {
+          "name": "base",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "override",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "_path",
+          "annotation": "str",
+          "has_default": true,
+          "default": "\"\""
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "infer_contract",
+      "qualified_name": "infer_contract",
+      "file": "sfa/contract.py",
+      "line_start": 48,
+      "line_end": 64,
+      "parameters": [
+        {
+          "name": "entry_element",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Build a contract dict from *entry_element* (an elements.json record).\n\n    The contract has keys: ``module``, ``version_hash``, ``input_schema``,\n    ``output_schema``, ``natural_summary``.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "write_contract",
+      "qualified_name": "write_contract",
+      "file": "sfa/contract.py",
+      "line_start": 67,
+      "line_end": 76,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "contract",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "Path",
+      "docstring": "Write *contract* to ``.sfa/modules/{module_id}/contract.json``.\n\n    Returns the absolute path written.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "write_summary",
+      "qualified_name": "write_summary",
+      "file": "sfa/contract.py",
+      "line_start": 79,
+      "line_end": 85,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "summary",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "Path",
+      "docstring": "Write *summary* to ``.sfa/modules/{module_id}/summary.md``.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "contract_rel_path",
+      "qualified_name": "contract_rel_path",
+      "file": "sfa/contract.py",
+      "line_start": 88,
+      "line_end": 90,
+      "parameters": [
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "str",
+      "docstring": "Return the project-root-relative posix path for a module's contract.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "summary_rel_path",
+      "qualified_name": "summary_rel_path",
+      "file": "sfa/contract.py",
+      "line_start": 93,
+      "line_end": 95,
+      "parameters": [
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "str",
+      "docstring": "Return the project-root-relative posix path for a module's summary.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_infer_input_schema",
+      "qualified_name": "_infer_input_schema",
+      "file": "sfa/contract.py",
+      "line_start": 103,
+      "line_end": 116,
+      "parameters": [
+        {
+          "name": "element",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_infer_output_schema",
+      "qualified_name": "_infer_output_schema",
+      "file": "sfa/contract.py",
+      "line_start": 119,
+      "line_end": 120,
+      "parameters": [
+        {
+          "name": "element",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_compute_version_hash",
+      "qualified_name": "_compute_version_hash",
+      "file": "sfa/contract.py",
+      "line_start": 123,
+      "line_end": 129,
+      "parameters": [
+        {
+          "name": "input_schema",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "output_schema",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "str",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_annotation_to_schema",
+      "qualified_name": "_annotation_to_schema",
+      "file": "sfa/contract.py",
+      "line_start": 137,
+      "line_end": 189,
+      "parameters": [
+        {
+          "name": "ann",
+          "annotation": "str | None",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Map a raw Python annotation string to a JSON-Schema fragment.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_split_top_level",
+      "qualified_name": "_split_top_level",
+      "file": "sfa/contract.py",
+      "line_start": 197,
+      "line_end": 217,
+      "parameters": [
+        {
+          "name": "s",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "delim",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[str]",
+      "docstring": "Split *s* on *delim* respecting ``[]`` / ``()`` nesting.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_find_top_bracket",
+      "qualified_name": "_find_top_bracket",
+      "file": "sfa/contract.py",
+      "line_start": 220,
+      "line_end": 230,
+      "parameters": [
+        {
+          "name": "s",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "int | None",
+      "docstring": "Return the index of the first top-level ``[`` in *s*, or None.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "extract",
+      "qualified_name": "extract",
+      "file": "sfa/extract.py",
+      "line_start": 23,
+      "line_end": 55,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path | None",
+          "has_default": true,
+          "default": "None"
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Run extraction and write ``.sfa/elements.json``. Returns the document.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_extract_file",
+      "qualified_name": "_extract_file",
+      "file": "sfa/extract.py",
+      "line_start": 58,
+      "line_end": 67,
+      "parameters": [
+        {
+          "name": "file",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source_root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[dict[str, Any]]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_visit",
+      "qualified_name": "_visit",
+      "file": "sfa/extract.py",
+      "line_start": 70,
+      "line_end": 91,
+      "parameters": [
+        {
+          "name": "node",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "bytes",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "rel",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "out",
+          "annotation": "list[dict[str, Any]]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "parent_class",
+          "annotation": "str | None",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_is_async",
+      "qualified_name": "_is_async",
+      "file": "sfa/extract.py",
+      "line_start": 94,
+      "line_end": 100,
+      "parameters": [
+        {
+          "name": "fn",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "bool",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_func_element",
+      "qualified_name": "_func_element",
+      "file": "sfa/extract.py",
+      "line_start": 103,
+      "line_end": 132,
+      "parameters": [
+        {
+          "name": "fn",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "bytes",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "rel",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "parent_class",
+          "annotation": "str | None",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_class_element",
+      "qualified_name": "_class_element",
+      "file": "sfa/extract.py",
+      "line_start": 135,
+      "line_end": 151,
+      "parameters": [
+        {
+          "name": "cls",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "bytes",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "rel",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_extract_parameters",
+      "qualified_name": "_extract_parameters",
+      "file": "sfa/extract.py",
+      "line_start": 154,
+      "line_end": 190,
+      "parameters": [
+        {
+          "name": "fn",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "bytes",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[dict[str, Any]]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_first_named_child_of_type",
+      "qualified_name": "_first_named_child_of_type",
+      "file": "sfa/extract.py",
+      "line_start": 193,
+      "line_end": 197,
+      "parameters": [
+        {
+          "name": "node",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "type_",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "Any | None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_extract_docstring",
+      "qualified_name": "_extract_docstring",
+      "file": "sfa/extract.py",
+      "line_start": 200,
+      "line_end": 214,
+      "parameters": [
+        {
+          "name": "body",
+          "annotation": "Any | None",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "bytes",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "str | None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_clean_docstring",
+      "qualified_name": "_clean_docstring",
+      "file": "sfa/extract.py",
+      "line_start": 217,
+      "line_end": 223,
+      "parameters": [
+        {
+          "name": "raw",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "str",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_to_posix",
+      "qualified_name": "_to_posix",
+      "file": "sfa/extract.py",
+      "line_start": 226,
+      "line_end": 227,
+      "parameters": [
+        {
+          "name": "p",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "str",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_warn",
+      "qualified_name": "_warn",
+      "file": "sfa/extract.py",
+      "line_start": 230,
+      "line_end": 233,
+      "parameters": [
+        {
+          "name": "msg",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "init_project",
+      "qualified_name": "init_project",
+      "file": "sfa/init.py",
+      "line_start": 17,
+      "line_end": 38,
+      "parameters": [
+        {
+          "name": "target",
+          "annotation": "Path | None",
+          "has_default": true,
+          "default": "None"
+        },
+        {
+          "name": "force",
+          "annotation": "bool",
+          "has_default": true,
+          "default": "False"
+        }
+      ],
+      "return_annotation": "Path",
+      "docstring": "Create the ``.sfa/`` structure and ``sfa.yml`` template under *target*.\n\n    Idempotent: existing files are never overwritten unless ``force`` is set.\n    Returns the project root path.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_write_if_absent",
+      "qualified_name": "_write_if_absent",
+      "file": "sfa/init.py",
+      "line_start": 41,
+      "line_end": 44,
+      "parameters": [
+        {
+          "name": "path",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "content",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "force",
+          "annotation": "bool",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "add_module",
+      "qualified_name": "add_module",
+      "file": "sfa/module.py",
+      "line_start": 27,
+      "line_end": 82,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "name",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "entry",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "validation",
+          "annotation": "str | None",
+          "has_default": true,
+          "default": "None"
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Create an atomic module from an entry element.\n\n    1. Load elements.json, resolve *entry* to an element.\n    2. Detect owned elements via tree-sitter call analysis.\n    3. Infer and persist contract.json + summary.md.\n    4. Append module to pipeline.yml.\n\n    Returns the module dict.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "remove_module",
+      "qualified_name": "remove_module",
+      "file": "sfa/module.py",
+      "line_start": 85,
+      "line_end": 94,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "tuple[dict[str, Any], list[dict[str, Any]]]",
+      "docstring": "Remove a module and cascade-delete pipes referencing it.\n\n    Returns ``(removed_module, removed_pipes)``.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "list_modules",
+      "qualified_name": "list_modules",
+      "file": "sfa/module.py",
+      "line_start": 97,
+      "line_end": 100,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[dict[str, Any]]",
+      "docstring": "Return all modules from pipeline.yml.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_load_elements",
+      "qualified_name": "_load_elements",
+      "file": "sfa/module.py",
+      "line_start": 108,
+      "line_end": 122,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[dict[str, Any]]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_find_entry_element",
+      "qualified_name": "_find_entry_element",
+      "file": "sfa/module.py",
+      "line_start": 125,
+      "line_end": 144,
+      "parameters": [
+        {
+          "name": "elements",
+          "annotation": "list[dict[str, Any]]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "entry",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_detect_owned_elements",
+      "qualified_name": "_detect_owned_elements",
+      "file": "sfa/module.py",
+      "line_start": 152,
+      "line_end": 186,
+      "parameters": [
+        {
+          "name": "entry_element",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "all_elements",
+          "annotation": "list[dict[str, Any]]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source_dir",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "set[str]",
+      "docstring": "Determine which elements are owned by the module.\n\n    The entry element is always owned.  Additionally:\n    * If the entry is a method, all sibling methods of the same class are owned.\n    * Any element called from within the entry's body (in the same file) is owned.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_extract_calls_from_body",
+      "qualified_name": "_extract_calls_from_body",
+      "file": "sfa/module.py",
+      "line_start": 189,
+      "line_end": 217,
+      "parameters": [
+        {
+          "name": "entry_element",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source_dir",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[tuple[str, str]]",
+      "docstring": "Parse the entry element's source file and collect call targets.\n\n    Returns a list of ``(call_kind, name)`` where *call_kind* is\n    ``\"simple\"`` (bare ``foo()``) or ``\"self_method\"`` (``self.bar()``).",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_find_function_node",
+      "qualified_name": "_find_function_node",
+      "file": "sfa/module.py",
+      "line_start": 220,
+      "line_end": 240,
+      "parameters": [
+        {
+          "name": "node",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "bytes",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "name",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "line_start",
+          "annotation": "int",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "Any | None",
+      "docstring": "Locate the ``function_definition`` node matching *name* and *line_start*.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_collect_calls",
+      "qualified_name": "_collect_calls",
+      "file": "sfa/module.py",
+      "line_start": 243,
+      "line_end": 252,
+      "parameters": [
+        {
+          "name": "node",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "bytes",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "calls",
+          "annotation": "list[tuple[str, str]]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "Recursively collect call targets from *node*.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_extract_call_info",
+      "qualified_name": "_extract_call_info",
+      "file": "sfa/module.py",
+      "line_start": 255,
+      "line_end": 271,
+      "parameters": [
+        {
+          "name": "func_node",
+          "annotation": "Any",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "bytes",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "tuple[str, str] | None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "add_pipe",
+      "qualified_name": "add_pipe",
+      "file": "sfa/pipe.py",
+      "line_start": 22,
+      "line_end": 69,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "target",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "visibility",
+          "annotation": "str | None",
+          "has_default": true,
+          "default": "None"
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Create a pipe from *source* to *target*.\n\n    Validates that both modules exist, there is no duplicate, and\n    source != target.  The pipe's *parent* is the common parent of\n    the two endpoints (or ``None`` when they differ).",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "remove_pipe",
+      "qualified_name": "remove_pipe",
+      "file": "sfa/pipe.py",
+      "line_start": 72,
+      "line_end": 75,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "pipe_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Remove pipe *pipe_id* from pipeline.yml.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "list_pipes",
+      "qualified_name": "list_pipes",
+      "file": "sfa/pipe.py",
+      "line_start": 78,
+      "line_end": 81,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[dict[str, Any]]",
+      "docstring": "Return all pipes from pipeline.yml.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_pipeline_path",
+      "qualified_name": "_pipeline_path",
+      "file": "sfa/topology.py",
+      "line_start": 28,
+      "line_end": 29,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "Path",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "load_pipeline",
+      "qualified_name": "load_pipeline",
+      "file": "sfa/topology.py",
+      "line_start": 32,
+      "line_end": 52,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Load ``pipeline.yml``.  Returns ``{\"modules\": [...], \"pipes\": [...]}``.\n\n    Handles a missing file or the legacy empty ``modules: []\\\\npipes: []``\n    format gracefully.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "save_pipeline",
+      "qualified_name": "save_pipeline",
+      "file": "sfa/topology.py",
+      "line_start": 55,
+      "line_end": 61,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "data",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "Write *data* back to ``pipeline.yml``.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "list_modules",
+      "qualified_name": "list_modules",
+      "file": "sfa/topology.py",
+      "line_start": 69,
+      "line_end": 70,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[dict[str, Any]]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "get_module",
+      "qualified_name": "get_module",
+      "file": "sfa/topology.py",
+      "line_start": 73,
+      "line_end": 77,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any] | None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "find_module",
+      "qualified_name": "find_module",
+      "file": "sfa/topology.py",
+      "line_start": 80,
+      "line_end": 88,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "add_module",
+      "qualified_name": "add_module",
+      "file": "sfa/topology.py",
+      "line_start": 91,
+      "line_end": 104,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "Append *module* to pipeline.yml.  Raises on duplicate ID.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "remove_module",
+      "qualified_name": "remove_module",
+      "file": "sfa/topology.py",
+      "line_start": 107,
+      "line_end": 119,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Remove module *module_id* from pipeline.yml (no pipe cascade).",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "list_pipes",
+      "qualified_name": "list_pipes",
+      "file": "sfa/topology.py",
+      "line_start": 127,
+      "line_end": 128,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[dict[str, Any]]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "get_pipe",
+      "qualified_name": "get_pipe",
+      "file": "sfa/topology.py",
+      "line_start": 131,
+      "line_end": 135,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "pipe_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any] | None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "find_pipe",
+      "qualified_name": "find_pipe",
+      "file": "sfa/topology.py",
+      "line_start": 138,
+      "line_end": 146,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "pipe_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "find_pipe_by_endpoints",
+      "qualified_name": "find_pipe_by_endpoints",
+      "file": "sfa/topology.py",
+      "line_start": 149,
+      "line_end": 153,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "source",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "target",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any] | None",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "add_pipe",
+      "qualified_name": "add_pipe",
+      "file": "sfa/topology.py",
+      "line_start": 156,
+      "line_end": 167,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "pipe",
+          "annotation": "dict[str, Any]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "Append *pipe* to pipeline.yml.  Raises on duplicate source-target pair.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "remove_pipe",
+      "qualified_name": "remove_pipe",
+      "file": "sfa/topology.py",
+      "line_start": 170,
+      "line_end": 181,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "pipe_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "remove_pipes_referencing",
+      "qualified_name": "remove_pipes_referencing",
+      "file": "sfa/topology.py",
+      "line_start": 184,
+      "line_end": 200,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "module_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "list[dict[str, Any]]",
+      "docstring": "Remove every pipe whose *source* or *target* is *module_id*.\n\n    Returns the removed pipes (may be empty).",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "group_modules",
+      "qualified_name": "group_modules",
+      "file": "sfa/topology.py",
+      "line_start": 208,
+      "line_end": 281,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "child_ids",
+          "annotation": "list[str]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "name",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict[str, Any]",
+      "docstring": "Pack *child_ids* into a new composite module.\n\n    Returns the created composite dict.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "ungroup_composite",
+      "qualified_name": "ungroup_composite",
+      "file": "sfa/topology.py",
+      "line_start": 284,
+      "line_end": 312,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "composite_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "tuple[dict[str, Any], list[str]]",
+      "docstring": "Remove composite *composite_id*, promoting its children to its parent.\n\n    Returns ``(composite_dict, child_ids)``.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "drill_composite",
+      "qualified_name": "drill_composite",
+      "file": "sfa/topology.py",
+      "line_start": 315,
+      "line_end": 320,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "composite_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "tuple[list[dict[str, Any]], list[dict[str, Any]]]",
+      "docstring": "Return ``(child_modules, internal_pipes)`` for *composite_id*.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "sanitize_id",
+      "qualified_name": "sanitize_id",
+      "file": "sfa/topology.py",
+      "line_start": 328,
+      "line_end": 342,
+      "parameters": [
+        {
+          "name": "name",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "str",
+      "docstring": "Convert a display *name* to a valid module ID slug.\n\n    Unicode word characters (including CJK) are preserved; all other\n    characters become ``_``. A leading digit is prefixed with ``m_``.",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "make_pipe_id",
+      "qualified_name": "make_pipe_id",
+      "file": "sfa/topology.py",
+      "line_start": 345,
+      "line_end": 346,
+      "parameters": [
+        {
+          "name": "source",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "target",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "str",
+      "docstring": null,
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "_check_not_descendant",
+      "qualified_name": "_check_not_descendant",
+      "file": "sfa/topology.py",
+      "line_start": 354,
+      "line_end": 375,
+      "parameters": [
+        {
+          "name": "root",
+          "annotation": "Path",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "composite_id",
+          "annotation": "str",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "child_ids",
+          "annotation": "list[str]",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "by_id",
+          "annotation": "dict[str, dict[str, Any]]",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "None",
+      "docstring": "Ensure *composite_id* is not among *child_ids* or their descendants.",
+      "parent_class": null
+    }
+  ]
+}

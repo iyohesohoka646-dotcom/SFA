@@ -1,0 +1,39 @@
+Metadata-Version: 2.4
+Name: sfa
+Version: 0.1.0
+Summary: Semantic Flow Architecture: structure-centric, AI-as-executor programming paradigm
+License: MIT
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: typer>=0.24
+Requires-Dist: tree-sitter<0.27,>=0.25
+Requires-Dist: tree-sitter-python>=0.25
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: jsonschema>=4
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Provides-Extra: ai
+Requires-Dist: openai>=1.0; extra == "ai"
+Requires-Dist: anthropic>=0.20; extra == "ai"
+
+# SFA (Semantic Flow Architecture)
+
+Structure-centric, AI-as-executor programming paradigm. Engineers design the
+data-flow graph; AI fills in module implementations under strict contracts.
+
+## Install (development)
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e ".[dev]"
+```
+
+## Quick start
+
+```bash
+sfa init            # create .sfa/ metadata dir + sfa.yml config
+sfa extract         # parse source_dir with tree-sitter -> .sfa/elements.json
+```
+
+Full command reference and tutorial arrive with milestone M6.

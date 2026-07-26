@@ -1,0 +1,19 @@
+{
+  "module": "loader",
+  "version_hash": "ee7b27da31448df3c8d35e6e667dbc68766295edf4c31d97c13c3ddf1eda61c5",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "seed": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "seed"
+    ]
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "natural_summary": "从种子生成确定性合成数据集。"
+}

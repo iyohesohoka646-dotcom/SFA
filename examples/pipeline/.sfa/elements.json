@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "generated_at": "2026-07-25T09:54:59",
+  "source_dir": "src",
+  "elements": [
+    {
+      "kind": "function",
+      "name": "extract_features",
+      "qualified_name": "extract_features",
+      "file": "extract_features.py",
+      "line_start": 1,
+      "line_end": 4,
+      "parameters": [
+        {
+          "name": "rows",
+          "annotation": "list",
+          "has_default": false,
+          "default": null
+        },
+        {
+          "name": "n",
+          "annotation": "int",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict",
+      "docstring": "计算每行均值作为特征向量。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "load_data",
+      "qualified_name": "load_data",
+      "file": "load_data.py",
+      "line_start": 1,
+      "line_end": 7,
+      "parameters": [
+        {
+          "name": "seed",
+          "annotation": "int",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict",
+      "docstring": "从种子生成确定性合成数据集。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "branch_neg",
+      "qualified_name": "branch_neg",
+      "file": "predict_neg.py",
+      "line_start": 1,
+      "line_end": 3,
+      "parameters": [
+        {
+          "name": "score",
+          "annotation": "float",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict",
+      "docstring": "低置信度负向预测分支。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "branch_pos",
+      "qualified_name": "branch_pos",
+      "file": "predict_pos.py",
+      "line_start": 1,
+      "line_end": 3,
+      "parameters": [
+        {
+          "name": "score",
+          "annotation": "float",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict",
+      "docstring": "高置信度正向预测分支。",
+      "parent_class": null
+    },
+    {
+      "kind": "function",
+      "name": "score",
+      "qualified_name": "score",
+      "file": "score.py",
+      "line_start": 1,
+      "line_end": 4,
+      "parameters": [
+        {
+          "name": "features",
+          "annotation": "list",
+          "has_default": false,
+          "default": null
+        }
+      ],
+      "return_annotation": "dict",
+      "docstring": "计算归一化置信分数。",
+      "parent_class": null
+    }
+  ]
+}

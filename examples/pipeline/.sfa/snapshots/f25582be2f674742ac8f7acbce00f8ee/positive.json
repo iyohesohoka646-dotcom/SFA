@@ -1,0 +1,16 @@
+{
+  "module": "positive",
+  "run_id": "f25582be2f674742ac8f7acbce00f8ee",
+  "timestamp": "2026-07-25T09:55:04",
+  "duration_ms": 0,
+  "status": "success",
+  "input": {
+    "score": 0.64
+  },
+  "output": {
+    "label": "positive",
+    "score": 0.64
+  },
+  "error": null,
+  "contract_version_hash": "7cd43c6663d421f1d26d1fe369bcfa75ac0adb5625cccaa2b27939e2c68bc728"
+}

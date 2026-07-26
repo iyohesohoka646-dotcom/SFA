@@ -1,0 +1,23 @@
+{
+  "module": "featurizer",
+  "version_hash": "b902508d52c52e66149b655d0edbd497fd47da5afe7b785b30372be6d0b6a7fa",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "rows": {
+        "type": "array"
+      },
+      "n": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "rows",
+      "n"
+    ]
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "natural_summary": "计算每行均值作为特征向量。"
+}
