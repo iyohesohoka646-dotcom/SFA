@@ -1,163 +1,235 @@
-# SFA (Semantic Flow Architecture)
+# SFA — Semantic Flow Architecture
 
-Structure-centric, AI-as-executor programming paradigm. Engineers design the
-data-flow graph; AI fills in module implementations under strict contracts.
+[![GitHub](https://img.shields.io/badge/GitHub-iyohesohoka646--dotcom%2FSFA-blue?logo=github)](https://github.com/iyohesohoka646-dotcom/SFA)
 
-SFA flips the prevailing conversational-coding model: instead of the system
-structure living implicitly in chat and code text, the **topology is fixed
-first** (modules, contracts, pipes) and persisted as machine-readable
-metadata in `.sfa/`. AI is then confined to generating the implementation
-*inside* a single module's contract — it never decides data flow, module
-boundaries, or system structure.
+**SFA is a programming paradigm that first defines the structure, then lets AI fill in the code.** Engineers predefine each module’s input/output contracts and data flow directions. AI then generates implementations module by module under the constraints of these contracts. At runtime, input and output snapshots are automatically recorded at every module boundary.
 
+The core difference from conversational AI programming (Cursor, Copilot, etc.): system structure is persisted as machine‑readable metadata in the `.sfa/` directory, not scattered across chat logs and source code. When a module is modified, AI never touches module boundaries or data flows—those are decided by humans alone.
 
-## Install
-
-SFA is a regular Python CLI tool: install it once and the `sfa` command is
-available everywhere — no per-project virtualenv required.
-
-```bash
-# clone/copy the repo, then from the repo root:
-pip install -e ".[dev]"         # developers: `sfa` command + pytest (editable)
-# or, for end users:
-pipx install .                  # isolated install exposing `sfa` globally
+```
+Engineer → defines modules + contracts + data flow topology
+AI      → generates implementations module by module within contracts (never crosses boundaries)
+Runtime → automatically snapshots every module boundary; locate problems via data summaries, not by reading code
 ```
 
-Optional AI providers (real LLM generation):
+## What Problem It Solves
+
+Conversational AI programming has three structural issues:
+
+1. **System structure is invisible.** Dependencies between modules exist only in the developer’s mind; AI neither knows nor maintains them. Every change requires the developer to rebuild structural awareness from the code text.
+2. **AI context is uncontrolled.** AI can read the entire project; a single change may affect unrelated modules or even modify the interface contracts between modules arbitrarily.
+3. **Debugging relies on reading code.** When something goes wrong, you can only ask AI to explain the logic or read line by line—there is no module‑level input/output view.
+
+SFA addresses these by:
+
+- **Explicitly** representing module boundaries and interface contracts as JSON Schema, stored in `.sfa/modules/{name}/contract.json`
+- Defining the data flow (module → pipe → module) as a directed graph, stored in `.sfa/pipeline.yml`
+- When generating code, AI only sees the contract of the current module + upstream module information according to visibility levels; it **cannot see downstream**
+- After each run, automatically saving input/output/duration snapshots at every module boundary, so problems can be pinpointed directly to a module
+
+## Core Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **Module** | A computational unit, corresponding to a piece of Python code. Can be atomic (single source file) or composite (nested sub‑modules and sub‑pipes). |
+| **Contract** | The interface specification of a module: Input Schema, Output Schema (JSON Schema format), and a natural language summary. Modules do not share memory; they communicate only through the data formats defined by contracts. |
+| **Pipe** | A directed edge connecting two modules, indicating that data flows from the upstream module’s output to the downstream module’s input. |
+| **Snapshot** | The actual input/output data, duration, and status automatically recorded at module boundaries after each run. Stored in `.sfa/snapshots/{run_id}/{module}.json`. |
+| **Probe** | A non‑intrusive observer attached to a pipe. Two types: Router (conditional branch recording) and Assertion (assertion validation). Does not modify the data flow. |
+| **Visibility Levels (L1–L4)** | Parameters on a pipe that control how much upstream information AI can see when generating a downstream module. L1: schema only, L4: full source code. Default is L2. |
+
+## Installation
+
+Requires Python 3.11+.
 
 ```bash
-pip install -e ".[ai]"          # OpenAI + Anthropic SDKs
-# with pipx: pipx install ".[ai]"  or  pipx inject sfa openai anthropic
+git clone https://github.com/iyohesohoka646-dotcom/SFA.git
+cd SFA
+pip install .
 ```
 
-The built-in `mock` LLM provider works with no API key and no extra deps —
-handy for offline demos and tests.
+After installation, the `sfa` command becomes available in your current environment.
 
-## Quick start
+For development installation (editable mode + test tools):
 
 ```bash
-# 1. Scaffold .sfa/ metadata + sfa.yml
+pip install -e ".[dev]"
+```
+
+To enable LLM integration (requires an API key; replaces the built‑in mock provider):
+
+```bash
+pip install ".[ai]"
+```
+
+The built‑in mock provider requires no API key and is suitable for offline demos and testing.
+
+## Quick Start
+
+Run the following commands in your working directory. The final output will be a completed pipeline with its snapshots, no API key required.
+
+```bash
+# 1. Initialize the project, create .sfa/ directory and sfa.yml config file
 sfa init
 
-# 1b. Check project health/overview at any time
-sfa status
-
-# 2. Point source_dir at your code (edit sfa.yml), then extract elements
+# 2. Edit source_dir in sfa.yml to point to your code directory, then extract code elements
 sfa extract
 
-# 3. Define modules from extracted elements (contracts auto-inferred)
-sfa module add --name "预处理" --entry "preprocess"
-sfa module add --name "推理"   --entry "infer"
+# 3. Define modules from the extracted elements (contracts are auto‑inferred from function signatures)
+sfa module add --name loader --entry load_data
+sfa module add --name scorer --entry score
 
-# 4. Connect the data-flow pipe (visibility L1-L4 gates upstream context)
-sfa pipe add 预处理 推理 --visibility L2
+# 4. Connect pipes to define data flow directions
+sfa pipe add loader scorer
 
-# 5. Generate implementation under contract (diff for human approval)
-sfa generate 推理            # review the diff, accept or reject
-#    or skip the prompt: sfa generate 推理 --yes
+# 5. Let AI generate module implementations (mock mode outputs function skeletons; can be connected to a real LLM)
+sfa generate scorer
 
-# 6. Run the whole pipeline topologically, snapshotting every boundary
+# 6. Execute the pipeline in topological order, with automatic snapshots at every module boundary
 sfa run --input input.json
 
-# 7. Observe results without reading code
-sfa observe                 # run summary (status lights + I/O)
-sfa observe 推理            # detailed snapshot for one module
+# 7. Observe the results—without reading code, just data summaries
+sfa observe          # status lights for all modules + input/output summaries
+sfa observe scorer   # detailed snapshot of a single module
 
-# 8. Index & visualize
-sfa list                    # all modules: type, status light, I/O one-liner
-sfa graph                   # full top-level data-flow diagram
-sfa graph 推理              # 1-2 hop neighborhood around a module
+# 8. Index and visualise
+sfa list             # table: module name, type, last run status, one‑line input/output summary
+sfa graph            # ASCII data flow graph
+sfa graph scorer     # neighbourhood subgraph around the scorer module
 ```
 
-## Visibility levels
+Sample `sfa list` output:
 
-Pipe visibility controls how much upstream context the AI sees when
-generating a module — a core SFA mechanism for containing intent:
+```
+ID          Name        Type     Status  Input                                           Output
+----------  ----------  ------  ----    ----------------------------------------------  ----
+loader      loader      Atomic  OK      {"seed": 42}                                    {"rows": [...], "n": 2}
+scorer      scorer      Atomic  OK      {"features": [43.0, 85.0]}                      {"score": 0.64}
+```
 
-| Level | Upstream context included |
-|-------|---------------------------|
-| L1    | Output schema only |
-| L2    | L1 + natural-language summary + I/O samples (default) |
-| L3    | L2 + upstream function signatures |
-| L4    | L3 + full upstream source code |
+Sample `sfa graph` output:
 
-Downstream modules are **never** included — generation is strictly local.
+```
+Top‑level data flow graph (3 modules, 2 pipes):
 
-## Command reference
+  [loader] --> [scorer]
+  [scorer]
+```
+
+## Visibility Levels
+
+The visibility level on a pipe controls how much upstream context AI can see when generating a downstream module. This is the core mechanism by which SFA limits the scope of AI behaviour.
+
+| Level | Upstream information visible to AI |
+|-------|------------------------------------|
+| L1    | Upstream module’s Output Schema only |
+| L2    | L1 + upstream module’s natural‑language summary + input/output examples (default) |
+| L3    | L2 + upstream module’s function signatures |
+| L4    | L3 + full source code of the upstream module |
+
+Information about **downstream modules is never visible to AI**—generation is strictly local.
+
+## Command Reference
+
+All commands accept `--project/-p` to specify the project root (defaults to the current directory).
+
+### Project Management
 
 | Command | Description |
 |---------|-------------|
-| `sfa init [--target DIR] [--force]` | Create `.sfa/` metadata + `sfa.yml` |
-| `sfa status [--project DIR]` | Project overview: config, elements, module/pipe/probe counts, last run |
-| `sfa clean [--project DIR] [--yes]` | Reset `.sfa/` metadata (keep `sfa.yml`) |
-| `sfa extract [--project DIR]` | Tree-sitter parse → `.sfa/elements.json` |
-| `sfa module add -n NAME -e ENTRY [--validation strict\|lenient\|none] [--force]` | Create module + infer contract (idempotent; `--force` rebuilds) |
-| `sfa module remove ID` / `sfa module list` | Manage modules |
-| `sfa pipe add SRC TGT [--visibility L1-L4] [--force]` | Connect a data-flow pipe (idempotent; `--force` rebuilds) |
-| `sfa pipe remove ID` / `sfa pipe list` | Manage pipes |
-| `sfa group IDS… -n NAME` | Pack modules into a composite |
-| `sfa ungroup ID` / `sfa drill ID` | Unpack / inspect a composite's interior |
-| `sfa generate ID [--yes]` | AI-generate implementation under contract (diff) |
-| `sfa rollback ID [--version V]` | Restore a prior code version |
-| `sfa run [--input FILE]` | Execute pipeline topologically + snapshot boundaries |
-| `sfa observe [ID] [--run RUN_ID]` | View run summary / module snapshot |
-| `sfa probe add router PIPE -c EXPR --on-true T --on-false F -n NAME` | Routing probe |
-| `sfa probe add assertion PIPE -c EXPR -n NAME` | Assertion probe |
-| `sfa probe list` / `sfa probe remove ID` | Manage probes |
-| `sfa list` | Table: modules, type, recent-run status light, I/O one-liner |
-| `sfa graph [ID] [--hops N]` | ASCII data-flow diagram / neighborhood |
+| `sfa init [--target DIR] [--force]` | Create `.sfa/` metadata and `sfa.yml` in the target directory |
+| `sfa status [--project DIR]` | Project overview: configuration, counts of elements/modules/pipes/probes, last run status |
+| `sfa clean [--project DIR] [--yes]` | Clear generated data in `.sfa/`, keeping `sfa.yml` |
 
-All commands accept `--project/-p` to target a project root other than the
-current directory.
+### Code Extraction
 
-## Probes
+| Command | Description |
+|---------|-------------|
+| `sfa extract [--project DIR]` | Parse Python files in `source_dir` using tree‑sitter, generate `.sfa/elements.json` |
 
-Probes attach to pipes and observe data **without** altering flow:
+### Modules & Pipes
 
-- **Router** — evaluates a condition on the source module's output and records
-  which branch (`on_true`/`on_false`) was selected. (MVP routing is
-  observation-only; it records the decision rather than re-routing data.)
-- **Assertion** — evaluates a condition; failure records a warning with an
-  expected-vs-actual comparison.
+| Command | Description |
+|---------|-------------|
+| `sfa module add -n NAME -e ENTRY [--validation strict\|lenient\|none]` | Create a module with auto‑inferred contract (idempotent) |
+| `sfa module remove ID` | Delete a module |
+| `sfa module list` | List all modules |
+| `sfa pipe add SRC TGT [--visibility L1–L4]` | Connect a pipe (idempotent) |
+| `sfa pipe remove ID` | Delete a pipe |
+| `sfa pipe list` | List all pipes |
+| `sfa group IDS… -n NAME` | Bundle several modules into a composite module |
+| `sfa ungroup ID` | Unpack a composite module |
+| `sfa drill ID` | Drill into the internal view of a composite module |
 
-The probe DSL is a restricted expression subset: `$output.field`, subscripts
-(`$output[0]`, `$output[-1]`), comparisons, arithmetic, booleans, and
-constants. Field paths are statically validated against the upstream output
-schema at definition time.
+### AI Generation
+
+| Command | Description |
+|---------|-------------|
+| `sfa generate ID [--yes]` | Generate an implementation for the module (shown as a diff; written after human confirmation) |
+| `sfa rollback ID [--version V]` | Roll back module code to a historical version |
+
+### Execution & Observation
+
+| Command | Description |
+|---------|-------------|
+| `sfa run [--input FILE]` | Execute the pipeline in topological order, snapshots at every module boundary |
+| `sfa observe [ID] [--run RUN_ID]` | Show run summary or detailed snapshot for a specified module |
+| `sfa list` | Tabular display of all modules (name, type, status, input/output summary) |
+| `sfa graph [ID] [--hops N]` | ASCII data flow graph / neighbourhood subgraph of a specified module |
+
+### Probes
+
+| Command | Description |
+|---------|-------------|
+| `sfa probe add router PIPE -c EXPR --on-true T --on-false F -n NAME` | Create a router probe on a pipe |
+| `sfa probe add assertion PIPE -c EXPR -n NAME` | Create an assertion probe on a pipe |
+| `sfa probe list` | List all probes |
+| `sfa probe remove ID` | Remove a probe |
+
+Probe expressions use a restricted DSL: `$output.field`, subscript `$output[0]`, comparisons/arithmetic/booleans, constants. Field paths are statically validated at definition time and must exist in the upstream module’s Output Schema.
 
 ```
-sfa probe add assertion pipe_评分_正向预测 -c '$output.score >= 0.5' -n "分数阈值"
+sfa probe add assertion pipe_scorer_positive -c '$output.score >= 0.5' -n score_threshold
 ```
 
 ## Example
 
-A complete, runnable demo lives in [`examples/pipeline/`](./examples/pipeline):
-a 5-module data-processing pipeline with a router probe and an assertion
-probe. Run it with one command:
+[`examples/pipeline/`](./examples/pipeline) contains a complete 5‑module data processing pipeline with assertion and router probes. Run it with one command:
 
 ```bash
 cd examples/pipeline
 python demo.py
 ```
 
-This builds the `.sfa/` metadata from scratch, runs the pipeline, and prints
-the `observe` / `list` / `graph` output. See the example's own README for a
-step-by-step walkthrough.
+The script sequentially executes `init → extract → module add ×5 → pipe add ×4 → probe add ×2 → run → observe → list → graph`—no API key required. It can be run repeatedly.
 
-## Design documents
+Sample `sfa observe` output:
 
-The repo root holds three design documents (in Chinese, addressed to AI
-executors):
+```
+Run f25582be... (success)
+OK  loader       Input={"seed": 42}   Output={"rows": [...], "n": 2}  0ms
+OK  featurizer   Input={"rows": [...], "n": 2}   Output={"features": [43.0, 85.0]}  0ms
+OK  scorer       Input={"features": [43.0, 85.0]}   Output={"score": 0.64}  0ms
+OK  positive     Input={"score": 0.64}   Output={"label": "positive", "score": 0.64}  0ms
+OK  negative     Input={"score": 0.64}   Output={"label": "negative", "score": 0.64}  0ms
 
-- [`total.md`](./total.md) — project vision and core philosophy
-- [`architecture.md`](./architecture.md) — system architecture and domain model
-- [`road.md`](./road.md) — milestone roadmap (M1–M6)
+Probes (2):
+  [PASS] score_threshold         → $output.score >= 0.5
+  [ROUTE] high_confidence_router → condition false, branch=on_false/negative
+```
+
+## Design Documents
+
+Three Chinese design documents are available in the project root, describing SFA’s design intent from different perspectives:
+
+- [`total.md`](./total.md) — Project vision: why SFA, core philosophy
+- [`architecture.md`](./architecture.md) — System architecture: domain model, layered design, data storage specifications
+- [`road.md`](./road.md) — Development roadmap: M1–M6 milestones and completion criteria
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, test
-conventions, and PR guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT — see [LICENSE](./LICENSE). Copyright (c) 2026 SFA Contributors.
+[MIT](./LICENSE)
