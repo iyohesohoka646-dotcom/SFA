@@ -10,10 +10,6 @@ metadata in `.sfa/`. AI is then confined to generating the implementation
 *inside* a single module's contract — it never decides data flow, module
 boundaries, or system structure.
 
-```
-工程师 = 架构师，掌控蓝图（数据流图）
-   AI  = 代码手，填充实现
-```
 
 ## Install
 
