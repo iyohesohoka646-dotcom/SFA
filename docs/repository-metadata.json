@@ -1,0 +1,7 @@
+{
+  "name": "contract-driven-ai-flow",
+  "description": "Visual flow-based programming for AI-assisted Python development: explicit contracts, reviewed module changes, runtime probes and a local architecture workbench.",
+  "topics": ["ai-coding", "contract-driven-development", "flow-based-programming", "visual-programming", "software-architecture", "runtime-observability", "python", "dataflow"],
+  "current_remote": "https://github.com/iyohesohoka646-dotcom/SFA",
+  "status": "Prepared metadata; remote rename/topics/publication have not been applied"
+}

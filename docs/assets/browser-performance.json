@@ -1,0 +1,11 @@
+{
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "nodes": 4,
+  "search_interaction_ms": 27,
+  "reduced_motion": true,
+  "measured_at": "2026-10-01T07:31:41.830Z",
+  "note": "See docs/assets/large-graph-performance.json for the separate folded-graph measurement."
+}

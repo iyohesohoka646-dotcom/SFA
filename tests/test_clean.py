@@ -17,7 +17,7 @@ runner = CliRunner()
 SAMPLE = 'def f(x: int) -> int:\n    """d"""\n    return x\n'
 
 
-def test_clean_resets_metadata_keeps_config(tmp_path: Path) -> None:
+def test_clean_preserves_definitions_and_config(tmp_path: Path) -> None:
     root = init_mod.init_project(tmp_path)
     cfg = root / CONFIG_FILENAME
     cfg_data = yaml.safe_load(cfg.read_text(encoding="utf-8"))
@@ -36,12 +36,13 @@ def test_clean_resets_metadata_keeps_config(tmp_path: Path) -> None:
     assert (meta / "elements.json").is_file()
     assert (meta / "modules" / "m" / "contract.json").is_file()
 
+    pipeline_before = (meta / "pipeline.yml").read_text(encoding="utf-8")
     init_mod.clean_project(root)
 
     assert (meta / "pipeline.yml").is_file()
     assert (
         (meta / "pipeline.yml").read_text(encoding="utf-8").strip()
-        == "modules: []\npipes: []"
+        == pipeline_before.strip()
     )
     assert {p.name for p in meta.iterdir() if p.is_dir()} == {
         "modules",
@@ -51,7 +52,7 @@ def test_clean_resets_metadata_keeps_config(tmp_path: Path) -> None:
         "probes",
     }
     assert not (meta / "elements.json").is_file()
-    assert not (meta / "modules" / "m").exists()
+    assert (meta / "modules" / "m" / "contract.json").exists()
     cfg_after = yaml.safe_load(cfg.read_text(encoding="utf-8"))
     assert cfg_after["project"]["name"] == "kept-name"
 
@@ -79,7 +80,7 @@ def test_clean_cli_yes(tmp_path: Path) -> None:
     assert res.exit_code == 0, res.stdout
     assert "已清理" in res.stdout
     pipeline = (tmp_path / ".sfa" / "pipeline.yml").read_text(encoding="utf-8").strip()
-    assert pipeline == "modules: []\npipes: []"
+    assert "id: m" in pipeline
     assert not (tmp_path / ".sfa" / "elements.json").is_file()
 
 

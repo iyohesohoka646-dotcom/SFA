@@ -1,0 +1,41 @@
+{
+  "input": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "object",
+        "properties": {
+          "mean": {
+            "type": "number"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mean",
+          "count"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "required": [
+      "summary"
+    ],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "string"
+  },
+  "examples": [
+    {
+      "input": {
+        "summary": {
+          "mean": 2,
+          "count": 3
+        }
+      },
+      "output": "3 samples · mean 2.00"
+    }
+  ]
+}

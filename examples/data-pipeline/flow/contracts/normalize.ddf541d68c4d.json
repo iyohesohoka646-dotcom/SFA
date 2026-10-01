@@ -1,0 +1,44 @@
+{
+  "input": {
+    "type": "object",
+    "properties": {
+      "values": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "scale": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "values",
+      "scale"
+    ],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "array",
+    "items": {
+      "type": "number"
+    }
+  },
+  "examples": [
+    {
+      "input": {
+        "values": [
+          2,
+          4,
+          6
+        ],
+        "scale": 2
+      },
+      "output": [
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

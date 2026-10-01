@@ -1,60 +1,21 @@
-# SFA 示例：数据处理流水线
+# 旧版 SFA 数据处理流水线
 
-一个完整的、可一键运行的 SFA 演示项目。展示从拓扑定义到运行观测的完整闭环，
-包含 5 个原子模块、4 条管道、1 个断言探针和 1 个路由探针。
+本示例保留旧版 `sfa` Python 模块与 `.sfa/` 格式，用于兼容和迁移验证。新工作台示例见 [data-pipeline](../data-pipeline)、[business-flow](../business-flow) 和 [nested-composite](../nested-composite)。
 
-## 数据流
-
-```
-loader --> featurizer --> scorer --> positive
-                                \--> negative
+```text
+loader → featurizer → scorer → positive
+                         ↘ negative
 ```
 
-| 模块 | 入口函数 | 输入 | 输出 |
-|------|----------|------|------|
-| loader | `load_data(seed)` | `{seed: int}` | `{rows, n}` |
-| featurizer | `extract_features(rows, n)` | `{rows, n}` | `{features}` |
-| scorer | `score(features)` | `{features}` | `{score}` |
-| positive | `branch_pos(score)` | `{score}` | `{label, score}` |
-| negative | `branch_neg(score)` | `{score}` | `{label, score}` |
+在已安装本项目的环境中运行：
 
-以 `seed=42` 运行时，scorer 输出 `score=0.64`：
-
-- **断言探针** `$output.score >= 0.5` → 通过（0.64 ≥ 0.5）
-- **路由探针** `$output.score >= 0.8` → 条件为假，记录 on_false 分支（negative）
-
-> 注意：MVP 中路由探针仅**记录**分支决策，不改变数据流。positive 和 negative
-> 都会正常执行并产出快照。
-
-## 一键运行
-
-```bash
+```console
 cd examples/pipeline
-python demo.py
+python -X utf8 demo.py
 ```
 
-脚本会依次执行 `sfa init` → `clean` → `extract` → `module add` ×5 → `pipe add` ×4 →
-`probe add` ×2 → `run` → `observe` → `list` → `graph`，全程离线、无需 API key。
+脚本通过当前解释器执行 `python -m sfa`，依次初始化、扫描源码、定义模块/连线/探针、执行并观察结果，可重复运行。新版 `clean` 仅清理扫描缓存，保留架构、探针与历史记录；脚本复用已有定义，不再依靠删除定义重置项目。
 
-脚本可**重复运行**：每次开头先用 `sfa clean` 清空 `.sfa/` 生成物（保留 `sfa.yml`），
-因此无需手动删除 `.sfa/`。
+旧 Router 只记录条件和假想目标，`positive`、`negative` 两个模块仍都会执行。迁移后对应 `branch_observer`；需要真实条件执行时，请在新模型中使用 Decision 和 guard。
 
-## 前置条件
-
-- 已安装 `sfa` 命令（在仓库根目录执行 `pip install -e ".[dev]"`，或 `pipx install .`）。
-  脚本优先调用 `sfa` 可执行文件，找不到时回退到 `python -m sfa`。
-
-## 手动逐步运行
-
-如需逐步理解每个命令，可参照 `demo.py` 中的调用序列手动执行，例如：
-
-```bash
-sfa init --target .
-sfa extract --project .
-sfa module add --name loader --entry load_data --project .
-sfa pipe add loader featurizer --project .
-sfa run --input input.json --project .
-sfa observe --project .
-sfa list --project .
-sfa graph --project .
-```
+旧命令可通过 `python -m sfa` 或 `sfa legacy` 使用。直接执行 `sfa` 是 `cdaf` 的兼容入口。迁移先运行 `cdaf migrate .` 预览，再通过 `--apply --destination PATH` 写入单独目录；原示例保留。

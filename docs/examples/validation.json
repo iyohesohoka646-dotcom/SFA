@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-09-30T21:36:56.354092+00:00",
+  "cases": [
+    {
+      "example": "data-pipeline",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "source_digest": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff",
+      "compile_diagnostics": [],
+      "runs": [
+        {
+          "fixture": "success",
+          "id": "404765721c674411841730f8b4507d05",
+          "execution": "completed",
+          "quality": "passed"
+        },
+        {
+          "fixture": "failure",
+          "id": "f99cc1f82bbd4110bf275235add6c561",
+          "execution": "completed",
+          "quality": "failed"
+        }
+      ]
+    },
+    {
+      "example": "business-flow",
+      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "source_digest": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d",
+      "compile_diagnostics": [],
+      "runs": [
+        {
+          "fixture": "success",
+          "id": "ca8b87b91a5146d5b5a82f2f721babf1",
+          "execution": "completed",
+          "quality": "passed"
+        },
+        {
+          "fixture": "failure",
+          "id": "d702c0aebc114a329deb288703c970f9",
+          "execution": "completed",
+          "quality": "failed"
+        }
+      ]
+    },
+    {
+      "example": "nested-composite",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "source_digest": "bb7451127d0254108fe1340f30341f378ad9161d6c87ffacd57dfc074c1db902",
+      "compile_diagnostics": [],
+      "runs": [
+        {
+          "fixture": "success",
+          "id": "f68ad4c8cfb440ce83393f1df81229ea",
+          "execution": "completed",
+          "quality": "passed"
+        },
+        {
+          "fixture": "failure",
+          "id": "ece23ad1873e447bb6d8dc9cf02b3860",
+          "execution": "completed",
+          "quality": "failed"
+        }
+      ]
+    }
+  ]
+}

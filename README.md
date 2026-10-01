@@ -1,235 +1,88 @@
-# SFA — Semantic Flow Architecture
+# Contract-Driven AI Flow
 
-[![GitHub](https://img.shields.io/badge/GitHub-iyohesohoka646--dotcom%2FSFA-blue?logo=github)](https://github.com/iyohesohoka646-dotcom/SFA)
+**Visual Flow-Based Programming for AI-Assisted Development**
 
-**SFA is a programming paradigm that first defines the structure, then lets AI fill in the code.** Engineers predefine each module’s input/output contracts and data flow directions. AI then generates implementations module by module under the constraints of these contracts. At runtime, input and output snapshots are automatically recorded at every module boundary.
+Visual flow-based programming with explicit contracts, bounded AI code changes, and runtime probes.
+**Design the flow. Review the contracts. Generate modules. Inspect real executions.**
 
-The core difference from conversational AI programming (Cursor, Copilot, etc.): system structure is persisted as machine‑readable metadata in the `.sfa/` directory, not scattered across chat logs and source code. When a module is modified, AI never touches module boundaries or data flows—those are decided by humans alone.
+[简体中文](README.zh-CN.md) · [Getting started](docs/workflow.md) · [CLI reference](docs/cli.md) · [Web/CLI coverage](docs/web-cli-delivery.md) · [Architecture](docs/architecture.md)
 
-```
-Engineer → defines modules + contracts + data flow topology
-AI      → generates implementations module by module within contracts (never crosses boundaries)
-Runtime → automatically snapshots every module boundary; locate problems via data summaries, not by reading code
-```
+![Local Studio showing a real completed execution with a failed quality assertion](docs/assets/studio-runtime.png)
 
-## What Problem It Solves
+Build a controllable, composable Python code structure. Humans define module interfaces and data dependencies; AI proposes implementations inside those boundaries. Review architecture and code separately, then inspect revision-bound execution evidence on the same canvas.
 
-Conversational AI programming has three structural issues:
+The [offline case gallery](docs/examples/index.html) contains three real examples, each with success and quality-failure evidence. Download or open the HTML files locally; they include their data and need no server. See the [data pipeline](docs/examples/data-pipeline/architecture.svg), [business flow](docs/examples/business-flow/architecture.svg), and [nested composite](docs/examples/nested-composite/architecture.svg) directly on GitHub.
 
-1. **System structure is invisible.** Dependencies between modules exist only in the developer’s mind; AI neither knows nor maintains them. Every change requires the developer to rebuild structural awareness from the code text.
-2. **AI context is uncontrolled.** AI can read the entire project; a single change may affect unrelated modules or even modify the interface contracts between modules arbitrarily.
-3. **Debugging relies on reading code.** When something goes wrong, you can only ask AI to explain the logic or read line by line—there is no module‑level input/output view.
+## Why use it?
 
-SFA addresses these by:
+- **Explicit interfaces:** JSON Schema contracts and named input bindings reject missing ports, duplicate writers, cycles and illegal composite crossings before execution.
+- **Bounded implementation changes:** proposals preserve the target signature and decorators, check all imports, and use LibCST to replace only its body. Source changes during review invalidate the proposal.
+- **Reviewable architecture:** contracts, ports, probes and grouping are authored in `flow.yaml`. Moving a node changes its view, not program semantics. External AI agents can submit architecture proposals for review.
+- **Visible evidence:** child Python processes transfer JSON values without shared references. Assertions, metrics, captures, real decisions and read-only branch observations have distinct behavior and status.
+- **Local operation:** Python installs include the compiled React workbench. No Node.js, API key or cloud account is needed to try the examples.
 
-- **Explicitly** representing module boundaries and interface contracts as JSON Schema, stored in `.sfa/modules/{name}/contract.json`
-- Defining the data flow (module → pipe → module) as a directed graph, stored in `.sfa/pipeline.yml`
-- When generating code, AI only sees the contract of the current module + upstream module information according to visibility levels; it **cannot see downstream**
-- After each run, automatically saving input/output/duration snapshots at every module boundary, so problems can be pinpointed directly to a module
+## Quick start, without an API key
 
-## Core Concepts
+On Windows, double-click **[启动工作台.cmd](启动工作台.cmd)** in this checkout to prepare a project environment and open the independent local Web UI. It opens your project workspace, with a ready-to-run example, new-project templates and existing-folder registration. **[停止工作台.cmd](停止工作台.cmd)** stops the workspace service. See [local deployment](docs/local-deployment.md).
 
-| Concept | Description |
-|---------|-------------|
-| **Module** | A computational unit, corresponding to a piece of Python code. Can be atomic (single source file) or composite (nested sub‑modules and sub‑pipes). |
-| **Contract** | The interface specification of a module: Input Schema, Output Schema (JSON Schema format), and a natural language summary. Modules do not share memory; they communicate only through the data formats defined by contracts. |
-| **Pipe** | A directed edge connecting two modules, indicating that data flows from the upstream module’s output to the downstream module’s input. |
-| **Snapshot** | The actual input/output data, duration, and status automatically recorded at module boundaries after each run. Stored in `.sfa/snapshots/{run_id}/{module}.json`. |
-| **Probe** | A non‑intrusive observer attached to a pipe. Two types: Router (conditional branch recording) and Assertion (assertion validation). Does not modify the data flow. |
-| **Visibility Levels (L1–L4)** | Parameters on a pipe that control how much upstream information AI can see when generating a downstream module. L1: schema only, L4: full source code. Default is L2. |
+Requires Python 3.11+. From this checkout or an unpacked source release, in an activated virtual environment:
 
-## Installation
-
-Requires Python 3.11+.
-
-```bash
-git clone https://github.com/iyohesohoka646-dotcom/SFA.git
-cd SFA
-pip install .
+```console
+python -m pip install .
+cdaf studio
 ```
 
-After installation, the `sfa` command becomes available in your current environment.
+You can launch from an empty working directory. Studio starts in the background, waits for authenticated readiness, and opens a fresh browser session. It reuses the running service; closing the terminal or browser leaves it running. Inside an existing project it opens that project; use `cdaf studio --workspace` for all projects. A free port is selected automatically; `--port` requests a specific port. `cdaf studio --stop` stops the matching service.
 
-For development installation (editable mode + test tools):
+After installation, `cdaf shortcut` creates native launch/stop shortcuts on your Desktop; `cdaf-studio` is the windowless application entry. `cdaf doctor` diagnoses the installation. Ordinary operation needs Python 3.11+; Node.js is only needed for frontend development or the optional Archify renderer.
 
-```bash
-pip install -e ".[dev]"
-```
+For a self-checking demo, run `cdaf demo --target cdaf-demo --serve`. It executes built-in implementations twice, verifies `completed / passed` and `completed / failed`, and writes an offline HTML view. It refuses to overwrite a nonempty destination.
 
-To enable LLM integration (requires an API key; replaces the built‑in mock provider):
+`cdaf demo --example business-flow --target business-demo` exercises an HTTP call against a local fixture and an actual Decision branch. `--example nested-composite` demonstrates two levels of public input/output mappings.
 
-```bash
-pip install ".[ai]"
-```
+This is a local **0.2.0 release candidate**. The current remote is still named [SFA](https://github.com/iyohesohoka646-dotcom/SFA); the Python distribution is `contract-driven-ai-flow`, the import is `contract_driven_ai_flow`, and the command is `cdaf`. PyPI publication and remote rename are separate release actions. [Release status and validation](docs/release.md) distinguish tested behavior from pending platform checks.
 
-The built‑in mock provider requires no API key and is suitable for offline demos and testing.
+## One complete edit and debug cycle
 
-## Quick Start
+1. Open **Architecture**, select `Summarize`, and edit its contract or explicit input binding. **Validate** displays compiler diagnostics; **Review & save** creates an architecture proposal.
+2. In **Review**, inspect the diff and diagnostics, then accept the change. New Python modules receive a skeleton that still requires implementation.
+3. Submit a candidate function from **Context → Candidate**, or create one with `cdaf generate ingest --project cdaf-demo`. Generation only proposes a change; acceptance is explicit.
+4. Choose **Runs → Success fixture → Run with this input**. Nodes and transfers reflect recorded events. The failure fixture demonstrates that a module can complete while its quality assertion fails.
+5. In **Probes**, preview a strict Boolean rule such as `$output.mean <= 5`, choose `continue`, `block`, `pause` or `breakpoint`, then review the architecture change. Inspect input/output summaries and the timeline; export sanitized evidence when needed.
 
-Run the following commands in your working directory. The final output will be a completed pipeline with its snapshots, no API key required.
+The offline generator implements only reviewed contract fixtures and rejects other inputs. It is useful for exercising the proposal/review loop, and makes no claim to generalize. The built-in demos use real general-purpose Python implementations. Optional OpenAI/Anthropic adapters use explicit models and environment credentials; live provider calls are outside the offline acceptance suite.
 
-```bash
-# 1. Initialize the project, create .sfa/ directory and sfa.yml config file
-sfa init
+## Core concepts
 
-# 2. Edit source_dir in sfa.yml to point to your code directory, then extract code elements
-sfa extract
+| Concept | Behavior |
+|---|---|
+| `ProjectSpec → ExecutionPlan → RunEvent` | One versioned model feeds the CLI, compiler, HTTP API and Studio. |
+| Module / Contract | A file-qualified Python symbol, a composite public interface, or a deterministic Decision; contracts include concrete fixtures. |
+| PortBinding | An input comes from a project JSON Pointer, upstream output, or literal/default. Multiple writers require a merge module. |
+| Composite | Public inputs and outputs map to an internal graph. Declared interfaces are checked before flattening and whole-object contracts are checked at runtime. |
+| Probe / Control | Observers return `pass / fail / error / skipped`; scheduling policies handle block, pause and resume independently. |
+| Context L1–L4 | Schema, fixtures, identity, then authorized symbol source. A request cannot exceed a binding's visibility cap. |
+| ChangeSet | A staged architecture or implementation diff tied to a base revision; accepted code can be rolled back through an inverse proposal. |
+| Evidence / View | `.cdaf/` contains SQLite events and bounded artifacts; `flow/views.json` stores position/theme separately from executable semantics. |
 
-# 3. Define modules from the extracted elements (contracts are auto‑inferred from function signatures)
-sfa module add --name loader --entry load_data
-sfa module add --name scorer --entry score
+## Capabilities and limits
 
-# 4. Connect pipes to define data flow directions
-sfa pipe add loader scorer
+Studio has a persistent project workspace plus Architecture, Runs, Probes and Review views, explicit binding forms, contract/group editors, undo/redo, search, path focus, collapsible composites, keyboard interaction, themes and responsive panels. Project tools expose plan/source inspection, architecture import, integration exports, migration, storage, installation diagnosis and the shared command catalogue. Run replay uses historical models and events; it never automatically reruns external side effects. HTML, SVG, PNG, Mermaid and JSON exports work offline; optional exporters provide OTLP/JSON and a pinned Archify design view.
 
-# 5. Let AI generate module implementations (mock mode outputs function skeletons; can be connected to a real LLM)
-sfa generate scorer
+CLI output is readable in a terminal and JSON when piped; `cdaf --json …` explicitly selects JSON, and `--human` selects readable output. `cdaf run --input -` reads JSON from stdin. See [the coverage matrix and design sources](docs/web-cli-delivery.md).
 
-# 6. Execute the pipeline in topological order, with automatic snapshots at every module boundary
-sfa run --input input.json
+The first version executes local Python DAGs, serially by default, with bounded concurrency, deadlines, cancellation, and opt-in idempotent retries. It validates actual data when a schema relation is explicitly declared dynamic. The conservative compiler returns “unknown” for schema constraints it cannot prove. Local processes inherit the user's file/network permissions; this is process isolation, not an OS security sandbox. Full capture is opt-in, bounded and retained for a configured period; default capture is a sanitized summary. See [privacy and execution](docs/architecture.md#execution-and-evidence).
 
-# 7. Observe the results—without reading code, just data summaries
-sfa observe          # status lights for all modules + input/output summaries
-sfa observe scorer   # detailed snapshot of a single module
+Port names and interface schemas are authored explicitly. Existing-code scanning lists candidates, and does not silently promote inferred calls to execution edges. Class instance construction, cyclic execution, multi-language runtimes, collaboration and distributed scheduling are not implemented. Probe expressions are a bounded version-1 language; they are not CEL itself.
 
-# 8. Index and visualise
-sfa list             # table: module name, type, last run status, one‑line input/output summary
-sfa graph            # ASCII data flow graph
-sfa graph scorer     # neighbourhood subgraph around the scorer module
-```
+## Related work
 
-Sample `sfa list` output:
+[Archify](https://github.com/tt-a1i/archify) informs typed diagram exports and validation receipts; [LikeC4](https://github.com/likec4/likec4) informs multiple views of one model; [Apache Hamilton](https://github.com/apache/hamilton) and [NoFlo](https://github.com/noflo/noflo) provide useful Python dataflow and public-port patterns. [Node-RED](https://nodered.org/docs/user-guide/editor/sidebar/debug) informs debug filtering, [OpenTelemetry](https://opentelemetry.io/docs/concepts/signals/traces/) supplies standard span/link export, and [OpenSpec](https://github.com/Fission-AI/OpenSpec) demonstrates reviewable specification changes. [Detailed comparison and design decisions](docs/research.md) describe the overlap without claiming unsupported differences.
 
-```
-ID          Name        Type     Status  Input                                           Output
-----------  ----------  ------  ----    ----------------------------------------------  ----
-loader      loader      Atomic  OK      {"seed": 42}                                    {"rows": [...], "n": 2}
-scorer      scorer      Atomic  OK      {"features": [43.0, 85.0]}                      {"score": 0.64}
-```
+## Documentation and contribution
 
-Sample `sfa graph` output:
+[Workflow](docs/workflow.md) · [CLI](docs/cli.md) · [Architecture/API](docs/architecture.md) · [Migration](docs/migration.md) · [Examples and evidence](docs/examples/index.html) · [Release validation](docs/release.md) · [Contributing](CONTRIBUTING.md)
 
-```
-Top‑level data flow graph (3 modules, 2 pipes):
+`cdaf` is the primary interface. `sfa` aliases it for one major version; legacy commands are explicitly available as `sfa legacy …` or `python -m sfa …`. Migration preserves originals and reports ambiguous bindings. `clean` clears caches by default and preserves architecture definitions.
 
-  [loader] --> [scorer]
-  [scorer]
-```
-
-## Visibility Levels
-
-The visibility level on a pipe controls how much upstream context AI can see when generating a downstream module. This is the core mechanism by which SFA limits the scope of AI behaviour.
-
-| Level | Upstream information visible to AI |
-|-------|------------------------------------|
-| L1    | Upstream module’s Output Schema only |
-| L2    | L1 + upstream module’s natural‑language summary + input/output examples (default) |
-| L3    | L2 + upstream module’s function signatures |
-| L4    | L3 + full source code of the upstream module |
-
-Information about **downstream modules is never visible to AI**—generation is strictly local.
-
-## Command Reference
-
-All commands accept `--project/-p` to specify the project root (defaults to the current directory).
-
-### Project Management
-
-| Command | Description |
-|---------|-------------|
-| `sfa init [--target DIR] [--force]` | Create `.sfa/` metadata and `sfa.yml` in the target directory |
-| `sfa status [--project DIR]` | Project overview: configuration, counts of elements/modules/pipes/probes, last run status |
-| `sfa clean [--project DIR] [--yes]` | Clear generated data in `.sfa/`, keeping `sfa.yml` |
-
-### Code Extraction
-
-| Command | Description |
-|---------|-------------|
-| `sfa extract [--project DIR]` | Parse Python files in `source_dir` using tree‑sitter, generate `.sfa/elements.json` |
-
-### Modules & Pipes
-
-| Command | Description |
-|---------|-------------|
-| `sfa module add -n NAME -e ENTRY [--validation strict\|lenient\|none]` | Create a module with auto‑inferred contract (idempotent) |
-| `sfa module remove ID` | Delete a module |
-| `sfa module list` | List all modules |
-| `sfa pipe add SRC TGT [--visibility L1–L4]` | Connect a pipe (idempotent) |
-| `sfa pipe remove ID` | Delete a pipe |
-| `sfa pipe list` | List all pipes |
-| `sfa group IDS… -n NAME` | Bundle several modules into a composite module |
-| `sfa ungroup ID` | Unpack a composite module |
-| `sfa drill ID` | Drill into the internal view of a composite module |
-
-### AI Generation
-
-| Command | Description |
-|---------|-------------|
-| `sfa generate ID [--yes]` | Generate an implementation for the module (shown as a diff; written after human confirmation) |
-| `sfa rollback ID [--version V]` | Roll back module code to a historical version |
-
-### Execution & Observation
-
-| Command | Description |
-|---------|-------------|
-| `sfa run [--input FILE]` | Execute the pipeline in topological order, snapshots at every module boundary |
-| `sfa observe [ID] [--run RUN_ID]` | Show run summary or detailed snapshot for a specified module |
-| `sfa list` | Tabular display of all modules (name, type, status, input/output summary) |
-| `sfa graph [ID] [--hops N]` | ASCII data flow graph / neighbourhood subgraph of a specified module |
-
-### Probes
-
-| Command | Description |
-|---------|-------------|
-| `sfa probe add router PIPE -c EXPR --on-true T --on-false F -n NAME` | Create a router probe on a pipe |
-| `sfa probe add assertion PIPE -c EXPR -n NAME` | Create an assertion probe on a pipe |
-| `sfa probe list` | List all probes |
-| `sfa probe remove ID` | Remove a probe |
-
-Probe expressions use a restricted DSL: `$output.field`, subscript `$output[0]`, comparisons/arithmetic/booleans, constants. Field paths are statically validated at definition time and must exist in the upstream module’s Output Schema.
-
-```
-sfa probe add assertion pipe_scorer_positive -c '$output.score >= 0.5' -n score_threshold
-```
-
-## Example
-
-[`examples/pipeline/`](./examples/pipeline) contains a complete 5‑module data processing pipeline with assertion and router probes. Run it with one command:
-
-```bash
-cd examples/pipeline
-python demo.py
-```
-
-The script sequentially executes `init → extract → module add ×5 → pipe add ×4 → probe add ×2 → run → observe → list → graph`—no API key required. It can be run repeatedly.
-
-Sample `sfa observe` output:
-
-```
-Run f25582be... (success)
-OK  loader       Input={"seed": 42}   Output={"rows": [...], "n": 2}  0ms
-OK  featurizer   Input={"rows": [...], "n": 2}   Output={"features": [43.0, 85.0]}  0ms
-OK  scorer       Input={"features": [43.0, 85.0]}   Output={"score": 0.64}  0ms
-OK  positive     Input={"score": 0.64}   Output={"label": "positive", "score": 0.64}  0ms
-OK  negative     Input={"score": 0.64}   Output={"label": "negative", "score": 0.64}  0ms
-
-Probes (2):
-  [PASS] score_threshold         → $output.score >= 0.5
-  [ROUTE] high_confidence_router → condition false, branch=on_false/negative
-```
-
-## Design Documents
-
-Three Chinese design documents are available in the project root, describing SFA’s design intent from different perspectives:
-
-- [`total.md`](./total.md) — Project vision: why SFA, core philosophy
-- [`architecture.md`](./architecture.md) — System architecture: domain model, layered design, data storage specifications
-- [`road.md`](./road.md) — Development roadmap: M1–M6 milestones and completion criteria
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-## License
-
-[MIT](./LICENSE)
+MIT. Built on the original SFA codebase; third-party notices are in [NOTICE.md](NOTICE.md).
