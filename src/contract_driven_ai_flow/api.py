@@ -125,6 +125,9 @@ def create_app(root: Path, token: str | None = None, port: int = 8765, shutdown:
     runners: dict[str, Runner] = {}
     runners_lock = threading.Lock()
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+    from .research.service import ResearchService
+    from .research.routes import attach_research_routes
+    research = ResearchService(root)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -135,9 +138,12 @@ def create_app(root: Path, token: str | None = None, port: int = 8765, shutdown:
             for runner in runners.values():
                 runner.cancelled.set()
         executor.shutdown(wait=True, cancel_futures=True)
+        await asyncio.to_thread(research.close)
 
     app = FastAPI(title="Contract-Driven AI Flow", version="1", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.session_token = token
+    app.state.research = research
+    attach_research_routes(app, research)
 
     secure_app(app, token, port)
 

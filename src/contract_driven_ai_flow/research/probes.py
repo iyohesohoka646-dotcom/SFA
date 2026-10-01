@@ -214,6 +214,7 @@ class ProbeWorker:
         self.process = None
         self.messages = queue.Queue(maxsize=16)
         self.prepared = set()
+        self.abort = threading.Event()
 
     @staticmethod
     def _read(process, messages):
@@ -234,6 +235,8 @@ class ProbeWorker:
                 pass
 
     def start(self):
+        if self.abort.is_set():
+            raise InterruptedError("Probe was cancelled")
         if self.process is not None and self.process.poll() is None:
             return
         self.messages = queue.Queue(maxsize=16)
@@ -242,6 +245,9 @@ class ProbeWorker:
         self.process = subprocess.Popen([sys.executable, "-X", "utf8", "-m", "contract_driven_ai_flow.research.probe_worker"],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=env,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+        if self.abort.is_set():
+            self.stop()
+            raise InterruptedError("Probe was cancelled during startup")
         threading.Thread(target=self._read, args=(self.process, self.messages), name="cdaf-probe-wire", daemon=True).start()
         if self.messages.get(timeout=3).get("type") != "ready":
             raise ValueError("Probe worker did not become ready")
@@ -274,6 +280,11 @@ class ProbeWorker:
         return ProbeResult.model_validate(sanitize_json(evaluated.model_dump(mode="json")))
 
     def stop(self):
+        self.abort.set()
+        try:
+            self.messages.put_nowait({"type": "closed"})
+        except queue.Full:
+            pass
         process, self.process = self.process, None
         self.prepared.clear()
         if process is not None:
@@ -301,8 +312,14 @@ class ProbePool:
         for worker in self._all_workers:
             self._workers.put(worker)
         self._closed = False
+        self._jobs_lock = threading.Lock()
+        self._worker_runs = {}
+        self._cancelled = set()
 
     def _evaluate(self, spec, snapshot):
+        with self._jobs_lock:
+            if self._closed or snapshot.run_id in self._cancelled:
+                return result(spec, snapshot, "skipped", "Probe was cancelled", evidence={"reason": "cancelled"})
         plugin = self.registry.plugin(spec.kind)
         if spec.kind in EXPENSIVE and spec.enabled and spec.parameters.get("enable_expensive") is True:
             if snapshot.descriptor.backend != "numpy" or not snapshot.artifact_ref or self.artifact_root is None:
@@ -318,6 +335,12 @@ class ProbePool:
         if plugin is None or not spec.enabled:
             return evaluate_probe(spec, snapshot)
         worker = self._workers.get()
+        with self._jobs_lock:
+            if self._closed or snapshot.run_id in self._cancelled:
+                self._workers.put(worker)
+                return result(spec, snapshot, "skipped", "Probe was cancelled", evidence={"reason": "cancelled"})
+            worker.abort.clear()
+            self._worker_runs[worker] = snapshot.run_id
         started = time.perf_counter()
         try:
             return worker.evaluate(spec, snapshot, plugin)
@@ -328,6 +351,8 @@ class ProbePool:
             worker.stop()
             return result(spec, snapshot, "error", "Isolated probe failed", evidence={"reason": "worker_error", "error_type": type(error).__name__}, duration=(time.perf_counter() - started) * 1000)
         finally:
+            with self._jobs_lock:
+                self._worker_runs.pop(worker, None)
             self._workers.put(worker)
 
     def submit(self, spec, snapshot):
@@ -346,11 +371,23 @@ class ProbePool:
     def evaluate(self, spec, snapshot):
         return self.submit(spec, snapshot).result()
 
+    def cancel_run(self, run_id):
+        with self._jobs_lock:
+            self._cancelled.add(run_id)
+            for worker, owner in self._worker_runs.items():
+                if owner == run_id:
+                    worker.stop()
+
+    def release_run(self, run_id):
+        with self._jobs_lock:
+            self._cancelled.discard(run_id)
+
     def close(self):
         self._closed = True
-        self._executor.shutdown(wait=True, cancel_futures=True)
+        self._executor.shutdown(wait=False, cancel_futures=True)
         for worker in self._all_workers:
             worker.stop()
+        self._executor.shutdown(wait=True)
 
     def __enter__(self):
         return self

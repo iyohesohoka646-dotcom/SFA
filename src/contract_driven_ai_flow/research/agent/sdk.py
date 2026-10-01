@@ -25,13 +25,14 @@ def now():
 
 class TraceSession:
     def __init__(self, name: str, transport: EventTransport | None = None, policy: CapturePolicy | None = None, *,
-                 run_id: str | None = None, registry: AdapterRegistry | None = None, artifact_root: Path | None = None):
+                 run_id: str | None = None, registry: AdapterRegistry | None = None, artifact_root: Path | None = None, observer=None):
         self.name = clean_text(name)
         self.policy = policy or CapturePolicy()
         self.transport = transport or EventTransport(max_queue_events=self.policy.max_queue_events,
             publish_interval_ms=self.policy.publish_interval_ms, max_queue_bytes=self.policy.max_queue_bytes)
         self.run_id = run_id or uuid.uuid4().hex
         self.registry = registry or AdapterRegistry()
+        self.observer = observer
         self.writer = ArtifactWriter(artifact_root, self.policy) if artifact_root is not None else None
         self._versions = {}
         self._latest = {}
@@ -135,11 +136,14 @@ class TraceSession:
             self._latest[binding] = snapshot
             self._objects[binding] = id(value)
         try:
-            self.emit("value.observed", {"snapshot": snapshot}, source=snapshot["source"], snapshot_id=snapshot["id"], operation_id=snapshot["operation_id"])
+            self.emit("value.observed", {"snapshot": snapshot}, source=snapshot["source"], snapshot_id=snapshot["id"], operation_id=snapshot["operation_id"],
+                critical=self.observer is not None and self.observer.requires_gate(name, binding))
         except (TypeError, ValueError):
             snapshot.update(sample={}, statistics={}, fidelity="metadata_only", truncation=[*truncation, "event_budget_exceeded"])
             self.emit("value.observed", {"snapshot": snapshot}, snapshot_id=snapshot["id"], operation_id=snapshot["operation_id"])
             self.emit("capture.error", {"binding": binding, "error_type": "event_budget_exceeded"}, critical=True)
+        if self.observer is not None:
+            self.observer.boundary(snapshot, self)
         return snapshot
 
     @contextmanager

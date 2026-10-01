@@ -120,3 +120,27 @@ def test_expensive_probe_does_not_read_path_outside_store(tmp_path):
     with ProbePool(artifact_root=tmp_path) as pool:
         result = pool.evaluate(ProbeSpec(id="rank", kind="rank", parameters={"enable_expensive": True}), captured)
     assert result.status == "error"
+
+
+def test_explicit_cancel_interrupts_long_budget_probe_and_pool_recovers(tmp_path):
+    from contract_driven_ai_flow.research.probe_registry import ProbeRegistry
+    from contract_driven_ai_flow.research.models import ProbeSpec
+    from contract_driven_ai_flow.research.probes import ProbePool
+
+    registry = ProbeRegistry()
+    registry.register("test.slow", str(PLUGIN) + ":SlowProbe")
+    registry.register("test.ok", str(PLUGIN) + ":SafeProbe")
+    marker = tmp_path / "probe-started.txt"
+    captured = snapshot(np.ones(3))
+    with ProbePool(registry, max_workers=1) as pool:
+        future = pool.submit(ProbeSpec(id="slow", kind="test.slow", budget_ms=30000, parameters={"marker": str(marker)}), captured)
+        deadline = time.monotonic() + 3
+        while not marker.exists() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert marker.exists()
+        started = time.perf_counter()
+        pool.cancel_run(captured.run_id)
+        cancelled = future.result(timeout=2)
+        assert time.perf_counter() - started < 1
+        healthy = pool.evaluate(ProbeSpec(id="ok", kind="test.ok", budget_ms=200), snapshot(np.ones(3)))
+    assert cancelled.status in ("error", "skipped") and healthy.status == "pass"

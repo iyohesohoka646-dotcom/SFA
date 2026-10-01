@@ -140,6 +140,9 @@ def create_workspace_app(root: Path, token: str, port: int = 8765, shutdown=None
     from .operations import capabilities, doctor
 
     workspace = Workspace(root)
+    from .research.service import ResearchService
+    from .research.routes import attach_research_routes
+    research = ResearchService(root)
     children = {}
     stack = AsyncExitStack()
     lock = asyncio.Lock()
@@ -152,9 +155,12 @@ def create_workspace_app(root: Path, token: str, port: int = 8765, shutdown=None
                 yield
             finally:
                 cancel_children()
+                await asyncio.to_thread(research.close)
 
     app = FastAPI(title="Contract-Driven AI Flow Workspace", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.session_token = token
+    app.state.research = research
+    attach_research_routes(app, research)
 
     def cancel_children():
         for child in children.values():

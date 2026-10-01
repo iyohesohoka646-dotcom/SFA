@@ -18,6 +18,8 @@ from .storage import Store
 app = typer.Typer(name="cdaf", help="Contract-Driven AI Flow · Design, review, execute and inspect.\n\nStart: cdaf studio   |   Example: cdaf demo   |   Diagnose: cdaf doctor", no_args_is_help=True, pretty_exceptions_enable=False, context_settings={"help_option_names": ["-h", "--help"]})
 projects_app = typer.Typer(help="Create, register and list projects in the local workspace.")
 app.add_typer(projects_app, name="projects")
+research_app = typer.Typer(help="Observe existing scientific Python analyses and inspect their data evidence.")
+app.add_typer(research_app, name="research")
 
 
 def output(value):
@@ -383,3 +385,76 @@ def view(project: Path = typer.Option(None, "--project", "-p"), input: Path = ty
         output(guard(store.save_views, guard(read_json, input), base_revision))
     else:
         output(store.views())
+
+
+@app.command()
+def observe(script: Path, python: Path = typer.Option(None, "--python", help="Scientific Python interpreter"),
+            project: Path = typer.Option(None, "--project", "-p"), capture: str = "summary",
+            argument: list[str] = typer.Option(None, "--arg", help="Repeat for script arguments"),
+            probe_file: Path = typer.Option(None, "--probes"), instrument: str = "auto",
+            adapter: list[str] = typer.Option(None, "--adapter", help="Explicitly enable an installed scientific adapter")):
+    """Run existing analysis code and record bounded native data observations."""
+    from .research.models import ProbeSpec
+    from .research.service import ResearchService
+    try:
+        probes = [ProbeSpec.model_validate(p) for p in read_json(probe_file)] if probe_file else None
+        with ResearchService(project or script.resolve().parent) as service:
+            handle = service.start_analysis(script, interpreter=python, arguments=argument or [], mode=capture, probes=probes, instrument=instrument, adapters=adapter or [])
+            try:
+                record = service.wait(handle.run_id)
+            except KeyboardInterrupt:
+                service.cancel(handle.run_id)
+                record = service.wait(handle.run_id, timeout=5)
+            output(record)
+            if record["status"] != "completed":
+                raise typer.Exit(130 if record["status"] == "cancelled" else 1)
+    except (ValueError, OSError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(2)
+
+
+@research_app.command("runs")
+def research_runs(project: Path = typer.Option(Path("."), "--project", "-p")):
+    """List recorded analyses without rerunning their code."""
+    from .research.store import ExperimentStore
+    output(ExperimentStore(project).runs())
+
+
+@research_app.command("inspect")
+def research_inspect(snapshot: str, project: Path = typer.Option(Path("."), "--project", "-p")):
+    """Inspect one immutable observed value by snapshot ID."""
+    from .research.store import ExperimentStore
+    try:
+        output(ExperimentStore(project).snapshot(snapshot))
+    except LookupError:
+        typer.echo("Scientific snapshot is unavailable", err=True)
+        raise typer.Exit(2)
+
+
+@research_app.command("export")
+def research_export(run_id: str, output_path: Path = typer.Option(Path("research-evidence.json"), "--output", "-o"),
+                    project: Path = typer.Option(Path("."), "--project", "-p")):
+    """Export sanitised machine-readable evidence; no analysis is executed."""
+    from .research.service import ResearchService
+    from .storage import atomic_write
+    with ResearchService(project) as service:
+        payload = {"schema_version": 1, "run": service.store.run(run_id), "snapshots": [],
+            "events": [], "source": service.source(run_id)}
+        snapshot_cursor = None
+        while snapshots := service.store.snapshots(run_id, latest=False, limit=1000, after=snapshot_cursor):
+            payload["snapshots"].extend(s.model_dump(mode="json") for s in snapshots)
+            snapshot_cursor = snapshots[-1].id
+        cursor = 0
+        while page := service.events(run_id, cursor, 1000):
+            payload["events"].extend(page)
+            cursor = page[-1]["sequence"]
+        atomic_write(output_path, json.dumps(payload, ensure_ascii=False, allow_nan=False, indent=2))
+    output({"path": str(output_path.resolve()), "run_id": run_id})
+
+
+@research_app.command("migrate")
+def research_migrate(source: Path, destination: Path, apply: bool = False):
+    """Preview legacy evidence import; --apply writes a separate destination."""
+    from dataclasses import asdict
+    from .research.legacy import import_legacy
+    output(asdict(import_legacy(source, destination, preview=not apply)))

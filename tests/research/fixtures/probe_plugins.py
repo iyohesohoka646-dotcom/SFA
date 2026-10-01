@@ -17,6 +17,9 @@ class SlowProbe:
     protocol_version = 1
 
     def evaluate(self, context):
+        if context.parameters.get("marker"):
+            from pathlib import Path
+            Path(context.parameters["marker"]).write_text("started")
         time.sleep(3)
         return ProbeResult(probe_id=context.probe_id, snapshot_id=context.snapshot_id, status="pass")
 

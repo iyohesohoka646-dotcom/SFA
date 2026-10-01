@@ -36,6 +36,8 @@ ai = [
     "anthropic>=0.20",
 ]
 telemetry = ["opentelemetry-sdk>=1.27"]
+research = ["numpy>=1.26", "pandas>=2.1"]
+tables = ["pyarrow>=15"]
 
 [project.scripts]
 sfa = "contract_driven_ai_flow.compat:main"

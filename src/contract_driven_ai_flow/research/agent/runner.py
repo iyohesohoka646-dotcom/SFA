@@ -165,11 +165,13 @@ class ObservationRuntime:
         return managed()
 
 
-def run_script(path: Path, *, arguments=(), session, policy: InstrumentPolicy | None = None) -> int:
+def run_script(path: Path, *, arguments=(), session, policy: InstrumentPolicy | None = None, expected_digest=None) -> int:
     original_argv, original_path = sys.argv, list(sys.path)
     original_main = sys.modules.get("__main__")
     try:
         source = read_source(path)
+        if expected_digest is not None and source.digest != expected_digest:
+            raise RuntimeError("Analysis source changed before execution; start a new run")
         sys.argv = [source.path, *arguments]
         sys.path.insert(0, str(Path(source.path).parent))
         compiled = instrument(source.text, source.path, policy or InstrumentPolicy(), source_digest=source.digest)

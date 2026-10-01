@@ -160,3 +160,19 @@ def test_explicit_operation_connects_inputs_and_outputs():
     assert len(record["input_snapshots"]) == 1
     assert record["output_snapshots"] == [result["id"]]
     assert record["status"] == "completed" and record["duration_ms"] >= 0
+
+
+def test_large_fixed_width_cells_use_metadata_without_copying_samples():
+    value = np.zeros((4, 4), dtype="U100000")
+    observed = session().watch("large_cells", value)
+    assert observed["descriptor"]["shape"] == [4, 4]
+    assert observed["fidelity"] == "metadata_only" and observed["sample"] == {}
+    assert "cell_byte_limit" in observed["truncation"]
+
+
+def test_complex_magnitude_overflow_does_not_invent_nonfinite_components():
+    value = np.array([complex(1.7e308, 1.7e308)])
+    observed = session().watch("large_complex", value)
+    assert observed["statistics"]["finite_count"] == 1
+    assert observed["statistics"]["inf_count"] == 0
+    assert observed["statistics"]["numeric_metric"] == "magnitude"

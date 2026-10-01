@@ -125,11 +125,11 @@
 - CLI：`cdaf observe <script> --python <path> --capture summary`、`cdaf research runs`、`cdaf research inspect <snapshot>`、`cdaf research export <run>`。提供 `--json`；成功 0、分析失败 1、配置／用法错误 2、取消 130。
 - Produces: `import_legacy(source: Path, destination: Path, *, preview: bool=True) -> MigrationReport`，保留原 ID 与原语义，缺失研究字段标为未采集。
 
-- [ ] **Step 1:** 写 `test_cli_and_http_share_snapshot_semantics`、`test_stream_resumes_without_duplicate_events`、`test_selected_interpreter_is_used`、`test_missing_history_slice_is_unavailable`、`test_viewer_disconnect_does_not_block_analysis`、`test_cancel_flushes_terminal_state`、`test_legacy_import_preserves_source_and_ids`。
-- [ ] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_service_cli.py tests/research/test_legacy_import.py -q`，确认失败。
-- [ ] **Step 3:** 实现服务命令、解释器探测、采集代理启动与来源校验；所有客户端调用该服务；批量持久化事件，不在每次读取时重新扫描整个定义。旧项目迁移先预览、写新目标并保存报告。
-- [ ] **Step 4:** 同命令通过，执行自己的 `.py` 案例并用 CLI 检查真实矩阵与失败来源；保留旧相关回归测试；停止／异常退出后记录可解释。
-- [ ] **Step 5:** 提交 `feat: expose scientific observation service and command line`，固定协议和示例，然后进入工作台计划。
+- [x] **Step 1:** 写 `test_cli_and_http_share_snapshot_semantics`、`test_stream_resumes_without_duplicate_events`、`test_selected_interpreter_is_used`、`test_missing_history_slice_is_unavailable`、`test_viewer_disconnect_does_not_block_analysis`、`test_cancel_flushes_terminal_state`、`test_legacy_import_preserves_source_and_ids`。
+- [x] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_service_cli.py tests/research/test_legacy_import.py -q`，确认失败。
+- [x] **Step 3:** 实现服务命令、解释器探测、采集代理启动与来源校验；所有客户端调用该服务；批量持久化事件，不在每次读取时重新扫描整个定义。旧项目迁移先预览、写新目标并保存报告。
+- [x] **Step 4:** 同命令通过，执行自己的 `.py` 案例并用 CLI 检查真实矩阵与失败来源；保留旧相关回归测试；停止／异常退出后记录可解释。
+- [x] **Step 5:** 提交 `feat: expose scientific observation service and command line`，固定协议和示例，然后进入工作台计划。
 
 ## 交付门槛
 

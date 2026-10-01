@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sqlite3
 import uuid
 from collections.abc import Sequence
 from contextlib import contextmanager
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 from .models import ObservationEvent, OperationRecord, SnapshotRef, timestamp
 
@@ -85,10 +87,13 @@ class ExperimentStore:
         if not events:
             return
         with self.connect() as db:
-            known_runs = {r[0] for r in db.execute("SELECT id FROM runs WHERE id IN (%s)" % ",".join("?" for _ in set(e.run_id for e in events)), tuple(set(e.run_id for e in events)))}
+            identifiers = tuple({e.run_id for e in events})
+            known_runs = {r[0] for r in db.execute("SELECT id FROM runs WHERE id IN (%s)" % ",".join("?" for _ in identifiers), identifiers)}
             for event in events:
                 if event.run_id not in known_runs:
                     raise ValueError("Observation references an unknown run")
+                if event.kind == "run.finished" and db.execute("SELECT finished FROM runs WHERE id=?", (event.run_id,)).fetchone()[0]:
+                    continue
                 body = event.model_dump(mode="json")
                 cursor = db.execute("INSERT INTO events(run_id,body) VALUES (?,?)", (event.run_id, "{}"))
                 body["sequence"] = cursor.lastrowid
@@ -106,6 +111,8 @@ class ExperimentStore:
                     db.execute("INSERT INTO operations VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET body=excluded.body WHERE operations.run_id=excluded.run_id", (operation.id, operation.run_id, encode(operation.model_dump(mode="json"))))
                 if event.kind == "run.started":
                     db.execute("UPDATE runs SET status='running',environment=? WHERE id=?", (encode(event.payload.get("environment", {})), event.run_id))
+                if event.kind == "environment.observed":
+                    db.execute("UPDATE runs SET environment=? WHERE id=?", (encode(event.payload), event.run_id))
                 if event.kind == "control.paused":
                     db.execute("UPDATE runs SET status='paused' WHERE id=?", (event.run_id,))
                 if event.kind == "control.resumed":
@@ -131,16 +138,21 @@ class ExperimentStore:
             raise LookupError("Unknown scientific snapshot")
         return SnapshotRef.model_validate_json(row["body"])
 
-    def snapshots(self, run_id: str, *, latest: bool = True, limit: int = 1000) -> list[SnapshotRef]:
+    def snapshots(self, run_id: str, *, latest: bool = True, limit: int = 1000, after: str | None = None) -> list[SnapshotRef]:
         self.run(run_id)
         if not 1 <= limit <= 10000:
             raise ValueError("Snapshot page limit is invalid")
         query = "SELECT s.body FROM snapshots s WHERE s.run_id=?"
         if latest:
             query += " AND s.version=(SELECT MAX(o.version) FROM snapshots o WHERE o.run_id=s.run_id AND o.binding_id=s.binding_id)"
+        parameters = [run_id]
+        if after is not None:
+            query += " AND s.rowid > COALESCE((SELECT rowid FROM snapshots WHERE id=? AND run_id=?),9223372036854775807)"
+            parameters.extend((after, run_id))
         query += " ORDER BY s.rowid LIMIT ?"
+        parameters.append(limit)
         with self.connect() as db:
-            rows = db.execute(query, (run_id, limit)).fetchall()
+            rows = db.execute(query, parameters).fetchall()
         return [SnapshotRef.model_validate_json(row["body"]) for row in rows]
 
     def operations(self, run_id: str, limit: int = 1000) -> list[OperationRecord]:
@@ -150,6 +162,37 @@ class ExperimentStore:
         with self.connect() as db:
             rows = db.execute("SELECT body FROM operations WHERE run_id=? ORDER BY rowid LIMIT ?", (run_id, limit)).fetchall()
         return [OperationRecord.model_validate_json(row["body"]) for row in rows]
+
+    def recover_runs(self):
+        from ..storage import process_alive
+        with self.connect() as db:
+            owners = db.execute("SELECT id,owner FROM runs WHERE finished IS NULL").fetchall()
+        for owner in owners:
+            if not process_alive(owner["owner"]):
+                self.append([ObservationEvent(run_id=owner["id"], kind="run.finished",
+                    payload={"status": "interrupted", "execution_status": "interrupted", "quality": "unknown", "reason": "owner_process_exited"})])
+
+    def expire_artifacts(self, days=7):
+        if type(days) is not int or days < 1:
+            raise ValueError("Artifact retention must be at least one day")
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        with self.connect() as db:
+            rows = db.execute("SELECT s.body,r.finished FROM snapshots s JOIN runs r ON r.id=s.run_id").fetchall()
+        expired, protected = set(), set()
+        for row in rows:
+            reference = json.loads(row["body"]).get("artifact_ref")
+            if reference:
+                (expired if row["finished"] and row["finished"] < cutoff else protected).add(reference)
+        count = 0
+        directory = (self.state / "artifacts").resolve()
+        for reference in expired - protected:
+            if not re.fullmatch(r"artifacts/[0-9a-f]{32}\.(npy|arrow)", reference):
+                continue
+            path = self.state / reference
+            if path.is_file() and not path.is_symlink() and path.resolve().parent == directory:
+                path.unlink()
+                count += 1
+        return {"artifacts_deleted": count, "history_preserved": True, "definitions_preserved": True}
 
     def slice(self, snapshot_id: str, selectors: Sequence[dict]) -> dict:
         snapshot = self.snapshot(snapshot_id)

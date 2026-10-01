@@ -45,13 +45,15 @@ def numeric_statistics(data, population: int, *, method="uniform-grid") -> dict:
     result = {"population_count": population, "sample_count": len(data), "exact": exact, "method": "all" if exact else method}
     if data.dtype.kind not in "biufc":
         return result
-    if data.dtype.kind == "c":
-        data = np.abs(data)
-        result["numeric_metric"] = "magnitude"
     finite = np.isfinite(data)
     result.update(finite_count=int(np.count_nonzero(finite)), nan_count=int(np.count_nonzero(np.isnan(data))),
                   inf_count=int(np.count_nonzero(np.isinf(data))), missing_count=int(np.count_nonzero(np.isnan(data))))
     good = data[finite]
+    if data.dtype.kind == "c":
+        with np.errstate(all="ignore"):
+            good = np.abs(good)
+        result["numeric_metric"] = "magnitude"
+        result["metric_overflow_count"] = int(np.count_nonzero(~np.isfinite(good)))
     if good.size:
         with np.errstate(all="ignore"):
             result.update(min=finite_number(good.min()), max=finite_number(good.max()),
@@ -105,7 +107,8 @@ class NumpyAdapter:
         return np.ndarray.view(value, np.ndarray) if isinstance(value, np.ndarray) else np.asarray(value)
 
     def describe(self, value):
-        array = self.array(value)
+        np = sys.modules["numpy"]
+        array = np.ndarray.view(value, np.ndarray) if isinstance(value, np.ndarray) else value
         numeric = array.dtype.kind in "biufc"
         return {"schema_version": 1, "kind": "matrix", "backend": self.backend, "type_name": type_name(value),
                 "shape": list(array.shape), "dtype": str(array.dtype), "nbytes": int(array.nbytes), "device": "cpu",
@@ -117,6 +120,9 @@ class NumpyAdapter:
         descriptor = self.describe(value)
         if policy.level == "metadata":
             return CaptureResult(descriptor)
+        if value.dtype.itemsize > 4096:
+            # Wide fixed-width cells can allocate megabytes per indexed element.
+            return CaptureResult(descriptor, truncation=["cell_byte_limit"])
         array = self.array(value)
         fixed = {str(axis): 0 for axis in range(max(0, array.ndim - 2))}
         if not array.size:
@@ -135,7 +141,7 @@ class NumpyAdapter:
                 values = [[cell(plane[r, c]) for c in columns] for r in rows]
             sample = {"values": values, "row_indices": rows, "column_indices": columns, "fixed_axes": fixed}
         stats = {}
-        if policy.level in ("summary", "full"):
+        if policy.level in ("summary", "full") and array.dtype.kind in "biufc":
             # flat indexing allocates only the bounded sample, even for strided arrays.
             stats = numeric_statistics(array.flat[indices(array.size, policy.max_stat_elements)], array.size)
         preview_count = sum(len(row) for row in sample["values"])
