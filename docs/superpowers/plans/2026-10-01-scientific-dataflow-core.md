@@ -104,11 +104,11 @@
 - Produces: `evaluate_probe(spec: ProbeSpec, snapshot: SnapshotRef, *, budget_ms: int=50) -> ProbeResult`。
 - 插件注册组：`cdaf.research.probes`；协议 `version=1`。状态 `pass/fail/error/skipped/unknown`，精度 `exact/sampled/metadata_only`。
 
-- [ ] **Step 1:** 写 `test_sampled_finite_check_does_not_claim_full_pass`、`test_shape_and_broadcast_diagnostics_use_real_dimensions`、`test_custom_probe_cannot_mutate_analysis_array`、`test_slow_probe_times_out_without_stopping_analysis`、`test_expensive_rank_probe_requires_explicit_enable`。
-- [ ] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_scientific_probes.py tests/research/test_probe_isolation.py -q`，确认失败。
-- [ ] **Step 3:** 实现首批形状、dtype、有限值、范围、缺失、方差、对称性与性能探针；自定义插件只收到脱敏、有界对象，采用最多 2 个工作进程的复用池。进程启动单独限时 3 秒，求值预算默认 50 ms，探针排队不阻塞分析；暂停／取消走独立控制记录。
-- [ ] **Step 4:** 同命令通过；用示例插件验证无需修改核心即可注册，记录依赖、预算和不支持的输入。
-- [ ] **Step 5:** 提交 `feat: add isolated scientific probe plugins and controls`。
+- [x] **Step 1:** 写 `test_sampled_finite_check_does_not_claim_full_pass`、`test_shape_and_broadcast_diagnostics_use_real_dimensions`、`test_custom_probe_cannot_mutate_analysis_array`、`test_slow_probe_times_out_without_stopping_analysis`、`test_expensive_rank_probe_requires_explicit_enable`。
+- [x] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_scientific_probes.py tests/research/test_probe_isolation.py -q`，确认失败。
+- [x] **Step 3:** 实现首批形状、dtype、有限值、范围、缺失、方差、对称性与性能探针；自定义插件只收到脱敏、有界对象，采用最多 2 个工作进程的复用池。进程启动单独限时 3 秒，求值预算默认 50 ms，探针排队不阻塞分析；暂停／取消走独立控制记录。
+- [x] **Step 4:** 同命令通过；用示例插件验证无需修改核心即可注册，记录依赖、预算和不支持的输入。
+- [x] **Step 5:** 提交 `feat: add isolated scientific probe plugins and controls`。
 
 ## Task 5: 统一研究服务、基础 CLI 与旧证据迁移
 
