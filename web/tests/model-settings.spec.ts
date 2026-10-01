@@ -2,6 +2,22 @@ import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 test.use({baseURL:'http://127.0.0.1:8879'});
 
+test('model-settings: late initial catalog cannot hide a just-saved profile',async({page})=>{
+  let release=()=>{};const gate=new Promise<void>(resolve=>{release=resolve;});
+  await page.route('**/api/v1/settings/credential-store',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({available:false,plaintext_fallback:false})}));
+  await page.route('**/api/v1/settings/models',async route=>{await gate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{id:'offline',protocol:'offline',base_url:'',models:['rules'],default_model:'rules',timeout_seconds:60,credential_ref:null,configured:true}])}).catch(()=>{});});
+  await page.goto('/#session=research-test-session');
+  await page.getByRole('button',{name:'模型设置',exact:true}).click();
+  await page.getByRole('button',{name:'新增模型服务',exact:true}).click();
+  await page.getByLabel('模型服务 ID').fill('late-catalog');
+  await page.getByRole('button',{name:'保存模型配置',exact:true}).click();
+  await expect(page.getByRole('status').filter({hasText:'模型配置已保存'})).toBeVisible();
+  const response=page.waitForResponse(r=>r.url().endsWith('/api/v1/settings/models')&&r.request().method()==='GET');release();await response;
+  await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+  await expect(page.getByLabel('已配置模型服务')).toHaveValue('late-catalog');
+  await expect(page.getByRole('button',{name:'连接测试（不推理）',exact:true})).toBeEnabled();
+});
+
 test('model-settings: discover, configure, share with CLI, and cancel without blocking data',async({page})=>{
   await page.goto('/#session=research-test-session');
   await expect(page.getByRole('button',{name:'模型设置',exact:true})).toBeVisible();
