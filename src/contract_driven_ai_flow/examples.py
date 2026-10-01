@@ -57,7 +57,7 @@ def report(summary):
         success, failure = {"values": [2, 4, 6], "scale": 2}, {"values": [20, 40, 60], "scale": 2}
     elif name == "business-flow":
         project = ProjectSpec(name="Order approval · 本地外部服务", input_schema=object_schema({"amount": NUMBER, "stock": {"type": "integer"}}),
-            modules=[module("inventory", {"stock": {"type": "integer"}}, object_schema({"available": {"type": "boolean"}}), side_effects=True, allowed_imports=["http.server", "http", "threading", "urllib", "json"], description="Call a loopback HTTP inventory stub; no remote credential required"),
+            modules=[module("inventory", {"stock": {"type": "integer"}}, object_schema({"available": {"type": "boolean"}}), side_effects=True, allowed_imports=["http.server", "http", "socketserver", "threading", "urllib", "json"], description="Call a loopback HTTP inventory stub; no remote credential required"),
                      ModuleSpec(id="approve", name="Approve order", kind="decision", condition="$input.available == True", contract=Contract(input=object_schema({"available": {"type": "boolean"}}), output={"type": "boolean"})),
                      module("fulfill", {"amount": NUMBER}, object_schema({"total": NUMBER}), guard={"decision": "approve", "when": True}),
                      module("decline", {"amount": NUMBER}, {"type": "string"}, guard={"decision": "approve", "when": False})],
@@ -67,7 +67,15 @@ def report(summary):
     import json
     import threading
     from http.server import BaseHTTPRequestHandler, HTTPServer
+    from socketserver import TCPServer
     from urllib.request import urlopen
+
+    class LoopbackHTTPServer(HTTPServer):
+        def server_bind(self):
+            # This fixture has a fixed loopback identity; reverse DNS is unnecessary.
+            TCPServer.server_bind(self)
+            self.server_name = "localhost"
+            self.server_port = self.server_address[1]
 
     class InventoryHandler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -80,7 +88,7 @@ def report(summary):
         def log_message(self, *args):
             pass
 
-    with HTTPServer(("127.0.0.1", 0), InventoryHandler) as server:
+    with LoopbackHTTPServer(("127.0.0.1", 0), InventoryHandler) as server:
         thread = threading.Thread(target=server.handle_request, daemon=True)
         thread.start()
         with urlopen(f"http://127.0.0.1:{server.server_port}/inventory", timeout=3) as response:

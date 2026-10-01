@@ -109,6 +109,7 @@
         "allowed_imports": [
           "http.server",
           "http",
+          "socketserver",
           "threading",
           "urllib",
           "json"
@@ -339,14 +340,14 @@
     ],
     "schema_version": 1
   },
-  "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+  "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
   "run": {
-    "id": "d702c0aebc114a329deb288703c970f9",
-    "started": "2026-09-30T21:36:46.350187+00:00",
-    "finished": "2026-09-30T21:36:49.513242+00:00",
+    "id": "5af483a4d0044939b2b12a50c813abab",
+    "started": "2026-10-01T08:29:15.830242+00:00",
+    "finished": "2026-10-01T08:29:18.760843+00:00",
     "status": "completed",
     "quality": "failed",
-    "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+    "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
     "environment": {
       "dependencies": {
         "contract-driven-ai-flow": "0.2.0",
@@ -357,20 +358,20 @@
       "platform": "Windows-10-10.0.26200-SP0",
       "python": "3.11.9",
       "sources": {
-        "decline": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d",
-        "fulfill": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d",
-        "inventory": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d"
+        "decline": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
+        "fulfill": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
+        "inventory": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070"
       }
     },
-    "owner": 34772
+    "owner": 2104
   },
   "events": [
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 101,
-      "time": "2026-09-30T21:36:46.354209+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 141,
+      "time": "2026-10-01T08:29:15.840978+00:00",
       "kind": "run.started",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": null,
       "binding": null,
       "attempt": 0,
@@ -403,9 +404,9 @@
           "python": "3.11.9",
           "platform": "Windows-10-10.0.26200-SP0",
           "sources": {
-            "inventory": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d",
-            "fulfill": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d",
-            "decline": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d"
+            "inventory": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
+            "fulfill": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
+            "decline": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070"
           },
           "dependencies": {
             "contract-driven-ai-flow": "0.2.0",
@@ -417,11 +418,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 102,
-      "time": "2026-09-30T21:36:46.361206+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 142,
+      "time": "2026-10-01T08:29:15.865904+00:00",
       "kind": "binding.transferred",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "inventory",
       "binding": "input_inventory_stock",
       "attempt": 0,
@@ -438,11 +439,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 103,
-      "time": "2026-09-30T21:36:46.365206+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 143,
+      "time": "2026-10-01T08:29:15.880912+00:00",
       "kind": "module.started",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "inventory",
       "binding": null,
       "attempt": 1,
@@ -476,11 +477,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 104,
-      "time": "2026-09-30T21:36:46.369641+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 144,
+      "time": "2026-10-01T08:29:15.895611+00:00",
       "kind": "contract.checked",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "inventory",
       "binding": null,
       "attempt": 1,
@@ -493,11 +494,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 105,
-      "time": "2026-09-30T21:36:48.030864+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 145,
+      "time": "2026-10-01T08:29:17.200041+00:00",
       "kind": "contract.checked",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "inventory",
       "binding": null,
       "attempt": 1,
@@ -510,11 +511,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 106,
-      "time": "2026-09-30T21:36:48.083846+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 146,
+      "time": "2026-10-01T08:29:17.214637+00:00",
       "kind": "probe.result",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "inventory",
       "binding": null,
       "attempt": 1,
@@ -531,11 +532,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 107,
-      "time": "2026-09-30T21:36:48.107449+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 147,
+      "time": "2026-10-01T08:29:17.227696+00:00",
       "kind": "probe.result",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "inventory",
       "binding": null,
       "attempt": 1,
@@ -555,18 +556,18 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 108,
-      "time": "2026-09-30T21:36:48.116445+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 148,
+      "time": "2026-10-01T08:29:17.239765+00:00",
       "kind": "module.completed",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "inventory",
       "binding": null,
       "attempt": 1,
       "contract_revision": "051624486a44e9163186977da7d233f04e7c4da8bfff1fcaa21847eb678c2989",
       "links": [],
       "data": {
-        "duration_ms": 1655.9999999954016,
+        "duration_ms": 1281.0000000026776,
         "output": {
           "level": "summary",
           "data": {
@@ -589,11 +590,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 109,
-      "time": "2026-09-30T21:36:48.125443+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 149,
+      "time": "2026-10-01T08:29:17.256871+00:00",
       "kind": "binding.transferred",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "approve",
       "binding": "inventory_approve_available",
       "attempt": 0,
@@ -602,7 +603,7 @@
         {
           "binding": "inventory_approve_available",
           "module": "inventory",
-          "sequence": 108
+          "sequence": 148
         }
       ],
       "data": {
@@ -610,11 +611,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 110,
-      "time": "2026-09-30T21:36:48.130418+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 150,
+      "time": "2026-10-01T08:29:17.268477+00:00",
       "kind": "module.started",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "approve",
       "binding": null,
       "attempt": 1,
@@ -623,7 +624,7 @@
         {
           "binding": "inventory_approve_available",
           "module": "inventory",
-          "sequence": 108
+          "sequence": 148
         }
       ],
       "data": {
@@ -648,11 +649,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 111,
-      "time": "2026-09-30T21:36:48.135446+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 151,
+      "time": "2026-10-01T08:29:17.279535+00:00",
       "kind": "contract.checked",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "approve",
       "binding": null,
       "attempt": 1,
@@ -665,11 +666,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 112,
-      "time": "2026-09-30T21:36:48.141448+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 152,
+      "time": "2026-10-01T08:29:17.290451+00:00",
       "kind": "contract.checked",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "approve",
       "binding": null,
       "attempt": 1,
@@ -682,11 +683,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 113,
-      "time": "2026-09-30T21:36:48.148503+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 153,
+      "time": "2026-10-01T08:29:17.305523+00:00",
       "kind": "module.completed",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "approve",
       "binding": null,
       "attempt": 1,
@@ -709,11 +710,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 114,
-      "time": "2026-09-30T21:36:48.156502+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 154,
+      "time": "2026-10-01T08:29:17.364981+00:00",
       "kind": "module.skipped",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "fulfill",
       "binding": null,
       "attempt": 0,
@@ -725,11 +726,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 115,
-      "time": "2026-09-30T21:36:48.163000+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 155,
+      "time": "2026-10-01T08:29:17.391719+00:00",
       "kind": "binding.transferred",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "decline",
       "binding": "input_decline_amount",
       "attempt": 0,
@@ -746,11 +747,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 116,
-      "time": "2026-09-30T21:36:48.166999+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 156,
+      "time": "2026-10-01T08:29:17.402948+00:00",
       "kind": "module.started",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "decline",
       "binding": null,
       "attempt": 1,
@@ -784,11 +785,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 117,
-      "time": "2026-09-30T21:36:48.172010+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 157,
+      "time": "2026-10-01T08:29:17.417696+00:00",
       "kind": "contract.checked",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "decline",
       "binding": null,
       "attempt": 1,
@@ -801,11 +802,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 118,
-      "time": "2026-09-30T21:36:49.493126+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 158,
+      "time": "2026-10-01T08:29:18.722781+00:00",
       "kind": "contract.checked",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "decline",
       "binding": null,
       "attempt": 1,
@@ -818,18 +819,18 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 119,
-      "time": "2026-09-30T21:36:49.498138+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 159,
+      "time": "2026-10-01T08:29:18.730856+00:00",
       "kind": "module.completed",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": "decline",
       "binding": null,
       "attempt": 1,
       "contract_revision": "5f56a97b5a533b498a3ba12be51e5f72fd520cba793947c122ba1581c2457723",
       "links": [],
       "data": {
-        "duration_ms": 1311.9999999980791,
+        "duration_ms": 1296.0000000020955,
         "output": {
           "level": "summary",
           "data": {
@@ -845,11 +846,11 @@
       }
     },
     {
-      "run_id": "d702c0aebc114a329deb288703c970f9",
-      "sequence": 120,
-      "time": "2026-09-30T21:36:49.503244+00:00",
+      "run_id": "5af483a4d0044939b2b12a50c813abab",
+      "sequence": 160,
+      "time": "2026-10-01T08:29:18.742706+00:00",
       "kind": "run.finished",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
       "module": null,
       "binding": null,
       "attempt": 0,

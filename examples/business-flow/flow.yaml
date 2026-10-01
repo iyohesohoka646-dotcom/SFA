@@ -48,6 +48,7 @@ modules:
   allowed_imports:
   - http.server
   - http
+  - socketserver
   - threading
   - urllib
   - json

@@ -325,9 +325,9 @@
   },
   "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
   "run": {
-    "id": "f68ad4c8cfb440ce83393f1df81229ea",
-    "started": "2026-09-30T21:36:49.774710+00:00",
-    "finished": "2026-09-30T21:36:53.173284+00:00",
+    "id": "550fb45ba5c74530aa0cc529e625b5b0",
+    "started": "2026-10-01T08:29:19.589801+00:00",
+    "finished": "2026-10-01T08:29:22.585565+00:00",
     "status": "completed",
     "quality": "passed",
     "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
@@ -345,13 +345,13 @@
         "double": "bb7451127d0254108fe1340f30341f378ad9161d6c87ffacd57dfc074c1db902"
       }
     },
-    "owner": 34772
+    "owner": 2104
   },
   "events": [
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 85,
-      "time": "2026-09-30T21:36:49.778600+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 127,
+      "time": "2026-10-01T08:29:19.605836+00:00",
       "kind": "run.started",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": null,
@@ -395,9 +395,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 86,
-      "time": "2026-09-30T21:36:49.784615+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 128,
+      "time": "2026-10-01T08:29:19.625681+00:00",
       "kind": "contract.checked",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "pipeline",
@@ -412,9 +412,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 87,
-      "time": "2026-09-30T21:36:49.788603+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 129,
+      "time": "2026-10-01T08:29:19.635788+00:00",
       "kind": "composite.input",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "pipeline",
@@ -444,9 +444,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 88,
-      "time": "2026-09-30T21:36:49.792602+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 130,
+      "time": "2026-10-01T08:29:19.645827+00:00",
       "kind": "contract.checked",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "stage",
@@ -461,9 +461,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 89,
-      "time": "2026-09-30T21:36:49.796624+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 131,
+      "time": "2026-10-01T08:29:19.655969+00:00",
       "kind": "composite.input",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "stage",
@@ -493,9 +493,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 90,
-      "time": "2026-09-30T21:36:49.800971+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 132,
+      "time": "2026-10-01T08:29:19.672124+00:00",
       "kind": "binding.transferred",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "double",
@@ -514,9 +514,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 91,
-      "time": "2026-09-30T21:36:49.805519+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 133,
+      "time": "2026-10-01T08:29:19.681704+00:00",
       "kind": "module.started",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "double",
@@ -552,9 +552,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 92,
-      "time": "2026-09-30T21:36:49.810498+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 134,
+      "time": "2026-10-01T08:29:19.688709+00:00",
       "kind": "contract.checked",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "double",
@@ -569,9 +569,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 93,
-      "time": "2026-09-30T21:36:51.241688+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 135,
+      "time": "2026-10-01T08:29:21.105455+00:00",
       "kind": "contract.checked",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "double",
@@ -586,9 +586,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 94,
-      "time": "2026-09-30T21:36:51.245688+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 136,
+      "time": "2026-10-01T08:29:21.116740+00:00",
       "kind": "module.completed",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "double",
@@ -597,7 +597,7 @@
       "contract_revision": "f7cc360fa211fcc36a290388b5b8216d23a311531299ab507bc4906a92b390c8",
       "links": [],
       "data": {
-        "duration_ms": 1421.9999999986612,
+        "duration_ms": 1389.999999999418,
         "output": {
           "level": "summary",
           "data": {
@@ -613,9 +613,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 95,
-      "time": "2026-09-30T21:36:51.251711+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 137,
+      "time": "2026-10-01T08:29:21.134489+00:00",
       "kind": "contract.checked",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "stage",
@@ -630,9 +630,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 96,
-      "time": "2026-09-30T21:36:51.254688+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 138,
+      "time": "2026-10-01T08:29:21.146341+00:00",
       "kind": "composite.output",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "stage",
@@ -662,9 +662,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 97,
-      "time": "2026-09-30T21:36:51.259704+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 139,
+      "time": "2026-10-01T08:29:21.161378+00:00",
       "kind": "contract.checked",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "pipeline",
@@ -679,9 +679,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 98,
-      "time": "2026-09-30T21:36:51.263688+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 140,
+      "time": "2026-10-01T08:29:21.174474+00:00",
       "kind": "composite.output",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "pipeline",
@@ -711,9 +711,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 99,
-      "time": "2026-09-30T21:36:51.268688+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 141,
+      "time": "2026-10-01T08:29:21.186529+00:00",
       "kind": "binding.transferred",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "display",
@@ -724,7 +724,7 @@
         {
           "binding": "pipeline_display_result",
           "module": "double",
-          "sequence": 94
+          "sequence": 136
         }
       ],
       "data": {
@@ -732,9 +732,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 100,
-      "time": "2026-09-30T21:36:51.271708+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 142,
+      "time": "2026-10-01T08:29:21.192661+00:00",
       "kind": "module.started",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "display",
@@ -745,7 +745,7 @@
         {
           "binding": "pipeline_display_result",
           "module": "double",
-          "sequence": 94
+          "sequence": 136
         }
       ],
       "data": {
@@ -770,9 +770,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 101,
-      "time": "2026-09-30T21:36:51.276689+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 143,
+      "time": "2026-10-01T08:29:21.217401+00:00",
       "kind": "contract.checked",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "display",
@@ -787,9 +787,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 102,
-      "time": "2026-09-30T21:36:53.050136+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 144,
+      "time": "2026-10-01T08:29:22.523823+00:00",
       "kind": "contract.checked",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "display",
@@ -804,9 +804,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 103,
-      "time": "2026-09-30T21:36:53.103957+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 145,
+      "time": "2026-10-01T08:29:22.535875+00:00",
       "kind": "probe.result",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "display",
@@ -825,9 +825,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 104,
-      "time": "2026-09-30T21:36:53.110527+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 146,
+      "time": "2026-10-01T08:29:22.548711+00:00",
       "kind": "module.completed",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": "display",
@@ -836,7 +836,7 @@
       "contract_revision": "bccbb03788219ba594b4302833434d8200eefa247ac7de373c85bcd453fbd539",
       "links": [],
       "data": {
-        "duration_ms": 1766.0000000032596,
+        "duration_ms": 1280.9999999881256,
         "output": {
           "level": "summary",
           "data": {
@@ -852,9 +852,9 @@
       }
     },
     {
-      "run_id": "f68ad4c8cfb440ce83393f1df81229ea",
-      "sequence": 105,
-      "time": "2026-09-30T21:36:53.161631+00:00",
+      "run_id": "550fb45ba5c74530aa0cc529e625b5b0",
+      "sequence": 147,
+      "time": "2026-10-01T08:29:22.559753+00:00",
       "kind": "run.finished",
       "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
       "module": null,

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import sys
 import threading
 import time
 from pathlib import Path
@@ -20,18 +19,10 @@ from contract_driven_ai_flow.storage import Store, atomic_write
 @pytest.mark.parametrize("name", ["data-pipeline", "business-flow", "nested-composite"])
 def test_real_examples_success_and_quality_failure(tmp_path, name):
     root = create_example(tmp_path / name, name)
-    # Capture the actual stalled frame on the remote macOS runner. These are
-    # disposable, known-data fixtures; no production worker logging is enabled.
-    if name == "business-flow" and sys.platform == "darwin":
-        source = root / "src/steps.py"
-        atomic_write(source, "import faulthandler\n_debug = open('worker-stack.log', 'w')\nfaulthandler.dump_traceback_later(5, file=_debug)\n" + source.read_text(encoding="utf-8"))
     _, _, success, failure = definition(name)
     good = Runner(root).run(success)
     if good["status"] != "completed":
         print(json.dumps(Store(root).events(good["id"]), indent=2))
-        trace = root / "worker-stack.log"
-        if trace.exists():
-            print(trace.read_text())
     assert (good["status"], good["quality"]) == ("completed", "passed"), Store(root).events(good["id"])
     bad = Runner(root).run(failure)
     assert (bad["status"], bad["quality"]) == ("completed", "failed"), Store(root).events(bad["id"])
@@ -68,6 +59,21 @@ def test_composite_public_output_supports_readonly_probe(tmp_path):
     run = Runner(root).run({"value": 80})
     assert (run["status"], run["quality"]) == ("completed", "failed")
     assert any(e["kind"] == "probe.result" and e["module"] == "pipeline" and e["data"]["probe"] == "public_quality" for e in store.events(run["id"]))
+
+
+def test_business_loopback_fixture_does_not_depend_on_reverse_dns(monkeypatch):
+    import socket
+
+    _, source, _, _ = definition("business-flow")
+    namespace = {}
+    exec(source, namespace)
+
+    def unavailable_reverse_dns(host):
+        raise AssertionError("The loopback fixture must not perform a reverse DNS lookup")
+
+    monkeypatch.setattr(socket, "getfqdn", unavailable_reverse_dns)
+    assert namespace["inventory"](3) == {"available": True}
+    assert namespace["inventory"](0) == {"available": False}
 
 
 def single(tmp_path, source, *, output=None, timeout=3, retries=0, probes=None):

@@ -2,7 +2,15 @@ def inventory(stock):
     import json
     import threading
     from http.server import BaseHTTPRequestHandler, HTTPServer
+    from socketserver import TCPServer
     from urllib.request import urlopen
+
+    class LoopbackHTTPServer(HTTPServer):
+        def server_bind(self):
+            # This fixture has a fixed loopback identity; reverse DNS is unnecessary.
+            TCPServer.server_bind(self)
+            self.server_name = "localhost"
+            self.server_port = self.server_address[1]
 
     class InventoryHandler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -15,7 +23,7 @@ def inventory(stock):
         def log_message(self, *args):
             pass
 
-    with HTTPServer(("127.0.0.1", 0), InventoryHandler) as server:
+    with LoopbackHTTPServer(("127.0.0.1", 0), InventoryHandler) as server:
         thread = threading.Thread(target=server.handle_request, daemon=True)
         thread.start()
         with urlopen(f"http://127.0.0.1:{server.server_port}/inventory", timeout=3) as response:

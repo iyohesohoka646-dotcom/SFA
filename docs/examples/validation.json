@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T21:36:56.354092+00:00",
+  "generated_at": "2026-10-01T08:29:26.527796+00:00",
   "cases": [
     {
       "example": "data-pipeline",
@@ -9,13 +9,13 @@
       "runs": [
         {
           "fixture": "success",
-          "id": "404765721c674411841730f8b4507d05",
+          "id": "2696c218c85a40e0a3a0abb714373200",
           "execution": "completed",
           "quality": "passed"
         },
         {
           "fixture": "failure",
-          "id": "f99cc1f82bbd4110bf275235add6c561",
+          "id": "9714a590c9444b8f8a2467d59f3a8e56",
           "execution": "completed",
           "quality": "failed"
         }
@@ -23,19 +23,19 @@
     },
     {
       "example": "business-flow",
-      "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
-      "source_digest": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "source_digest": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
       "compile_diagnostics": [],
       "runs": [
         {
           "fixture": "success",
-          "id": "ca8b87b91a5146d5b5a82f2f721babf1",
+          "id": "e9f49c9348274b68ac36a0aab4e9a0d6",
           "execution": "completed",
           "quality": "passed"
         },
         {
           "fixture": "failure",
-          "id": "d702c0aebc114a329deb288703c970f9",
+          "id": "5af483a4d0044939b2b12a50c813abab",
           "execution": "completed",
           "quality": "failed"
         }
@@ -49,13 +49,13 @@
       "runs": [
         {
           "fixture": "success",
-          "id": "f68ad4c8cfb440ce83393f1df81229ea",
+          "id": "550fb45ba5c74530aa0cc529e625b5b0",
           "execution": "completed",
           "quality": "passed"
         },
         {
           "fixture": "failure",
-          "id": "ece23ad1873e447bb6d8dc9cf02b3860",
+          "id": "f8f76cb6b7494dcaa6bc381730dc5532",
           "execution": "completed",
           "quality": "failed"
         }
