@@ -102,6 +102,14 @@ def test_terminal_runs_stream_values_and_recovers_an_existing_run(tmp_path):
                     if terminal.query_one('#variables',DataTable).row_count:break
                 assert terminal.query_one('#variables',DataTable).row_count==1
                 assert terminal.run_id==existing['id']
+                table=terminal.query_one('#variables',DataTable)
+                table.focus();await pilot.press('enter')
+                for _ in range(50):
+                    await pilot.pause(.05)
+                    if terminal.last_result and terminal.last_result.data and isinstance(terminal.last_result.data,dict) and terminal.last_result.data.get('name')=='X':break
+                assert terminal.last_result.status=='ok'
+                assert terminal.last_result.data['sample']['values']==[[42]]
+                assert terminal.operation_id==terminal.last_result.data['operation_id']
                 command.value='/quit';await pilot.press('enter')
     asyncio.run(scenario())
 

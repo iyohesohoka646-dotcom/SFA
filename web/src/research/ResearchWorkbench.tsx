@@ -26,6 +26,7 @@ export default function ResearchWorkbench(){
   const [definitions,setDefinitions]=useState<ProbeSpec[]>([newProbe('default-finite')]),[history,setHistory]=useState<SnapshotRef[]>([]),[showHistory,setShowHistory]=useState(false);
   const [file,setFile]=useState<SourceFile>(),[previewSource,setPreviewSource]=useState<SourceFile>(),[notice,setNotice]=useState('');
   const edited=useRef(new Set<string>());
+  const selectionVersion=useRef(0);
   const [showModels,setShowModels]=useState(false);
   const markEdit=(event:React.FormEvent<HTMLElement>)=>{const name=(event.target as HTMLElement).getAttribute('aria-label');if(name){edited.current.add(name);if(name==='示例选择'){edited.current.add('分析脚本');edited.current.add('脚本参数');}}};
   const catalog=useOperation('catalog'),bootstrap=useOperation('bootstrap:'+runId),detail=useOperation('detail'),execution=useOperation('execution'),control=useOperation('control'),source=useOperation('source:'+runId),preview=useOperation('source-preview'),historyLoad=useOperation('history:'+runId),exporting=useOperation('export');
@@ -41,12 +42,14 @@ export default function ResearchWorkbench(){
   }).catch(error=>{if(!pending.signal.aborted)setNotice(error.message);});return()=>pending.abort();},[refresh]);
   useEffect(()=>{
     if(!runId)return;const connection=new AbortController();let pending:ObservationEvent[]=[],timer:number|undefined;
+    selectionVersion.current++;historyLoad.cancel();preview.cancel();
     setSelected('');setDetails(undefined);setHistoryValue(undefined);setHistory([]);setShowHistory(false);setFile(undefined);setPreviewSource(undefined);setState(createState(runId));
     const publish=()=>{timer=undefined;const batch=pending;pending=[];setState(current=>batch.reduce(applyEvent,current));if(batch.some(event=>event.kind==='run.finished'))void refresh();};
     void source.run(signal=>client.source(runId,signal)).then(value=>{if(value&&!connection.signal.aborted)setFile(value);});
     void bootstrap.run(signal=>client.bootstrap(runId,signal)).then(data=>{
       if(!data||connection.signal.aborted)return;let initial=createState(runId);
-      for(const snapshot of data.snapshots)indexSnapshot(initial,snapshot);for(const operation of data.operations)initial.operations.set(operation.id,operation);
+      const parentBindings=new Map(Object.entries(data.parent_bindings||{}));
+      for(const snapshot of data.snapshots)indexSnapshot(initial,snapshot,parentBindings);for(const operation of data.operations)initial.operations.set(operation.id,operation);
       for(const event of data.probe_events)initial=applyEvent(initial,event);
       initial.lastSequence=data.cursor;initial.status=data.run.status;initial.summary=data.run.summary;initial.omittedBindings=Math.max(0,data.binding_count-data.snapshots.length);
       setState(initial);setSelected(data.snapshots[0]?.binding_id||'');
@@ -57,9 +60,11 @@ export default function ResearchWorkbench(){
   const current=selectVariable(state,selected)?.snapshot,snapshot=historyValue||current;
   useEffect(()=>{setDetails(undefined);if(snapshot)void detail.run(signal=>client.snapshot(snapshot.id,signal)).then(value=>{if(value)setDetails(value);});return()=>detail.cancel();},[snapshot?.id,detail.run,detail.cancel]);
   const values=useMemo(()=>[...state.latest.values()],[state.lastSequence,state.topologyVersion,state.runId]),actual=details?.id===snapshot?.id?details:snapshot;
-  const select=useCallback((id:string)=>{setSelected(id);setHistoryValue(undefined);setHistory([]);setShowHistory(false);setPreviewSource(undefined);},[]);
-  const loadHistory=()=>{setShowHistory(true);void historyLoad.run(signal=>client.history(runId,selected,undefined,signal)).then(value=>{if(value)setHistory(value);});};
-  const showSnapshot=(id:string)=>void historyLoad.run(signal=>client.snapshot(id,signal)).then(value=>{if(value){setSelected(value.binding_id);setHistoryValue(value);setPreviewSource(undefined);}});
+  const select=useCallback((id:string)=>{selectionVersion.current++;historyLoad.cancel();preview.cancel();setSelected(id);setHistoryValue(undefined);setHistory([]);setShowHistory(false);setPreviewSource(undefined);},[historyLoad.cancel,preview.cancel]);
+  const chooseHistory=(value?:SnapshotRef)=>{selectionVersion.current++;historyLoad.cancel();preview.cancel();setHistoryValue(value);setPreviewSource(undefined);};
+  const loadHistory=()=>{const generation=selectionVersion.current;setShowHistory(true);void historyLoad.run(signal=>client.history(runId,selected,undefined,signal)).then(value=>{if(value&&generation===selectionVersion.current)setHistory(value);});};
+  const showSnapshot=(id:string)=>{const generation=++selectionVersion.current;preview.cancel();void historyLoad.run(signal=>client.snapshot(id,signal)).then(value=>{if(value&&generation===selectionVersion.current){setSelected(value.binding_id);setHistoryValue(value);setPreviewSource(undefined);}});};
+  const openSource=()=>{const generation=++selectionVersion.current;historyLoad.cancel();void preview.run(signal=>client.sourcePreview(script,signal)).then(value=>{if(value&&generation===selectionVersion.current){setPreviewSource(value);setSelected('');setHistoryValue(undefined);}});};
   const saveProbes=async(probes:ProbeSpec[])=>{
     edited.current.add('probes');
     await client.saveExperiment({name:script.split(/[\\/]/).at(-1)||'Analysis',script,interpreter,arguments:parseArguments(arguments_),capture:{level:capture},annotations:{},adapters:adapters.split(',').map(item=>item.trim()).filter(Boolean),probes});setDefinitions(probes);
@@ -69,7 +74,7 @@ export default function ResearchWorkbench(){
   if(catalog.status==='error'&&!runs.length)return <ConnectionHelp error={catalog.error||'本地服务无法连接'} retry={()=>void refresh()}/>;
   return <main className="research-app">
     <header className="ri-header"><h1>Scientific Dataflow Inspector</h1><span className="ri-local">本地科研工作台</span><div className="ri-header-actions"><button onClick={()=>setShowModels(value=>!value)}>模型设置</button><button onClick={()=>{const theme=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;localStorage.setItem('cdaf-theme',theme);}}>切换主题</button><a href="?legacy=1">旧版架构</a></div></header>
-    <section className="ri-toolbar" onChangeCapture={markEdit}><label>分析脚本<input aria-label="分析脚本" value={script} onChange={e=>setScript(e.target.value)} placeholder="已有 .py 脚本路径"/></label><button onClick={()=>void preview.run(signal=>client.sourcePreview(script,signal)).then(value=>{if(value){setPreviewSource(value);setSelected('');}})} disabled={preview.status==='running'||!script}>打开代码</button><label>计算解释器<input aria-label="计算解释器" value={interpreter} onChange={e=>setInterpreter(e.target.value)}/></label>
+    <section className="ri-toolbar" onChangeCapture={markEdit}><label>分析脚本<input aria-label="分析脚本" value={script} onChange={e=>setScript(e.target.value)} placeholder="已有 .py 脚本路径"/></label><button onClick={openSource} disabled={preview.status==='running'||!script}>打开代码</button><label>计算解释器<input aria-label="计算解释器" value={interpreter} onChange={e=>setInterpreter(e.target.value)}/></label>
       <label>采集<select aria-label="采集级别" value={capture} onChange={e=>setCapture(e.target.value)}><option value="metadata">元数据</option><option value="summary">摘要</option><option value="full">完整数据</option></select></label><button className="ri-primary" onClick={()=>void run()} disabled={!script||!interpreter||execution.status==='running'}>{execution.status==='running'?'正在启动…':'运行分析'}</button>
       {['queued','running','paused'].includes(state.status)&&<button onClick={()=>void control.run(signal=>client.control(runId,state.status==='paused'?'resume':'cancel',signal))}>{state.status==='paused'?'继续运行':'取消运行'}</button>}
     </section>
@@ -79,7 +84,7 @@ export default function ResearchWorkbench(){
     <div className="ri-workspace"><div className="ri-left ri-column"><SourcePane file={previewSource||file} selection={!previewSource?actual?.source:null}/><VariableList values={values} selected={selected} onSelect={select}/></div>
       <section className="ri-data"><header><h2 data-testid="current-variable">{snapshot?.name||'数据观察'}</h2><span>{snapshot?`v${snapshot.version} · ${snapshot.descriptor.backend}`:''}</span></header>
       {actual?<><p data-testid="matrix-definition">{actual.descriptor.shape?.join(' × ')||actual.descriptor.kind} · {actual.descriptor.dtype} · {actual.fidelity} · <span data-testid="detail-status">{details?.id===snapshot?.id?'详情已就绪':'读取详情…'}</span></p>
-        <div className="ri-history-controls"><button onClick={loadHistory}>查看变量历史</button>{historyValue&&<button onClick={()=>setHistoryValue(undefined)}>返回最新版本</button>}{showHistory&&history.map(value=><button key={value.id} onClick={()=>{setHistoryValue(value);setPreviewSource(undefined);}}>版本 {value.version}</button>)}</div>
+        <div className="ri-history-controls"><button onClick={loadHistory}>查看变量历史</button>{historyValue&&<button onClick={()=>chooseHistory()}>返回最新版本</button>}{showHistory&&history.map(value=><button key={value.id} onClick={()=>chooseHistory(value)}>版本 {value.version}</button>)}</div>
         {Custom?<Custom snapshot={actual}/>:actual.descriptor.kind==='table'?<TableView snapshot={actual}/>:['matrix','tensor','array'].includes(actual.descriptor.kind)?<MatrixView snapshot={actual}/>:<div className="ri-scalar"><p>{actual.descriptor.type_name}</p><pre>{displayCell(actual.sample.values||'此类型未提供数值预览。')}</pre></div>}
         <OperationView operation={operation} snapshots={state.snapshots}/>
       </>:<p className="ri-empty">打开脚本并运行，选择变量查看定义、数据和运算。</p>}</section>

@@ -48,6 +48,7 @@ def verify_research_delivery(python, command, directory, environment):
     project = directory / "independent-evidence"
     record = json.loads(invoke([*prefix, "--json", "observe", script, "--python", scientific_python, "--project", project]))
     assert record["status"] == "completed"
+    assert record["interpreter"] == str(scientific_python.absolute())
     evidence = directory / "independent.json"
     invoke([*prefix, "--json", "research", "export", record["id"], "--project", project, "--output", evidence])
     data = json.loads(evidence.read_text(encoding="utf-8"))

@@ -114,19 +114,17 @@ class ClientLease:
         if not lease:return
         lease.connections=max(0,lease.connections+(1 if active else -1))
         if active:lease.had_connection=True;self._idle=None
-        elif not lease.connections:lease.disconnected_at=self.clock()
+        elif not lease.connections:
+            lease.disconnected_at=self.clock();lease.deadline=self.clock()+120
 
     def sweep(self)->None:
         if self.closing:return
         now=self.clock()
         for key,lease in list(self.leases.items()):
-            if not lease.connections and not lease.had_connection and now>=lease.deadline:self.leases.pop(key)
+            if not lease.connections and now>=lease.deadline:self.leases.pop(key)
         if any(lease.connections for lease in self.leases.values()):return
-        waiting=[lease for lease in self.leases.values() if not lease.had_connection]
-        if waiting:return
-        if self.leases:
-            due=max(lease.disconnected_at for lease in self.leases.values())+3
-        else:due=self._idle+3 if self._idle is not None else self._startup
+        if self.leases:return
+        due=self._idle+3 if self._idle is not None else self._startup
         if now>=due:self.closing=True;self.shutdown()
 
 

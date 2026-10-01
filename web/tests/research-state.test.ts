@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { applyEvent, createState } from '../src/research/state';
+import { applyEvent, createState, indexSnapshot } from '../src/research/state';
 import { selectVariable, localTopology } from '../src/research/selectors';
 import { OperationController } from '../src/research/operations';
 
@@ -11,6 +11,13 @@ const event = (i: number, sequence: number, version = 1) => ({schema_version: 1 
   snapshot_id: `s${i}-${version}`, operation_id: null, source: null, payload: {snapshot: snapshot(i, version)}});
 
 describe('research-state', () => {
+  test('bootstrap resolves an older parent without retaining its full preview',()=>{
+    const state=createState('r');
+    indexSnapshot(state,snapshot(0,2));
+    indexSnapshot(state,{...snapshot(1),parents:['s0-1']},new Map([['s0-1','main:X0']]));
+    expect(state.dependencies.get('main:X1')).toEqual(['main:X0']);
+    expect(state.snapshots.has('s0-1')).toBe(false);
+  });
   test('keeps data samples out of metadata and timeline caches without changing wire evidence',()=>{
     const observed=event(0,1);
     let state=applyEvent(createState('r'),observed);

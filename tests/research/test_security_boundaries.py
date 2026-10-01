@@ -53,6 +53,52 @@ def assert_private(path):
         assert path.parent.stat().st_mode & 0o777 == 0o700
 
 
+def test_finished_agent_evidence_is_drained_from_pending_connection(tmp_path):
+    from contract_driven_ai_flow.research.runners import PythonRunner, RunnerRegistry
+    from contract_driven_ai_flow.research.service import ResearchService
+
+    class FinishedBeforeCollector(PythonRunner):
+        backend = "test.finished-before-collector"
+
+        def launch(self, job, job_file):
+            # A short-lived independent runner may finish before collection.
+            # Execute the actual selected script and publish its scalar via TCP.
+            source = """import json,socket,sys,time
+from pathlib import Path
+job=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+scope={}
+exec(compile(Path(job['script']).read_text(encoding='utf-8'),job['script'],'exec'),scope)
+snapshot={'id':'finished-X','run_id':job['run_id'],'binding_id':'X','name':'X','version':1,
+ 'scope_id':'main','descriptor':{'kind':'scalar','backend':'python','type_name':'int'},'sample':{'values':[[scope['X']]]}}
+events=[{'run_id':job['run_id'],'kind':'value.observed','snapshot_id':'finished-X','payload':{'snapshot':snapshot}},
+ {'run_id':job['run_id'],'kind':'run.finished','payload':{'status':'completed'}}]
+with socket.create_connection(('127.0.0.1',job['port']),timeout=3) as channel:
+ hello={'type':'hello','protocol_version':1,'run_id':job['run_id'],'token':job['token']}
+ channel.sendall((json.dumps(hello)+'\\n'+json.dumps({'type':'events','events':events})+'\\n').encode())
+time.sleep(.1)
+"""
+            process = subprocess.Popen([job["interpreter"], "-X", "utf8", "-c", source, str(job_file)],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return process
+
+    class DelayedCollector(ResearchService):
+        def _supervise(self, active):
+            # The OS process group is established normally; only collection is
+            # delayed until this real independent producer has exited.
+            assert active.process.wait(timeout=10) == 0
+            super()._supervise(active)
+
+    registry = RunnerRegistry()
+    registry.register(FinishedBeforeCollector())
+    script = tmp_path / "analysis.py"
+    script.write_text("X = 42\n", encoding="utf-8")
+    with DelayedCollector(tmp_path, runner_registry=registry) as service:
+        record = service.wait(service.start_analysis(script, runner="test.finished-before-collector").run_id, 10)
+        values = service.store.snapshots(record["id"])
+    assert record["status"] == "completed"
+    assert any(value.name == "X" and value.sample["values"] == [[42]] for value in values), record['summary']
+
+
 def test_capability_writer_is_private_before_and_after_replacement(tmp_path):
     from contract_driven_ai_flow.storage import atomic_write_private
 

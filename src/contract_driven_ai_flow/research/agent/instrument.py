@@ -177,9 +177,12 @@ class Transformer(ast.NodeTransformer):
         self.in_class = False
         self.qualname.append(node.name)
         qualname = ".".join(self.qualname)
+        reference_count = len(self.references)
         node = self.generic_visit(node)
         self.qualname.pop()
         self.in_class = previous_class
+        if len(self.references) == reference_count:
+            return node
         doc = node.body[:1] if node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str) else []
         body = node.body[len(doc):]
         scope = ast.With(items=[ast.withitem(context_expr=self.helper("function_scope", ast.Constant(qualname)))], body=body, type_comment=None)

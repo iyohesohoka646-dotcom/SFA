@@ -37,8 +37,22 @@ async def dispatch(command: str, arguments: dict, *, service, settings) -> Comma
             data = {'script': source.path, 'source_digest': source.digest, 'code': clean_text(source.text, 16384),
                     'interpreter': arguments.get('interpreter') or sys.executable}
         elif command == 'run':
-            options = {key: value for key,value in arguments.items() if key in
+            def configured_options():
+                import yaml
+                path = service.root/'research.yaml'
+                if not path.is_file():return {}
+                definition = ExperimentSpec.model_validate(yaml.safe_load(path.read_text(encoding='utf-8')))
+                configured_script = Path(definition.script)
+                if not configured_script.is_absolute():configured_script = service.root/configured_script
+                if configured_script.resolve() != Path(arguments['script']).resolve():return {}
+                return {**({'interpreter':definition.interpreter} if definition.interpreter else {}),
+                    'arguments':definition.arguments,'mode':definition.capture.get('level','summary'),
+                    'capture':definition.capture,'adapters':definition.adapters,
+                    'probes':[p.model_dump(mode='json') for p in definition.probes]}
+            options = await asyncio.to_thread(configured_options)
+            options.update({key: value for key,value in arguments.items() if key in
                 ('interpreter','arguments','mode','probes','adapters','watched_names','watched_lines','instrument','capture','runner')}
+            )
             launch = asyncio.create_task(asyncio.to_thread(service.start_analysis, Path(arguments['script']), **options))
             try:
                 handle = await asyncio.shield(launch)
@@ -59,7 +73,7 @@ async def dispatch(command: str, arguments: dict, *, service, settings) -> Comma
                      'descriptor':s.descriptor.model_dump(mode='json'),'fidelity':s.fidelity,'operation_id':s.operation_id}
                     for s in values if query in (s.name+' '+s.descriptor.backend+' '+s.descriptor.kind).casefold()]
         elif command == 'inspect':
-            data = (await asyncio.to_thread(service.get_snapshot,arguments['snapshot_id'])).model_dump(mode='json')
+            data = await asyncio.to_thread(service.get_snapshot,arguments['snapshot_id'])
         elif command in ('cancel','continue'):
             await asyncio.to_thread(service.cancel if command=='cancel' else service.resume,run_id)
             data = await asyncio.to_thread(service.store.run,run_id)

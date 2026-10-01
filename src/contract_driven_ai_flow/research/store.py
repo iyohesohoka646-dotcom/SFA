@@ -88,6 +88,15 @@ class ExperimentStore:
             cursor = db.execute("SELECT COALESCE(MAX(sequence),0) FROM events WHERE run_id=?", (run_id,)).fetchone()[0]
             count = db.execute("SELECT COUNT(DISTINCT binding_id) FROM snapshots WHERE run_id=?", (run_id,)).fetchone()[0]
             rows = db.execute("SELECT s.body FROM snapshots s WHERE s.run_id=? AND s.version=(SELECT MAX(o.version) FROM snapshots o WHERE o.run_id=s.run_id AND o.binding_id=s.binding_id) ORDER BY s.rowid LIMIT 2048", (run_id,)).fetchall()
+            # Resolve parents of this bounded bootstrap independently of the
+            # preview cache. Older versions may no longer be among latest rows.
+            parent_ids = {parent for r in rows for parent in json.loads(r['body']).get('parents', [])}
+            parent_bindings = {}
+            ordered_parents = sorted(parent_ids)
+            for offset in range(0, len(ordered_parents), 500):
+                batch = ordered_parents[offset:offset+500]
+                parents = db.execute('SELECT id,binding_id FROM snapshots WHERE run_id=? AND id IN (%s)' % ','.join('?' for _ in batch), (run_id, *batch)).fetchall()
+                parent_bindings.update({p['id']:p['binding_id'] for p in parents})
             operations = db.execute("SELECT body FROM operations WHERE run_id=? ORDER BY rowid DESC LIMIT 256", (run_id,)).fetchall()
             probes = db.execute("SELECT body FROM events WHERE run_id=? AND json_extract(body,'$.kind')='probe.evaluated' ORDER BY sequence DESC LIMIT 512", (run_id,)).fetchall()
         indexed = []
@@ -97,6 +106,7 @@ class ExperimentStore:
             snapshot["coverage"]["delivery"] = "metadata-index"
             indexed.append(snapshot)
         return {"run": self._run(row), "cursor": cursor, "binding_count": count,
+                "parent_bindings": parent_bindings,
                 "snapshots": indexed, "operations": [json.loads(r["body"]) for r in reversed(operations)],
                 "probe_events": [json.loads(r["body"]) for r in reversed(probes)]}
 

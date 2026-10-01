@@ -93,7 +93,9 @@ class ResearchService:
         source = read_source(script)
         if Path(source.path).suffix != ".py" or len(source.text.encode("utf-8")) > 10 * 1024 * 1024:
             raise ValueError("Choose a Python script of at most 10 MiB")
-        python = Path(interpreter or sys.executable).expanduser().resolve(strict=True)
+        # Resolving a POSIX venv executable symlink selects the base interpreter
+        # and silently changes sys.prefix and installed scientific dependencies.
+        python = Path(interpreter or sys.executable).expanduser().absolute()
         if not python.is_file():
             raise ValueError("Selected Python interpreter is not a file")
         if len(arguments) > 256 or any(type(a) is not str or len(a) > 4096 for a in arguments):
@@ -240,10 +242,12 @@ class ResearchService:
         reader = None
         try:
             deadline = time.monotonic() + 10
-            while time.monotonic() < deadline and active.process.poll() is None:
+            while time.monotonic() < deadline:
                 try:
                     connection, address = active.listener.accept()
                 except socket.timeout:
+                    if active.process.poll() is not None:
+                        break
                     continue
                 candidate, authenticated = None, False
                 try:

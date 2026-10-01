@@ -96,6 +96,7 @@ export default function App() {
   const closeCreate = useCallback(() => setShowCreate(false), []);
   const closeSettings = useCallback(() => setProjectEditor(null), []);
   const undo = useRef<any[]>([]); const redo = useRef<any[]>([]); const stream = useRef<AbortController | null>(null); const diagram = useReactFlow();
+  const runSelection=useRef(0),runRequest=useRef<AbortController|null>(null);
   const dirty = !!project && json(project) !== json(draft);
   const graphModel = mode === 'Runs' && historyProject ? historyProject : draft;
   const graphModules = graphModel?.modules || [];
@@ -119,18 +120,23 @@ export default function App() {
   }, []);
 
   const selectRun = useCallback(async (id: string, switchMode = true) => {
-    stream.current?.abort();
-    const [detail, eventList] = await Promise.all([api('/runs/' + id), runEvents(id)]);
+    stream.current?.abort();runRequest.current?.abort();
+    const generation=++runSelection.current,controller=new AbortController();runRequest.current=controller;
+    let detail:any,eventList:any[];
+    try{[detail,eventList]=await Promise.all([api('/runs/'+id,'GET',undefined,false,controller.signal),runEvents(id,controller.signal)]);}
+    catch(error){if(controller.signal.aborted)return;throw error;}
+    if(controller.signal.aborted||generation!==runSelection.current)return;
     setRun(detail); setHistoryProject(detail.graph); setEvents(eventList); setCursor(0);
     if (switchMode) setMode('Runs');
     if (['queued', 'running', 'paused'].includes(detail.status)) {
-      const controller = new AbortController(); stream.current = controller;
+      stream.current = controller;
       void streamRun(id, event => {
+        if(controller.signal.aborted||generation!==runSelection.current)return;
         setEvents(old => old.some(e => e.sequence === event.sequence) ? old : [...old, event]);
         if (event.kind === 'run.started') setRun((old: any) => ({ ...old, status: 'running' }));
         if (event.kind === 'control.paused') setRun((old: any) => ({ ...old, status: 'paused' }));
         if (event.kind === 'control.resumed') setRun((old: any) => ({ ...old, status: 'running' }));
-        if (event.kind === 'run.finished') { setRun((old: any) => ({ ...old, ...event.data })); void api('/runs').then(setRuns); }
+        if (event.kind === 'run.finished') { setRun((old: any) => ({ ...old, ...event.data })); void api('/runs').then(values=>{if(generation===runSelection.current)setRuns(values);}); }
       }, controller.signal, eventList.at(-1)?.sequence || 0);
     }
   }, []);
@@ -190,7 +196,7 @@ export default function App() {
   async function startRun() {
     if (dirty) throw new Error('Review the architecture draft before running it');
     const input = JSON.parse(inputText);
-    stream.current?.abort(); setMode('Runs'); setRun(null); setEvents([]); setCursor(0); setHistoryProject(null);
+    stream.current?.abort();runRequest.current?.abort();runSelection.current++; setMode('Runs'); setRun(null); setEvents([]); setCursor(0); setHistoryProject(null);
     const result = await api('/runs', 'POST', { input, base_revision: revision });
     for (let i = 0; i < 20; i++) { try { await selectRun(result.id, false); return; } catch { await new Promise(r => setTimeout(r, 150)); } }
     throw new Error('Run was queued; refresh the run list to inspect it');

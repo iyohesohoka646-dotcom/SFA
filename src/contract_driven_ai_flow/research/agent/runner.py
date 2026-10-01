@@ -106,11 +106,14 @@ class ObservationRuntime:
         values = self.values(frame, names)
         reference = self.references[identifier]
         updated = set()
+        coverage = {"mode": "auto", "binding": "observed", "dependency": "inferred", "hidden_mutations": "not_observed"}
+        if active:
+            coverage["operation_duration_ms"] = record["duration_ms"]
         for name, value in values.items():
             owner = self.owner(frame, name)
             with self.session.scope(owner):
                 self.session.watch(name, value, source=reference["source"], parent_snapshots=parents, provenance="inferred",
-                    coverage={"mode": "auto", "binding": "observed", "dependency": "inferred", "hidden_mutations": "not_observed"})
+                    coverage=coverage)
             self.remember_array(owner, name, value)
             updated.add((owner, name))
         if reference["kind"] in ("mutation", "inplace"):

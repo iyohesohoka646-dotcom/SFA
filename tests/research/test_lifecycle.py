@@ -16,7 +16,8 @@ def test_connected_leases_survive_background_and_refresh_then_close():
     leases.release(one.id);now[0]+=4;leases.sweep();assert not closed
     leases.connected(two.id,False);now[0]+=2
     leases.connected(two.id,True);leases.sweep();assert not closed
-    leases.connected(two.id,False);now[0]+=3.1;leases.sweep();assert closed==[True]
+    leases.connected(two.id,False);leases.release(two.id)
+    now[0]+=3.1;leases.sweep();assert closed==[True]
 
 
 def test_abandoned_startup_lease_expires_and_shutdown_is_once():

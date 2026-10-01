@@ -16,13 +16,13 @@ function bound<K,V>(map: Map<K,V>, maximum: number) {
 }
 
 /** Incremental index; published snapshots are immutable wire values. */
-export function indexSnapshot(state: ResearchState, snapshot: SnapshotRef) {
+export function indexSnapshot(state: ResearchState, snapshot: SnapshotRef, parentBindings?:ReadonlyMap<string,string>) {
   // Full samples are fetched for the selected value; the index only needs metadata.
   snapshot={...snapshot,sample:{},statistics:{}};
   const current = state.latest.get(snapshot.binding_id);
   state.snapshots.set(snapshot.id,snapshot);
   if (!current || snapshot.version>current.version) {
-    const parents = (snapshot.parents || []).map(id=>state.snapshots.get(id)?.binding_id).filter((s):s is string=>!!s);
+    const parents = (snapshot.parents || []).map(id=>state.snapshots.get(id)?.binding_id||parentBindings?.get(id)).filter((s):s is string=>!!s);
     const dependencies = [...new Set(parents)].sort();
     if (!current || dependencies.join('\0')!==(state.dependencies.get(snapshot.binding_id)||[]).join('\0')) state.topologyVersion++;
     state.latest.set(snapshot.binding_id,snapshot);
