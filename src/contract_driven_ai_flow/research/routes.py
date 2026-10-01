@@ -179,6 +179,8 @@ def attach_research_routes(app, service: ResearchService):
         return service.runners.types()
 
     app.include_router(router)
+    from ..settings.routes import attach_model_routes
+    attach_model_routes(app, service)
 
     @app.exception_handler(LookupError)
     async def missing(request, exc):
@@ -193,6 +195,7 @@ def create_research_app(root: Path, *, token: str, port=8765, service=None):
     @asynccontextmanager
     async def lifespan(app):
         yield
+        app.state.models.close()
         await asyncio.to_thread(service.close)
 
     app = FastAPI(title="Scientific Dataflow Inspector", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)

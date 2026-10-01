@@ -88,11 +88,11 @@
 - Produces: `ExplanationService.explain(operation_id: str, *, provider_id: str, model: str, include_sample: bool=False) -> Explanation`。
 - HTTP：`/api/v1/settings/models`、`/settings/models/{id}/test`、`/research/operations/{id}/explain`；CLI `cdaf models list/configure/test` 与后续 `/model` 共用服务。
 
-- [ ] **Step 1:** 写 UI 明显入口、模型可搜索与手填、保存后 CLI 同步、连接失败／取消、密钥不回读、无凭据库不落明文、默认只发送源码与脱敏摘要用例；用本地假模型服务验证协议，不调用用户现有真实凭据。
-- [ ] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_model_settings.py tests/research/test_explanation_privacy.py -q` 和 `npm run test:e2e --prefix web -- model-settings`，确认失败。
-- [ ] **Step 3:** 实现系统凭据引用、OpenAI-compatible／Anthropic 配置、离线规则模式、连通性与推理测试的不同标签；模型解释显示发送范围、用量与取消，输出区分事实和推测。
-- [ ] **Step 4:** 同命令通过；慢模型测试期间搜索、矩阵切片、探针与取消均可用；实际付费服务验证仅在用户明确配置及授权之后进行，不以假服务结果宣称真实服务已验证。
-- [ ] **Step 5:** 提交 `feat: unify discoverable model settings and evidence-based explanations`。
+- [x] **Step 1:** 写 UI 明显入口、模型可搜索与手填、保存后 CLI 同步、连接失败／取消、密钥不回读、无凭据库不落明文、默认只发送源码与脱敏摘要用例；用本地假模型服务验证协议，不调用用户现有真实凭据。
+- [x] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_model_settings.py tests/research/test_explanation_privacy.py -q` 和 `npm run test:e2e --prefix web -- model-settings`，确认失败。
+- [x] **Step 3:** 实现系统凭据引用、OpenAI-compatible／Anthropic 配置、离线规则模式、连通性与推理测试的不同标签；模型解释显示发送范围、用量与取消，输出区分事实和推测。
+- [x] **Step 4:** 同命令通过；慢模型测试期间搜索、矩阵切片、探针与取消均可用；实际付费服务验证仅在用户明确配置及授权之后进行，不以假服务结果宣称真实服务已验证。
+- [x] **Step 5:** 提交 `feat: unify discoverable model settings and evidence-based explanations`。
 
 ## Task 4: Codex／Kilo 风格的交互 CLI
 

@@ -141,3 +141,5 @@ class Explanation(WireModel):
     origin: Literal["rule", "annotation", "model"] = "rule"
     evidence: list[str] = Field(default_factory=list)
     uncertainty: list[str] = Field(default_factory=list)
+    usage: dict[str, JsonValue] = Field(default_factory=dict)
+    sent_scope: dict[str, JsonValue] = Field(default_factory=dict)

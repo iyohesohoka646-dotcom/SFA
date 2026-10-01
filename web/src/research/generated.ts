@@ -197,4 +197,12 @@ export interface Explanation {
   origin: Origin;
   evidence: Evidence1;
   uncertainty: Uncertainty;
+  usage: Usage;
+  sent_scope: SentScope;
+}
+export interface Usage {
+  [k: string]: JsonValue;
+}
+export interface SentScope {
+  [k: string]: JsonValue;
 }

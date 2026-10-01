@@ -15,6 +15,7 @@ import {ConnectionHelp} from '../components';
 import {renderers} from './renderer-registry';
 import {displayCell} from './matrix-renderer';
 import {parseArguments} from './arguments';
+import {ModelSettings} from '../settings/ModelSettings';
 import type {ObservationEvent,SnapshotRef,ProbeSpec} from './generated';
 import './research.css';
 
@@ -25,6 +26,7 @@ export default function ResearchWorkbench(){
   const [definitions,setDefinitions]=useState<ProbeSpec[]>([newProbe('default-finite')]),[history,setHistory]=useState<SnapshotRef[]>([]),[showHistory,setShowHistory]=useState(false);
   const [file,setFile]=useState<SourceFile>(),[previewSource,setPreviewSource]=useState<SourceFile>(),[notice,setNotice]=useState('');
   const edited=useRef(new Set<string>());
+  const [showModels,setShowModels]=useState(false);
   const markEdit=(event:React.FormEvent<HTMLElement>)=>{const name=(event.target as HTMLElement).getAttribute('aria-label');if(name){edited.current.add(name);if(name==='示例选择'){edited.current.add('分析脚本');edited.current.add('脚本参数');}}};
   const catalog=useOperation('catalog'),bootstrap=useOperation('bootstrap:'+runId),detail=useOperation('detail'),execution=useOperation('execution'),control=useOperation('control'),source=useOperation('source:'+runId),preview=useOperation('source-preview'),historyLoad=useOperation('history:'+runId),exporting=useOperation('export');
   const refresh=useCallback(()=>catalog.run(signal=>client.runs(signal)).then(records=>{if(records){setRuns(records);setRunId(id=>id||records[0]?.id||'');}}),[catalog.run]);
@@ -66,7 +68,7 @@ export default function ResearchWorkbench(){
   const operation=actual?.operation_id?state.operations.get(actual.operation_id):undefined,custom=actual?renderers.resolve(actual.descriptor):undefined,Custom=custom?.Component;
   if(catalog.status==='error'&&!runs.length)return <ConnectionHelp error={catalog.error||'本地服务无法连接'} retry={()=>void refresh()}/>;
   return <main className="research-app">
-    <header className="ri-header"><h1>Scientific Dataflow Inspector</h1><span className="ri-local">本地科研工作台</span><div className="ri-header-actions"><button onClick={()=>{const theme=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;localStorage.setItem('cdaf-theme',theme);}}>切换主题</button><a href="?legacy=1">旧版架构</a></div></header>
+    <header className="ri-header"><h1>Scientific Dataflow Inspector</h1><span className="ri-local">本地科研工作台</span><div className="ri-header-actions"><button onClick={()=>setShowModels(value=>!value)}>模型设置</button><button onClick={()=>{const theme=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;localStorage.setItem('cdaf-theme',theme);}}>切换主题</button><a href="?legacy=1">旧版架构</a></div></header>
     <section className="ri-toolbar" onChangeCapture={markEdit}><label>分析脚本<input aria-label="分析脚本" value={script} onChange={e=>setScript(e.target.value)} placeholder="已有 .py 脚本路径"/></label><button onClick={()=>void preview.run(signal=>client.sourcePreview(script,signal)).then(value=>{if(value){setPreviewSource(value);setSelected('');}})} disabled={preview.status==='running'||!script}>打开代码</button><label>计算解释器<input aria-label="计算解释器" value={interpreter} onChange={e=>setInterpreter(e.target.value)}/></label>
       <label>采集<select aria-label="采集级别" value={capture} onChange={e=>setCapture(e.target.value)}><option value="metadata">元数据</option><option value="summary">摘要</option><option value="full">完整数据</option></select></label><button className="ri-primary" onClick={()=>void run()} disabled={!script||!interpreter||execution.status==='running'}>{execution.status==='running'?'正在启动…':'运行分析'}</button>
       {['queued','running','paused'].includes(state.status)&&<button onClick={()=>void control.run(signal=>client.control(runId,state.status==='paused'?'resume':'cancel',signal))}>{state.status==='paused'?'继续运行':'取消运行'}</button>}
@@ -82,6 +84,6 @@ export default function ResearchWorkbench(){
         <OperationView operation={operation} snapshots={state.snapshots}/>
       </>:<p className="ri-empty">打开脚本并运行，选择变量查看定义、数据和运算。</p>}</section>
       <div className="ri-right ri-column"><LocalFlow state={state} selected={selected} onSelect={select}/><ProbePanel snapshot={actual} results={actual?state.probes.get(actual.id)||[]:[]} definitions={definitions} onSave={saveProbes}/><RunTimeline runId={runId} live={state.timeline} onSnapshot={showSnapshot}/></div>
-    </div><footer className="ri-footer">{state.omittedBindings?`${state.omittedBindings} 个变量未加载；完整证据保存在本地。`:'源码与运行记录绑定版本；历史查看不会重新执行代码。'}<span>CLI：cdaf observe analysis.py</span></footer>
+    </div><footer className="ri-footer">{state.omittedBindings?`${state.omittedBindings} 个变量未加载；完整证据保存在本地。`:'源码与运行记录绑定版本；历史查看不会重新执行代码。'}<span>CLI：cdaf observe analysis.py</span></footer><ModelSettings visible={showModels} onClose={()=>setShowModels(false)}/>
   </main>;
 }

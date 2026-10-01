@@ -42,5 +42,23 @@ if __name__ == "__main__":
         trace.watch("points", example.PointCloud(((1.0,2.0),(3.0,4.0))))
     store.append([ObservationEvent.model_validate(e) for e in trace.transport.drain()])
     app = create_research_app(root, token="research-test-session", port=8879)
+    import os
+    import asyncio
+    from fastapi import Request
+    from fastapi.responses import JSONResponse
+    os.environ['CDAF_BROWSER_TEST_KEY']='synthetic-browser-model-key'
+
+    @app.get('/fake-model/v1/models')
+    async def fake_models(request: Request):
+        return {'data':[{'id':'model-a'},{'id':'model-b'}]}
+
+    @app.post('/fake-model/v1/chat/completions')
+    async def fake_completion(request: Request):
+        body=await request.json()
+        if body.get('model')=='slow-model':
+            await asyncio.sleep(30)
+        if body.get('model')=='error-model':
+            return JSONResponse({'message':'synthetic-private-error'},status_code=401)
+        return {'choices':[{'message':{'content':'事实：这是已记录的数值运算。推测：实验意义需要用户标注。'}}], 'usage':{'prompt_tokens':24,'completion_tokens':12}}
     app.mount("/", StaticFiles(directory=base / "src/contract_driven_ai_flow/static", html=True))
     uvicorn.run(app, host="127.0.0.1", port=8879, access_log=False)

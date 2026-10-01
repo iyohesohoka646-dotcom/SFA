@@ -18,7 +18,8 @@ def sensitive(name: str, fields=()) -> bool:
 def clean_text(value: str, limit: int = 512) -> str:
     value = value[:limit]
     value = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", "[REDACTED_EMAIL]", value)
-    value = re.sub(r"(?i)([\"']?(?:api[_-]?key|password|token|secret)[\"']?\s*[:=]\s*)(\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')", lambda m: m.group(1) + '"[REDACTED]"', value)
+    prefix = r"(?i)([\"']?[A-Za-z0-9_.-]*(?:api[_-]?key|password|token|secret|authorization)[A-Za-z0-9_.-]*[\"']?\s*[:=]\s*)(?:[rbuf]*)(\"\"\"[\s\S]*?(?:\"\"\"|$)|'''[\s\S]*?(?:'''|$)|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')"
+    value = re.sub(prefix, lambda m: m.group(1) + '"[REDACTED]"' + '\n' * m.group(2).count('\n'), value)
     return re.sub(r"(?i)(bearer\s+|(?:api[_-]?key|password|token|secret)\s*[:=]\s*)[^\s,;\"']+", r"\1[REDACTED]", value)
 
 

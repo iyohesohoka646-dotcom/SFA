@@ -12,5 +12,5 @@ export function explainOperation(operation:OperationRecord,descriptors:ValueDesc
   else if(/zeros\(|ones\(|arange\(|normal\(/.test(label))text='定义一个数组，实际形状、dtype 与来源见此变量记录。';
   else if(/\[[^\]]*:[^\]]*\]/.test(label))text='选择数组的一部分；观察值对应这次执行的具体版本。';
   return {operation_id:operation.id,text,origin:'rule',evidence:[operation.id,...operation.input_snapshots,...operation.output_snapshots],
-    uncertainty:[...(!descriptors.every(d=>d.axes.length)?['轴的实验语义未标注']:[]),...(!descriptors.every(d=>d.unit)?['单位未标注']:[])]};
+    uncertainty:[...(!descriptors.every(d=>d.axes.length)?['轴的实验语义未标注']:[]),...(!descriptors.every(d=>d.unit)?['单位未标注']:[])],usage:{},sent_scope:{requests:0,source:'local rule'}};
 }

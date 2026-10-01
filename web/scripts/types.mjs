@@ -5,3 +5,5 @@ const types = await compileFromFile('../src/contract_driven_ai_flow/schemas/proj
 await writeFile('src/generated.ts', types, 'utf8');
 const research = await compileFromFile('../src/contract_driven_ai_flow/schemas/research.json', {bannerComment:'/* Generated from Python scientific wire models; scripts/export_schema.py + npm run types. */', additionalProperties:false});
 await writeFile('src/research/generated.ts', research, 'utf8');
+const models = await compileFromFile('../src/contract_driven_ai_flow/schemas/models.json', {bannerComment:'/* Generated from Python model profiles; scripts/export_schema.py + npm run types. */', additionalProperties:false});
+await writeFile('src/settings/generated.ts',models,'utf8');

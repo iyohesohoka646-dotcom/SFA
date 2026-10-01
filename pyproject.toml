@@ -22,6 +22,8 @@ dependencies = [
     "uvicorn>=0.30,<1",
     "libcst>=1.5,<2",
     "pillow>=10",
+    "httpx>=0.27,<1",
+    "keyring>=25,<26",
 ]
 
 [project.optional-dependencies]

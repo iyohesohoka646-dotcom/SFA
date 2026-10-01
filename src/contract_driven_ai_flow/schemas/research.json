@@ -34,6 +34,20 @@
           },
           "title": "Uncertainty",
           "type": "array"
+        },
+        "usage": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Usage",
+          "type": "object"
+        },
+        "sent_scope": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Sent Scope",
+          "type": "object"
         }
       },
       "required": [
@@ -41,7 +55,9 @@
         "text",
         "origin",
         "evidence",
-        "uncertainty"
+        "uncertainty",
+        "usage",
+        "sent_scope"
       ],
       "title": "Explanation",
       "type": "object"

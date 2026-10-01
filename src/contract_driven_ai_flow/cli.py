@@ -20,6 +20,46 @@ projects_app = typer.Typer(help="Create, register and list projects in the local
 app.add_typer(projects_app, name="projects")
 research_app = typer.Typer(help="Observe existing scientific Python analyses and inspect their data evidence.")
 app.add_typer(research_app, name="research")
+models_app = typer.Typer(help="Configure shared model profiles and explicit credential references.")
+app.add_typer(models_app, name="models")
+
+
+@models_app.command("list")
+def models_list(project: Path = typer.Option(Path("."), "--project", "-p")):
+    from .settings.service import ModelSettingsService
+    output([profile.model_dump(mode="json") for profile in ModelSettingsService(project).list()])
+
+
+@models_app.command("configure")
+def models_configure(identifier: str, protocol: str = "openai-compatible", base_url: str = "", model: str = "",
+                     credential_env: str = "", prompt_key: bool = False, timeout: float = 60,
+                     project: Path = typer.Option(Path("."), "--project", "-p")):
+    from .settings.models import ProviderProfile
+    from .settings.service import ModelSettingsService
+    if credential_env and prompt_key:
+        raise typer.BadParameter("Choose a credential environment reference or an OS-vault prompt")
+    profile = guard(ProviderProfile, id=identifier, protocol=protocol, base_url=base_url, default_model=model,
+                    timeout_seconds=timeout, credential_ref="env:"+credential_env if credential_env else None)
+    secret = __import__('getpass').getpass("Model credential (stored in the OS vault): ") if prompt_key else None
+    output(guard(ModelSettingsService(project).save, profile, secret=secret))
+
+
+@models_app.command("test")
+def models_test(identifier: str, inference: bool = False, model: str = "",
+                project: Path = typer.Option(Path("."), "--project", "-p")):
+    import asyncio
+    from .settings.service import ModelSettingsService
+    service = ModelSettingsService(project)
+    try:
+        result = asyncio.run(service.test(identifier, inference=inference, model=model or None))
+        output(result)
+        if result.status == "error":
+            raise typer.Exit(1)
+        if result.status == "cancelled":
+            raise typer.Exit(130)
+    except KeyboardInterrupt:
+        service.close()
+        raise typer.Exit(130)
 
 
 def output(value):

@@ -6,6 +6,7 @@ import type {OperationRecord,SnapshotRef} from './generated';
 import {explainOperation} from './explanation-templates';
 import {localTopology} from './selectors';
 import {layoutResearch} from '../graph';
+import {EvidenceExplanation} from '../settings/EvidenceExplanation';
 
 function ValueNode({data}:NodeProps){return <div className="ri-value-node" data-testid="flow-node"><Handle type="target" position={Position.Left}/><strong>{String(data.name)}</strong><small>{String(data.shape)}</small><Handle type="source" position={Position.Right}/></div>;}
 const nodeTypes={value:ValueNode};
@@ -13,7 +14,7 @@ export const OperationView=memo(function OperationView({operation,snapshots}:{op
   if(!operation)return <p className="ri-empty">选择有来源记录的变量，查看表达式及其输入输出。</p>;
   const values=[...operation.input_snapshots,...operation.output_snapshots].map(id=>snapshots.get(id)).filter((value):value is SnapshotRef=>!!value);
   const explanation=explainOperation(operation,values.map(value=>value.descriptor));
-  return <div className="ri-operation"><code>{operation.label}</code><p data-testid="operation-explanation">{explanation.text}</p><div className="ri-io"><span>输入 {operation.input_snapshots.map(id=>snapshots.get(id)?.name||id.slice(0,8)).join('，')||'未观察'}</span><span>输出 {operation.output_snapshots.map(id=>snapshots.get(id)?.name||id.slice(0,8)).join('，')||'未观察'}</span></div><small>{operation.duration_ms?.toFixed(2)||'未知'} ms · {operation.provenance} · {explanation.uncertainty.join('；')}</small></div>;
+  return <div className="ri-operation"><code>{operation.label}</code><p data-testid="operation-explanation">{explanation.text}</p><div className="ri-io"><span>输入 {operation.input_snapshots.map(id=>snapshots.get(id)?.name||id.slice(0,8)).join('，')||'未观察'}</span><span>输出 {operation.output_snapshots.map(id=>snapshots.get(id)?.name||id.slice(0,8)).join('，')||'未观察'}</span></div><small>{operation.duration_ms?.toFixed(2)||'未知'} ms · {operation.provenance} · {explanation.uncertainty.join('；')}</small><EvidenceExplanation key={operation.id} operation={operation}/></div>;
 });
 
 export const LocalFlow=memo(function LocalFlow({state,selected,onSelect}:{state:ResearchState;selected:string;onSelect:(id:string)=>void}){
