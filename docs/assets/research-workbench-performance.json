@@ -1,0 +1,100 @@
+{
+  "measured_at": "2026-10-01T13:14:27.510273+00:00",
+  "fixture": {
+    "logical_values": 1000,
+    "maximum_visible_nodes": 80,
+    "stored_events": 10000
+  },
+  "browser": "Edge",
+  "measurements": [
+    {
+      "paint": [
+        1.1000000089406967,
+        1.6000000089406967,
+        2,
+        2.4000000059604645,
+        3,
+        3.199999988079071,
+        3.2999999970197678,
+        3.4000000059604645,
+        4.100000008940697,
+        4.200000002980232,
+        4.300000011920929,
+        4.5999999940395355,
+        4.700000002980232,
+        4.800000011920929,
+        5,
+        5.199999988079071,
+        5.5,
+        5.700000002980232,
+        6.0999999940395355,
+        6.4000000059604645
+      ],
+      "api": [
+        {
+          "url": "/api/v1/research/info",
+          "duration": 8.900000005960464
+        },
+        {
+          "url": "/api/v1/research/runs",
+          "duration": 7.700000002980232
+        },
+        {
+          "url": "/api/v1/research/runs/b78dee7be12741f581934f57ba9f7068/bootstrap",
+          "duration": 132.29999999701977
+        },
+        {
+          "url": "/api/v1/research/snapshots/s0-10",
+          "duration": 6.9000000059604645
+        },
+        {
+          "url": "/api/v1/research/snapshots/s999-10",
+          "duration": 5.399999991059303
+        },
+        {
+          "url": "/api/v1/research/snapshots/s7-10",
+          "duration": 5.200000002980232
+        },
+        {
+          "url": "/api/v1/research/snapshots/s20-10",
+          "duration": 5.4000000059604645
+        },
+        {
+          "url": "/api/v1/research/snapshots/s999-10",
+          "duration": 4.399999991059303
+        },
+        {
+          "url": "/api/v1/research/snapshots/s15-10",
+          "duration": 4.299999997019768
+        },
+        {
+          "url": "/api/v1/research/snapshots/s7-10",
+          "duration": 4.799999997019768
+        },
+        {
+          "url": "/api/v1/research/snapshots/s81-10",
+          "duration": 5.299999997019768
+        },
+        {
+          "url": "/api/v1/research/snapshots/s999-10",
+          "duration": 7.200000002980232
+        },
+        {
+          "url": "/api/v1/research/snapshots/s0-10",
+          "duration": 6.199999988079071
+        },
+        {
+          "url": "/api/v1/research/snapshots/s1-10",
+          "duration": 4.0999999940395355
+        }
+      ],
+      "longTasks": [],
+      "ready": 1032.9000000059605,
+      "count": 20,
+      "p50": 4.300000011920929,
+      "p95": 6.0999999940395355,
+      "detailP95": 7.200000002980232
+    }
+  ],
+  "scope": "Synthetic UI history fixture; excludes scientific computation and initial server preparation"
+}

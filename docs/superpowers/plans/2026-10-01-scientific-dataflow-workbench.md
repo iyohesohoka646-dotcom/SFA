@@ -49,11 +49,11 @@
 - `ResearchState`／`VariableView` 定义在 `state.ts`／`selectors.ts`；`useOperation` 定义在 `operations.ts`；`web/package.json` 增加 Vitest 的 `test` 脚本，现有 Playwright `test:e2e` 保留。
 - 状态按 run／snapshot／operation ID 归一化，事件和探针建立索引；每个异步请求包含选择版本并可被取消。
 
-- [ ] **Step 1:** 写乱序选择、重复事件、布局次数、慢请求不阻塞搜索四项回归；Playwright 场景使用 1000 个逻辑值、80 个可见节点、10000 条事件并连续输入／快速点击。
-- [ ] **Step 2:** 运行 `npm test --prefix web -- research-state` 和 `npm run test:e2e --prefix web -- research-performance`，确认当前方案失败并保留 trace。
-- [ ] **Step 3:** 建立增量索引、分页历史、独立请求状态和取消；去掉每次渲染的整模型 JSON 比较、逐节点全事件扫描和全局 `busy` 阻塞；仅拓扑／展开状态变化触发布局。
-- [ ] **Step 4:** 同命令通过，记录响应 p50／p95、长任务、重绘与 API 耗时；预算未达标则调整渲染范围，不能只增加测试等待时间。
-- [ ] **Step 5:** 提交 `refactor: decouple scientific state updates from rendering and layout`。
+- [x] **Step 1:** 写乱序选择、重复事件、布局次数、慢请求不阻塞搜索四项回归；Playwright 场景使用 1000 个逻辑值、80 个可见节点、10000 条事件并连续输入／快速点击。
+- [x] **Step 2:** 运行 `npm test --prefix web -- research-state` 和 `npm run test:e2e --prefix web -- research-performance`，确认当前方案失败并保留 trace。
+- [x] **Step 3:** 建立增量索引、分页历史、独立请求状态和取消；去掉每次渲染的整模型 JSON 比较、逐节点全事件扫描和全局 `busy` 阻塞；仅拓扑／展开状态变化触发布局。
+- [x] **Step 4:** 同命令通过，记录响应 p50／p95、长任务、重绘与 API 耗时；预算未达标则调整渲染范围，不能只增加测试等待时间。
+- [x] **Step 5:** 提交 `refactor: decouple scientific state updates from rendering and layout`。
 
 ## Task 2: 矩阵、表格、源码与局部运算链
 

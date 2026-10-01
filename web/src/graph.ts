@@ -5,11 +5,12 @@ import type { ProjectSpec } from './generated';
 
 // The bundled fake-worker API expects a document; a dedicated worker uses ELK's
 // own message protocol through the small API wrapper instead.
-const elk = new ELK({ workerFactory: () => new Worker(workerUrl) });
+let elk:InstanceType<typeof ELK>|undefined;
 export type Point = { x: number; y: number };
 export type View = { positions: Record<string, Point>; collapsed: string[]; theme: string };
 
 export async function layoutGraph(project: ProjectSpec, view: View): Promise<{ nodes: Node[]; edges: Edge[]; elapsed: number }> {
+  elk??=new ELK({ workerFactory: () => new Worker(workerUrl) });
   const started = performance.now();
   const modules = project.modules || [];
   const index = new Map(modules.map(m => [m.id, m]));

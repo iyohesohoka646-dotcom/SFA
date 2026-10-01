@@ -40,6 +40,11 @@ def attach_research_routes(app, service: ResearchService):
     def runs(limit: int = 100):
         return service.store.runs(limit)
 
+    @router.get("/info")
+    def info():
+        return {"protocol_version": 1, "root": str(service.root), "interpreter": sys.executable,
+            "examples": [{"id":"analysis", "name":"标准化、协方差与 PCA", "script":str(Path(__file__).parents[1] / "templates/research-analysis/analysis.py")}]}
+
     @router.post("/runs", status_code=202)
     def start(body: AnalysisRequest):
         return asdict(service.start_analysis(Path(body.script), interpreter=Path(body.interpreter), arguments=body.arguments,
@@ -49,6 +54,10 @@ def attach_research_routes(app, service: ResearchService):
     @router.get("/runs/{run_id}")
     def run(run_id: str):
         return service.store.run(run_id)
+
+    @router.get("/runs/{run_id}/bootstrap")
+    def bootstrap(run_id: str):
+        return service.store.bootstrap(run_id)
 
     @router.get("/runs/{run_id}/snapshots")
     def snapshots(run_id: str, latest: bool = True, limit: int = 1000, after: str | None = None):

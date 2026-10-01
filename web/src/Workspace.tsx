@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError, projectPrefix } from './api';
-import App from './App';
+import App from './LegacyApp';
 import { ConnectionHelp, Tabs } from './components';
 import { Maintenance, Installation, FeatureReference } from './tools';
 
@@ -33,7 +33,7 @@ function Workspace() {
   const refresh = useCallback(async () => setData(await api('/workspace', 'GET', undefined, true)), []);
   const act = async (fn: () => Promise<void>) => { setError(''); setBusy(true); try { await fn(); } catch (err) { setError((err as Error).message); } finally { setBusy(false); } };
   useEffect(() => { void act(refresh); }, [refresh]);
-  const open = (id: string) => { location.href = `/p/${id}/`; };
+  const open = (id: string) => { location.href = `/p/${id}/?legacy=1`; };
   return <main className="workspace-home">
     <header className="workspace-header"><a className="workspace-brand" href="/">Contract Flow <span>Local Studio</span></a><div><button onClick={() => { const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; document.documentElement.dataset.theme = theme; localStorage.setItem('cdaf-theme', theme); }} aria-label="Toggle theme">Theme</button><button disabled={busy} onClick={() => void act(refresh)}>Refresh projects</button></div></header>
     <div className="workspace-content"><h1>Your code, contracts and execution evidence.</h1><p className="workspace-intro">Open a project or begin with an executable example. All files stay on this computer.</p>
@@ -53,3 +53,4 @@ function Workspace() {
     </div>
   </main>;
 }
+

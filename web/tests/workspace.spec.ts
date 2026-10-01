@@ -5,7 +5,7 @@ test.use({ baseURL: 'http://127.0.0.1:8878' });
 
 test('first-use workspace creates a contract-first project and completes reviewed execution', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/#session=workspace-test-session');
+  await page.goto('/?legacy=1#session=workspace-test-session');
   await expect(page.getByRole('heading', { name: 'Your code, contracts and execution evidence.' })).toBeVisible();
   await expect(page.locator('.project-row')).toHaveCount(1);
   await mkdir('../docs/assets', { recursive: true });
@@ -59,7 +59,7 @@ test('first-use workspace creates a contract-first project and completes reviewe
 
 test('workspace and graph are usable on mobile, tabs use arrow keys, dialogs restore focus', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/#session=workspace-test-session');
+  await page.goto('/?legacy=1#session=workspace-test-session');
   await expect(page.getByRole('heading', { name: 'Your code, contracts and execution evidence.' })).toBeVisible();
   await expect(page.locator('.project-row').first()).toBeVisible();
   const installation = page.getByRole('tab', { name: 'Installation' });
@@ -88,7 +88,7 @@ test('workspace and graph are usable on mobile, tabs use arrow keys, dialogs res
 });
 
 test('project tools and probe editing keep shared architecture and maintenance semantics', async ({ page }) => {
-  await page.goto('/#session=workspace-test-session');
+  await page.goto('/?legacy=1#session=workspace-test-session');
   await page.locator('.project-row').filter({ hasText: 'Signal quality' }).getByRole('button', { name: 'Open project' }).click();
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('tab', { name: 'Probes', exact: true }).click();
@@ -114,10 +114,10 @@ test('project tools and probe editing keep shared architecture and maintenance s
 });
 
 test('missing session provides connection recovery instead of an unusable blank screen', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/?legacy=1');
   await expect(page.getByRole('heading', { name: 'Connect to your local Studio' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Retry connection' })).toBeVisible();
-  await page.getByLabel('Session URL from the terminal').fill('http://127.0.0.1:8878/#session=workspace-test-session');
+  await page.getByLabel('Session URL from the terminal').fill('http://127.0.0.1:8878/?legacy=1#session=workspace-test-session');
   await page.getByRole('button', { name: 'Open session', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Your code, contracts and execution evidence.' })).toBeVisible();
 });

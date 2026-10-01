@@ -1,0 +1,739 @@
+{
+  "$defs": {
+    "Explanation": {
+      "additionalProperties": false,
+      "properties": {
+        "operation_id": {
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "origin": {
+          "default": "rule",
+          "enum": [
+            "rule",
+            "annotation",
+            "model"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "uncertainty": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncertainty",
+          "type": "array"
+        }
+      },
+      "required": [
+        "operation_id",
+        "text",
+        "origin",
+        "evidence",
+        "uncertainty"
+      ],
+      "title": "Explanation",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "ObservationEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "sequence": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "operation_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operation Id"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        },
+        "payload": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Payload",
+          "type": "object"
+        }
+      },
+      "required": [
+        "schema_version",
+        "run_id",
+        "sequence",
+        "kind",
+        "timestamp",
+        "source",
+        "operation_id",
+        "snapshot_id",
+        "payload"
+      ],
+      "title": "ObservationEvent",
+      "type": "object"
+    },
+    "OperationRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scope_id": {
+          "default": "main",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "iteration": {
+          "default": 1,
+          "title": "Iteration",
+          "type": "integer"
+        },
+        "input_snapshots": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Snapshots",
+          "type": "array"
+        },
+        "output_snapshots": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Output Snapshots",
+          "type": "array"
+        },
+        "kind": {
+          "default": "custom",
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "default": "started",
+          "title": "Status",
+          "type": "string"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "provenance": {
+          "default": "unknown",
+          "enum": [
+            "observed",
+            "inferred",
+            "declared",
+            "unknown"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "run_id",
+        "label",
+        "source",
+        "scope_id",
+        "iteration",
+        "input_snapshots",
+        "output_snapshots",
+        "kind",
+        "status",
+        "duration_ms",
+        "parameters",
+        "provenance"
+      ],
+      "title": "OperationRecord",
+      "type": "object"
+    },
+    "ProbeResult": {
+      "additionalProperties": false,
+      "properties": {
+        "probe_id": {
+          "title": "Probe Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "error",
+            "skipped",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "fidelity": {
+          "default": "metadata_only",
+          "enum": [
+            "exact",
+            "sampled",
+            "metadata_only"
+          ],
+          "title": "Fidelity",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        },
+        "evidence": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Evidence",
+          "type": "object"
+        },
+        "duration_ms": {
+          "default": 0,
+          "title": "Duration Ms",
+          "type": "number"
+        }
+      },
+      "required": [
+        "probe_id",
+        "snapshot_id",
+        "status",
+        "fidelity",
+        "message",
+        "evidence",
+        "duration_ms"
+      ],
+      "title": "ProbeResult",
+      "type": "object"
+    },
+    "ProbeSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "default": "finite",
+          "title": "Kind",
+          "type": "string"
+        },
+        "binding": {
+          "default": "*",
+          "title": "Binding",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "policy": {
+          "default": "continue",
+          "enum": [
+            "continue",
+            "pause",
+            "cancel"
+          ],
+          "title": "Policy",
+          "type": "string"
+        },
+        "budget_ms": {
+          "default": 50,
+          "maximum": 30000,
+          "minimum": 1,
+          "title": "Budget Ms",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "binding",
+        "enabled",
+        "parameters",
+        "policy",
+        "budget_ms",
+        "protocol_version"
+      ],
+      "title": "ProbeSpec",
+      "type": "object"
+    },
+    "SnapshotRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "binding_id": {
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "scope_id": {
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "descriptor": {
+          "$ref": "#/$defs/ValueDescriptor"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "operation_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operation Id"
+        },
+        "parents": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Parents",
+          "type": "array"
+        },
+        "provenance": {
+          "default": "unknown",
+          "enum": [
+            "observed",
+            "inferred",
+            "declared",
+            "unknown"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        },
+        "fidelity": {
+          "default": "metadata_only",
+          "enum": [
+            "exact",
+            "sampled",
+            "metadata_only"
+          ],
+          "title": "Fidelity",
+          "type": "string"
+        },
+        "sample": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Sample",
+          "type": "object"
+        },
+        "statistics": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Statistics",
+          "type": "object"
+        },
+        "truncation": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Truncation",
+          "type": "array"
+        },
+        "redacted": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Redacted",
+          "type": "array"
+        },
+        "artifact_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact Ref"
+        },
+        "coverage": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Coverage",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "run_id",
+        "binding_id",
+        "scope_id",
+        "name",
+        "version",
+        "descriptor",
+        "observed_at",
+        "source",
+        "operation_id",
+        "parents",
+        "provenance",
+        "fidelity",
+        "sample",
+        "statistics",
+        "truncation",
+        "redacted",
+        "artifact_ref",
+        "coverage"
+      ],
+      "title": "SnapshotRef",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "qualname": {
+          "default": "",
+          "title": "Qualname",
+          "type": "string"
+        },
+        "line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Line",
+          "type": "integer"
+        },
+        "digest": {
+          "default": "",
+          "title": "Digest",
+          "type": "string"
+        },
+        "code": {
+          "default": "",
+          "title": "Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "qualname",
+        "line",
+        "end_line",
+        "digest",
+        "code"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    },
+    "ValueDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "backend": {
+          "title": "Backend",
+          "type": "string"
+        },
+        "type_name": {
+          "title": "Type Name",
+          "type": "string"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shape"
+        },
+        "dtype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dtype"
+        },
+        "nbytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nbytes"
+        },
+        "device": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Device"
+        },
+        "axes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Axes",
+          "type": "array"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "backend",
+        "type_name",
+        "shape",
+        "dtype",
+        "nbytes",
+        "device",
+        "axes",
+        "unit",
+        "capabilities",
+        "metadata"
+      ],
+      "title": "ValueDescriptor",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "SourceRef": {
+      "$ref": "#/$defs/SourceRef"
+    },
+    "ValueDescriptor": {
+      "$ref": "#/$defs/ValueDescriptor"
+    },
+    "SnapshotRef": {
+      "$ref": "#/$defs/SnapshotRef"
+    },
+    "OperationRecord": {
+      "$ref": "#/$defs/OperationRecord"
+    },
+    "ObservationEvent": {
+      "$ref": "#/$defs/ObservationEvent"
+    },
+    "ProbeSpec": {
+      "$ref": "#/$defs/ProbeSpec"
+    },
+    "ProbeResult": {
+      "$ref": "#/$defs/ProbeResult"
+    },
+    "Explanation": {
+      "$ref": "#/$defs/Explanation"
+    }
+  },
+  "required": [
+    "SourceRef",
+    "ValueDescriptor",
+    "SnapshotRef",
+    "OperationRecord",
+    "ObservationEvent",
+    "ProbeSpec",
+    "ProbeResult",
+    "Explanation"
+  ],
+  "title": "ResearchProtocol",
+  "type": "object"
+}

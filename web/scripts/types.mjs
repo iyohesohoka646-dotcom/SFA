@@ -3,3 +3,5 @@ import { writeFile } from 'node:fs/promises';
 
 const types = await compileFromFile('../src/contract_driven_ai_flow/schemas/project.json', { bannerComment: '/* Generated from Python ProjectSpec. Run scripts/export_schema.py; npm run types. */', additionalProperties: false });
 await writeFile('src/generated.ts', types, 'utf8');
+const research = await compileFromFile('../src/contract_driven_ai_flow/schemas/research.json', {bannerComment:'/* Generated from Python scientific wire models; scripts/export_schema.py + npm run types. */', additionalProperties:false});
+await writeFile('src/research/generated.ts', research, 'utf8');

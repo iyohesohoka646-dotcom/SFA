@@ -77,6 +77,23 @@ class ExperimentStore:
             raise LookupError("Unknown scientific run")
         return self._run(row)
 
+    def bootstrap(self, run_id: str):
+        # A read transaction fixes the cursor and value versions together, so
+        # reconnecting from this cursor cannot miss an intervening observation.
+        with self.connect() as db:
+            db.execute("BEGIN")
+            row = db.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
+            if row is None:
+                raise LookupError("Unknown scientific run")
+            cursor = db.execute("SELECT COALESCE(MAX(sequence),0) FROM events WHERE run_id=?", (run_id,)).fetchone()[0]
+            count = db.execute("SELECT COUNT(DISTINCT binding_id) FROM snapshots WHERE run_id=?", (run_id,)).fetchone()[0]
+            rows = db.execute("SELECT s.body FROM snapshots s WHERE s.run_id=? AND s.version=(SELECT MAX(o.version) FROM snapshots o WHERE o.run_id=s.run_id AND o.binding_id=s.binding_id) ORDER BY s.rowid LIMIT 2048", (run_id,)).fetchall()
+            operations = db.execute("SELECT body FROM operations WHERE run_id=? ORDER BY rowid DESC LIMIT 256", (run_id,)).fetchall()
+            probes = db.execute("SELECT body FROM events WHERE run_id=? AND json_extract(body,'$.kind')='probe.evaluated' ORDER BY sequence DESC LIMIT 512", (run_id,)).fetchall()
+        return {"run": self._run(row), "cursor": cursor, "binding_count": count,
+                "snapshots": [json.loads(r["body"]) for r in rows], "operations": [json.loads(r["body"]) for r in reversed(operations)],
+                "probe_events": [json.loads(r["body"]) for r in reversed(probes)]}
+
     def runs(self, limit: int = 100) -> list[dict]:
         if not 1 <= limit <= 1000:
             raise ValueError("Run page must contain 1-1000 records")

@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 
 test('real graph, history, probes, theme and offline export', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('/#session=browser-test-session');
+  await page.goto('/?legacy=1#session=browser-test-session');
   await expect(page.getByRole('heading', { name: 'Design with clear boundaries.' })).toBeVisible();
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('tab', { name: 'Runs', exact: true }).click();
@@ -37,7 +37,7 @@ test('real graph, history, probes, theme and offline export', async ({ page }) =
 });
 
 test('canvas contract edit, review and real rerun share one revision', async ({ page }) => {
-  await page.goto('/#session=browser-test-session');
+  await page.goto('/?legacy=1#session=browser-test-session');
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('button', { name: 'Validate', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Compilation passed');
@@ -73,7 +73,7 @@ test('canvas contract edit, review and real rerun share one revision', async ({ 
 });
 
 test('search latency is measured and keyboard selection works', async ({ page }) => {
-  await page.goto('/#session=browser-test-session');
+  await page.goto('/?legacy=1#session=browser-test-session');
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   const started = Date.now();
   await page.getByLabel('Search modules').fill('summarize');
@@ -87,7 +87,7 @@ test('search latency is measured and keyboard selection works', async ({ page })
 });
 
 test('input binding can be edited and reviewed from the canvas', async ({ page }) => {
-  await page.goto('/#session=browser-test-session');
+  await page.goto('/?legacy=1#session=browser-test-session');
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('button', { name: 'Normalize', exact: true }).click();
   await page.getByText('Bind module inputs', { exact: true }).click();
@@ -107,7 +107,7 @@ test('input binding can be edited and reviewed from the canvas', async ({ page }
 });
 
 test('new contract module, offline implementation review, execution and inverse rollback', async ({ page }) => {
-  await page.goto('/#session=browser-test-session');
+  await page.goto('/?legacy=1#session=browser-test-session');
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('button', { name: 'New module', exact: true }).click();
   await page.getByLabel('Module identifier', { exact: true }).fill('hello_code');
@@ -155,7 +155,7 @@ test('large folded graph, Chinese labels and background layout stay interactive'
   expect((await page.request.post(`/api/v1/changes/${change.id}/accept`, { headers, data: { base_revision: current.revision } })).ok()).toBeTruthy();
   await page.request.put('/api/v1/view', { headers, data: { view: { positions: {}, collapsed: groups, theme: 'dark' }, base_revision: current.view.revision } });
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  const foldedStarted = Date.now(); await page.goto('/#session=browser-test-session');
+  const foldedStarted = Date.now(); await page.goto('/?legacy=1#session=browser-test-session');
   await expect(page.locator('.react-flow__node')).toHaveCount(30, { timeout: 30000 });
   const foldedMs = Date.now() - foldedStarted;
   await expect(page.locator('.node-name').first()).toContainText('复合模块');

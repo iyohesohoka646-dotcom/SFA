@@ -4,7 +4,7 @@ export const projectPrefix = location.pathname.match(/^\/p\/[a-f0-9]+/)?.[0] || 
 if (session) {
   sessionStorage.setItem('cdaf-session', session);
   hash.delete('session');
-  history.replaceState(null, '', location.pathname + (hash.size ? '#' + hash : ''));
+  history.replaceState(null, '', location.pathname + location.search + (hash.size ? '#' + hash : ''));
 }
 
 export function headers() {
