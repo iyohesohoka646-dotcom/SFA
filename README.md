@@ -7,10 +7,10 @@ Visual flow-based programming with explicit contracts, bounded AI code changes, 
 
 [简体中文](README.zh-CN.md) · [Getting started](docs/workflow.md) · [CLI reference](docs/cli.md) · [Web/CLI coverage](docs/web-cli-delivery.md) · [Architecture](docs/architecture.md)
 
-The local Studio is available in [draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1). Install the feature branch with Python 3.11+ and Git, then open the bundled Web UI:
+The local Studio is available in [draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1). Install the feature branch with Python 3.11+, then open the bundled Web UI. This archive install needs neither Git nor Node.js:
 
 ```console
-python -m pip install "git+https://github.com/iyohesohoka646-dotcom/SFA.git@feat/contract-driven-ai-flow"
+python -m pip install "https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
 python -m contract_driven_ai_flow studio
 python -m contract_driven_ai_flow shortcut
 ```

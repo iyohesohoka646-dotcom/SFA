@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import threading
 import time
 from pathlib import Path
@@ -19,10 +20,20 @@ from contract_driven_ai_flow.storage import Store, atomic_write
 @pytest.mark.parametrize("name", ["data-pipeline", "business-flow", "nested-composite"])
 def test_real_examples_success_and_quality_failure(tmp_path, name):
     root = create_example(tmp_path / name, name)
+    # Capture the actual stalled frame on the remote macOS runner. These are
+    # disposable, known-data fixtures; no production worker logging is enabled.
+    if name == "business-flow" and sys.platform == "darwin":
+        source = root / "src/steps.py"
+        atomic_write(source, "import faulthandler\n_debug = open('worker-stack.log', 'w')\nfaulthandler.dump_traceback_later(5, file=_debug)\n" + source.read_text(encoding="utf-8"))
     _, _, success, failure = definition(name)
     good = Runner(root).run(success)
-    bad = Runner(root).run(failure)
+    if good["status"] != "completed":
+        print(json.dumps(Store(root).events(good["id"]), indent=2))
+        trace = root / "worker-stack.log"
+        if trace.exists():
+            print(trace.read_text())
     assert (good["status"], good["quality"]) == ("completed", "passed"), Store(root).events(good["id"])
+    bad = Runner(root).run(failure)
     assert (bad["status"], bad["quality"]) == ("completed", "failed"), Store(root).events(bad["id"])
     events = Store(root).events(bad["id"])
     assert any(e["kind"] == "probe.result" and e["data"]["status"] == "fail" for e in events)

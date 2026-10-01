@@ -18,13 +18,15 @@ cdaf shortcut
 
 安装包还提供 `cdaf-studio` 应用入口，Windows 中通过无终端窗口的启动器运行。普通使用不需要 Node.js、API 密钥或云账户；首次安装依赖需要联网。Node.js 用于重建前端和可选 Archify 渲染器。功能分支已推送到 GitHub，并创建[草稿 PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1)；当前默认分支尚未合并，PyPI 尚未发布。
 
-有 Git 时可直接安装该功能分支：
+可直接从 GitHub 安装该功能分支的源码压缩包，无须 Git 或 Node.js：
 
 ```console
-python -m pip install "git+https://github.com/iyohesohoka646-dotcom/SFA.git@feat/contract-driven-ai-flow"
+python -m pip install "https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
 python -m contract_driven_ai_flow studio
 python -m contract_driven_ai_flow shortcut
 ```
+
+已有 Git 时也可用 `python -m pip install "git+https://github.com/iyohesohoka646-dotcom/SFA.git@feat/contract-driven-ai-flow"` 安装；要固定版本，将分支名替换为已验证的提交摘要。
 
 仓库中的双击入口优先使用项目 `.venv`，缺少环境或对应本地包时自动创建并安装。默认打开用户工作区，不写入仓库中的样例。Windows 工作区位于 LOCALAPPDATA 下的 ContractDrivenAIFlow，macOS 位于 ~/Library/Application Support/ContractDrivenAIFlow，Linux 位于 XDG_DATA_HOME 或 ~/.local/share 下的 contract-driven-ai-flow。`CDAF_HOME` 或 `--home PATH` 可明确指定位置。
 
