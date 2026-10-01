@@ -1,7 +1,18 @@
 {
   "platform": "win32",
   "installed": true,
+  "core_version": "0.3.0",
   "window_close": true,
   "port_released": true,
-  "backend_pid": 15800
+  "backend_pid": 40680,
+  "own_script": true,
+  "source_preserved": true,
+  "matrix_and_anomaly": true,
+  "probe_preview_and_save": true,
+  "explanation_scope": true,
+  "shared_cli_history": true,
+  "offline_models": true,
+  "offline_report_privacy": true,
+  "run_id": "86297d66a5de47ccac40f92efa5e7336",
+  "result": "passed"
 }

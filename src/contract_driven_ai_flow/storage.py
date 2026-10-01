@@ -15,6 +15,7 @@ import yaml
 from .models import ChangeSet, ProjectSpec, RunEvent, canonical
 from .paths import Conflict, FlowError, inside
 from .privacy import sanitize, sanitize_project
+from .privatefiles import restrict_private
 
 
 def now() -> str:
@@ -30,6 +31,21 @@ def atomic_write(path: Path, content: str | bytes):
     temp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
     try:
         with temp.open("wb") as handle:
+            handle.write(content.encode("utf-8") if isinstance(content, str) else content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp, path)
+    finally:
+        temp.unlink(missing_ok=True)
+
+
+def atomic_write_private(path: Path, content: str | bytes):
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    restrict_private(path.parent)
+    temp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
+    try:
+        with os.fdopen(os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "wb") as handle:
+            restrict_private(temp)
             handle.write(content.encode("utf-8") if isinstance(content, str) else content)
             handle.flush()
             os.fsync(handle.fileno())

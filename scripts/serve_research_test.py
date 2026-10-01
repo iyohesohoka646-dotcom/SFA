@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from contract_driven_ai_flow.research.routes import create_research_app
 from contract_driven_ai_flow.research.models import ObservationEvent, SnapshotRef, ValueDescriptor
 from contract_driven_ai_flow.research.store import ExperimentStore
+from browser_session import fixture_session
 
 if __name__ == "__main__":
     base = Path(__file__).resolve().parents[1]
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     with TraceSession("Point cloud", run_id=extension["id"], registry=registry) as trace:
         trace.watch("points", example.PointCloud(((1.0,2.0),(3.0,4.0))))
     store.append([ObservationEvent.model_validate(e) for e in trace.transport.drain()])
-    app = create_research_app(root, token="research-test-session", port=8879)
+    app = create_research_app(root, token=fixture_session(), port=8879)
     import os
     import asyncio
     from fastapi import Request

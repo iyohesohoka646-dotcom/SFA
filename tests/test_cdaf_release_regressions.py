@@ -51,8 +51,9 @@ def test_cli_plan_and_changes_do_not_dump_literal_or_unrelated_source(tmp_path):
 
 
 def test_version_works_without_a_subcommand():
+    from contract_driven_ai_flow import __version__
     result = CliRunner().invoke(app, ["--version"])
-    assert result.exit_code == 0 and result.output.strip() == "0.2.0"
+    assert result.exit_code == 0 and result.output.strip() == __version__
 
 
 def test_context_redacts_description_at_the_lowest_visibility(tmp_path):

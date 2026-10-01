@@ -7,9 +7,13 @@ recursive-include src/contract_driven_ai_flow/schemas *.json
 recursive-include web/src *.ts *.tsx *.css
 recursive-include web/scripts *.mjs
 recursive-include web/tests *.ts
+recursive-include desktop/src *.cjs *.js *.html *.ps1
+recursive-include desktop/tests *.cjs
+include desktop/package.json desktop/package-lock.json desktop/README.md
 include web/package.json web/package-lock.json web/tsconfig.json web/vite.config.ts web/playwright.config.ts web/index.html
 recursive-include scripts *.py
 recursive-include scripts *.ps1
+recursive-include scripts *.cjs
 recursive-include docs *.md *.html *.json *.svg *.png
 recursive-include tests *.py
 recursive-include examples *.py *.json *.yaml *.yml *.md

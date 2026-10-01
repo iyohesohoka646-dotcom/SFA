@@ -1,9 +1,10 @@
+import {session} from './session';
 import { test, expect } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 test('real graph, history, probes, theme and offline export', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('/?legacy=1#session=browser-test-session');
+  await page.goto(`/?legacy=1#session=${session}`);
   await expect(page.getByRole('heading', { name: 'Design with clear boundaries.' })).toBeVisible();
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('tab', { name: 'Runs', exact: true }).click();
@@ -37,7 +38,7 @@ test('real graph, history, probes, theme and offline export', async ({ page }) =
 });
 
 test('canvas contract edit, review and real rerun share one revision', async ({ page }) => {
-  await page.goto('/?legacy=1#session=browser-test-session');
+  await page.goto(`/?legacy=1#session=${session}`);
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('button', { name: 'Validate', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Compilation passed');
@@ -54,7 +55,7 @@ test('canvas contract edit, review and real rerun share one revision', async ({ 
   await page.getByRole('tab', { name: 'Probes', exact: true }).click();
   await expect(page.locator('.module-node .quality-label')).toHaveCount(0);
   await page.getByRole('tab', { name: 'Architecture', exact: true }).click();
-  const current = await (await page.request.get('/api/v1/project', { headers: { Authorization: 'Bearer browser-test-session' } })).json();
+  const current = await (await page.request.get('/api/v1/project', { headers: { Authorization: `Bearer ${session}` } })).json();
   const downloading = page.waitForEvent('download');
   await page.getByLabel('Export format', { exact: true }).selectOption('json');
   const exported = await downloading;
@@ -73,7 +74,7 @@ test('canvas contract edit, review and real rerun share one revision', async ({ 
 });
 
 test('search latency is measured and keyboard selection works', async ({ page }) => {
-  await page.goto('/?legacy=1#session=browser-test-session');
+  await page.goto(`/?legacy=1#session=${session}`);
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   const started = Date.now();
   await page.getByLabel('Search modules').fill('summarize');
@@ -87,7 +88,7 @@ test('search latency is measured and keyboard selection works', async ({ page })
 });
 
 test('input binding can be edited and reviewed from the canvas', async ({ page }) => {
-  await page.goto('/?legacy=1#session=browser-test-session');
+  await page.goto(`/?legacy=1#session=${session}`);
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('button', { name: 'Normalize', exact: true }).click();
   await page.getByText('Bind module inputs', { exact: true }).click();
@@ -101,13 +102,13 @@ test('input binding can be edited and reviewed from the canvas', async ({ page }
   await expect(page.locator('.diff')).toContainText('literal');
   await page.getByRole('button', { name: 'Accept reviewed change', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Accepted');
-  const context = await (await page.request.get('/api/v1/context/normalize?level=L4', { headers: { Authorization: 'Bearer browser-test-session' } })).json();
+  const context = await (await page.request.get('/api/v1/context/normalize?level=L4', { headers: { Authorization: `Bearer ${session}` } })).json();
   expect(context.entries.find((entry: any) => entry.role === 'upstream').visibility).toBe('L1');
   expect(context.entries.find((entry: any) => entry.role === 'upstream').source).toBeUndefined();
 });
 
 test('new contract module, offline implementation review, execution and inverse rollback', async ({ page }) => {
-  await page.goto('/?legacy=1#session=browser-test-session');
+  await page.goto(`/?legacy=1#session=${session}`);
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await page.getByRole('button', { name: 'New module', exact: true }).click();
   await page.getByLabel('Module identifier', { exact: true }).fill('hello_code');
@@ -139,7 +140,7 @@ test('new contract module, offline implementation review, execution and inverse 
 });
 
 test('large folded graph, Chinese labels and background layout stay interactive', async ({ page }) => {
-  const headers = { Authorization: 'Bearer browser-test-session' };
+  const headers = { Authorization: `Bearer ${session}` };
   const current = await (await page.request.get('/api/v1/project', { headers })).json();
   const template = current.project.modules[0];
   const contract = { input: { type: 'object', properties: {}, required: [], additionalProperties: false }, output: { type: 'object', properties: {}, required: [], additionalProperties: false }, examples: [] };
@@ -155,7 +156,7 @@ test('large folded graph, Chinese labels and background layout stay interactive'
   expect((await page.request.post(`/api/v1/changes/${change.id}/accept`, { headers, data: { base_revision: current.revision } })).ok()).toBeTruthy();
   await page.request.put('/api/v1/view', { headers, data: { view: { positions: {}, collapsed: groups, theme: 'dark' }, base_revision: current.view.revision } });
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  const foldedStarted = Date.now(); await page.goto('/?legacy=1#session=browser-test-session');
+  const foldedStarted = Date.now(); await page.goto(`/?legacy=1#session=${session}`);
   await expect(page.locator('.react-flow__node')).toHaveCount(30, { timeout: 30000 });
   const foldedMs = Date.now() - foldedStarted;
   await expect(page.locator('.node-name').first()).toContainText('复合模块');

@@ -1,3 +1,4 @@
+import {session} from './session';
 import { expect, test } from '@playwright/test';
 
 test.use({baseURL: 'http://127.0.0.1:8879'});
@@ -13,7 +14,7 @@ test('research-performance: 1000 values and 10000 events stay interactive', asyn
     window.fetch=async(...args)=>{const start=performance.now();try{return await original(...args);}finally{measurements.api.push({url:String(args[0]),duration:performance.now()-start});}};
     new PerformanceObserver(list=>{measurements.longTasks.push(...list.getEntries().map(e=>e.duration));}).observe({type:'longtask',buffered:true});
   });
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await expect(page.getByRole('heading', {name: 'Scientific Dataflow Inspector'})).toBeVisible();
   await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Analysis · completed'}).last().textContent()||''});
   await expect(page.getByTestId('variable-count')).toHaveText('1000');
@@ -40,7 +41,7 @@ test('research-performance: slow details do not disable input and selection', as
     if (route.request().url().endsWith('s7-10')){started();await new Promise<void>(resolve => {release = resolve;});}
     await route.continue().catch(()=>{});
   });
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Analysis · completed'}).last().textContent()||''});
   const search = page.getByRole('searchbox', {name: '搜索变量'});
   await expect(page.getByTestId('variable-count')).toHaveText('1000');

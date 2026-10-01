@@ -1,3 +1,4 @@
+import {session} from './session';
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 test.use({baseURL:'http://127.0.0.1:8879'});
@@ -6,7 +7,7 @@ test('model-settings: late initial catalog cannot hide a just-saved profile',asy
   let release=()=>{};const gate=new Promise<void>(resolve=>{release=resolve;});
   await page.route('**/api/v1/settings/credential-store',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({available:false,plaintext_fallback:false})}));
   await page.route('**/api/v1/settings/models',async route=>{await gate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{id:'offline',protocol:'offline',base_url:'',models:['rules'],default_model:'rules',timeout_seconds:60,credential_ref:null,configured:true}])}).catch(()=>{});});
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.getByRole('button',{name:'模型设置',exact:true}).click();
   await page.getByRole('button',{name:'新增模型服务',exact:true}).click();
   await page.getByLabel('模型服务 ID').fill('late-catalog');
@@ -19,7 +20,7 @@ test('model-settings: late initial catalog cannot hide a just-saved profile',asy
 });
 
 test('model-settings: discover, configure, share with CLI, and cancel without blocking data',async({page})=>{
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await expect(page.getByRole('button',{name:'模型设置',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'模型设置',exact:true}).click();
   await page.getByRole('button',{name:'新增模型服务',exact:true}).click();
@@ -54,7 +55,7 @@ test('model-settings: discover, configure, share with CLI, and cancel without bl
 });
 
 test('model-settings: evidence scope is explicit and model explanations remain cancellable',async({page})=>{
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.evaluate(async()=>{await fetch('/api/v1/settings/models/browser-lab',{method:'PUT',headers:{Authorization:'Bearer '+sessionStorage.getItem('cdaf-session'),'Content-Type':'application/json'},body:JSON.stringify({profile:{id:'browser-lab',protocol:'openai-compatible',base_url:'http://127.0.0.1:8879/fake-model/v1',default_model:'model-a',credential_ref:'env:CDAF_BROWSER_TEST_KEY'}})});});
   await page.getByText('示例、脚本参数与扩展适配器',{exact:true}).click();
   await page.getByLabel('示例选择').selectOption('analysis');

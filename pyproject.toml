@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "contract-driven-ai-flow"
-version = "0.2.0"
-description = "Visual flow-based programming with explicit contracts, reviewed AI changes, and runtime probes"
+version = "0.3.0"
+description = "Live scientific dataflow inspection with matrix views, computational provenance and extensible probes"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE", "NOTICE.md"]
-keywords = ["contract-driven-development", "ai-coding", "flow-based-programming", "visual-programming", "software-architecture", "runtime-observability", "dataflow"]
+keywords = ["scientific-computing", "dataflow", "matrix-visualization", "computational-provenance", "data-analysis", "runtime-observability", "extensible-probes"]
 dependencies = [
     "typer>=0.24",
     "tree-sitter>=0.25,<0.27",

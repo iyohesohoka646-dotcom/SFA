@@ -1,7 +1,8 @@
+import {session} from './session';
 import {test,expect} from '@playwright/test';
 test.use({baseURL:'http://127.0.0.1:8879'});
 test('research-matrix: complex, higher axes, empty matrices and table indices',async({page})=>{
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.getByText('示例、脚本参数与扩展适配器',{exact:true}).click();
   await page.getByLabel('示例选择').selectOption('edge-cases');
   await page.getByRole('button',{name:'运行分析',exact:true}).click();
@@ -29,7 +30,7 @@ test('research-matrix: complex, higher axes, empty matrices and table indices',a
 });
 
 test('research-matrix: exact slices use exact coordinates and keyboard selection',async({page})=>{
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.getByText('示例、脚本参数与扩展适配器',{exact:true}).click();
   await page.getByLabel('示例选择').selectOption('edge-cases');
   await page.getByLabel('采集级别').selectOption('full');
@@ -49,7 +50,7 @@ test('research-matrix: exact slices use exact coordinates and keyboard selection
 });
 
 test('research-matrix: an independent point-cloud renderer uses the same workbench',async({page})=>{
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Point cloud extension'}).first().textContent()||''});
   await page.getByRole('searchbox',{name:'搜索变量'}).fill('points');
   await page.getByRole('button',{name:/^points ·/}).first().click();

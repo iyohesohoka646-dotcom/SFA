@@ -1,4 +1,4 @@
-# Contributing to Contract-Driven AI Flow
+# Contributing to Scientific Dataflow Inspector
 
 The implementation is a modular Python application with thin CLI/HTTP adapters and a React workbench. Keep authored semantics separate from presentation and execution evidence. Make capability claims only after running the relevant acceptance path.
 
@@ -8,7 +8,7 @@ Use Python 3.11+ and Node.js 22.12+ (Node is only needed to develop/build Studio
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\python.exe -m pip install -e ".[dev,telemetry]"
+.venv\Scripts\python.exe -m pip install -e ".[dev,research,tables,telemetry]"
 .venv\Scripts\python.exe scripts/export_schema.py
 cd web
 npm ci
@@ -35,3 +35,5 @@ Use concise comments for intent that the code cannot explain. Avoid speculative 
 Module sources are user code with ordinary OS permissions. The patch checker constrains accepted changes, and does not make arbitrary project code a sandbox. Do not send credentials or fixture secrets to providers; keep provider configuration in process environment variables.
 
 The original `src/sfa/` package and `examples/pipeline/` support migration and compatibility tests. New features belong in `src/contract_driven_ai_flow/`; do not silently strengthen claims about the legacy executor.
+
+Scientific adapters/probes/runners/renderers follow the documented version-1 interfaces. Keep unknown types safe, history bounded and fidelity visible. Run `npm run test:unit --prefix web` as well as browser checks. Desktop development and installed-window verification are in [desktop/README.md](desktop/README.md).

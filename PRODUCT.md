@@ -4,31 +4,32 @@
 
 ## Platform
 
-web
+web, Windows desktop, terminal
 
 ## Product Purpose
 
-Contract-Driven AI Flow is a local Python code orchestration workbench. People define modules, contracts and directed bindings; AI proposes bounded implementation changes; people review them; execution evidence and probes appear on the architecture graph.
+Scientific Dataflow Inspector helps researchers understand existing experiment code through real variable versions, matrix/table views, computational provenance and extensible read-only probes. Its observation protocol supports multiple data types and execution backends; NumPy and pandas are the first adapters.
 
 ## Operating Context
 
-The approved implementation uses Python, Typer, FastAPI, React, TypeScript, React Flow and ELK. Users install the Python package or Git checkout, launch a command or shortcut, and use a local browser. Ordinary use requires neither Node.js nor a provider key. Node.js builds the shipped front end.
+A shared local Python application serves React Web, Electron desktop, Textual terminal and Typer automation. The desktop bundles private Python; scientific code can select another interpreter. Basic observation and rule explanations need no credential. Node.js is a build tool.
 
 ## Capabilities and Constraints
 
-The shared source model drives CLI and HTTP operations. Architecture and code proposals retain version checks, contracts and symbol ownership. Python workers isolate execution processes but retain the user's filesystem/network permissions. A local workspace must support initial setup, reusable examples, new projects and registered existing directories. Runtime data is separate from authored files.
+Source, data, local transformations and probes share four regions. Previews, indexes and visible graphs are bounded; numeric changes do not trigger full layout. Plugins are explicitly enabled. Unknown types remain safe metadata. GPU, sparse, distributed and non-Python backends have extension boundaries, without native support in this candidate.
 
 ## Brand Commitments
 
-Use the approved searchable name Contract-Driven AI Flow. Extend the existing graphite/mint graph editor. User-facing instructions should be direct, specific and consistent.
+Use Scientific Dataflow Inspector as the working display name and retain the graphite/mint visual world. Distribution/import/CLI names stay compatible. Sampled, unavailable and unknown are distinct.
 
 ## Evidence on Hand
 
-Three executable examples, Python and browser tests, a bundled front end, and rendered screenshots are present. Paid providers and external CI are not validated by local tests.
+Scientific and point-cloud cases, numerical failure paths, independent interpreters, real browser journeys, PowerShell terminal evidence, Windows installation/close checks and ten-minute measurements. Paid models and other desktop platforms require separate verification.
 
 ## Product Principles
 
-- Review changes before applying them.
-- Show recorded executions and quality results accurately.
-- Share semantics across the Web UI and CLI.
-- Preserve authored data during maintenance and migration.
+- Show actual values with their coverage.
+- Preserve native computation and source files.
+- Keep settings and entry points discoverable.
+- Keep slow requests independent of interaction.
+- Separate saved evidence, viewing and new execution.

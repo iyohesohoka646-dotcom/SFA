@@ -144,8 +144,8 @@ def otel_payload(root: Path, run_id: str | None = None) -> dict:
             span["status"] = {"code": 1 if event["kind"] == "module.completed" else 2}
             span["attributes"] = [a for a in span["attributes"] if a["key"] != "cdaf.incomplete"]
     return {"resourceSpans": [{"resource": {"attributes": _attributes({"service.name": "contract-driven-ai-flow",
-                                 "service.version": "0.2.0"})},
-                              "scopeSpans": [{"scope": {"name": "contract_driven_ai_flow", "version": "0.2.0"}, "spans": spans}]}]}
+                                 "service.version": "0.3.0"})},
+                              "scopeSpans": [{"scope": {"name": "contract_driven_ai_flow", "version": "0.3.0"}, "spans": spans}]}]}
 
 
 def export_otel(root: Path, exporter, run_id: str | None = None):

@@ -37,8 +37,10 @@ def main():
             raise RuntimeError(f"{args[0]} exited {result.returncode}: {(result.stderr or result.stdout)[-3000:]}")
         return result.stdout
 
-    invoke([python, "-m", "pip", "install", str(wheel)], timeout=300)
-    assert "0.2.0" in invoke([binary, "--version"])
+    invoke([python, "-m", "pip", "install", str(wheel) + "[research,tables]"], timeout=300)
+    from research_acceptance import verify_research_delivery
+    research = verify_research_delivery(python, binary, directory / "research-acceptance", env)
+    assert research["version"] in invoke([binary, "--version"])
     installed = json.loads(invoke([python, "-c", 'import sys,json,importlib.metadata as metadata; import contract_driven_ai_flow as pkg; print(json.dumps({"python":sys.version.split()[0],"package_file":pkg.__file__,"dependencies":{name:metadata.version(name) for name in ("typer","pydantic","fastapi","libcst","jsonschema")}}))']))
     assert environment.resolve() in Path(installed["package_file"]).resolve().parents
     records = []
@@ -98,7 +100,7 @@ print("Bundled Studio and runtime metadata available")'''
         assert len(json.loads(invoke([binary, "projects", "list"]))) == 2
         assert json.loads(invoke([binary, "doctor", "-p", created["path"]]))["healthy"]
         shortcuts = json.loads(invoke([binary, "shortcut", "--directory", directory / "shortcuts"]))
-        assert len(shortcuts["files"]) == 2 and all(Path(path).is_file() for path in shortcuts["files"])
+        assert len(shortcuts["files"]) == 1 and all(Path(path).is_file() for path in shortcuts["files"])
         assert (environment / ("Scripts/cdaf-studio.exe" if os.name == "nt" else "bin/cdaf-studio")).is_file()
         # The exact module used by the GUI shortcut must reuse the independent server.
         invoke([python, "-m", "contract_driven_ai_flow.launcher", "--home", home, "--no-open"])
@@ -118,7 +120,7 @@ print("Bundled Studio and runtime metadata available")'''
             assert len(json.load(response)["projects"]) == 2
     finally:
         invoke([binary, "studio", "--workspace", "--stop", "--no-open"])
-    receipt = {"wheel": wheel.name, "wheel_sha256": hashlib.sha256(wheel.read_bytes()).hexdigest(), "isolated_environment": str(directory), "installed": installed, "ordinary_install_needs_node": False, "cases": records, "static_asset_count": len([n for n in names if "static/" in n]), "installed_studio_http": "passed", "studio_background_lifecycle": "passed", "first_use_workspace": "passed", "installed_shortcuts": "passed", "windowless_launcher": "passed", "result": "passed"}
+    receipt = {"wheel": wheel.name, "wheel_sha256": hashlib.sha256(wheel.read_bytes()).hexdigest(), "isolated_environment": str(directory), "installed": installed, "research": research, "ordinary_install_needs_node": False, "cases": records, "static_asset_count": len([n for n in names if "static/" in n]), "installed_studio_http": "passed", "studio_background_lifecycle": "passed", "first_use_workspace": "passed", "installed_shortcuts": "passed", "windowless_launcher": "passed", "result": "passed"}
     (work / "wheel-validation.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(receipt, ensure_ascii=False, indent=2))
 

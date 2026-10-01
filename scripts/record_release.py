@@ -79,21 +79,21 @@ def main():
         assert archify["validation"]["ok"] and all(check["ok"] for check in archify["validation"]["checks"])
 
     source_paths = set(package_paths)
-    for directory in ("web/src", "web/tests", "web/scripts", "tests", "scripts"):
-        source_paths.update(path for path in (repository / directory).rglob("*") if path.is_file() and path.suffix in (".py", ".ts", ".tsx", ".css", ".mjs", ".ps1"))
+    for directory in ("web/src", "web/tests", "web/scripts", "desktop/src", "desktop/tests", "tests", "scripts"):
+        source_paths.update(path for path in (repository / directory).rglob("*") if path.is_file() and path.suffix in (".py", ".ts", ".tsx", ".css", ".mjs", ".cjs", ".js", ".html", ".ps1"))
     source_paths.update(repository.glob("*.cmd"))
-    source_paths.update(repository / name for name in ("pyproject.toml", "MANIFEST.in", "web/package.json", "web/package-lock.json", "web/tsconfig.json", "web/vite.config.ts", "web/playwright.config.ts", "web/index.html", ".github/workflows/ci.yml"))
+    source_paths.update(repository / name for name in ("pyproject.toml", "MANIFEST.in", "web/package.json", "web/package-lock.json", "web/tsconfig.json", "web/vite.config.ts", "web/playwright.config.ts", "web/index.html", "desktop/package.json", "desktop/package-lock.json", ".github/workflows/ci.yml"))
     manifest = {path.relative_to(repository).as_posix(): digest(path.read_bytes()) for path in sorted(source_paths)}
     source_manifest = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
     receipt = {
         "recorded_at": datetime.now(timezone.utc).isoformat(),
-        "version": "0.2.0", "scope": platform.system() + " local release-candidate acceptance",
+        "version": "0.3.0", "scope": platform.system() + " local release-candidate acceptance",
         "baseline_revision": "c9a745e851d155b4c5fdede2d6cd2758c530e3c0",
         "branch": subprocess.check_output(["git", "branch", "--show-current"], cwd=repository, text=True).strip(),
         "platform": platform.platform(), "python_version": platform.python_version(),
         "node_version": subprocess.check_output(["node", "--version"], text=True).strip(),
         "python": python, "browser": browser, "wheel": wheel_public,
-        "examples": examples, "archify": archify,
+        "examples": examples, "research": wheel_receipt["research"], "archify": archify,
         "measurements": {name: read(f"docs/assets/{name}.json") for name in ("browser-performance", "large-graph-performance", "capture-performance")},
         "source_manifest_sha256": digest(source_manifest), "source_manifest": manifest,
         "pending_external_gates": ["live paid-model calls", "default-branch merge, repository rename and PyPI publication"],

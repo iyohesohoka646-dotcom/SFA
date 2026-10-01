@@ -245,21 +245,29 @@ class ResearchService:
                     connection, address = active.listener.accept()
                 except socket.timeout:
                     continue
-                connection.settimeout(2)
-                candidate = connection.makefile("rb")
-                hello_line = candidate.readline(65537)
+                candidate, authenticated = None, False
                 try:
-                    hello = json.loads(hello_line)
-                    authenticated = address[0] == "127.0.0.1" and hello.get("run_id") == active.id and hmac.compare_digest(hello.get("token", ""), active.token)
-                except (ValueError, TypeError):
-                    authenticated = False
+                    connection.settimeout(2)
+                    candidate = connection.makefile("rb")
+                    hello_line = candidate.readline(65537)
+                    if len(hello_line) <= 65536 and hello_line.endswith(b"\n"):
+                        hello = json.loads(hello_line)
+                        authenticated = (isinstance(hello, dict) and address[0] == "127.0.0.1"
+                            and hello.get("type") == "hello" and hello.get("protocol_version") == 1
+                            and type(hello.get("run_id")) is str and hello["run_id"] == active.id
+                            and type(hello.get("token")) is str and hmac.compare_digest(hello["token"], active.token))
+                except (OSError, ValueError, TypeError):
+                    pass
+                finally:
+                    if not authenticated:
+                        if candidate:
+                            candidate.close()
+                        connection.close()
                 if authenticated:
                     connection.settimeout(None)
                     active.connection, reader = connection, candidate
                     active.writer = connection.makefile("wb")
                     break
-                candidate.close()
-                connection.close()
             active.listener.close()
             if reader is not None:
                 if active.cancelled:

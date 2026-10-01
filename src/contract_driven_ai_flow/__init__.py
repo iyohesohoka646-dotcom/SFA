@@ -1,3 +1,3 @@
-"""Contract-Driven AI Flow: contracts, reviewed changes and execution evidence."""
+"""Scientific Dataflow Inspector: native observations and extensible probes."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"

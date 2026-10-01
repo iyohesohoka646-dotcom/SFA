@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from urllib.request import Request, urlopen
 
 from .paths import FlowError
-from .storage import Store, atomic_write
+from .storage import Store, atomic_write_private
 
 
 def read_state(root: Path) -> dict | None:
@@ -225,7 +225,7 @@ def serve(root: Path, port: int = 8765, *, token: str | None = None, managed: bo
     state = {"pid": os.getpid(), "port": port, "token": token, "project": str(root), "launch_id": launch_id}
     path = root / ".cdaf/studio.json"
     if managed:
-        atomic_write(path, json.dumps(state))
+        atomic_write_private(path, json.dumps(state))
     try:
         server.run()
     finally:

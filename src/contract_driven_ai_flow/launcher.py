@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import webbrowser
 
-from .storage import atomic_write
+from .storage import atomic_write, atomic_write_private
 from .studio import start, stop
 from .workspace import user_home
 
@@ -21,7 +21,7 @@ def main():
     root = (args.project or args.home or user_home()).resolve()
     try:
         result = stop(root) if args.action == "stop" else start(root, workspace=args.project is None, owned=True)
-        atomic_write(root / ".cdaf/launcher.json", json.dumps(result))
+        atomic_write_private(root / ".cdaf/launcher.json", json.dumps(result))
         if args.action == "start" and not args.no_open:
             webbrowser.open(result["url"])
     except Exception as exc:

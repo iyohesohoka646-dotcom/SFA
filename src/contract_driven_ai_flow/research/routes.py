@@ -149,10 +149,10 @@ def attach_research_routes(app, service: ResearchService):
                     if record["status"] in TERMINAL:
                         return
                     idle += 1
-                    if idle >= 100:
+                    if idle >= 200:
                         yield ": heartbeat\n\n"
                         idle = 0
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(0.05)
         return StreamingResponse(events(), media_type="text/event-stream", headers={"X-Accel-Buffering": "no"})
 
     @router.get("/snapshots/{snapshot_id}")

@@ -165,3 +165,28 @@ def test_invalid_interpreter_has_usage_exit_code(tmp_path):
 
     result = CliRunner().invoke(app, ["--json", "observe", str(analysis(tmp_path)), "--python", str(tmp_path / "missing-python")])
     assert result.exit_code == 2
+
+
+def test_installed_agent_does_not_expose_tool_site_packages(tmp_path, monkeypatch):
+    import os
+    import shutil
+    import subprocess
+    from contract_driven_ai_flow.research import runners
+    from contract_driven_ai_flow.research.service import ResearchService
+
+    # A normal wheel lives beside web dependencies, unlike an editable src tree.
+    tool_site = tmp_path / "tool-site-packages"
+    package = tool_site / "contract_driven_ai_flow"
+    shutil.copytree(Path(runners.__file__).parents[1], package,
+                    ignore=shutil.ignore_patterns("static", "templates", "__pycache__"))
+    (tool_site / "tool_only_web_dependency.py").write_text("VALUE = 1\n")
+    monkeypatch.setattr(runners, "__file__", str(package / "research/runners.py"))
+    scientific_env = tmp_path / "scientific-env"
+    subprocess.run([sys.executable, "-m", "venv", "--without-pip", str(scientific_env)],
+                   check=True, capture_output=True)
+    interpreter = scientific_env / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    source = analysis(tmp_path, "import importlib.util\nassert importlib.util.find_spec('tool_only_web_dependency') is None\nX = 42\n")
+    with ResearchService(tmp_path / "evidence") as service:
+        handle = service.start_analysis(source, interpreter=interpreter)
+        record = wait_for(service, handle.run_id)
+    assert record["status"] == "completed", record["summary"]

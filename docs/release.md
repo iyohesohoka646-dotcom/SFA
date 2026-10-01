@@ -1,58 +1,53 @@
-# 0.2.0 release candidate
+# Scientific Dataflow Inspector 0.3.0 candidate
 
-This is a reviewable release candidate in `feat/contract-driven-ai-flow`, based on SFA `c9a745e851d155b4c5fdede2d6cd2758c530e3c0`, now available in [draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1). Product names, README, Python distribution/import/CLI and executable examples are updated. The remote remains SFA; [prepared repository metadata](repository-metadata.json) records the proposed name, About text and topics. The feature branch was pushed with explicit user authorization. Repository rename, default-branch merge, PyPI publication and online hosting have not been performed.
+The scientific workbench replaces the default architecture-first screen with source, observed values, local computations, probes and recorded evidence. Web, Windows desktop, interactive terminal and batch CLI share the same research services and project model settings. `contract-driven-ai-flow`, `contract_driven_ai_flow`, `cdaf` and `sfa` remain the distribution/import/command names; the GitHub repository remains SFA. [Draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1) is the review surface. No default-branch merge, repository rename, PyPI release or online hosting is part of this candidate.
 
-## Verification record
+The new protocol has independent data-adapter, probe, runner and renderer registrations. NumPy and pandas are initial built-ins; an independent point-cloud adapter and Canvas renderer exercise the extension path. GPU, sparse, distributed and other-language built-ins are not implemented. See the [extension contract](research/adapter-api.md), [probe contract](research/probe-api.md), [coverage limits](research/limitations.md) and [read-only legacy migration](research/migration.md).
 
-Validation is performed on Windows with Python 3.11.9 and Node.js 24.16.0. The original baseline was 256 tests. The final [machine-readable receipt](assets/validation.json) records counts, case names, package/source digests, isolated-install dependencies and performance measurements. [Whole-branch review](review.md) records the ten findings and regression fixes. Local acceptance is recorded separately from [the nine passing Python CI combinations](assets/ci-python.json). The latest browser and package checks are available in [PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1/checks).
+## Acceptance evidence
 
-| Delivery path | Evidence |
-|---|---|
-| Original baseline | 256 passed |
-| Python regression | 352 passed, zero failures/errors/skips; includes six independent-background-service lifecycle checks and eight entry-point regressions |
-| Production frontend / generated types | Build passed; dedicated ELK Worker fixed and bundled |
-| Browser acceptance | Ten passed: the six graph/history/review cases plus first-use workspace → new contract → reviewed generation → execution, mobile/keyboard/focus, project tools/probe editing and session recovery; current duration is in the receipt |
-| Reference cases | Three real success runs and three completed quality-failure runs; [source-linked receipts](examples/validation.json) |
-| Optional Archify | Pinned reference rendered, validated and checked; geometry checks passed |
-| OpenTelemetry | OTLP links/attempts and an in-memory SDK SpanExporter test passed; no collector transmission |
-| Clean wheel install | Separate venv without system packages: all three no-key demos, `cdaf`/`sfa`, HTTP startup/reuse/shutdown, empty-directory workspace, native shortcuts and a fresh `cdaf-studio` GUI launch passed; bundled Python/schema/UI files match source bytes |
-| GitHub installation | [Immutable feature-commit archive](assets/github-install.json) installed through isolated tool/bin directories: CLI, no-key example, workspace, bundled Studio and shortcuts passed without Git or Node |
-| Source installation | `uv tool install` of the source archive in isolated tool/bin directories passed CLI, example success/failure, bundled Studio, first-use workspace and native shortcut checks |
-| Local deployment | Windows double-click start/stop launchers, detached service, authenticated readiness, user project catalogue, log/state files, safe reuse, coordinated automatic ports and breakpoint cancellation; [deployment guide](local-deployment.md) |
-| macOS/Linux | [Nine CI combinations passed](assets/ci-python.json): Python 3.11–3.13 on Windows, macOS and Linux, including built-wheel installation |
-| Paid LLM providers | Adapters available; live provider calls not tested |
+The [scientific receipt](assets/research-validation.json) aggregates successful local runs, installed wheel/source checks, exact source-manifest and installer digests. [Package receipt](assets/validation.json) lists every browser case and verifies that all packaged Python/schema/UI bytes match this checkout. These records are only regenerated from passing checks; earlier 0.2.0 review/CI receipts remain historical evidence and are not proof of 0.3.0 cross-platform acceptance.
 
-[Browser measurements](assets/large-graph-performance.json) record 630 semantic modules, 30 collapsed groups, load/layout time and search interaction. The fixture is a large disconnected grouped graph, not a dense production graph benchmark. [Capture measurements](assets/capture-performance.json) separate serialization, sanitization/capture and SQLite event cost. Timings describe this host; they are not a universal latency guarantee. Normal four-node measurements are in [browser-performance.json](assets/browser-performance.json).
+| Path | What is exercised |
+| --- | --- |
+| Python | Complete repository suite, including independent interpreter capture, mutation/version handling, bounded probes, privacy, cancellation, process failure and local authorization regressions |
+| Browser | Full Playwright suite against actual compiled assets: large history, Chinese labels, keyboard navigation, stale requests, matrices, point cloud, model settings, probes, offline export and owned-tab lifetime |
+| Own-script journey | Open an ordinary NumPy/pandas script, inspect `Z`, locate NaN at its source, preview/save a probe, inspect explanation scope, export redacted offline HTML and preserve original source |
+| Wheel | Separate environment without system packages or Node: scientific success, quality failure and dimension-error cases; an independent standard-library-only analysis environment; old no-key demos and installed Web/CLI launchers |
+| Source archive | Isolated `uv tool`/bin directories, the same scientific cases, bundled UI, workspace startup and native shortcut creation |
+| Windows desktop | Installed executable with private Python containing the same 0.3.0 core; own-script matrix/probe/context/export journey, shared CLI history, real window close and actual port release |
+| Interactive terminal | Real Windows ConPTY journey: open/run/inspect, choose offline model, cancel live analysis, exit and restore terminal state; [receipt](assets/research-terminal-validation.json) |
+| Cross-platform Python | Nine configured Windows/macOS/Linux × Python 3.11–3.13 jobs; current-head results must come from [PR checks](https://github.com/iyohesohoka646-dotcom/SFA/pull/1/checks), not older receipts |
+
+The Windows NSIS installer is a local unsigned candidate. Its actual filename and SHA-256 are recorded in the scientific receipt. macOS/Linux native packaging and window lifetime remain unverified. External provider protocols are tested with local synthetic servers; no paid model inference or real provider credential was used. Connection/model discovery and inference remain distinct controls.
+
+## Performance
+
+[Measurement details](research/performance.md) distinguish computation overhead, input-to-paint response, selected-detail fetch, live observation-to-paint latency and heap retention. A real ten-minute 10 Hz matrix run follows the earlier run that exposed retained historical preview arrays. Historical indexes now store metadata; details are fetched for the selected version. The two-minute heap medians near the end decreased from 59.08 to 13.57 MiB on this host. This is evidence of reduced retention in the measured run, not an indefinite memory-stability guarantee.
+
+The 1000-value/10000-event fixture limits the canvas to 80 visible nodes and checks p95 input response ≤100 ms and detail fetch ≤250 ms. Live-stream acceptance separately measures observation timestamps to painted selected details at target 10 Hz. SDK and selected automatic-capture measurements use repeatable CPU-bound computations with equal output digests. None of these fixtures certifies arbitrary code, backend, graph density or hardware performance.
 
 ## Reproduce
 
 ```console
-python -m pip install -e ".[dev,telemetry]"
+python -m pip install -e ".[dev,research,tables,telemetry]"
 python -X utf8 -m pytest -q --junitxml=.work/python-tests.xml
 python scripts/export_schema.py
-cd web
-npm ci
-npm run build
-npm test
-cd ..
-python scripts/build_examples.py
-python scripts/benchmark.py
+npm ci --prefix web
+npm run build --prefix web
+npm run test:unit --prefix web
+python scripts/profile_research_workbench.py
+npm test --prefix web
+node scripts/measure_research_stream.cjs 60
 python -m build
 python scripts/verify_wheel.py
 python scripts/verify_source_install.py
 python scripts/record_release.py
+python scripts/record_research_release.py
 ```
 
-Browser tests require the repository's `.venv` interpreter and installed Edge on Windows, or Playwright Chromium elsewhere. The clean wheel check creates a separate venv without system packages, installs the wheel, verifies bundled assets, runs all three no-key demos and exercises both CLI names. It retains its local receipt under `.work/wheel-validation.json`; `record_release.py` verifies its wheel digest and exact source/asset equality before publishing the portable receipt. That record excludes the temporary environment path and local username. The optional Archify adapter uses the setup in [the CLI reference](cli.md); without its local validation receipt, a reproduced aggregate marks that adapter as not run. The final source archive should be rebuilt after collecting documentation receipts (`python -m build --sdist`).
+Browser checks use the repository `.venv`, Edge on Windows and Playwright Chromium elsewhere. The Playwright configuration creates a private per-run fixture session. Windows live-stream/RSS measurements currently use Edge and Windows APIs. For desktop building, private-runtime preparation, installation and the native journey, follow [desktop/README.md](../desktop/README.md); the installed executable must be supplied to acceptance. Node is a developer/build dependency. Python wheel users receive compiled assets, schemas and third-party license notices.
 
-Python wheels include compiled UI and third-party license texts. Source releases also include frontend sources/lockfile, Python schemas, build scripts, tests, source examples, screenshots and offline evidence. Ordinary users need only Python. Node.js is required for rebuilding Studio and for the optional pinned Archify adapter.
+Source archives include frontend and desktop sources/lockfiles, tests, examples, documentation and build scripts. The final source archive can be rebuilt after recording documentation receipts; rerun source-install acceptance on that archive. Runtime data and private bundled environments are excluded from source/wheel releases.
 
-The installed entry-point follow-up implements the [Web/CLI coverage matrix](web-cli-delivery.md), TTY/JSON output, stdin, shared capability discovery, source/plan tools, migration and storage tools, provider readiness and connection recovery. A second independent review reproduced six defects. The implementer added failing regressions, corrected them and reran the complete acceptance paths; [review.md](review.md) records the boundaries and fixes. A real in-app browser also executed the default workspace example and displayed completed/passed with 27 events.
-
-The connection-refused report was reproduced with no listener on port 8765. The local deployment follow-up adds an independent background lifecycle and verifies it after the launcher exits. Windows venv redirectors have a different PID from the actual Python server, so readiness uses a launch identifier and authenticated server identity. Five regressions cover persistence/reuse, occupied ports, stale PID safety, authenticated shutdown and cancellation of a paused breakpoint run. A live in-app browser loaded the actual project graph and history. The 630-module browser test also exposed repeated YAML loads in the proposal-list endpoint; one architecture load per list request restored passing acceptance without relaxing its timeout. Two failed browser receipts are retained locally before the fix.
-
-## Scope gates
-
-Current delivery supports local Python DAGs, explicit interfaces, reviewable code/architecture changes, bounded JSON process transport, deterministic decisions, observational probes and offline sharing. Process isolation inherits OS permissions. Contracts are verified conservatively; unknown relationships require an explicit dynamic boundary. Static checks do not prove candidate business behavior. Compatibility/migration preserves authored legacy files and marks old evidence as old-format/unknown-version.
-
-Cross-platform Python CI has passed. Actual external-model behavior and publication remain separate release gates. Multi-language execution, distributed scheduling, real-time collaboration, cyclic graphs, automatic class instance construction and an OS sandbox remain outside this version. Export receipts and browser tests cover recorded fixtures; they do not certify every possible authored graph's readability.
+Local Python subprocesses and explicitly enabled plugins retain the operator's filesystem/network permissions. Capture limits and immutable evidence do not provide an OS sandbox. Replay reads saved evidence; it does not repeat side effects. Full materialization and sending redacted samples to a configured model require explicit choices. Heuristic redaction does not recognize every possible secret.

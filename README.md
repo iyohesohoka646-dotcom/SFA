@@ -1,96 +1,74 @@
-# Contract-Driven AI Flow
+# Scientific Dataflow Inspector
 
-**Visual Flow-Based Programming for AI-Assisted Development**
+**Live matrix inspection, computational provenance, and extensible probes for scientific code.**
 
-Visual flow-based programming with explicit contracts, bounded AI code changes, and runtime probes.
-**Design the flow. Review the contracts. Generate modules. Inspect real executions.**
+Open existing analysis code. Observe real values. Follow transformations. Find numerical failures.
 
-[简体中文](README.zh-CN.md) · [Getting started](docs/workflow.md) · [CLI reference](docs/cli.md) · [Web/CLI coverage](docs/web-cli-delivery.md) · [Architecture](docs/architecture.md)
+[简体中文](README.zh-CN.md) · [Quick start](docs/research/quickstart.md) · [CLI](docs/research/cli.md) · [Extensions](docs/research/adapter-api.md) · [Release evidence](docs/release.md)
 
-The local Studio is available in [draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1). Install the feature branch with Python 3.11+, then open the bundled Web UI. This archive install needs neither Git nor Node.js:
+![Real source, matrix, local dependencies and probes](docs/assets/research-workbench.png)
 
-```console
-python -m pip install "https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
-python -m contract_driven_ai_flow studio
-python -m contract_driven_ai_flow shortcut
-```
+A local research workbench for understanding what an experiment computed. Source lines, variable versions, matrix previews, transformations and probe results share one screen. Basic inspection and rule explanations work without a key. The observation protocol supports multiple data types; NumPy and pandas are the first built-in adapters.
 
-![Local Studio showing a real completed execution with a failed quality assertion](docs/assets/studio-runtime.png)
+## Try it locally
 
-Build a controllable, composable Python code structure. Humans define module interfaces and data dependencies; AI proposes implementations inside those boundaries. Review architecture and code separately, then inspect revision-bound execution evidence on the same canvas.
-
-The [offline case gallery](docs/examples/index.html) contains three real examples, each with success and quality-failure evidence. Download or open the HTML files locally; they include their data and need no server. See the [data pipeline](docs/examples/data-pipeline/architecture.svg), [business flow](docs/examples/business-flow/architecture.svg), and [nested composite](docs/examples/nested-composite/architecture.svg) directly on GitHub.
-
-## Why use it?
-
-- **Explicit interfaces:** JSON Schema contracts and named input bindings reject missing ports, duplicate writers, cycles and illegal composite crossings before execution.
-- **Bounded implementation changes:** proposals preserve the target signature and decorators, check all imports, and use LibCST to replace only its body. Source changes during review invalidate the proposal.
-- **Reviewable architecture:** contracts, ports, probes and grouping are authored in `flow.yaml`. Moving a node changes its view, not program semantics. External AI agents can submit architecture proposals for review.
-- **Visible evidence:** child Python processes transfer JSON values without shared references. Assertions, metrics, captures, real decisions and read-only branch observations have distinct behavior and status.
-- **Local operation:** Python installs include the compiled React workbench. No Node.js, API key or cloud account is needed to try the examples.
-
-## Quick start, without an API key
-
-On Windows, double-click **[启动工作台.cmd](启动工作台.cmd)** in this checkout to prepare a project environment and open the independent local Web UI. It opens your project workspace, with a ready-to-run example, new-project templates and existing-folder registration. **[停止工作台.cmd](停止工作台.cmd)** stops the workspace service. See [local deployment](docs/local-deployment.md).
-
-Requires Python 3.11+. From this checkout or an unpacked source release, in an activated virtual environment:
+Python 3.11–3.13, from this checkout:
 
 ```console
-python -m pip install .
-cdaf studio
+python -m pip install ".[research]"
+cdaf studio --project ./experiment
 ```
 
-You can launch from an empty working directory. Studio starts in the background, waits for authenticated readiness, and opens a fresh browser session. It reuses the running service; closing the terminal or browser leaves it running. Inside an existing project it opens that project; use `cdaf studio --workspace` for all projects. A free port is selected automatically; `--port` requests a specific port. `cdaf studio --stop` stops the matching service.
+Choose an example or your own `.py` file and scientific interpreter, then **运行分析 / Run analysis**. Select `X`, `Z` or `C` to see definitions, dimensions, previews, expressions and upstream values. Run the example with `--failure nan` to inspect a normal return with failed numerical quality.
 
-After installation, `cdaf shortcut` creates native launch/stop shortcuts on your Desktop; `cdaf-studio` is the windowless application entry. `cdaf doctor` diagnoses the installation. Ordinary operation needs Python 3.11+; Node.js is only needed for frontend development or the optional Archify renderer.
+The package includes the compiled Web UI; ordinary use needs neither Node.js nor a key. Direct feature-branch installation needs no Git:
 
-For a self-checking demo, run `cdaf demo --target cdaf-demo --serve`. It executes built-in implementations twice, verifies `completed / passed` and `completed / failed`, and writes an offline HTML view. It refuses to overwrite a nonempty destination.
+```console
+python -m pip install "contract-driven-ai-flow[research] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
+cdaf studio --project ./experiment
+```
 
-`cdaf demo --example business-flow --target business-demo` exercises an HTTP call against a local fixture and an actual Decision branch. `--example nested-composite` demonstrates two levels of public input/output mappings.
+Closing the last tab stops its owned service after a three-second refresh grace period. Use `cdaf serve --project PATH` for persistent operation. Windows desktop builds wrap this interface with private Python; closing the window stops its owned backend. [Local deployment](docs/local-deployment.md) · [Desktop build](desktop/README.md).
 
-This is a local **0.2.0 release candidate**. The current remote is still named [SFA](https://github.com/iyohesohoka646-dotcom/SFA); the Python distribution is `contract-driven-ai-flow`, the import is `contract_driven_ai_flow`, and the command is `cdaf`. PyPI publication and remote rename are separate release actions. [Release status and validation](docs/release.md) distinguish tested behavior from pending platform checks.
+## Web, desktop and CLI
 
-## One complete edit and debug cycle
+| Entry | Use |
+| --- | --- |
+| `cdaf studio --project PATH` | Source, data, local flow, probes and timeline |
+| Windows desktop | Same workbench, single instance, close cleanup and Open Terminal |
+| `cdaf terminal --project PATH` or bare `cdaf` in a TTY | `/open /run /vars /probe /model /explain /help` |
+| `cdaf observe analysis.py --python PATH --project PATH` | Batch observation in a separate scientific environment |
+| `cdaf --json research runs --project PATH` | Saved evidence for automation; no rerun |
 
-1. Open **Architecture**, select `Summarize`, and edit its contract or explicit input binding. **Validate** displays compiler diagnostics; **Review & save** creates an architecture proposal.
-2. In **Review**, inspect the diff and diagnostics, then accept the change. New Python modules receive a skeleton that still requires implementation.
-3. Submit a candidate function from **Context → Candidate**, or create one with `cdaf generate ingest --project cdaf-demo`. Generation only proposes a change; acceptance is explicit.
-4. Choose **Runs → Success fixture → Run with this input**. Nodes and transfers reflect recorded events. The failure fixture demonstrates that a module can complete while its quality assertion fails.
-5. In **Probes**, preview a strict Boolean rule such as `$output.mean <= 5`, choose `continue`, `block`, `pause` or `breakpoint`, then review the architecture change. Inspect input/output summaries and the timeline; export sanitized evidence when needed.
+The agent uses the standard library as its base; the selected interpreter supplies scientific libraries. Independent CLI analyses can continue after a viewer closes.
 
-The offline generator implements only reviewed contract fixtures and rejects other inputs. It is useful for exercising the proposal/review loop, and makes no claim to generalize. The built-in demos use real general-purpose Python implementations. Optional OpenAI/Anthropic adapters use explicit models and environment credentials; live provider calls are outside the offline acceptance suite.
+**Model settings are in the top bar.** Offline rules are default. OpenAI-compatible and Anthropic profiles share project configuration with `/model` and `cdaf models`. Connection and inference tests differ. Keys use explicit environment or OS-vault references. Preview sending scope before requesting an explanation; samples are opt-in. Model output is unverified interpretation.
 
-## Core concepts
+## Inspection and extensibility
 
-| Concept | Behavior |
-|---|---|
-| `ProjectSpec → ExecutionPlan → RunEvent` | One versioned model feeds the CLI, compiler, HTTP API and Studio. |
-| Module / Contract | A file-qualified Python symbol, a composite public interface, or a deterministic Decision; contracts include concrete fixtures. |
-| PortBinding | An input comes from a project JSON Pointer, upstream output, or literal/default. Multiple writers require a merge module. |
-| Composite | Public inputs and outputs map to an internal graph. Declared interfaces are checked before flattening and whole-object contracts are checked at runtime. |
-| Probe / Control | Observers return `pass / fail / error / skipped`; scheduling policies handle block, pause and resume independently. |
-| Context L1–L4 | Schema, fixtures, identity, then authorized symbol source. A request cannot exceed a binding's visibility cap. |
-| ChangeSet | A staged architecture or implementation diff tied to a base revision; accepted code can be rolled back through an inverse proposal. |
-| Evidence / View | `.cdaf/` contains SQLite events and bounded artifacts; `flow/views.json` stores position/theme separately from executable semantics. |
+Arrays, scalars and tables cover complex/high-dimensional/empty values, missing data and duplicate indices. Observations retain source digests, immutable versions, declared axes/units and fidelity. Canvas previews, historical slices, virtualized lists and sanitized offline reports show saved evidence. Execution and quality differ: `completed` can coexist with a failed probe.
 
-## Capabilities and limits
+Preview is bounded to 32×32 cells, saved-data slices to 64×64. Full capture is opt-in, normally limited to 64 MiB per artifact and 256 MiB per run. Missing historical data stays unavailable.
 
-Studio has a persistent project workspace plus Architecture, Runs, Probes and Review views, explicit binding forms, contract/group editors, undo/redo, search, path focus, collapsible composites, keyboard interaction, themes and responsive panels. Project tools expose plan/source inspection, architecture import, integration exports, migration, storage, installation diagnosis and the shared command catalogue. Run replay uses historical models and events; it never automatically reruns external side effects. HTML, SVG, PNG, Mermaid and JSON exports work offline; optional exporters provide OTLP/JSON and a pinned Archify design view.
+| Extension | Responsibility |
+| --- | --- |
+| `cdaf.research.adapters` | Capture another native type with declared capabilities |
+| `cdaf.research.probes` | Read-only checks in separate processes with explicit budgets |
+| `cdaf.research.runners` | Produce the same events from another execution backend |
+| Frontend renderer registry | Present a descriptor/sample through a custom view |
 
-CLI output is readable in a terminal and JSON when piped; `cdaf --json …` explicitly selects JSON, and `--human` selects readable output. `cdaf run --input -` reads JSON from stdin. See [the coverage matrix and design sources](docs/web-cli-delivery.md).
+Plugins are explicitly enabled. The [point-cloud adapter](examples/research/custom-adapter.py) and [renderer](web/src/research/PointCloudView.tsx) demonstrate an independent type without core registry edits. [Protocols](docs/research/adapter-api.md) · [Probes](docs/research/probe-api.md). GPU, sparse, lazy, distributed and non-Python backends have extension boundaries but no built-in support in this candidate.
 
-The first version executes local Python DAGs, serially by default, with bounded concurrency, deadlines, cancellation, and opt-in idempotent retries. It validates actual data when a schema relation is explicitly declared dynamic. The conservative compiler returns “unknown” for schema constraints it cannot prove. Local processes inherit the user's file/network permissions; this is process isolation, not an OS security sandbox. Full capture is opt-in, bounded and retained for a configured period; default capture is a sanitized summary. See [privacy and execution](docs/architecture.md#execution-and-evidence).
+## Evidence and compatibility
 
-Port names and interface schemas are authored explicitly. Existing-code scanning lists candidates, and does not silently promote inferred calls to execution edges. Class instance construction, cyclic execution, multi-language runtimes, collaboration and distributed scheduling are not implemented. Probe expressions are a bounded version-1 language; they are not CEL itself.
+[Performance](docs/research/performance.md) covers 1,000 logical variables / 80 visible nodes / 10,000 events and two ten-minute 10 Hz matrix runs. Metadata-only indexes reduced the final two-minute browser heap median from 59.08 to 13.57 MiB on this host. This is no universal overhead guarantee or production certification.
 
-## Related work
+Instrumentation has [explicit limits](docs/research/instrumentation.md); observed, inferred and declared relations are distinct. Code and plugins retain user file/network permissions. [Limitations](docs/research/limitations.md).
 
-[Archify](https://github.com/tt-a1i/archify) informs typed diagram exports and validation receipts; [LikeC4](https://github.com/likec4/likec4) informs multiple views of one model; [Apache Hamilton](https://github.com/apache/hamilton) and [NoFlo](https://github.com/noflo/noflo) provide useful Python dataflow and public-port patterns. [Node-RED](https://nodered.org/docs/user-guide/editor/sidebar/debug) informs debug filtering, [OpenTelemetry](https://opentelemetry.io/docs/concepts/signals/traces/) supplies standard span/link export, and [OpenSpec](https://github.com/Fission-AI/OpenSpec) demonstrates reviewable specification changes. [Detailed comparison and design decisions](docs/research.md) describe the overlap without claiming unsupported differences.
+Scientific Dataflow Inspector is the working display name. Package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, command `cdaf` and repository `SFA` stay compatible. This is a **0.3.0 local candidate**; no remote rename or PyPI publication. `sfa` remains an alias. Contract workflows remain in **旧版架构 / Legacy architecture** and [their reference](docs/workflow.md). [Migration](docs/research/migration.md) preserves originals and IDs without inventing scientific evidence.
 
-## Documentation and contribution
+## Development
 
-[Workflow](docs/workflow.md) · [CLI](docs/cli.md) · [Architecture/API](docs/architecture.md) · [Migration](docs/migration.md) · [Examples and evidence](docs/examples/index.html) · [Release validation](docs/release.md) · [Contributing](CONTRIBUTING.md)
+Archify informs diagrams, Hamilton Python dataflow, and Codex/Kilo/DeepSeek Harness event-driven clients and lifecycle. [Architecture](docs/architecture.md) · [Design](docs/superpowers/specs/2026-10-01-scientific-dataflow-refactor-design.md) · [Contributing](CONTRIBUTING.md) · [Notices](NOTICE.md).
 
-`cdaf` is the primary interface. `sfa` aliases it for one major version; legacy commands are explicitly available as `sfa legacy …` or `python -m sfa …`. Migration preserves originals and reports ambiguous bindings. `clean` clears caches by default and preserves architecture definitions.
-
-MIT. Built on the original SFA codebase; third-party notices are in [NOTICE.md](NOTICE.md).
+MIT. Based on original SFA. [Draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1).

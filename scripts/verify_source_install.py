@@ -32,10 +32,13 @@ def main():
             raise RuntimeError((result.stderr or result.stdout)[-3000:])
         return result.stdout
 
-    invoke(uv, "tool", "install", "--python", sys.executable, source, timeout=300)
+    invoke(uv, "tool", "install", "--python", sys.executable, "--with", "numpy>=1.26", "--with", "pandas>=2.1", source, timeout=300)
     extension = ".exe" if os.name == "nt" else ""
     binary = directory / "bin" / ("cdaf" + extension)
-    assert "0.2.0" in invoke(binary, "--version")
+    installed_python = directory / "tools/contract-driven-ai-flow" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    from research_acceptance import verify_research_delivery
+    research = verify_research_delivery(installed_python, binary, directory / "research-acceptance", env)
+    assert research["version"] in invoke(binary, "--version")
     assert (directory / "bin" / ("cdaf-studio" + extension)).is_file()
     diagnosis = json.loads(invoke(binary, "--json", "doctor"))
     assert diagnosis["healthy"]
@@ -55,7 +58,7 @@ def main():
         invoke(binary, "--json", "studio", "--workspace", "--stop", "--no-open")
     receipt = {"installer": "uv tool install", "isolated_tools": True, "ordinary_install_needs_node": False,
                "cli": "passed", "bundled_studio": "passed", "first_use_workspace": "passed",
-               "native_shortcuts": "passed", "gui_entry_installed": True, "example": demo["runs"], "result": "passed"}
+               "native_shortcuts": "passed", "gui_entry_installed": True, "research": research, "example": demo["runs"], "result": "passed"}
     github = source.startswith(("git+", "https://"))
     if github:
         installed_python = directory / "tools/contract-driven-ai-flow" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")

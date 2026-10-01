@@ -1,5 +1,25 @@
 # Architecture and API
 
+Scientific Dataflow Inspector shares ResearchService, ModelSettingsService and asynchronous command dispatch across Web, desktop, terminal and batch clients. A standard-library agent runs in the selected scientific interpreter; bounded captures flow into SQLite and referenced artifacts. The desktop shell adds process ownership rather than another computation model.
+
+```mermaid
+flowchart LR
+  Code[Existing code] --> Agent[Native agent + explicit adapters]
+  Agent --> Evidence[Versioned events and artifacts]
+  Evidence --> Service[ResearchService]
+  Probes[Isolated read-only probes] --> Service
+  Service --> Web[Source / matrix / local flow / timeline]
+  Service --> CLI[Textual and Typer]
+  Service --> Explain[Rules and optional models]
+  Desktop[Owned shell] --> Web
+```
+
+Descriptor kinds and capabilities are extensible strings. AdapterRegistry, ProbeRegistry and RunnerRegistry use explicit version-1 registration; the frontend selects renderers by descriptors. Unknown types remain safe metadata. Numeric updates change indexes and detail rather than graph topology. Historical indexes retain metadata only; samples are read on demand. Observed, inferred and declared paths are distinct.
+
+`research.yaml` saves authored settings; `.cdaf/research/` saves evidence. Model profiles store credential references. Session/origin validation, resumable events and actual asynchronous cancellation apply to local APIs. Browser leases use real connections; desktop cleanup retains owned process handles. Independent CLI analyses retain their own ownership. See [extensions](research/adapter-api.md), [probes](research/probe-api.md), [lifecycle](local-deployment.md) and [limits](research/limitations.md).
+
+## Retained contract architecture
+
 The application is a modular monolith. Python owns semantics and execution; Typer and FastAPI adapt the same compiler, changes, context, runtime and storage services. React/TypeScript/React Flow displays and edits that model. ELK runs through its dedicated Web Worker protocol; Python wheels contain the built frontend.
 
 ```mermaid

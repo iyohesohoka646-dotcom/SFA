@@ -5,12 +5,14 @@ const { chromium } = require('@playwright/test');
 const browser = await chromium.launch({ channel: process.platform === 'win32' ? 'msedge' : undefined });
 const page = await browser.newPage({viewport:{width:1600,height:1000},reducedMotion:'reduce'});
 const reports = [];
+const session=process.env.CDAF_PROFILE_SESSION;
+if(!session)throw Error('The profiler must supply a private per-run session');
 try {
   for (const [name, id, count] of [['small',process.env.PROFILE_SMALL,4],['large-folded',process.env.PROFILE_LARGE,30]]) {
     const requests=[];
     page.on('response', async response => {if(response.url().includes('/api/')) requests.push({path:new URL(response.url()).pathname,status:response.status(),timing:response.request().timing()});});
     const started = performance.now();
-    await page.goto(`${process.env.PROFILE_URL}/p/${id}/#session=profile-session`);
+    await page.goto(`${process.env.PROFILE_URL}/p/${id}/?legacy=1#session=${session}`);
     await page.locator('.react-flow__node').nth(count-1).waitFor();
     const loadMs=performance.now()-started;
     const search=page.getByLabel('Search modules');
@@ -20,7 +22,7 @@ try {
     await writeFile(process.env.PROFILE_OUTPUT,JSON.stringify({measured_at:new Date().toISOString(),browser:process.platform==='win32'?'Edge':'Chromium',reports},null,2));
     page.removeAllListeners('response');
   }
-  await page.goto(`${process.env.PROFILE_URL}/p/${process.env.PROFILE_SMALL}/#session=profile-session`);
+  await page.goto(`${process.env.PROFILE_URL}/p/${process.env.PROFILE_SMALL}/?legacy=1#session=${session}`);
   await page.locator('.react-flow__node').nth(3).waitFor();
   await page.getByRole('button',{name:'Context',exact:true}).click();
   let release, startedContext;const held = new Promise(resolve=>release=resolve);const pending=new Promise(resolve=>startedContext=resolve);

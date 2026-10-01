@@ -1,4 +1,7 @@
 import { defineConfig } from '@playwright/test';
+import {randomBytes} from 'node:crypto';
+
+process.env.CDAF_BROWSER_TEST_SESSION ??= randomBytes(32).toString('base64url');
 
 export default defineConfig({
   testDir: './tests', testIgnore: '**/*.test.ts', workers: 1, timeout: 60000,

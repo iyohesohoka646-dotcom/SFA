@@ -1,9 +1,10 @@
+import {session} from './session';
 import {test,expect} from '@playwright/test';
 test.use({baseURL:'http://127.0.0.1:8879'});
 
 test('research-workbench: real matrix, source, probe and NaN journey',async({page})=>{
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.getByText('示例、脚本参数与扩展适配器',{exact:true}).click();
   await page.getByLabel('示例选择').selectOption('analysis');
   await page.getByRole('button',{name:'运行分析',exact:true}).click();
@@ -41,7 +42,7 @@ test('research-workbench: real matrix, source, probe and NaN journey',async({pag
 });
 
 test('research-workbench: historical pages and probes remain reachable on narrower screens',async({page})=>{
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Analysis · completed'}).last().textContent()||''});
   await page.getByRole('button',{name:'读取历史事件',exact:true}).click();
   await expect(page.locator('.ri-event').first().locator('small')).toHaveText('1');
@@ -53,7 +54,7 @@ test('research-workbench: historical pages and probes remain reachable on narrow
 test('research-workbench: delayed saved preferences do not replace current edits',async({page})=>{
   let release=()=>{};const gate=new Promise<void>(resolve=>{release=resolve;});
   await page.route('**/research/experiment',async route=>{await gate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({name:'old',script:'old.py',interpreter:'old-python',arguments:['--old'],capture:{level:'full'},annotations:{},adapters:[],probes:[]})}).catch(()=>{});});
-  await page.goto('/#session=research-test-session');
+  await page.goto(`/#session=${session}`);
   await page.getByLabel('分析脚本').fill('current.py');
   release();
   await expect(page.getByLabel('示例选择').locator('option')).toHaveCount(3);

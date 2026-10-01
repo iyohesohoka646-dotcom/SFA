@@ -1,7 +1,8 @@
 {
-  "name": "contract-driven-ai-flow",
-  "description": "Visual flow-based programming for AI-assisted Python development: explicit contracts, reviewed module changes, runtime probes and a local architecture workbench.",
-  "topics": ["ai-coding", "contract-driven-development", "flow-based-programming", "visual-programming", "software-architecture", "runtime-observability", "python", "dataflow"],
+  "display_name": "Scientific Dataflow Inspector",
+  "distribution": "contract-driven-ai-flow",
+  "description": "Live scientific dataflow inspection: matrix views, computational provenance, extensible probes and shared local Web, desktop and CLI clients.",
+  "topics": ["scientific-computing", "dataflow", "matrix-visualization", "computational-provenance", "data-analysis", "runtime-observability", "python", "extensible-probes"],
   "current_remote": "https://github.com/iyohesohoka646-dotcom/SFA",
   "status": "Prepared metadata; remote rename/topics/publication have not been applied"
 }

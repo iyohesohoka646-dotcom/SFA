@@ -1,5 +1,20 @@
 # CLI reference
 
+Scientific commands use `cdaf observe`, `research`, `models` and `terminal`. Bare `cdaf` in a TTY opens the interactive client; piped use prints help. `--json` selects structured output. See [interactive CLI and model configuration](research/cli.md), [scientific quick start](research/quickstart.md) and [migration/compatibility](research/migration.md).
+
+| Entry | Behavior |
+| --- | --- |
+| `observe analysis.py --python PATH --project PATH` | Run real code in a selected scientific interpreter |
+| `research runs/inspect/export` | Read immutable evidence and sanitized JSON |
+| `research explain OPERATION --context` | Inspect explanation sending scope; offline rules by default |
+| `models list/configure/test` | Shared profiles, references, connection/inference distinction |
+| `studio --project PATH` | Session-owned Web; last close stops owned service |
+| `serve --project PATH` | Explicit persistent local service |
+| `terminal --project PATH` | Interactive commands with cancellable work |
+| `research migrate SOURCE DESTINATION` | Preview; `--apply` writes a separate destination |
+
+## Retained contract commands
+
 The primary command is `cdaf`. Project commands accept `--project PATH` (`-p`); omitted paths resolve from the current directory's `flow.yaml`. `studio` can also launch a user workspace from any empty directory. Help is available with `-h` or `--help`. Terminal output is readable; piped output is JSON. Put global `--json`, `--human` or `--no-color` before the command. JSON file input is UTF-8 and `-` reads stdin where supported.
 
 | Command | Purpose / important options |

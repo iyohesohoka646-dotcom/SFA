@@ -6,7 +6,7 @@
 
 **Architecture:** 三种客户端共用科研应用服务、事件协议、数据版本和配置。重写前端默认主流程，以源码、当前数据和局部运算链为中心；桌面只增加窗口与生命周期管理。长任务独立运行，每项操作有自身状态与取消入口。
 
-**Tech Stack:** TypeScript、React、React Flow、ELK Web Worker、Canvas；Textual 交互终端与 Typer CLI；FastAPI；Tauri 2 桌面外壳；系统凭据库。
+**Tech Stack:** TypeScript、React、React Flow、ELK Web Worker、Canvas；Textual 交互终端与 Typer CLI；FastAPI；Electron 桌面外壳（原计划 Tauri 2，见发行审查中的技术裁决）；系统凭据库。
 
 **Spec:** [SFA 科研数据流重构设计](../specs/2026-10-01-scientific-dataflow-refactor-design.md)。依赖 [科研核心计划](2026-10-01-scientific-dataflow-core.md) 的事件协议和 `ResearchService`；覆盖 P3–P5。
 
@@ -156,4 +156,4 @@
 
 ## 执行交接
 
-建议在当前主会话按依赖顺序执行，阶段完成后进行独立审查，避免同一源码映射、数据版本和状态协议被多份并行实现改成不同含义。用户本轮要求先列计划，因此此处停止于可审查文档；尚未进行上述产品代码、依赖安装、服务行为和发行变更。
+按用户后续授权在当前主会话顺序实施；任务 1–5 已完成，任务 6 正在验证实际安装路径并更新草稿 PR。产品代码、服务与发行变更均已有可运行实现，最终验证范围和技术裁决记录在发行审查中。
