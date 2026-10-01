@@ -1,0 +1,31 @@
+{
+  "platform": "Windows PowerShell ConPTY",
+  "commands": [
+    "/open",
+    "/run",
+    "/model offline rules",
+    "/help",
+    "Ctrl+C",
+    "/help",
+    "/quit"
+  ],
+  "runs": [
+    {
+      "id": "beb8c2d41e0d4b9f860b5dd9b47e730a",
+      "status": "cancelled",
+      "exit_code": 130
+    },
+    {
+      "id": "9f4f474f1bf2426aa23dda9bde13901b",
+      "status": "completed",
+      "exit_code": 0
+    }
+  ],
+  "observed_variables": [
+    "X"
+  ],
+  "alternate_screen_restored": true,
+  "cursor_restored": true,
+  "terminal_process_exit_code": 0,
+  "scope": "Local owned fixture; no real model request"
+}

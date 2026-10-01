@@ -67,17 +67,8 @@ def attach_model_routes(app, research, settings=None):
         return {"deleted": identifier}
 
     async def guard_disconnect(request, operation):
-        async def monitor():
-            while not operation.done():
-                if await request.is_disconnected():
-                    operation.cancel()
-                    return
-                await asyncio.sleep(.1)
-        watching = asyncio.create_task(monitor())
-        try:
-            return await operation
-        finally:
-            watching.cancel()
+        from ..application.request import await_connected
+        return await await_connected(request,operation)
 
     @router.post("/models/{identifier}/test")
     async def test(identifier: str, body: TestProfile, request: Request):

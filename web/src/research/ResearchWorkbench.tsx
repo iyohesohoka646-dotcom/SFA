@@ -14,7 +14,7 @@ import {RunTimeline} from './RunTimeline';
 import {ConnectionHelp} from '../components';
 import {renderers} from './renderer-registry';
 import {displayCell} from './matrix-renderer';
-import {parseArguments} from './arguments';
+import {parseArguments,formatArguments} from './arguments';
 import {ModelSettings} from '../settings/ModelSettings';
 import type {ObservationEvent,SnapshotRef,ProbeSpec} from './generated';
 import './research.css';
@@ -36,7 +36,7 @@ export default function ResearchWorkbench(){
     if(!edited.current.has('分析脚本'))setScript(configured?.script||value.examples[0]?.script||'');
     if(configured){if(!edited.current.has('probes'))setDefinitions(configured.probes);
       if(!edited.current.has('采集级别'))setCapture(String(configured.capture.level||'summary'));
-      if(!edited.current.has('脚本参数'))setArguments(configured.arguments.join(' '));
+      if(!edited.current.has('脚本参数'))setArguments(formatArguments(configured.arguments));
       if(!edited.current.has('已安装适配器'))setAdapters(configured.adapters.join(','));}
   }).catch(error=>{if(!pending.signal.aborted)setNotice(error.message);});return()=>pending.abort();},[refresh]);
   useEffect(()=>{

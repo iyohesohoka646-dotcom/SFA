@@ -15,7 +15,7 @@ from .paths import FlowError, project_root
 from .privacy import sanitize_change, sanitize_plan
 from .storage import Store
 
-app = typer.Typer(name="cdaf", help="Contract-Driven AI Flow · Design, review, execute and inspect.\n\nStart: cdaf studio   |   Example: cdaf demo   |   Diagnose: cdaf doctor", no_args_is_help=True, pretty_exceptions_enable=False, context_settings={"help_option_names": ["-h", "--help"]})
+app = typer.Typer(name="cdaf", help="Scientific Dataflow Inspector · Observe, inspect and explain scientific code.\n\nInteractive: cdaf   |   Web: cdaf studio   |   Observe: cdaf observe analysis.py", no_args_is_help=False, pretty_exceptions_enable=False, context_settings={"help_option_names": ["-h", "--help"]})
 projects_app = typer.Typer(help="Create, register and list projects in the local workspace.")
 app.add_typer(projects_app, name="projects")
 research_app = typer.Typer(help="Observe existing scientific Python analyses and inspect their data evidence.")
@@ -113,6 +113,21 @@ def main(ctx: typer.Context, version: bool = typer.Option(False, "--version", he
     if version:
         typer.echo(__version__)
         raise typer.Exit()
+    if ctx.invoked_subcommand is None:
+        from .terminal.app import should_open_terminal,run_terminal
+        if should_open_terminal(sys.stdin.isatty(),sys.stdout.isatty(),json_output):
+            run_terminal(Path.cwd())
+        else:
+            typer.echo(ctx.get_help())
+
+
+@app.command()
+def terminal(project: Path=typer.Option(Path('.'),'--project','-p'),connect: str='',token_env: str='CDAF_SESSION'):
+    """Open the scientific terminal, or connect to an explicit local service."""
+    if not sys.stdin.isatty() or not sys.stdout.isatty():
+        raise typer.BadParameter('An interactive terminal requires a TTY; use cdaf observe or --help in a pipe')
+    from .terminal.app import run_terminal
+    guard(run_terminal,project,connect=connect,token_env=token_env)
 
 
 @app.command()
@@ -439,12 +454,19 @@ def observe(script: Path, python: Path = typer.Option(None, "--python", help="Sc
     try:
         probes = [ProbeSpec.model_validate(p) for p in read_json(probe_file)] if probe_file else None
         with ResearchService(project or script.resolve().parent) as service:
-            handle = service.start_analysis(script, interpreter=python, arguments=argument or [], mode=capture, probes=probes, instrument=instrument, adapters=adapter or [])
+            import asyncio
+            from .application.commands import dispatch
+            from .settings.service import ModelSettingsService
+            started=asyncio.run(dispatch('run',{'script':str(script),**({'interpreter':str(python)} if python else {}),
+                'arguments':argument or [],'mode':capture,'probes':probes,'instrument':instrument,'adapters':adapter or []},service=service,settings=ModelSettingsService(service.root)))
+            if started.status!='ok':
+                typer.echo(started.error,err=True)
+                raise typer.Exit(2)
             try:
-                record = service.wait(handle.run_id)
+                record = service.wait(started.run_id)
             except KeyboardInterrupt:
-                service.cancel(handle.run_id)
-                record = service.wait(handle.run_id, timeout=5)
+                service.cancel(started.run_id)
+                record = service.wait(started.run_id, timeout=5)
             output(record)
             if record["status"] != "completed":
                 raise typer.Exit(130 if record["status"] == "cancelled" else 1)
@@ -490,6 +512,22 @@ def research_export(run_id: str, output_path: Path = typer.Option(Path("research
             cursor = page[-1]["sequence"]
         atomic_write(output_path, json.dumps(payload, ensure_ascii=False, allow_nan=False, indent=2))
     output({"path": str(output_path.resolve()), "run_id": run_id})
+
+
+@research_app.command('explain')
+def research_explain(operation: str,provider: str='offline',model: str='',include_sample: bool=False,
+                     context: bool=False,project: Path=typer.Option(Path('.'),'--project','-p')):
+    """Explain saved operation evidence; --context previews the exact sending scope."""
+    import asyncio
+    from .application.commands import dispatch
+    from .research.service import ResearchService
+    from .settings.service import ModelSettingsService
+    with ResearchService(project) as service:
+        settings=ModelSettingsService(project)
+        result=asyncio.run(dispatch('explanation-context' if context else 'explain',{'operation_id':operation,
+            'provider_id':provider,'model':model,'include_sample':include_sample},service=service,settings=settings))
+        if result.status!='ok':typer.echo(result.error,err=True);raise typer.Exit(1)
+        output(result.data)
 
 
 @research_app.command("migrate")

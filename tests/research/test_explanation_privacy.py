@@ -58,3 +58,21 @@ def test_model_explanation_preserves_evidence_and_scrubs_echoed_credentials(tmp_
         assert explanation.uncertainty
         assert messages[0]['messages'][0]['role']=='system'
         assert 'sample' not in json.loads(messages[0]['messages'][1]['content'])['values'][0]
+
+
+def test_cli_explanations_and_context_use_the_shared_saved_evidence(tmp_path):
+    from typer.testing import CliRunner
+    from contract_driven_ai_flow.cli import app
+    from contract_driven_ai_flow.research.service import ResearchService
+    script=tmp_path/'analysis.py';script.write_text('import numpy as np\nX = np.ones((2,3))\nmu = X.mean(axis=0)\n')
+    with ResearchService(tmp_path) as service:
+        run=service.wait(service.start_analysis(script).run_id,10)
+        operation=next(o for o in service.store.operations(run['id']) if o.label.startswith('mu ='))
+    runner=CliRunner()
+    result=runner.invoke(app,['--json','research','explain',operation.id,'--project',str(tmp_path)])
+    assert result.exit_code==0,result.output
+    data=json.loads(result.output)
+    assert data['origin']=='rule' and 'axis=0' in data['text'] and operation.id in data['evidence']
+    context=runner.invoke(app,['--json','research','explain',operation.id,'--project',str(tmp_path),'--context'])
+    assert context.exit_code==0
+    assert 'sample' not in json.loads(context.output)['values'][0]

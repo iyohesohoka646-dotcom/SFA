@@ -109,11 +109,11 @@
 - `ResearchClient(base_url: str, token_ref: str)` 定义在 `terminal/client.py`，异步包装 HTTP／SSE 的 `command(name: str, arguments: dict) -> CommandResult` 与 `events(run_id: str, after: int=0) -> AsyncIterator[dict]`；`CommandResult` 定义在 `application/commands.py`，含 `status, data, error, run_id`，错误不包含凭据和原始数据。
 - `cdaf` 在 TTY 进入交互界面；非 TTY 输出帮助，`--help` 和 `--json` 不进入 TUI。长任务后台执行，Ctrl+C 取消当前任务，再次退出恢复终端状态。
 
-- [ ] **Step 1:** 写 TTY／管道入口分流、命令发现、实时变量索引、运行恢复、模型配置共享、慢任务期间可输入、取消后终端恢复，以及 Web／CLI 相同动作产生相同事件用例。
-- [ ] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_terminal.py tests/research/test_command_parity.py -q`，确认失败。
-- [ ] **Step 3:** 实现 Textual 界面与共享命令调度；按 Codex 事件／输入分工和 Kilo 模型发现机制组织交互，终端展示有界摘要和必要状态，不强行在字符终端复制完整热图。
-- [ ] **Step 4:** 同命令通过；在真实 PowerShell 终端验证运行、输入、取消、模型选择、帮助和退出；保留 Typer 自动化命令的相关测试。
-- [ ] **Step 5:** 提交 `feat: add an interactive scientific terminal sharing application services`。
+- [x] **Step 1:** 写 TTY／管道入口分流、命令发现、实时变量索引、运行恢复、模型配置共享、慢任务期间可输入、取消后终端恢复，以及 Web／CLI 相同动作产生相同事件用例。
+- [x] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_terminal.py tests/research/test_command_parity.py -q`，确认失败。
+- [x] **Step 3:** 实现 Textual 界面与共享命令调度；按 Codex 事件／输入分工和 Kilo 模型发现机制组织交互，终端展示有界摘要和必要状态，不强行在字符终端复制完整热图。
+- [x] **Step 4:** 同命令通过；在真实 PowerShell 终端验证运行、输入、取消、模型选择、帮助和退出；保留 Typer 自动化命令的相关测试。
+- [x] **Step 5:** 提交 `feat: add an interactive scientific terminal sharing application services`。
 
 ## Task 5: 单入口桌面、浏览器租约与退出清理
 

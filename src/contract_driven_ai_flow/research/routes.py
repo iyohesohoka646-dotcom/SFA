@@ -40,6 +40,12 @@ class SourceRequest(WireModel):
 def attach_research_routes(app, service: ResearchService):
     router = APIRouter(prefix="/api/v1/research")
 
+    @router.post('/commands/{command}')
+    async def command(command: str, body: dict,request: Request):
+        from ..application.commands import dispatch
+        from ..application.request import await_connected
+        return await await_connected(request,dispatch(command,body,service=service,settings=app.state.models))
+
     @router.get("/runs")
     def runs(limit: int = 100):
         return service.store.runs(limit)
@@ -76,10 +82,11 @@ def attach_research_routes(app, service: ResearchService):
         return {"path":source.path, "digest":source.digest, "code":clean_text(source.text, 10 * 1024 * 1024)}
 
     @router.post("/runs", status_code=202)
-    def start(body: AnalysisRequest):
-        return asdict(service.start_analysis(Path(body.script), interpreter=Path(body.interpreter), arguments=body.arguments,
-            mode=body.mode, probes=body.probes, adapters=body.adapters, watched_names=body.watched_names,
-            watched_lines=body.watched_lines, instrument=body.instrument, capture=body.capture))
+    async def start(body: AnalysisRequest):
+        from ..application.commands import dispatch
+        result=await dispatch('run',body.model_dump(),service=service,settings=app.state.models)
+        if result.status!='ok':raise HTTPException(400,result.error)
+        return result.data
 
     @router.get("/runs/{run_id}")
     def run(run_id: str):
