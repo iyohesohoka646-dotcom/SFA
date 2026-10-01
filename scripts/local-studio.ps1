@@ -49,7 +49,6 @@ try {
         $StudioArguments += '--workspace'
     }
     if ($Action -eq 'Start') {
-        $StudioArguments += '--background'
         if ($Port -gt 0) { $StudioArguments += @('--port', $Port) }
     } else {
         $StudioArguments += '--stop'
@@ -60,7 +59,7 @@ try {
     if ($Action -eq 'Start') {
         Write-Host ('Local Web UI: ' + $StudioService.url)
         Write-Host ('Log: ' + $StudioService.log)
-        Write-Host 'The background service keeps running when this window closes.'
+        Write-Host 'Closing the last browser tab stops the local service. Use cdaf serve for an explicit persistent service.'
         if (-not $NoBrowser) { Start-Process -FilePath $StudioService.url }
     } else {
         Write-Host ('Studio stopped: ' + $StudioService.stopped)

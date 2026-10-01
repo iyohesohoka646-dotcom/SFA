@@ -196,19 +196,19 @@ def studio(
     project: Annotated[Path | None, typer.Option("--project", "-p")] = None,
     port: Annotated[int | None, typer.Option(min=1024, max=65535, help="Default: first free port in 8765–8785")] = None,
     open_browser: Annotated[bool, typer.Option("--open/--no-open")] = True,
-    background: Annotated[bool, typer.Option("--background/--foreground", help="Default: independent background service")] = True,
+    background: Annotated[bool | None, typer.Option("--background/--foreground", help="--background explicitly keeps the service after windows close")] = None,
     stop: Annotated[bool, typer.Option(help="Gracefully stop this project's managed Studio")] = False,
     workspace: Annotated[bool, typer.Option(help="Open the project workspace even inside an existing project")] = False,
     home: Annotated[Path | None, typer.Option(help="Workspace data directory; also configurable with CDAF_HOME")] = None,
     status: Annotated[bool, typer.Option(help="Inspect the managed service without starting it")] = False,
 ):
-    """Serve the local Web UI; --background persists after the launcher exits."""
+    """Open the local Web UI; default service stops after its last browser tab closes."""
     from .studio import active, public_state, read_state, serve, start, stop as stop_studio
     from .workspace import user_home
     if project is not None and (workspace or home is not None):
         raise typer.BadParameter("Choose --project or --workspace/--home")
     if project is not None:
-        root = guard(project_root, project)
+        root = project.expanduser().resolve()
     elif workspace or home is not None:
         workspace = True
         root = (home or user_home()).resolve()
@@ -224,8 +224,8 @@ def studio(
     if stop:
         output(guard(stop_studio, root))
         return
-    if background:
-        result = guard(start, root, port, workspace=workspace)
+    if background is not False:
+        result = guard(start, root, port, workspace=workspace, owned=background is None)
         output(result)
         if open_browser:
             import webbrowser
@@ -243,6 +243,13 @@ def studio(
         import webbrowser
         threading.Timer(1, lambda: webbrowser.open(url)).start()
     serve(root, port, token=token, workspace=workspace)
+
+
+@app.command('serve')
+def persistent_service(project:Path=typer.Option(Path('.'),'--project','-p'),port:int|None=None,
+                       open_browser:bool=typer.Option(False,'--open/--no-open')):
+    """Start an explicit persistent local service, stopped with cdaf studio --stop."""
+    studio(project=project,port=port,open_browser=open_browser,background=True,stop=False,workspace=False,home=None,status=False)
 
 
 @app.command()

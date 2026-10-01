@@ -129,11 +129,11 @@
 - Produces: `ClientLease.acquire(client_id: str) -> Lease`；`release(lease_id: str) -> None`；`renew(lease_id: str) -> None`。正常最后退出宽限 3 秒，异常租约 120 秒；使用实际连接状态，不能只依赖后台 JS 定时器。
 - 桌面、浏览器拥有服务与连接已有后台服务分开；独立 CLI 运行拥有自己的执行归属。重复启动复用窗口／已有服务，启动中退出能取消准备并清理已启动子进程。
 
-- [ ] **Step 1:** 写正常关闭、启动中关闭、重复启动、失败后重试、最后标签关闭、多标签、刷新、背景标签、崩溃回收、独立 CLI 任务继续，以及证据落盘／端口释放用例。
-- [ ] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_lifecycle.py -q`、`npm run test:e2e --prefix web -- lifecycle` 与桌面生命周期测试，确认当前双快捷方式和持续服务行为不满足新默认而失败。
-- [ ] **Step 3:** 实现 Tauri 所有权控制、单入口快捷方式和窗口状态；普通 Web 加入租约及“退出并停止”操作；`cdaf serve` 作为显式后台服务入口。停止先取消拥有的任务、落盘，5 秒后再终止尚未响应的拥有子进程，残留问题记录为错误。
-- [ ] **Step 4:** 同命令通过；实际关闭浏览器／桌面窗口，确认所属进程退出且端口释放；刷新不关服，别的 CLI 分析继续。验证 Windows 安装器和 WebView2 启动，缺失组件显示可恢复错误。
-- [ ] **Step 5:** 提交 `feat: unify launch and shutdown across desktop browser and terminal`。
+- [x] **Step 1:** 写正常关闭、启动中关闭、重复启动、失败后重试、最后标签关闭、多标签、刷新、背景标签、崩溃回收、独立 CLI 任务继续，以及证据落盘／端口释放用例。
+- [x] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_lifecycle.py -q`、`npm run test:e2e --prefix web -- lifecycle` 与桌面生命周期测试，确认当前双快捷方式和持续服务行为不满足新默认而失败。
+- [x] **Step 3:** 实现 Tauri 所有权控制、单入口快捷方式和窗口状态；普通 Web 加入租约及“退出并停止”操作；`cdaf serve` 作为显式后台服务入口。停止先取消拥有的任务、落盘，5 秒后再终止尚未响应的拥有子进程，残留问题记录为错误。
+- [x] **Step 4:** 同命令通过；实际关闭浏览器／桌面窗口，确认所属进程退出且端口释放；刷新不关服，别的 CLI 分析继续。验证 Windows 安装器和 WebView2 启动，缺失组件显示可恢复错误。
+- [x] **Step 5:** 提交 `feat: unify launch and shutdown across desktop browser and terminal`。
 
 ## Task 6: 科研迁移、定位文档与发行验收
 

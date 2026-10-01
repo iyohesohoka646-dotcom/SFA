@@ -91,6 +91,8 @@ def test_installed_shortcuts_are_bound_to_the_current_interpreter(tmp_path):
     import sys
     records = create_shortcuts(tmp_path / "shortcuts", workspace=tmp_path / "home")
     assert records["files"]
+    assert len(records["files"]) == 1
+    assert Path(records["files"][0]).stem == 'Scientific Dataflow Inspector'
     assert all(Path(path).is_file() for path in records["files"])
     assert records["python"] == sys.executable
     assert records["workspace"] == str((tmp_path / "home").resolve())

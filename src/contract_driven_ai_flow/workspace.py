@@ -156,6 +156,7 @@ def create_workspace_app(root: Path, token: str, port: int = 8765, shutdown=None
             finally:
                 cancel_children()
                 await asyncio.to_thread(research.close)
+                app.state.models.close()
 
     app = FastAPI(title="Contract-Driven AI Flow Workspace", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.session_token = token

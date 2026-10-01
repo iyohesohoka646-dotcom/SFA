@@ -139,6 +139,7 @@ def create_app(root: Path, token: str | None = None, port: int = 8765, shutdown:
                 runner.cancelled.set()
         executor.shutdown(wait=True, cancel_futures=True)
         await asyncio.to_thread(research.close)
+        app.state.models.close()
 
     app = FastAPI(title="Contract-Driven AI Flow", version="1", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.session_token = token

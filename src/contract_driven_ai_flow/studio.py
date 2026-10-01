@@ -86,22 +86,24 @@ def launch_lock(root: Path):
                 fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
-def start(root: Path, port: int | None = None, *, workspace: bool = False) -> dict:
+def start(root: Path, port: int | None = None, *, workspace: bool = False, owned: bool = False, cancel_event=None, process_callback=None) -> dict:
     root = root.resolve()
     with launch_lock(root):
         # Project locks prevent duplicate instances; this user-wide lock also
         # reserves port selection until a different project's server is ready.
         with launch_lock(Path(tempfile.gettempdir()) / "contract-driven-ai-flow-ports"):
-            return _start(root, port, workspace=workspace)
+            return _start(root, port, workspace=workspace, owned=owned, cancel_event=cancel_event, process_callback=process_callback)
 
 
-def _start(root: Path, port: int | None, *, workspace: bool) -> dict:
+def _start(root: Path, port: int | None, *, workspace: bool, owned=False, cancel_event=None, process_callback=None) -> dict:
     root = root.resolve()
     if workspace:
         from .workspace import Workspace
         Workspace(root).bootstrap()
-    else:
+    elif (root / 'flow.yaml').is_file():
         Store(root).load()
+    else:
+        (root / '.cdaf').mkdir(parents=True, exist_ok=True)
     state = read_state(root)
     if active(root, state):
         if port is not None and state["port"] != port:
@@ -127,8 +129,10 @@ def _start(root: Path, port: int | None, *, workspace: bool) -> dict:
     if os.name == "nt":
         flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB
     launch_id = secrets.token_hex(16)
+    if cancel_event is not None and cancel_event.is_set():
+        raise FlowError('Studio startup was cancelled')
     with (root / ".cdaf/studio.log").open("ab") as log:
-        arguments = [sys.executable, "-X", "utf8", "-m", "contract_driven_ai_flow.studio", str(root), str(port), launch_id, "workspace" if workspace else "project"]
+        arguments = [sys.executable, "-X", "utf8", "-m", "contract_driven_ai_flow.studio", str(root), str(port), launch_id, "workspace" if workspace else "project", 'owned' if owned else 'persistent']
         options = dict(cwd=root, env={**os.environ, "PYTHONUTF8": "1"},
                        stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
                        creationflags=flags, start_new_session=os.name != "nt", close_fds=True)
@@ -141,8 +145,13 @@ def _start(root: Path, port: int | None, *, workspace: bool) -> dict:
             # detachment, while respecting that host's job lifetime policy.
             options["creationflags"] = flags & ~subprocess.CREATE_BREAKAWAY_FROM_JOB
             child = subprocess.Popen(arguments, **options)
+    if process_callback is not None:
+        process_callback(child)
     deadline = time.monotonic() + 20
     while time.monotonic() < deadline:
+        if cancel_event is not None and cancel_event.is_set():
+            child.terminate();child.wait(timeout=5)
+            raise FlowError('Studio startup was cancelled')
         state = read_state(root)
         if state and state.get("launch_id") == launch_id and active(root, state):
             return public_state(root, state, reused=False)
@@ -176,7 +185,7 @@ def _stop(root: Path) -> dict:
     raise FlowError(f"Studio is still shutting down; inspect {root / '.cdaf/studio.log'}")
 
 
-def serve(root: Path, port: int = 8765, *, token: str | None = None, managed: bool = False, launch_id: str | None = None, workspace: bool = False):
+def serve(root: Path, port: int = 8765, *, token: str | None = None, managed: bool = False, launch_id: str | None = None, workspace: bool = False, owned: bool = False):
     import uvicorn
     from .api import create_app
 
@@ -184,14 +193,35 @@ def serve(root: Path, port: int = 8765, *, token: str | None = None, managed: bo
     token = token or secrets.token_urlsafe(32)
 
     def shutdown():
+        application.state.leases.closing = True
+        application.state.models.close()
+        cancel_runs = getattr(application.state, 'cancel_runs', None)
+        if cancel_runs: cancel_runs()
+        for run_id in list(application.state.research._active):
+            application.state.research.cancel(run_id)
         server.should_exit = True
 
     if workspace:
         from .workspace import create_workspace_app
         application = create_workspace_app(root, token=token, port=port, shutdown=shutdown)
-    else:
+    elif (root / 'flow.yaml').is_file():
         application = create_app(root, token=token, port=port, shutdown=shutdown)
-    server = uvicorn.Server(uvicorn.Config(application, host="127.0.0.1", port=port, access_log=False))
+    else:
+        from fastapi.responses import FileResponse
+        from fastapi.staticfiles import StaticFiles
+        from .research.routes import create_research_app
+        application = create_research_app(root, token=token, port=port)
+        @application.get('/api/v1/studio')
+        def status():return {'pid':os.getpid(),'project':str(root),'port':port,'mode':'research'}
+        @application.post('/api/v1/studio/shutdown')
+        def stop_service():shutdown();return {'stopping':True}
+        static=Path(__file__).with_name('static')
+        @application.get('/')
+        def index():return FileResponse(static / 'index.html')
+        application.mount('/assets', StaticFiles(directory=static / 'assets'), name='assets')
+    from .application.lifecycle import attach_lifecycle
+    attach_lifecycle(application,shutdown,owned=owned)
+    server = uvicorn.Server(uvicorn.Config(application, host="127.0.0.1", port=port, access_log=False, timeout_graceful_shutdown=5))
     state = {"pid": os.getpid(), "port": port, "token": token, "project": str(root), "launch_id": launch_id}
     path = root / ".cdaf/studio.json"
     if managed:
@@ -204,4 +234,4 @@ def serve(root: Path, port: int = 8765, *, token: str | None = None, managed: bo
 
 
 if __name__ == "__main__":
-    serve(Path(sys.argv[1]), int(sys.argv[2]), managed=True, launch_id=sys.argv[3], workspace=len(sys.argv) > 4 and sys.argv[4] == "workspace")
+    serve(Path(sys.argv[1]), int(sys.argv[2]), managed=True, launch_id=sys.argv[3], workspace=len(sys.argv) > 4 and sys.argv[4] == "workspace", owned=len(sys.argv)>5 and sys.argv[5]=='owned')

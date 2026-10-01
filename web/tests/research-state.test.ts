@@ -11,6 +11,14 @@ const event = (i: number, sequence: number, version = 1) => ({schema_version: 1 
   snapshot_id: `s${i}-${version}`, operation_id: null, source: null, payload: {snapshot: snapshot(i, version)}});
 
 describe('research-state', () => {
+  test('keeps data samples out of metadata and timeline caches without changing wire evidence',()=>{
+    const observed=event(0,1);
+    let state=applyEvent(createState('r'),observed);
+    expect(state.snapshots.get('s0-1')?.sample).toEqual({});
+    expect(state.latest.get('main:X0')?.sample).toEqual({});
+    expect((state.timeline[0].payload.snapshot as any).sample).toEqual({});
+    expect(observed.payload.snapshot.sample).toEqual({values:[[1]]});
+  });
   test('deduplicates continuation and rejects events from another run', () => {
     let state = createState('r');
     state = applyEvent(state, event(0, 1));

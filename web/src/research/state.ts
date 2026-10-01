@@ -17,6 +17,8 @@ function bound<K,V>(map: Map<K,V>, maximum: number) {
 
 /** Incremental index; published snapshots are immutable wire values. */
 export function indexSnapshot(state: ResearchState, snapshot: SnapshotRef) {
+  // Full samples are fetched for the selected value; the index only needs metadata.
+  snapshot={...snapshot,sample:{},statistics:{}};
   const current = state.latest.get(snapshot.binding_id);
   state.snapshots.set(snapshot.id,snapshot);
   if (!current || snapshot.version>current.version) {
@@ -41,7 +43,12 @@ export function indexSnapshot(state: ResearchState, snapshot: SnapshotRef) {
 
 export function applyEvent(state: ResearchState, event: ObservationEvent): ResearchState {
   if (event.run_id!==state.runId || event.sequence<=state.lastSequence) return state;
-  if (event.kind==='value.observed' && event.payload.snapshot) indexSnapshot(state,event.payload.snapshot as unknown as SnapshotRef);
+  if (event.kind==='value.observed' && event.payload.snapshot) {
+    const snapshot=event.payload.snapshot as unknown as SnapshotRef;
+    indexSnapshot(state,snapshot);
+    const metadata={...snapshot,sample:{},statistics:{}};
+    event={...event,payload:{...event.payload,snapshot:metadata as unknown as ObservationEvent['payload'][string]}};
+  }
   if (event.kind.startsWith('operation.') && event.payload.operation) {
     const operation=event.payload.operation as unknown as OperationRecord;
     state.operations.set(operation.id,operation); bound(state.operations,512);

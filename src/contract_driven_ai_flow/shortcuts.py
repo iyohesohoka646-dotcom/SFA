@@ -28,7 +28,7 @@ def create_shortcuts(directory: Path | None = None, *, workspace: Path | None = 
     workspace = (workspace or user_home()).resolve()
     scope = ["--project", str(project.resolve())] if project else ["--home", str(workspace)]
     files = []
-    for action, title in (("start", "Contract Flow Studio"), ("stop", "Stop Contract Flow Studio")):
+    for action, title in (("start", "Scientific Dataflow Inspector"),):
         arguments = ["-X", "utf8", "-m", "contract_driven_ai_flow.launcher", "--action", action, *scope]
         if os.name == "nt":
             # COM resolves the actual Desktop, including redirected/non-ASCII paths.
@@ -57,5 +57,13 @@ def create_shortcuts(directory: Path | None = None, *, workspace: Path | None = 
             atomic_write(path, f"[Desktop Entry]\nType=Application\nName={title}\nExec={command}\nTerminal=false\nCategories=Development;\n")
             path.chmod(0o755)
         files.append(str(path))
+    if os.name=='nt':
+        # Remove only the two launchers previously created by this package.
+        def quote(value):return "'"+str(value).replace("'","''")+"'"
+        script="$taskShell=New-Object -ComObject WScript.Shell; "
+        for title in ('Contract Flow Studio','Stop Contract Flow Studio'):
+            old=directory/(title+'.lnk')
+            script+="if(Test-Path -LiteralPath "+quote(old)+"){ $taskOld=$taskShell.CreateShortcut("+quote(old)+"); if($taskOld.Arguments.Contains('contract_driven_ai_flow.launcher')){Remove-Item -LiteralPath "+quote(old)+"} }; "
+        subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-Command',script],capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW,timeout=15,check=True)
     return {"files": files, "python": sys.executable, "workspace": str(workspace), "project": str(project.resolve()) if project else None,
             "note": "Recreate shortcuts after moving or removing the Python environment"}

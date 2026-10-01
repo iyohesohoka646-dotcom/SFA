@@ -1,58 +1,44 @@
-# 本地 Web UI 部署
+# 本地科研工作台
 
-安装后执行 `cdaf studio`，或双击仓库根目录的 [启动工作台.cmd](../启动工作台.cmd)。服务在后台启动，确认网页和认证 API 就绪后自动打开浏览器。关闭终端或浏览器后继续运行；重复启动复用已有服务。
+`cdaf studio` 启动并打开 Web 工作台。默认服务在最后一个标签关闭后宽限 3 秒再退出；刷新、多标签和保持真实连接的后台标签继续使用服务。尚未建立连接的启动租约最多等待 120 秒。连接依据真实 SSE 连接维护，不依赖后台页面的定时器。工作台提供“退出并停止”。
 
-在空目录启动时，首页是项目工作区：默认包含可运行的数据处理案例，可以新建空项目、选择另外两种模板，或注册已有 `flow.yaml` 目录。打开项目不会执行代码；在 Runs 中选择成功、失败样例后运行。在已有项目目录执行 `cdaf studio` 则直接打开该项目，`--workspace` 始终打开全部项目。
+Windows 桌面外壳使用同一套界面，关闭窗口会取消并清理自己启动的服务及任务；重复启动聚焦已有窗口。连接已有持续服务时只借用它，关闭客户端不会终止借用的服务。独立 CLI 分析拥有自己的执行进程，可以在 Web／桌面关闭后继续。需要长时间执行的分析使用 `cdaf observe` 或显式后台服务。
 
-## 安装与快捷方式
+## Python 安装与 Web
 
-需要 Python 3.11+。从这个版本的仓库或解压后的源码发行包安装：
-
-```console
-python -m pip install .
-cdaf studio
+```powershell
+python -m pip install ".[research]"
+cdaf studio --project .\experiment
 cdaf shortcut
 ```
 
-`cdaf shortcut` 创建原生桌面启动、停止快捷方式，绑定当前安装的 Python 环境。也可用 `--directory PATH` 指定快捷方式目录，`--project PATH` 绑定单个项目。Windows 使用 `.lnk`，macOS 使用 `.command`，Linux 使用 `.desktop`；后两者的桌面环境可能要求首次允许启动。移动或删除 Python 环境后需要重新创建快捷方式。
+普通用户不需要 Node.js、模型密钥或云账户。Python 3.11+ 安装路径携带已构建前端；`research` 选项包含首批 NumPy／pandas 案例依赖。其他数据类型通过明确启用的适配器接入，参见[适配器协议](research/adapter-api.md)。科研解释器在工作台中明确选择，计算环境与工具环境分开。
 
-安装包还提供 `cdaf-studio` 应用入口，Windows 中通过无终端窗口的启动器运行。普通使用不需要 Node.js、API 密钥或云账户；首次安装依赖需要联网。Node.js 用于重建前端和可选 Archify 渲染器。功能分支已推送到 GitHub，并创建[草稿 PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1)；当前默认分支尚未合并，PyPI 尚未发布。
+`cdaf shortcut` 生成一个 Scientific Dataflow Inspector 原生入口，绑定当前工具解释器；可以指定 `--directory PATH` 或 `--project PATH`。Windows 使用 `.lnk`，macOS 使用 `.command`，Linux 使用 `.desktop`。只清理这个包此前生成的两种旧启动／停止链接。移动工具环境后重新创建入口。
 
-可直接从 GitHub 安装该功能分支的源码压缩包，无须 Git 或 Node.js：
+仓库的[启动工作台.cmd](../启动工作台.cmd) 仍可打开 Web；[停止工作台.cmd](../停止工作台.cmd) 作为旧入口保留。默认用户数据目录和 `CDAF_HOME` 保持兼容。无架构定义的普通目录可以直接启动科研界面；旧架构功能从“旧版架构”进入。
 
-```console
-python -m pip install "https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
-python -m contract_driven_ai_flow studio
-python -m contract_driven_ai_flow shortcut
+## 持续服务与端口
+
+```powershell
+cdaf serve --project .\experiment
+cdaf studio --project .\experiment --status
+cdaf studio --project .\experiment --stop
+cdaf studio --project .\experiment --background
 ```
 
-已有 Git 时也可用 `python -m pip install "git+https://github.com/iyohesohoka646-dotcom/SFA.git@feat/contract-driven-ai-flow"` 安装；要固定版本，将分支名替换为已验证的提交摘要。
+`serve` 和显式 `--background` 保留服务，关闭浏览器不停止它。默认选用 8765–8785 的空闲端口；`--port` 明确指定。被占用的端口会报错；不会替换其他监听程序。关闭先取消拥有的任务并落盘，最多等待 5 秒，再结束仍未响应的拥有进程。身份由目录、会话和当前启动确定，强制清理使用持有的进程句柄，防止误杀被复用的 PID。
 
-仓库中的双击入口优先使用项目 `.venv`，缺少环境或对应本地包时自动创建并安装。默认打开用户工作区，不写入仓库中的样例。Windows 工作区位于 LOCALAPPDATA 下的 ContractDrivenAIFlow，macOS 位于 ~/Library/Application Support/ContractDrivenAIFlow，Linux 位于 XDG_DATA_HOME 或 ~/.local/share 下的 contract-driven-ai-flow。`CDAF_HOME` 或 `--home PATH` 可明确指定位置。
+## 桌面构建
 
-## 生命周期与端口
+`desktop/` 提供 Electron 外壳、后台控制和 Windows NSIS 安装器配置。安装器携带私有 Python 与 Chromium，工具服务无需依赖开发环境；科研脚本仍可选择另一个解释器。Electron 版本与构建依赖由 `desktop/package-lock.json` 固定；外壳较建议的 Tauri 更占空间，但能使用当前工具链进行窗口和安装验证。发行验证结果见[发行记录](release.md)。
 
-```console
-cdaf studio --workspace
-cdaf studio --workspace --status
-cdaf studio --workspace --stop
-cdaf studio --project PATH
-cdaf studio --project PATH --stop
-cdaf studio --foreground
-```
+开发窗口先运行 `npm ci --prefix desktop`，再执行 `npm start --prefix desktop -- --project PATH`；`CDAF_DESKTOP_PYTHON` 明确指定已安装本工具的运行时。缺少运行时显示可重试的启动错误。生产包禁用渲染器 Node 集成，隔离预加载脚本，只打开所属回环服务；不从网络加载插件脚本。
 
-默认在 8765–8785 中选择空闲端口；`--port 8766` 指定端口，若被其他服务占用会明确报错。前台模式可用 Ctrl+C 停止。后台停止入口使用当前会话和目录身份确认服务，不按过期进程号终止其他程序；停止服务前会取消正在运行、排队或断点暂停的任务。不同项目的工作区子应用保留各自运行器和存储。
+## 配置、证据与连接恢复
 
-Windows 托管作业若禁止进程脱离，启动器保留无控制台后台运行，并遵守该宿主的作业生命周期；宿主结束整个作业时仍可能终止服务。普通桌面启动与关闭浏览器、终端的行为分别经过验证。
+模型设置在顶部，终端使用 `/model`，批处理使用 `cdaf models`；选择相同项目目录时三种客户端共用配置。默认离线解释不发出模型请求。密钥只保存明确的环境变量或系统凭据库引用。解释发送范围可以先审查，样例须显式加入。
 
-PowerShell 双击入口接受 `-Project PATH`、`-Port NUMBER`、`-WorkspaceHome PATH` 和 `-NoBrowser`。双击 [停止工作台.cmd](../停止工作台.cmd) 正常停止默认工作区。重启电脑后重新打开快捷方式即可；当前没有设置开机或登录自动启动。
+`.cdaf/studio.json` 保存本地管理会话，`.cdaf/studio.log` 保存诊断；科研运行及有界观察证据另行存储，不删除用户脚本或探针定义。重放不会重新执行脚本，重新运行会创建新记录。历史完整数据必须显式采集。
 
-## 功能与连接恢复
-
-项目画布提供架构、运行、探针和变更审查；Project tools 提供执行计划、源码扫描、架构提案导入、集成导出、迁移、缓存与历史维护、安装诊断和命令目录。工作区与项目操作调用同一 Python 服务，具体对应关系见[Web/CLI 功能记录](web-cli-delivery.md)。
-
-运行状态和会话保存在服务目录 `.cdaf/studio.json`，日志位于 `.cdaf/studio.log`。快捷方式错误另存 `.cdaf/launcher-error.txt`。这些文件与可提交的架构定义分开保存。
-
-“拒绝连接”表示该端口没有监听服务。重新运行 `cdaf studio` 或打开快捷方式，等待就绪后使用自动打开的地址。身份验证过期时，重新启动入口会复用服务并打开当前有效会话；网页也提供重试和粘贴当前本地会话地址的入口。`cdaf doctor` 与网页 Installation 可检查安装和项目状态。
-
-服务仅绑定回环地址。Python 模块进程继承当前用户的文件与网络权限。
+出现“127.0.0.1 拒绝连接”时，重新执行启动入口并等待就绪，使用入口自动打开的当前地址。不要依赖上一次的固定端口。服务绑定回环地址，并校验会话与来源。科研代码和显式启用的插件仍具有该用户的文件及网络权限；子进程隔离不构成操作系统沙箱。

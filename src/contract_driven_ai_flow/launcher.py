@@ -1,4 +1,4 @@
-"""Windowless installed entry point for persistent local Studio shortcuts."""
+"""Windowless local Web launcher; browser connections own default service lifetime."""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +12,7 @@ from .workspace import user_home
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Open the local Contract Flow Studio")
+    parser = argparse.ArgumentParser(description="Open Scientific Dataflow Inspector")
     parser.add_argument("--action", choices=["start", "stop"], default="start")
     parser.add_argument("--home", type=Path)
     parser.add_argument("--project", type=Path)
@@ -20,7 +20,7 @@ def main():
     args = parser.parse_args()
     root = (args.project or args.home or user_home()).resolve()
     try:
-        result = stop(root) if args.action == "stop" else start(root, workspace=args.project is None)
+        result = stop(root) if args.action == "stop" else start(root, workspace=args.project is None, owned=True)
         atomic_write(root / ".cdaf/launcher.json", json.dumps(result))
         if args.action == "start" and not args.no_open:
             webbrowser.open(result["url"])
