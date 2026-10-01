@@ -41,6 +41,7 @@ class TraceSession:
         self._scope = contextvars.ContextVar("research_scope", default="main")
         self._finished = False
         self.capture_errors = 0
+        self._binding_count = 0
         self.emit("run.started", {"name": self.name, "capture": asdict(self.policy)}, critical=True)
 
     def emit(self, kind, payload, *, source=None, snapshot_id=None, operation_id=None, critical=False):
@@ -60,7 +61,7 @@ class TraceSession:
         with self._lock:
             return self._latest.get(self._scope.get() + ":" + name) or self._latest.get("main:" + name)
 
-    def watch(self, name: str, value: object, *, source=None, axes=None, unit=None, parents=(), provenance="declared", coverage=None) -> dict:
+    def watch(self, name: str, value: object, *, source=None, axes=None, unit=None, parents=(), parent_snapshots=None, provenance="declared", coverage=None) -> dict:
         scope_id = self._scope.get()
         if type(name) is not str or not name or len(name) > 256:
             raise ValueError("Observed binding name must be 1-256 characters")
@@ -116,9 +117,11 @@ class TraceSession:
                 artifact, reason = self.writer.save(value, adapter, descriptor)
                 if reason:
                     truncation.append(reason)
-        parent_ids = [item["id"] for name in parents if (item := self.latest(name)) is not None]
+        parent_ids = list(parent_snapshots) if parent_snapshots is not None else [item["id"] for name in parents if (item := self.latest(name)) is not None]
         with self._lock:
             version = self._versions.get(binding, 0) + 1
+            if version == 1:
+                self._binding_count += 1
             self._versions[binding] = version
             snapshot = {"id": uuid.uuid4().hex, "run_id": self.run_id, "binding_id": binding, "scope_id": scope_id,
                 "name": name, "version": version, "descriptor": descriptor, "observed_at": now(),
@@ -140,16 +143,21 @@ class TraceSession:
         return snapshot
 
     @contextmanager
-    def operation(self, label: str, *, inputs: dict, source=None, kind="custom", provenance="declared", iteration=1):
-        selected = []
+    def operation(self, label: str, *, inputs: dict, source=None, kind="custom", provenance="declared", iteration=1, input_snapshots=None):
+        selected = list(input_snapshots) if input_snapshots is not None else []
         for name, value in inputs.items():
-            observed = self.latest(name)
-            if observed is None:
-                observed = self.watch(name, value, source=source)
+            binding = self._scope.get() + ":" + name
+            observed = self._latest.get(binding)
+            if observed is None or self._objects.get(binding) != id(value):
+                token = self._current.set(None)
+                try:
+                    observed = self.watch(name, value, source=source)
+                finally:
+                    self._current.reset(token)
             selected.append(observed["id"])
         record = {"id": uuid.uuid4().hex, "run_id": self.run_id, "label": clean_text(label, 4096), "source": sanitize_json(source) if source else None,
             "scope_id": self._scope.get(), "iteration": iteration, "input_snapshots": selected, "output_snapshots": [],
-            "kind": kind, "status": "started", "duration_ms": None, "parameters": {}, "provenance": provenance}
+            "kind": kind, "status": "started", "duration_ms": None, "parameters": {"timing": "scope-including-observation"}, "provenance": provenance}
         self.emit("operation.started", {"operation": record}, operation_id=record["id"], source=record["source"])
         token = self._current.set(record)
         started = time.perf_counter()
@@ -161,16 +169,25 @@ class TraceSession:
         else:
             record["status"] = "completed"
         finally:
-            record["duration_ms"] = (time.perf_counter() - started) * 1000
+            if record["duration_ms"] is None:
+                record["duration_ms"] = (time.perf_counter() - started) * 1000
             self._current.reset(token)
             self.emit("operation.finished", {"operation": record}, operation_id=record["id"], source=record["source"], critical=record["status"] == "failed")
 
     def finish(self, status="completed", **details):
         if not self._finished:
             self._finished = True
-            self.emit("run.finished", {"status": status, "bindings": len(self._versions), "capture_errors": self.capture_errors,
+            self.emit("run.finished", {"status": status, "bindings": self._binding_count, "capture_errors": self.capture_errors,
                 "dropped": self.transport.dropped, **sanitize_json(details)}, critical=True)
         return self.transport.close()
+
+    def forget_scope(self, scope_id):
+        """Runtime-only invocation scopes have already been published."""
+        with self._lock:
+            for binding in [key for key in self._latest if key.startswith(scope_id + ":")]:
+                self._latest.pop(binding, None)
+                self._versions.pop(binding, None)
+                self._objects.pop(binding, None)
 
     def __enter__(self):
         return self

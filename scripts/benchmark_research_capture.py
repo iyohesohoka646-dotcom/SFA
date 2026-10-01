@@ -55,15 +55,21 @@ def child(args):
         return
     with tempfile.TemporaryDirectory(prefix="research-benchmark-") as folder:
         transport = EventTransport(lambda batch: None)
-        trace = None if args.mode == "off" else TraceSession("benchmark", transport, CapturePolicy(level=args.mode), artifact_root=Path(folder))
+        trace = None if args.mode == "off" else TraceSession("benchmark", transport, CapturePolicy(level="summary" if args.mode == "auto_summary" else args.mode), artifact_root=Path(folder))
         started = time.perf_counter()
-        if trace:
+        if trace and args.mode != "auto_summary":
             trace.watch("left", left)
             trace.watch("right", right)
-        for _ in range(args.iterations):
-            result = left @ right
-            if trace:
-                trace.watch("product", result)
+        if args.mode == "auto_summary":
+            from contract_driven_ai_flow.research.agent.instrument import instrument, InstrumentPolicy
+            code = instrument("for i in range(iterations):\n    result = left @ right\n", "matrix-benchmark.py", InstrumentPolicy(watched_names=("result",)))
+            namespace = code.execute(trace, {"left": left, "right": right, "iterations": args.iterations, "__name__": "__main__"})
+            result = namespace["result"]
+        else:
+            for _ in range(args.iterations):
+                result = left @ right
+                if trace:
+                    trace.watch("product", result)
         if trace:
             trace.finish()
         elapsed = time.perf_counter() - started
@@ -80,6 +86,7 @@ def main():
     parser.add_argument("--iterations", type=int, default=0)
     parser.add_argument("--size", type=int, default=1536)
     parser.add_argument("--repeats", type=int, default=3)
+    parser.add_argument("--modes", nargs="+", default=["off", "metadata", "summary", "full"])
     parser.add_argument("--output", type=Path, default=Path("docs/assets/research-sdk-performance.json"))
     args = parser.parse_args()
     if args.child:
@@ -95,7 +102,7 @@ def main():
         "processor": platform.processor(), "python": sys.version, "blas_threads": 1, "size": args.size,
         "iterations": iterations, "calibration": calibration, "runs": []}
     for repeat in range(args.repeats):
-        for mode in ("off", "metadata", "summary", "full"):
+        for mode in args.modes:
             result = json.loads(subprocess.check_output([*command, "--mode", mode, "--iterations", str(iterations)], env=env, text=True))
             result["repeat"] = repeat + 1
             report["runs"].append(result)
@@ -105,10 +112,13 @@ def main():
     baseline = statistics.median(r["elapsed_seconds"] for r in report["runs"] if r["mode"] == "off")
     report["summary"] = {mode: {"median_seconds": statistics.median(r["elapsed_seconds"] for r in report["runs"] if r["mode"] == mode),
         "overhead_percent": 100 * (statistics.median(r["elapsed_seconds"] for r in report["runs"] if r["mode"] == mode) / baseline - 1)}
-        for mode in ("off", "metadata", "summary", "full")}
+        for mode in args.modes}
     report["same_output"] = len({r["result_sha256"] for r in report["runs"]}) == 1
     report["baseline_over_10_seconds"] = all(r["elapsed_seconds"] >= 10 for r in report["runs"] if r["mode"] == "off")
-    report["sdk_summary_goal_met"] = report["same_output"] and report["baseline_over_10_seconds"] and report["summary"]["summary"]["overhead_percent"] <= 5
+    if "summary" in report["summary"]:
+        report["sdk_summary_goal_met"] = report["same_output"] and report["baseline_over_10_seconds"] and report["summary"]["summary"]["overhead_percent"] <= 5
+    if "auto_summary" in report["summary"]:
+        report["auto_summary_goal_met"] = report["same_output"] and report["baseline_over_10_seconds"] and report["summary"]["auto_summary"]["overhead_percent"] <= 20
     args.output.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report["summary"], indent=2))
 

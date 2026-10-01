@@ -13,4 +13,6 @@
 
 该结果验证当前显式 SDK 在这个 CPU 密集案例中的开销，没有证明任意脚本、自动插桩、慢消费者、浏览器或 GPU 的性能。全量采集的额外耗时单列，默认关闭。复现命令为 `python scripts/benchmark_research_capture.py`。
 
+选定变量 `result` 的自动插桩另测三次：关闭中位 12.113 秒，自动摘要 12.575 秒，额外耗时约 3.81%；输出摘要相同，未丢事件。记录在 [`research-auto-performance.json`](../assets/research-auto-performance.json)，复现命令为 `python scripts/benchmark_research_capture.py --modes off auto_summary --output docs/assets/research-auto-performance.json`。它验证选定矩阵运算的自动观察开销，没有测试任意 Python 程序的每条语句。
+
 旧工作台的本轮真实交互基线在 [`research-baseline.json`](../assets/research-baseline.json)：630 个逻辑模块折叠为 30 个节点时，加载与布局约 8.0 秒；请求上下文过程中改变节点，响应虽然成功却无法展示，且全局任务状态阻塞无关按钮。科研工作台重写后将使用独立的交互、流式观察和布局基准核对这些问题。

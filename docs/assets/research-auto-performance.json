@@ -1,0 +1,88 @@
+{
+  "measured_at": "2026-10-01T11:12:36Z",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "processor": "",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "blas_threads": 1,
+  "size": 1536,
+  "iterations": 101,
+  "calibration": {
+    "iterations": 101,
+    "seconds_per_operation": 0.11907206666849864
+  },
+  "runs": [
+    {
+      "mode": "off",
+      "elapsed_seconds": 12.17564190000121,
+      "peak_memory_bytes": 113287168,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 1
+    },
+    {
+      "mode": "auto_summary",
+      "elapsed_seconds": 12.574989700005972,
+      "peak_memory_bytes": 114778112,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 1
+    },
+    {
+      "mode": "off",
+      "elapsed_seconds": 12.01731209999707,
+      "peak_memory_bytes": 113057792,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 2
+    },
+    {
+      "mode": "auto_summary",
+      "elapsed_seconds": 12.63833839999279,
+      "peak_memory_bytes": 114659328,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 2
+    },
+    {
+      "mode": "off",
+      "elapsed_seconds": 12.113468700001249,
+      "peak_memory_bytes": 113020928,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 3
+    },
+    {
+      "mode": "auto_summary",
+      "elapsed_seconds": 12.400189599997248,
+      "peak_memory_bytes": 114642944,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 3
+    }
+  ],
+  "summary": {
+    "off": {
+      "median_seconds": 12.113468700001249,
+      "overhead_percent": 0.0
+    },
+    "auto_summary": {
+      "median_seconds": 12.574989700005972,
+      "overhead_percent": 3.8099821895331676
+    }
+  },
+  "same_output": true,
+  "baseline_over_10_seconds": true,
+  "auto_summary_goal_met": true
+}

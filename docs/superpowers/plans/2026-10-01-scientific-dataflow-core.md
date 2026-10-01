@@ -85,11 +85,11 @@
 - Produces: `run_script(path: Path, *, arguments: Sequence[str], session: TraceSession, policy: InstrumentPolicy) -> int`。
 - `InstrumentPolicy`、`InstrumentedCode`、`CoverageReport` 定义在 `research/agent/instrument.py`；前者字段 `allowed_files, watched_names, watched_lines, capture_policy, mode`，后两者记录编译对象、源码映射与 `supported/partial/unsupported` 覆盖条目；不默认追踪第三方库源码。
 
-- [ ] **Step 1:** 写 `test_assignment_expression_is_evaluated_once`、`test_short_circuit_and_unpacking_keep_order`、`test_same_name_in_functions_has_distinct_scope`、`test_loops_keep_iteration_versions`、`test_inplace_array_mutation_is_versioned`、`test_uncovered_dynamic_code_is_reported`、`test_traceback_keeps_original_line`。与无插桩基线比较 ndarray、DataFrame、随机输出和原异常。
-- [ ] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_instrumentation.py -q`，确认失败。
-- [ ] **Step 3:** 实现选定源码的内存 AST 变换和运行时绑定记录；保持原文件，记录实际输入快照及候选依赖。常见原地写入可观察，隐藏修改与动态代码报告未知；不能依赖全局 monkey-patch。
-- [ ] **Step 4:** 同命令通过；标准化／协方差／PCA 案例在成功、除零、维度错误下记录证据；自动 summary 开销目标 ≤20%，未达标则减少默认采集点并记录调试模式成本。
-- [ ] **Step 5:** 提交 `feat: observe existing Python analyses with explicit coverage`。
+- [x] **Step 1:** 写 `test_assignment_expression_is_evaluated_once`、`test_short_circuit_and_unpacking_keep_order`、`test_same_name_in_functions_has_distinct_scope`、`test_loops_keep_iteration_versions`、`test_inplace_array_mutation_is_versioned`、`test_uncovered_dynamic_code_is_reported`、`test_traceback_keeps_original_line`。与无插桩基线比较 ndarray、DataFrame、随机输出和原异常。
+- [x] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_instrumentation.py -q`，确认失败。
+- [x] **Step 3:** 实现选定源码的内存 AST 变换和运行时绑定记录；保持原文件，记录实际输入快照及候选依赖。常见原地写入可观察，隐藏修改与动态代码报告未知；不能依赖全局 monkey-patch。
+- [x] **Step 4:** 同命令通过；标准化／协方差／PCA 案例在成功、除零、维度错误下记录证据；自动 summary 开销目标 ≤20%，未达标则减少默认采集点并记录调试模式成本。
+- [x] **Step 5:** 提交 `feat: observe existing Python analyses with explicit coverage`。
 
 ## Task 4: 可扩展科研探针与控制策略
 
