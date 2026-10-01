@@ -66,11 +66,11 @@
 - Produces: `AdapterRegistry.register(adapter: DataAdapter) -> None`；`resolve(value: object) -> DataAdapter`；注册组 `cdaf.research.adapters`、协议 `version=1`。`DataAdapter` 提供 `supports/describe/capture`，描述符含扩展类型 ID 与能力列表；第三方插件显式启用，未知／延迟／设备对象不能隐式计算或复制。增加 `test_third_party_adapter_without_core_changes` 与 `test_unknown_lazy_value_does_not_compute_or_repr`。
 - `CapturePolicy` 定义在 `research/agent/budget.py`：`level="summary", max_preview_cells=1024, max_stat_elements=4096, publish_interval_ms=100, max_queue_events=2048, max_artifact_bytes=67108864, max_run_bytes=268435456`；`CaptureResult` 定义在 `research/agent/adapters.py`，含 `descriptor, sample, statistics, fidelity, truncation, artifact_ref`。
 
-- [ ] **Step 1:** 写 `test_watch_preserves_array_identity_and_contents`、`test_observed_view_sample_is_frozen`、`test_large_strided_array_does_not_call_tolist_or_copy_full`、`test_complex_and_nullable_dataframe_have_typed_preview`、`test_queue_overflow_records_drops_and_preserves_terminal_event`。断言形状／dtype 真实、历史样例不变、总采样 ≤4096、预览 ≤1024 单元、不精确的统计显式标记。
-- [ ] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_native_capture.py tests/research/test_capture_budget.py -q`，确认失败。
-- [ ] **Step 3:** 实现数值／表格适配、稳定样例、独立采样随机源、普通事件合并和关键事件通道；完整数值产物仅在明确策略下生成；不修改用户 RNG。
-- [ ] **Step 4:** 同命令通过；在固定 10 秒以上分析案例上运行 `scripts/benchmark_research_capture.py`，比较关闭采集／metadata／summary／full，记录中位额外耗时与峰值内存，SDK summary 目标 ≤5%。
-- [ ] **Step 5:** 提交 `feat: capture native scientific values with bounded probes`。
+- [x] **Step 1:** 写 `test_watch_preserves_array_identity_and_contents`、`test_observed_view_sample_is_frozen`、`test_large_strided_array_does_not_call_tolist_or_copy_full`、`test_complex_and_nullable_dataframe_have_typed_preview`、`test_queue_overflow_records_drops_and_preserves_terminal_event`。断言形状／dtype 真实、历史样例不变、总采样 ≤4096、预览 ≤1024 单元、不精确的统计显式标记。
+- [x] **Step 2:** 运行 `.venv\Scripts\python.exe -X utf8 -m pytest tests/research/test_native_capture.py tests/research/test_capture_budget.py -q`，确认失败。
+- [x] **Step 3:** 实现数值／表格适配、稳定样例、独立采样随机源、普通事件合并和关键事件通道；完整数值产物仅在明确策略下生成；不修改用户 RNG。
+- [x] **Step 4:** 同命令通过；在固定 10 秒以上分析案例上运行 `scripts/benchmark_research_capture.py`，比较关闭采集／metadata／summary／full，记录中位额外耗时与峰值内存，SDK summary 目标 ≤5%。
+- [x] **Step 5:** 提交 `feat: capture native scientific values with bounded probes`。
 
 ## Task 3: 普通脚本接入与覆盖可信的插桩
 

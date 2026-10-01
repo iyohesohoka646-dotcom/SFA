@@ -52,7 +52,7 @@ flowchart LR
 | --- | --- |
 | `ExperimentSpec` | 源码入口、解释器、用户数据注释、探针和采集预算 |
 | `SourceRef` | 文件、限定符号、行区间和源码摘要 |
-| `ValueDescriptor` | NumPy／pandas 对象类型、形状、dtype、内存大小及用户声明的轴／单位 |
+| `ValueDescriptor` | 任意已注册后端的数据类型、形状、dtype、设备、能力及用户声明的轴／单位 |
 | `SnapshotRef` | 一次观察时刻的逻辑值、变量绑定、版本、样例或物化产物引用 |
 | `OperationRecord` | 来源代码、输入与输出快照、执行次数、状态和已测量的耗时 |
 | `ObservationEvent` | 运行 ID、递增序号、源码版本、操作、快照和事件时间 |
