@@ -21,9 +21,20 @@ test('first-use workspace creates a contract-first project and completes reviewe
   await page.getByLabel('New module contract').fill(JSON.stringify({ input: { type: 'object', properties: {}, additionalProperties: false }, output: { type: 'integer' }, examples: [{ input: {}, output: 42 }] }));
   await page.getByRole('button', { name: 'Add to architecture draft' }).click();
   await page.getByRole('button', { name: 'Review & save', exact: true }).click();
+  let releaseRefresh!: () => void;
+  let refreshStarted!: () => void;
+  const refreshGate = new Promise<void>(resolve => { releaseRefresh = resolve; });
+  const refreshPending = new Promise<void>(resolve => { refreshStarted = resolve; });
+  await page.route('**/api/v1/project', async route => {
+    refreshStarted(); await refreshGate; await route.continue();
+  }, { times: 1 });
   await page.getByRole('button', { name: 'Accept reviewed change' }).click();
+  await refreshPending;
   await page.getByRole('button', { name: 'Context', exact: true }).click();
-  await page.getByRole('button', { name: 'Inspect exact context' }).click();
+  const inspect = page.getByRole('button', { name: 'Inspect exact context' });
+  try { await expect(inspect).toBeDisabled(); } finally { releaseRefresh(); }
+  await expect(inspect).toBeEnabled();
+  await inspect.click();
   await expect(page.locator('.context-json')).toContainText('answer');
   await page.getByRole('button', { name: 'Generate from offline fixtures' }).click();
   await expect(page.locator('.diff')).toContainText('return 42');

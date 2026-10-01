@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-01T07:39:15.381456+00:00",
+  "recorded_at": "2026-10-01T09:01:37.274598+00:00",
   "version": "0.2.0",
   "scope": "Windows local release-candidate acceptance",
   "baseline_revision": "c9a745e851d155b4c5fdede2d6cd2758c530e3c0",
@@ -8,15 +8,15 @@
   "python_version": "3.11.9",
   "node_version": "v24.16.0",
   "python": {
-    "tests": 351,
+    "tests": 352,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "duration_seconds": 117.103
+    "duration_seconds": 159.775
   },
   "browser": {
-    "startTime": "2026-10-01T07:31:13.290Z",
-    "duration": 67594.909,
+    "startTime": "2026-10-01T08:48:00.919Z",
+    "duration": 118571.922,
     "expected": 10,
     "skipped": 0,
     "unexpected": 0,
@@ -67,19 +67,19 @@
       {
         "title": "workspace and graph are usable on mobile, tabs use arrow keys, dialogs restore focus",
         "file": "workspace.spec.ts",
-        "line": 49,
+        "line": 60,
         "result": "passed"
       },
       {
         "title": "project tools and probe editing keep shared architecture and maintenance semantics",
         "file": "workspace.spec.ts",
-        "line": 79,
+        "line": 90,
         "result": "passed"
       },
       {
         "title": "missing session provides connection recovery instead of an unusable blank screen",
         "file": "workspace.spec.ts",
-        "line": 105,
+        "line": 116,
         "result": "passed"
       }
     ],
@@ -88,7 +88,7 @@
   },
   "wheel": {
     "wheel": "contract_driven_ai_flow-0.2.0-py3-none-any.whl",
-    "wheel_sha256": "28d07fe38db3c1e10b3f4d82a63b7aa28d3506cf5c2a6b393e4f50baddd9ab0a",
+    "wheel_sha256": "052b9a07d255fe900f644422c39b4530e629d51f2a12123e0aae6413e74eca42",
     "ordinary_install_needs_node": false,
     "cases": [
       {
@@ -96,13 +96,13 @@
         "runs": [
           {
             "case": "success",
-            "id": "f20bc310566544979baa3171f1a70312",
+            "id": "90618e99532249ca821ad5279dc43673",
             "execution": "completed",
             "quality": "passed"
           },
           {
             "case": "failure",
-            "id": "fc092ebf965a424786e189b4a4fce95a",
+            "id": "13ca313047754080948008a71313dc71",
             "execution": "completed",
             "quality": "failed"
           }
@@ -113,13 +113,13 @@
         "runs": [
           {
             "case": "success",
-            "id": "22955c6c0f89443fb096307e33b6f754",
+            "id": "6681db4ce61e4e46b645ae364a5e4632",
             "execution": "completed",
             "quality": "passed"
           },
           {
             "case": "failure",
-            "id": "0b0b35f2a107454699466829f8b2982d",
+            "id": "430a561c02084d428fe42da973d64d35",
             "execution": "completed",
             "quality": "failed"
           }
@@ -130,13 +130,13 @@
         "runs": [
           {
             "case": "success",
-            "id": "cfbd4636baa9410484ad6fb7cf73a8cc",
+            "id": "ced3a660f5b34042a0d37cf343bbd560",
             "execution": "completed",
             "quality": "passed"
           },
           {
             "case": "failure",
-            "id": "a27edfc04b5e4f8eb32cb39279990b9e",
+            "id": "b3b665b5fa2448eab24768a2046b39ec",
             "execution": "completed",
             "quality": "failed"
           }
@@ -164,7 +164,7 @@
     "verified_package_files": 81
   },
   "examples": {
-    "generated_at": "2026-09-30T21:36:56.354092+00:00",
+    "generated_at": "2026-10-01T08:29:26.527796+00:00",
     "cases": [
       {
         "example": "data-pipeline",
@@ -174,13 +174,13 @@
         "runs": [
           {
             "fixture": "success",
-            "id": "404765721c674411841730f8b4507d05",
+            "id": "2696c218c85a40e0a3a0abb714373200",
             "execution": "completed",
             "quality": "passed"
           },
           {
             "fixture": "failure",
-            "id": "f99cc1f82bbd4110bf275235add6c561",
+            "id": "9714a590c9444b8f8a2467d59f3a8e56",
             "execution": "completed",
             "quality": "failed"
           }
@@ -188,19 +188,19 @@
       },
       {
         "example": "business-flow",
-        "revision": "269c66c042fa51ca898db0ac150063bf9c10a42a53ead4bc1c82a35159795dbc",
-        "source_digest": "4b04455c857b76dc0ca81ae60c75b20bb31145629590aaff3a8df80a0f37ca4d",
+        "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+        "source_digest": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
         "compile_diagnostics": [],
         "runs": [
           {
             "fixture": "success",
-            "id": "ca8b87b91a5146d5b5a82f2f721babf1",
+            "id": "e9f49c9348274b68ac36a0aab4e9a0d6",
             "execution": "completed",
             "quality": "passed"
           },
           {
             "fixture": "failure",
-            "id": "d702c0aebc114a329deb288703c970f9",
+            "id": "5af483a4d0044939b2b12a50c813abab",
             "execution": "completed",
             "quality": "failed"
           }
@@ -214,13 +214,13 @@
         "runs": [
           {
             "fixture": "success",
-            "id": "f68ad4c8cfb440ce83393f1df81229ea",
+            "id": "550fb45ba5c74530aa0cc529e625b5b0",
             "execution": "completed",
             "quality": "passed"
           },
           {
             "fixture": "failure",
-            "id": "ece23ad1873e447bb6d8dc9cf02b3860",
+            "id": "f8f76cb6b7494dcaa6bc381730dc5532",
             "execution": "completed",
             "quality": "failed"
           }
@@ -330,22 +330,22 @@
         "height": 1000
       },
       "nodes": 4,
-      "search_interaction_ms": 27,
+      "search_interaction_ms": 41,
       "reduced_motion": true,
-      "measured_at": "2026-10-01T07:31:41.830Z",
+      "measured_at": "2026-10-01T08:48:38.205Z",
       "note": "See docs/assets/large-graph-performance.json for the separate folded-graph measurement."
     },
     "large-graph-performance": {
       "total_modules": 630,
       "composite_groups": 30,
       "folded_visible_nodes": 30,
-      "folded_load_and_layout_ms": 2524,
-      "expanded_load_and_layout_ms": 2787,
-      "search_interaction_ms": 117,
-      "expanded_footer": "Connected to local runtime\n630 modules · 0 bindings · ELK 219 ms\nView changes preserve execution semantics",
+      "folded_load_and_layout_ms": 8423,
+      "expanded_load_and_layout_ms": 9872,
+      "search_interaction_ms": 325,
+      "expanded_footer": "Connected to local runtime\n630 modules · 0 bindings · ELK 776 ms\nView changes preserve execution semantics",
       "browser": "Playwright",
       "reduced_motion": true,
-      "measured_at": "2026-10-01T07:32:11.742Z"
+      "measured_at": "2026-10-01T08:49:44.852Z"
     },
     "capture-performance": {
       "measured_at": "2026-09-30T21:36:51.283688+00:00",
@@ -390,19 +390,19 @@
       "note": "Microbenchmarks in this host; no universal performance threshold. Worker startup is included in module duration, measured separately by the real examples."
     }
   },
-  "source_manifest_sha256": "b7ced43c2d7401681f8aa48f261ea194789aac8b360d73450d40820e34069054",
+  "source_manifest_sha256": "f37e5e8cce08ad971df1e489de38b94868e8a28e1733455338a6f8f2640520b2",
   "source_manifest": {
-    ".github/workflows/ci.yml": "af9494512ae4ef89b0adcbc2fd62b813484619784e23cb3dd21ef5a36b8845bb",
+    ".github/workflows/ci.yml": "3abc66a5a9b7ff6a5b011698f5462af1a678c8dcab00fd9a5ad041dccd07ff0e",
     "MANIFEST.in": "ec4214d1118c87390ec20d9da6ea46db015c1ec54486db21ccdceea226abdd91",
     "pyproject.toml": "f41aa2116920d328919dae15cc078dfeb907537202d05abb12627cb57dbfbba9",
     "scripts/benchmark.py": "5e9f372e4b312e962f71299b3fe8db332d2c2c0598f14913da40b2936bd9507c",
     "scripts/build_examples.py": "b6feeebcebee7de148576321ecf2bf31486d363d9351f8032609e2f5c3247a99",
     "scripts/export_schema.py": "3ee2c72662519baddb24d559431c83d9175b44fdbfa3511e60c73b3405c9ddaf",
     "scripts/local-studio.ps1": "01a98de9b9a7c4d6773036409390409fe2bdaa71eca74c409329d838c5deb308",
-    "scripts/record_release.py": "341a2bfface2b401f57423e172c0cc1231ed47f6b0aecd72c6ff5cb222a025ef",
+    "scripts/record_release.py": "c17249e92de4f0c013b0c41097e68511f2b6de17355b5553339dd24a4092d8f2",
     "scripts/serve_browser_test.py": "55a2eecc76bee7ff477129f743d19ed7c5f5b838f77197a42ae1c5131a14c21b",
     "scripts/serve_workspace_test.py": "053e4c314b935c77567a1f0091f3d56b8e9c08690954336ca181567670a23ae5",
-    "scripts/verify_source_install.py": "32e23d298094be43e6a5739ccfb029ea400453bb999100627680da11abe18958",
+    "scripts/verify_source_install.py": "373c660e75f4f846c85e3e7433a3c136ea97124b9287af05674249719aa73654",
     "scripts/verify_wheel.py": "965dd89356c483b7d899a86efec9cfe74210f105102c2c1cb99d992bbedcdac9",
     "src/contract_driven_ai_flow/__init__.py": "4aa334daa9ae1d718356e1e89eb54bc157ff2e2e98c93342b286671d86677227",
     "src/contract_driven_ai_flow/__main__.py": "41df9ff33d90dafa6210fdb1e8f045b09ae900258357114a424f36d0c845987a",
@@ -413,7 +413,7 @@
     "src/contract_driven_ai_flow/compat.py": "3e93938090aaa131282cb70916aabc8b42020f912a5ca408c25f4ebadb346211",
     "src/contract_driven_ai_flow/compiler.py": "a3f1593e89f7bc1d9d49450e8799228af5161d9cddc37fdeeb0b33eb0eb752c4",
     "src/contract_driven_ai_flow/context.py": "55c4428056b06977d50e58ce7b07f230ce6ae0f18824cf3f8ba809a0dab80187",
-    "src/contract_driven_ai_flow/examples.py": "f95327f95edc6df12012d5aefc1c8eb050116f07bbdfd38f5aae99d2584d55f9",
+    "src/contract_driven_ai_flow/examples.py": "cdc2161809b0b8af01f6d5b79915edc3a9b727567d2f8817cde4305aecb0c7f9",
     "src/contract_driven_ai_flow/export.py": "cb17aa8c81ae4c8317a6b1c89e1322b2940e122977647305c49c576c1af5ccca",
     "src/contract_driven_ai_flow/launcher.py": "08caaf0aad5157d1c7be5d5968f51eb8e3b21c6f39213592e21289a3d8937e65",
     "src/contract_driven_ai_flow/migration.py": "0f5d4cc8497ed1ad4222a8b093d266e3125c5db2cdf79829111208a8aa05e934",
@@ -421,7 +421,7 @@
     "src/contract_driven_ai_flow/operations.py": "13b04e09c19c40ff7af02ef542e8dbc1f18e824a06a1f8bb8b45beea9945b475",
     "src/contract_driven_ai_flow/paths.py": "f41e91c4af683b94347638dea08aad3b958e61e947d3a6f3cf020d9b42276978",
     "src/contract_driven_ai_flow/privacy.py": "6fd2b62c9b64a248f7af510d4d5641f8e1149e63991e7bfe1edb99f44b7bb32a",
-    "src/contract_driven_ai_flow/probes.py": "f68e46421fc6e345f686d0b957aac4fa373d185bf2eed8260f5fa112d84ab1a4",
+    "src/contract_driven_ai_flow/probes.py": "44b0c339bdcaf2692c05f204466d71fb1f56ae5b3cc07cf3b2114e64b4714834",
     "src/contract_driven_ai_flow/providers.py": "8352dc95504f083ac9d743a45896da8870c0711ffb557ab0db01ec1b4c9b953d",
     "src/contract_driven_ai_flow/redaction_restore.py": "3a2b9aef05ab45587a3fc74eaca4ca7e794dd7e58c99fe7558da0188d1d5752e",
     "src/contract_driven_ai_flow/runtime.py": "c5671503bd9637803e550acf8f17893fd10b5866c56f19834a0464d259dbdcde",
@@ -431,9 +431,9 @@
     "src/contract_driven_ai_flow/shortcuts.py": "5f363893dd9aa521d4ab863b7ee5cbffe9c74f45e5d0314f2c03844a2e60820c",
     "src/contract_driven_ai_flow/source.py": "9f8941392dfef4d274c24c19b308de0896450fe1a3b2fa9ce8e0d6721ea2d524",
     "src/contract_driven_ai_flow/static/assets/elk-worker.min-C9JGDOE-.js": "458fbe927f19d11d8d054e34b7587011b9a4d1ecbdfb688b60e491fbdfb2a8d7",
-    "src/contract_driven_ai_flow/static/assets/index-DTKpt6Qu.js": "e83e1d53ba86ff1e196d277831a2dae2230dd9deeb8ba1452ca0c830e1590d04",
+    "src/contract_driven_ai_flow/static/assets/index-8jizepLJ.js": "cebe562731144f444f6d0d2272ae6ed2c51c9ae2d0791ad253067f34590daa8c",
     "src/contract_driven_ai_flow/static/assets/index-DwN_zH5K.css": "f6c51a688cae06d7b4ead49fdfef9d94e6e863e64df266c7f90b842f177e01a8",
-    "src/contract_driven_ai_flow/static/index.html": "5a2bb2881fd079886880f0eb5ec013c04cbadd4006b23b9a7cb824ef5660096d",
+    "src/contract_driven_ai_flow/static/index.html": "9816b2b63045236975480584ea1ab17fb4abf68cdad6bc934a1f475ba6cc3c77",
     "src/contract_driven_ai_flow/static/licenses/@types__d3-color-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
     "src/contract_driven_ai_flow/static/licenses/@types__d3-drag-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
     "src/contract_driven_ai_flow/static/licenses/@types__d3-interpolate-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
@@ -463,7 +463,7 @@
     "src/contract_driven_ai_flow/static/licenses/use-sync-external-store-LICENSE": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
     "src/contract_driven_ai_flow/static/licenses/zustand-LICENSE": "c1e6e266563517467b1bf874817d23e426f3149252bd7d42758cd697514b8417",
     "src/contract_driven_ai_flow/storage.py": "833b09cd843ea0c912dc61786988a509015a381667e251ae3ef22e5add454817",
-    "src/contract_driven_ai_flow/studio.py": "34079d6eff23219a981bf859fb87b56928b35ad2289ad30d281831c7baa82cb6",
+    "src/contract_driven_ai_flow/studio.py": "3b9f97b6692accfc14e49ad45ad7e73e31be9975ea61da336f68e4845896874d",
     "src/contract_driven_ai_flow/worker.py": "393854cceb4758af9432acb4ab31fab302bad05b0282d6f635e5aa71e7f78f42",
     "src/contract_driven_ai_flow/workspace.py": "e28a34ac74034d84dd8a0af24f3c5e95f43dae213548e8c6765beabc617bad6a",
     "src/sfa/__init__.py": "41362a5ea4931c546433d4c48290c5707bf02dbbea1c3aafa9f43d1225e47003",
@@ -491,11 +491,11 @@
     "tests/test_cdaf_edges.py": "62bba0c001d5e7fbf53058b3516ae8f279765496204a625f984b35aad59634ce",
     "tests/test_cdaf_entry_regressions.py": "33b69a8ebb590827594bcbe7b9ce8d83f693d6e175bfaa02d0b0b6d5601c5364",
     "tests/test_cdaf_release_regressions.py": "dc80675ae2b1c3c984d693de4584c5a610f80a6a7672a3192345bb41583dda64",
-    "tests/test_cdaf_runtime_api.py": "0ba5fec844744653ff0ff77dac4bd0f0af8e435d4f723b5db4fa1587645734bd",
+    "tests/test_cdaf_runtime_api.py": "e259d1f32fa9446379437d2483a3c8e7f7b4d9d54ca43fadafc56f16a07bd0d8",
     "tests/test_cdaf_studio.py": "28aa60904101baea24d25f03545789da92240cbe1164790d70b8406a078eecb0",
     "tests/test_cdaf_workspace.py": "96f9f6589013ad8fd328439ed50bb37a6870cd589102b2259abcd23c454529cf",
     "tests/test_clean.py": "96300abf2e203c78d9ccde8fb4d13d588d403101caf78cc3f17183cbd6a68981",
-    "tests/test_cli.py": "faf89db6e8798230501abb59998ea14f5bd8e247de8eb1ffa3564e6862dfe5b8",
+    "tests/test_cli.py": "e972e1dd847a84011dd8747bc3c68a27047422f3abba5c5205a63a0e5b612bd5",
     "tests/test_contract.py": "6aff1d0fe1c130ae1381b248c872aa4591e412a187cd7858e0ad01ca80d50fd3",
     "tests/test_example.py": "71b1a45093a131effea148727250b9fa0b3b0bac8a9caffa73d37338b893283a",
     "tests/test_execute.py": "4ba66f8b0ddd0b3a3a13497546169c8c48d9d3d00482598e8c0b68d0914c9c4c",
@@ -516,7 +516,7 @@
     "web/scripts/licenses.mjs": "40169677bcbf25bdefaa36df25769357238c22d5b0f6df2b89d03af7fb66c6cb",
     "web/scripts/types.mjs": "3da6dc32982b35573ad6e7f39744ca0de5b19a176a67f0f50487bb257bfe9da7",
     "web/src/api.ts": "2bf055eb57a97898dfbd8a8dc3ab26769386669c0779f1f9a5f3ef5f67fd7e34",
-    "web/src/App.tsx": "76e432163c892366841ae6c7f7977939ebfe2c4f1fb37e6e611ba9efd71194ef",
+    "web/src/App.tsx": "72bf4247d7555caa92271a69a2106843f4c90191d36bb3edd076ae6ea2f8bf8d",
     "web/src/components.tsx": "294a44273356b6f3f7db9620f58d6070f3c4b264d9f7eda217d794c9bda657e9",
     "web/src/generated.ts": "0281a9835ee1c1664cc7331881dc9965f4d58f48975ff8b0fd725e96c791dc0f",
     "web/src/graph.ts": "0fa15bbd957a83dbae39bd9b5a581b600793406194f6f91d09097a49995bfb48",
@@ -527,15 +527,14 @@
     "web/src/workspace.css": "504c06deba97fac74f3bb65d790d97a52b4c5b04f94e6163f4b7bee90c02ef45",
     "web/src/Workspace.tsx": "2ada43204279997e86b118257367b8545299eb23282e0df99442d4df087a37ac",
     "web/tests/studio.spec.ts": "05b35e449d087308d573a2e654950fc89bfcb627b6c3dc19e79933e84e5edc9a",
-    "web/tests/workspace.spec.ts": "e9181644e39d957c86b5f72a1f7496e319c6ea8b0af61cc5072a20d31d129934",
+    "web/tests/workspace.spec.ts": "f1d17412aa01a3ba62969d42c9d171b9905518499adcc88cb35f96a31720798a",
     "web/tsconfig.json": "20ef24411ec5d1960ec8ef910b2cb18b171b3ceddec2b746ede6a4d3d494d742",
     "web/vite.config.ts": "0e852f1e3a1f26c0e2e0993ac5d120995b6301b3bced6f5def326dca95149df0",
     "停止工作台.cmd": "2c7af001afd3cda70a15c938e01125cc5a697bfa155ee041095e8cbd1498335e",
     "启动工作台.cmd": "0d5a4491b5d93487e2498844221c023915d8102a0e3059a95c101b9995c2b73f"
   },
   "pending_external_gates": [
-    "macOS/Linux CI execution",
     "live paid-model calls",
-    "remote rename, push and publication"
+    "default-branch merge, repository rename and PyPI publication"
   ]
 }

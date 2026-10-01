@@ -4,21 +4,22 @@ This is a reviewable release candidate in `feat/contract-driven-ai-flow`, based 
 
 ## Verification record
 
-Validation is performed on Windows with Python 3.11.9 and Node.js 24.16.0. The original baseline was 256 tests. The final [machine-readable receipt](assets/validation.json) records counts, case names, package/source digests, isolated-install dependencies and performance measurements. [Whole-branch review](review.md) records the ten findings and regression fixes. This evidence establishes local acceptance; external release gates remain explicit below.
+Validation is performed on Windows with Python 3.11.9 and Node.js 24.16.0. The original baseline was 256 tests. The final [machine-readable receipt](assets/validation.json) records counts, case names, package/source digests, isolated-install dependencies and performance measurements. [Whole-branch review](review.md) records the ten findings and regression fixes. Local acceptance is recorded separately from [the nine passing Python CI combinations](assets/ci-python.json). The latest browser and package checks are available in [PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1/checks).
 
 | Delivery path | Evidence |
 |---|---|
 | Original baseline | 256 passed |
-| Python regression | 351 passed, zero failures/errors/skips; includes six independent-background-service lifecycle checks and eight entry-point regressions |
+| Python regression | 352 passed, zero failures/errors/skips; includes six independent-background-service lifecycle checks and eight entry-point regressions |
 | Production frontend / generated types | Build passed; dedicated ELK Worker fixed and bundled |
 | Browser acceptance | Ten passed: the six graph/history/review cases plus first-use workspace → new contract → reviewed generation → execution, mobile/keyboard/focus, project tools/probe editing and session recovery; current duration is in the receipt |
 | Reference cases | Three real success runs and three completed quality-failure runs; [source-linked receipts](examples/validation.json) |
 | Optional Archify | Pinned reference rendered, validated and checked; geometry checks passed |
 | OpenTelemetry | OTLP links/attempts and an in-memory SDK SpanExporter test passed; no collector transmission |
 | Clean wheel install | Separate venv without system packages: all three no-key demos, `cdaf`/`sfa`, HTTP startup/reuse/shutdown, empty-directory workspace, native shortcuts and a fresh `cdaf-studio` GUI launch passed; bundled Python/schema/UI files match source bytes |
+| GitHub installation | [Immutable feature-commit archive](assets/github-install.json) installed through isolated tool/bin directories: CLI, no-key example, workspace, bundled Studio and shortcuts passed without Git or Node |
 | Source installation | `uv tool install` of the source archive in isolated tool/bin directories passed CLI, example success/failure, bundled Studio, first-use workspace and native shortcut checks |
 | Local deployment | Windows double-click start/stop launchers, detached service, authenticated readiness, user project catalogue, log/state files, safe reuse, coordinated automatic ports and breakpoint cancellation; [deployment guide](local-deployment.md) |
-| macOS/Linux | CI configured for Python 3.11–3.13; not run on this host |
+| macOS/Linux | [Nine CI combinations passed](assets/ci-python.json): Python 3.11–3.13 on Windows, macOS and Linux, including built-wheel installation |
 | Paid LLM providers | Adapters available; live provider calls not tested |
 
 [Browser measurements](assets/large-graph-performance.json) record 630 semantic modules, 30 collapsed groups, load/layout time and search interaction. The fixture is a large disconnected grouped graph, not a dense production graph benchmark. [Capture measurements](assets/capture-performance.json) separate serialization, sanitization/capture and SQLite event cost. Timings describe this host; they are not a universal latency guarantee. Normal four-node measurements are in [browser-performance.json](assets/browser-performance.json).
@@ -54,4 +55,4 @@ The connection-refused report was reproduced with no listener on port 8765. The 
 
 Current delivery supports local Python DAGs, explicit interfaces, reviewable code/architecture changes, bounded JSON process transport, deterministic decisions, observational probes and offline sharing. Process isolation inherits OS permissions. Contracts are verified conservatively; unknown relationships require an explicit dynamic boundary. Static checks do not prove candidate business behavior. Compatibility/migration preserves authored legacy files and marks old evidence as old-format/unknown-version.
 
-Cross-platform CI, actual external-model behavior and publication are separate release gates. Multi-language execution, distributed scheduling, real-time collaboration, cyclic graphs, automatic class instance construction and an OS sandbox remain outside this version. Export receipts and browser tests cover recorded fixtures; they do not certify every possible authored graph's readability.
+Cross-platform Python CI has passed. Actual external-model behavior and publication remain separate release gates. Multi-language execution, distributed scheduling, real-time collaboration, cyclic graphs, automatic class instance construction and an OS sandbox remain outside this version. Export receipts and browser tests cover recorded fixtures; they do not certify every possible authored graph's readability.
