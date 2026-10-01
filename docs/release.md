@@ -19,6 +19,10 @@ The [scientific receipt](assets/research-validation.json) aggregates successful 
 | Interactive terminal | Real Windows ConPTY journey: open/run/inspect, choose offline model, cancel live analysis, exit and restore terminal state; [receipt](assets/research-terminal-validation.json) |
 | Cross-platform Python | Nine configured Windows/macOS/Linux × Python 3.11–3.13 jobs; current-head results must come from [PR checks](https://github.com/iyohesohoka646-dotcom/SFA/pull/1/checks), not older receipts |
 
+The final independent review of `c9a745e..b258179` reported twelve important integration defects. All twelve were repaired in one regression-driven pass at `110786c`, including POSIX interpreter selection, pending-agent evidence, terminal inspect/configured probes, matrix coordinates, stale selections and abnormal disconnect grace. Local validation after repair is **508 Python cases, 10 frontend unit cases and 30 actual browser cases**, plus fresh wheel/source acceptance. The [complete review and decision record](research/release-review.md) distinguishes valid failing reproductions from fixture errors and lists every ruling and unverified boundary.
+
+All nine OS/Python matrix jobs and the studio job passed for product-fix commit `110786c` in [Actions run 36930328576](https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36930328576); [portable receipt](assets/research-ci.json). This identifies the tested code revision explicitly. The later acceptance-document commit has its own current-head checks in PR #1. The refreshed Windows installer also completed the own-script native journey and released its port on actual window close. Its SHA-256 is `e96b84dff0fd936f76f09f4274ee748fd7f65c9661aabe0047ef21d85faccb67`.
+
 The Windows NSIS installer is a local unsigned candidate. Its actual filename and SHA-256 are recorded in the scientific receipt. macOS/Linux native packaging and window lifetime remain unverified. External provider protocols are tested with local synthetic servers; no paid model inference or real provider credential was used. Connection/model discovery and inference remain distinct controls.
 
 ## Performance

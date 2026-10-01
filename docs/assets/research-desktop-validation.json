@@ -4,7 +4,7 @@
   "core_version": "0.3.0",
   "window_close": true,
   "port_released": true,
-  "backend_pid": 40680,
+  "backend_pid": 6000,
   "own_script": true,
   "source_preserved": true,
   "matrix_and_anomaly": true,
@@ -13,6 +13,6 @@
   "shared_cli_history": true,
   "offline_models": true,
   "offline_report_privacy": true,
-  "run_id": "86297d66a5de47ccac40f92efa5e7336",
+  "run_id": "d05e7bbb9e9b47a7beaa77126ee7e47b",
   "result": "passed"
 }

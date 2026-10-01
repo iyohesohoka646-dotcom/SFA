@@ -1,19 +1,19 @@
 {
-  "recorded_at": "2026-10-01T20:48:08.651552+00:00",
+  "recorded_at": "2026-10-01T21:50:03.443866+00:00",
   "version": "0.3.0",
   "display_name": "Scientific Dataflow Inspector",
   "platform": "Windows-10-10.0.26200-SP0",
   "python": {
-    "tests": 496,
+    "tests": 508,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "duration_seconds": 196.841
+    "duration_seconds": 191.69
   },
   "browser": {
-    "startTime": "2026-10-01T20:36:42.965Z",
-    "duration": 127459.379,
-    "expected": 26,
+    "startTime": "2026-10-01T21:37:08.359Z",
+    "duration": 128335.301,
+    "expected": 30,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0,
@@ -40,6 +40,30 @@
         "title": "model-settings: evidence scope is explicit and model explanations remain cancellable",
         "file": "model-settings.spec.ts",
         "line": 57,
+        "result": "passed"
+      },
+      {
+        "title": "review: delayed timeline selection cannot override a newer variable",
+        "file": "release-review.spec.ts",
+        "line": 31,
+        "result": "passed"
+      },
+      {
+        "title": "review: exact slice coordinates replace sampled preview coordinates",
+        "file": "release-review.spec.ts",
+        "line": 38,
+        "result": "passed"
+      },
+      {
+        "title": "review: changing fixed axis invalidates pending exact slice",
+        "file": "release-review.spec.ts",
+        "line": 46,
+        "result": "passed"
+      },
+      {
+        "title": "review: legacy run selection discards delayed older responses",
+        "file": "release-review.spec.ts",
+        "line": 54,
         "result": "passed"
       },
       {
@@ -185,21 +209,21 @@
     "cases": [
       {
         "failure": "none",
-        "id": "ec5db1ba8dce49278598efb0e8a8e1ee",
+        "id": "7271e918f53b4ce29eb60fdda9a3848d",
         "status": "completed",
         "quality": "pass",
         "exit_code": 0
       },
       {
         "failure": "nan",
-        "id": "2530ee3321bc4567ae8c350f250a8a63",
+        "id": "9ddda44c0df041caaa8022166aaba808",
         "status": "completed",
         "quality": "fail",
         "exit_code": 0
       },
       {
         "failure": "dimension",
-        "id": "a8cb7fb7be9e49058fff12c4ce9a28b0",
+        "id": "cfb8ba71712140ed902d0eaf58ef78ee",
         "status": "failed",
         "quality": "pass",
         "exit_code": 1
@@ -230,21 +254,21 @@
       "cases": [
         {
           "failure": "none",
-          "id": "e43a0154f4604afcbdb214e09ab465f8",
+          "id": "314f5dd02ecf4d3aa6d26da4e90d95b3",
           "status": "completed",
           "quality": "pass",
           "exit_code": 0
         },
         {
           "failure": "nan",
-          "id": "715e15f75a76414686eed2a8806f021d",
+          "id": "58d6af38233540e7a7dfcb04fbbe5e76",
           "status": "completed",
           "quality": "fail",
           "exit_code": 0
         },
         {
           "failure": "dimension",
-          "id": "4fdba242f3f440ab894d3d68997daf0f",
+          "id": "b144f04623974b168ddca11d79b899c5",
           "status": "failed",
           "quality": "pass",
           "exit_code": 1
@@ -262,22 +286,22 @@
     "example": [
       {
         "case": "success",
-        "id": "4336b8d0f56940ceb2c18748a2887947",
+        "id": "fccb5c372cf94a7dbfc65f376ae15654",
         "execution": "completed",
         "quality": "passed"
       },
       {
         "case": "failure",
-        "id": "56680d07f93a40c3a5f12f1262048571",
+        "id": "455683203690457db8c8c7be72865f8c",
         "execution": "completed",
         "quality": "failed"
       }
     ],
     "result": "passed",
     "source_archive": "contract_driven_ai_flow-0.3.0.tar.gz",
-    "source_sha256": "70fd2a4295e3769d4ae5901d3c6a7fa99aad915de27ea6a6e3999768027fa961"
+    "source_sha256": "579f94a8a17fe2291fd965ea292e472e3158a16cb1fb2fc247b452dfc7807d3d"
   },
-  "wheel_sha256": "64b8049ffc6b1b917fd0fa8bb32a67ce14f783ab3a69b72ff8a1710778611dd7",
+  "wheel_sha256": "1a790160606551f9ce4e3eb6ae8744458608caf8a29e2bf8d09d571f4205c592",
   "desktop": {
     "platform": "win32",
     "installed": true,
@@ -296,7 +320,7 @@
   },
   "installer": {
     "filename": "Scientific Dataflow Inspector Setup 0.3.0.exe",
-    "sha256": "f520f814ab37dcd1ef6e668b352cd42641df30548e1631ca0b1c95a77b985125",
+    "sha256": "e96b84dff0fd936f76f09f4274ee748fd7f65c9661aabe0047ef21d85faccb67",
     "signing": "unsigned local Windows candidate"
   },
   "ui_performance": {
@@ -466,7 +490,7 @@
     "scope": "Observed Chromium JS heap and click-to-visible detail latency. Concurrent machine load differed; no speedup or universal stable-memory claim."
   },
   "live_stream": {
-    "measured_at": "2026-10-01T20:19:55.730Z",
+    "measured_at": "2026-10-01T21:45:38.414Z",
     "browser": "Microsoft Edge",
     "duration_seconds": 60,
     "fixture": {
@@ -480,1528 +504,1552 @@
     },
     "scope": "Same-host observation timestamp to two animation frames after selected snapshot details are ready; includes batching, transport, storage, UI state and detail fetch. Observation precedes publication, so this is a conservative bound; no cross-host clock claim.",
     "status": "completed",
-    "observed_versions": 563,
-    "rendered_versions": 530,
-    "omitted_versions": 33,
-    "p50_ms": 160,
-    "p95_ms": 229,
-    "max_ms": 266,
+    "observed_versions": 564,
+    "rendered_versions": 539,
+    "omitted_versions": 25,
+    "p50_ms": 163,
+    "p95_ms": 226,
+    "max_ms": 267,
     "samples": [
       {
-        "version": 5,
-        "observation_to_paint_ms": 225
-      },
-      {
-        "version": 6,
-        "observation_to_paint_ms": 232
-      },
-      {
-        "version": 7,
-        "observation_to_paint_ms": 207
-      },
-      {
-        "version": 8,
-        "observation_to_paint_ms": 178
-      },
-      {
-        "version": 9,
-        "observation_to_paint_ms": 190
-      },
-      {
-        "version": 10,
-        "observation_to_paint_ms": 232
-      },
-      {
-        "version": 11,
-        "observation_to_paint_ms": 259
-      },
-      {
-        "version": 12,
-        "observation_to_paint_ms": 208
-      },
-      {
-        "version": 13,
-        "observation_to_paint_ms": 218
-      },
-      {
-        "version": 14,
-        "observation_to_paint_ms": 195
-      },
-      {
-        "version": 16,
-        "observation_to_paint_ms": 142
-      },
-      {
-        "version": 17,
-        "observation_to_paint_ms": 168
-      },
-      {
-        "version": 18,
-        "observation_to_paint_ms": 120
-      },
-      {
-        "version": 19,
-        "observation_to_paint_ms": 204
-      },
-      {
-        "version": 20,
-        "observation_to_paint_ms": 199
-      },
-      {
-        "version": 21,
-        "observation_to_paint_ms": 236
-      },
-      {
-        "version": 22,
-        "observation_to_paint_ms": 220
-      },
-      {
-        "version": 24,
-        "observation_to_paint_ms": 181
-      },
-      {
-        "version": 25,
-        "observation_to_paint_ms": 111
-      },
-      {
-        "version": 26,
-        "observation_to_paint_ms": 81
-      },
-      {
-        "version": 27,
-        "observation_to_paint_ms": 101
-      },
-      {
-        "version": 28,
-        "observation_to_paint_ms": 114
-      },
-      {
-        "version": 29,
-        "observation_to_paint_ms": 111
-      },
-      {
-        "version": 30,
-        "observation_to_paint_ms": 108
-      },
-      {
-        "version": 31,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 32,
-        "observation_to_paint_ms": 131
-      },
-      {
-        "version": 33,
-        "observation_to_paint_ms": 126
-      },
-      {
-        "version": 34,
-        "observation_to_paint_ms": 173
-      },
-      {
-        "version": 35,
-        "observation_to_paint_ms": 130
-      },
-      {
-        "version": 36,
-        "observation_to_paint_ms": 149
-      },
-      {
-        "version": 37,
-        "observation_to_paint_ms": 184
-      },
-      {
-        "version": 38,
-        "observation_to_paint_ms": 126
-      },
-      {
-        "version": 39,
-        "observation_to_paint_ms": 139
-      },
-      {
-        "version": 40,
-        "observation_to_paint_ms": 118
-      },
-      {
-        "version": 41,
-        "observation_to_paint_ms": 142
-      },
-      {
-        "version": 42,
-        "observation_to_paint_ms": 98
-      },
-      {
-        "version": 43,
-        "observation_to_paint_ms": 118
-      },
-      {
-        "version": 44,
-        "observation_to_paint_ms": 131
-      },
-      {
-        "version": 45,
-        "observation_to_paint_ms": 143
-      },
-      {
-        "version": 46,
-        "observation_to_paint_ms": 135
-      },
-      {
-        "version": 47,
-        "observation_to_paint_ms": 164
-      },
-      {
-        "version": 48,
-        "observation_to_paint_ms": 125
-      },
-      {
-        "version": 49,
-        "observation_to_paint_ms": 179
-      },
-      {
-        "version": 50,
-        "observation_to_paint_ms": 134
-      },
-      {
-        "version": 51,
-        "observation_to_paint_ms": 167
-      },
-      {
-        "version": 52,
-        "observation_to_paint_ms": 161
-      },
-      {
-        "version": 53,
-        "observation_to_paint_ms": 160
-      },
-      {
-        "version": 54,
-        "observation_to_paint_ms": 181
-      },
-      {
-        "version": 55,
-        "observation_to_paint_ms": 167
-      },
-      {
-        "version": 56,
-        "observation_to_paint_ms": 180
-      },
-      {
-        "version": 57,
-        "observation_to_paint_ms": 207
-      },
-      {
-        "version": 58,
-        "observation_to_paint_ms": 151
-      },
-      {
-        "version": 59,
-        "observation_to_paint_ms": 183
-      },
-      {
-        "version": 60,
-        "observation_to_paint_ms": 204
-      },
-      {
-        "version": 61,
-        "observation_to_paint_ms": 197
-      },
-      {
-        "version": 62,
-        "observation_to_paint_ms": 196
-      },
-      {
-        "version": 63,
-        "observation_to_paint_ms": 223
-      },
-      {
-        "version": 64,
-        "observation_to_paint_ms": 186
-      },
-      {
-        "version": 65,
-        "observation_to_paint_ms": 188
-      },
-      {
-        "version": 66,
-        "observation_to_paint_ms": 197
-      },
-      {
-        "version": 67,
-        "observation_to_paint_ms": 231
-      },
-      {
-        "version": 68,
-        "observation_to_paint_ms": 235
-      },
-      {
-        "version": 70,
-        "observation_to_paint_ms": 181
-      },
-      {
-        "version": 71,
-        "observation_to_paint_ms": 185
-      },
-      {
-        "version": 73,
-        "observation_to_paint_ms": 99
-      },
-      {
-        "version": 74,
-        "observation_to_paint_ms": 118
-      },
-      {
-        "version": 75,
-        "observation_to_paint_ms": 141
-      },
-      {
-        "version": 76,
-        "observation_to_paint_ms": 111
-      },
-      {
-        "version": 77,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 78,
-        "observation_to_paint_ms": 133
-      },
-      {
-        "version": 79,
-        "observation_to_paint_ms": 111
-      },
-      {
-        "version": 80,
-        "observation_to_paint_ms": 104
-      },
-      {
-        "version": 81,
-        "observation_to_paint_ms": 116
-      },
-      {
-        "version": 83,
-        "observation_to_paint_ms": 140
-      },
-      {
-        "version": 84,
-        "observation_to_paint_ms": 111
-      },
-      {
-        "version": 85,
-        "observation_to_paint_ms": 118
-      },
-      {
-        "version": 86,
-        "observation_to_paint_ms": 151
-      },
-      {
-        "version": 87,
-        "observation_to_paint_ms": 198
-      },
-      {
-        "version": 88,
-        "observation_to_paint_ms": 136
-      },
-      {
-        "version": 89,
-        "observation_to_paint_ms": 138
-      },
-      {
-        "version": 90,
-        "observation_to_paint_ms": 147
-      },
-      {
-        "version": 91,
-        "observation_to_paint_ms": 134
-      },
-      {
-        "version": 92,
-        "observation_to_paint_ms": 164
-      },
-      {
-        "version": 93,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 94,
-        "observation_to_paint_ms": 175
-      },
-      {
-        "version": 95,
-        "observation_to_paint_ms": 115
-      },
-      {
-        "version": 96,
-        "observation_to_paint_ms": 134
-      },
-      {
-        "version": 97,
-        "observation_to_paint_ms": 141
-      },
-      {
-        "version": 98,
-        "observation_to_paint_ms": 147
-      },
-      {
-        "version": 99,
-        "observation_to_paint_ms": 144
-      },
-      {
-        "version": 100,
-        "observation_to_paint_ms": 149
-      },
-      {
-        "version": 101,
-        "observation_to_paint_ms": 148
-      },
-      {
-        "version": 102,
-        "observation_to_paint_ms": 155
-      },
-      {
-        "version": 103,
-        "observation_to_paint_ms": 161
-      },
-      {
-        "version": 104,
-        "observation_to_paint_ms": 159
-      },
-      {
-        "version": 105,
-        "observation_to_paint_ms": 164
-      },
-      {
-        "version": 106,
-        "observation_to_paint_ms": 170
-      },
-      {
-        "version": 107,
-        "observation_to_paint_ms": 170
-      },
-      {
-        "version": 108,
-        "observation_to_paint_ms": 203
-      },
-      {
-        "version": 109,
-        "observation_to_paint_ms": 175
-      },
-      {
-        "version": 110,
-        "observation_to_paint_ms": 217
-      },
-      {
-        "version": 111,
-        "observation_to_paint_ms": 177
-      },
-      {
-        "version": 112,
-        "observation_to_paint_ms": 198
-      },
-      {
-        "version": 113,
-        "observation_to_paint_ms": 217
-      },
-      {
-        "version": 114,
-        "observation_to_paint_ms": 266
-      },
-      {
-        "version": 115,
-        "observation_to_paint_ms": 229
-      },
-      {
-        "version": 116,
-        "observation_to_paint_ms": 263
-      },
-      {
-        "version": 117,
-        "observation_to_paint_ms": 206
-      },
-      {
-        "version": 119,
-        "observation_to_paint_ms": 114
-      },
-      {
-        "version": 120,
-        "observation_to_paint_ms": 85
-      },
-      {
-        "version": 121,
-        "observation_to_paint_ms": 105
-      },
-      {
-        "version": 122,
-        "observation_to_paint_ms": 112
-      },
-      {
-        "version": 123,
-        "observation_to_paint_ms": 124
-      },
-      {
-        "version": 124,
-        "observation_to_paint_ms": 96
-      },
-      {
-        "version": 125,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 126,
-        "observation_to_paint_ms": 120
-      },
-      {
-        "version": 127,
-        "observation_to_paint_ms": 123
-      },
-      {
-        "version": 128,
-        "observation_to_paint_ms": 129
-      },
-      {
-        "version": 129,
-        "observation_to_paint_ms": 150
-      },
-      {
-        "version": 131,
-        "observation_to_paint_ms": 107
-      },
-      {
-        "version": 132,
-        "observation_to_paint_ms": 182
-      },
-      {
-        "version": 133,
-        "observation_to_paint_ms": 208
-      },
-      {
-        "version": 134,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 135,
-        "observation_to_paint_ms": 164
-      },
-      {
-        "version": 136,
-        "observation_to_paint_ms": 166
-      },
-      {
-        "version": 137,
-        "observation_to_paint_ms": 162
-      },
-      {
-        "version": 138,
-        "observation_to_paint_ms": 169
-      },
-      {
-        "version": 139,
-        "observation_to_paint_ms": 173
-      },
-      {
-        "version": 140,
-        "observation_to_paint_ms": 153
-      },
-      {
-        "version": 141,
-        "observation_to_paint_ms": 159
-      },
-      {
-        "version": 142,
-        "observation_to_paint_ms": 173
-      },
-      {
-        "version": 143,
-        "observation_to_paint_ms": 151
-      },
-      {
-        "version": 144,
-        "observation_to_paint_ms": 171
-      },
-      {
-        "version": 145,
-        "observation_to_paint_ms": 194
-      },
-      {
-        "version": 146,
-        "observation_to_paint_ms": 199
-      },
-      {
-        "version": 147,
-        "observation_to_paint_ms": 198
-      },
-      {
-        "version": 148,
-        "observation_to_paint_ms": 217
-      },
-      {
-        "version": 149,
-        "observation_to_paint_ms": 189
-      },
-      {
-        "version": 150,
-        "observation_to_paint_ms": 194
-      },
-      {
-        "version": 151,
-        "observation_to_paint_ms": 200
-      },
-      {
-        "version": 152,
-        "observation_to_paint_ms": 197
-      },
-      {
-        "version": 154,
-        "observation_to_paint_ms": 113
-      },
-      {
-        "version": 155,
-        "observation_to_paint_ms": 154
-      },
-      {
-        "version": 156,
-        "observation_to_paint_ms": 91
-      },
-      {
-        "version": 157,
-        "observation_to_paint_ms": 96
-      },
-      {
-        "version": 158,
-        "observation_to_paint_ms": 108
-      },
-      {
-        "version": 159,
-        "observation_to_paint_ms": 122
-      },
-      {
-        "version": 160,
-        "observation_to_paint_ms": 127
-      },
-      {
-        "version": 161,
-        "observation_to_paint_ms": 111
-      },
-      {
-        "version": 162,
-        "observation_to_paint_ms": 115
-      },
-      {
-        "version": 163,
-        "observation_to_paint_ms": 137
-      },
-      {
-        "version": 164,
-        "observation_to_paint_ms": 151
-      },
-      {
-        "version": 165,
-        "observation_to_paint_ms": 115
-      },
-      {
-        "version": 166,
-        "observation_to_paint_ms": 195
-      },
-      {
-        "version": 167,
-        "observation_to_paint_ms": 171
-      },
-      {
-        "version": 168,
-        "observation_to_paint_ms": 135
-      },
-      {
-        "version": 169,
-        "observation_to_paint_ms": 221
-      },
-      {
-        "version": 170,
-        "observation_to_paint_ms": 162
-      },
-      {
-        "version": 171,
-        "observation_to_paint_ms": 139
-      },
-      {
-        "version": 172,
-        "observation_to_paint_ms": 185
-      },
-      {
-        "version": 173,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 174,
-        "observation_to_paint_ms": 162
-      },
-      {
-        "version": 175,
-        "observation_to_paint_ms": 142
-      },
-      {
-        "version": 176,
-        "observation_to_paint_ms": 158
-      },
-      {
-        "version": 177,
-        "observation_to_paint_ms": 183
-      },
-      {
-        "version": 178,
-        "observation_to_paint_ms": 208
-      },
-      {
-        "version": 179,
-        "observation_to_paint_ms": 149
-      },
-      {
-        "version": 180,
-        "observation_to_paint_ms": 186
-      },
-      {
-        "version": 181,
-        "observation_to_paint_ms": 160
-      },
-      {
-        "version": 182,
-        "observation_to_paint_ms": 237
-      },
-      {
-        "version": 183,
-        "observation_to_paint_ms": 209
-      },
-      {
-        "version": 184,
-        "observation_to_paint_ms": 158
-      },
-      {
-        "version": 185,
-        "observation_to_paint_ms": 198
-      },
-      {
-        "version": 186,
-        "observation_to_paint_ms": 181
-      },
-      {
-        "version": 187,
-        "observation_to_paint_ms": 184
-      },
-      {
-        "version": 188,
-        "observation_to_paint_ms": 217
-      },
-      {
-        "version": 189,
-        "observation_to_paint_ms": 168
-      },
-      {
-        "version": 190,
-        "observation_to_paint_ms": 213
-      },
-      {
-        "version": 191,
-        "observation_to_paint_ms": 185
-      },
-      {
-        "version": 192,
-        "observation_to_paint_ms": 204
-      },
-      {
-        "version": 193,
-        "observation_to_paint_ms": 230
-      },
-      {
-        "version": 195,
-        "observation_to_paint_ms": 198
-      },
-      {
-        "version": 197,
-        "observation_to_paint_ms": 133
-      },
-      {
-        "version": 198,
-        "observation_to_paint_ms": 118
-      },
-      {
-        "version": 199,
-        "observation_to_paint_ms": 150
-      },
-      {
-        "version": 200,
-        "observation_to_paint_ms": 178
-      },
-      {
-        "version": 201,
-        "observation_to_paint_ms": 155
-      },
-      {
-        "version": 202,
-        "observation_to_paint_ms": 97
-      },
-      {
-        "version": 203,
-        "observation_to_paint_ms": 109
-      },
-      {
-        "version": 204,
-        "observation_to_paint_ms": 114
-      },
-      {
-        "version": 205,
-        "observation_to_paint_ms": 126
-      },
-      {
-        "version": 206,
-        "observation_to_paint_ms": 109
-      },
-      {
-        "version": 207,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 208,
-        "observation_to_paint_ms": 134
-      },
-      {
-        "version": 209,
-        "observation_to_paint_ms": 147
-      },
-      {
-        "version": 210,
-        "observation_to_paint_ms": 209
-      },
-      {
-        "version": 211,
-        "observation_to_paint_ms": 141
-      },
-      {
-        "version": 212,
-        "observation_to_paint_ms": 154
-      },
-      {
-        "version": 213,
-        "observation_to_paint_ms": 180
-      },
-      {
-        "version": 214,
-        "observation_to_paint_ms": 199
-      },
-      {
-        "version": 215,
-        "observation_to_paint_ms": 206
-      },
-      {
-        "version": 216,
-        "observation_to_paint_ms": 148
-      },
-      {
-        "version": 217,
-        "observation_to_paint_ms": 196
-      },
-      {
-        "version": 219,
-        "observation_to_paint_ms": 152
-      },
-      {
-        "version": 220,
-        "observation_to_paint_ms": 165
-      },
-      {
-        "version": 221,
-        "observation_to_paint_ms": 195
-      },
-      {
-        "version": 222,
-        "observation_to_paint_ms": 165
-      },
-      {
-        "version": 223,
-        "observation_to_paint_ms": 168
-      },
-      {
-        "version": 224,
-        "observation_to_paint_ms": 180
-      },
-      {
-        "version": 225,
-        "observation_to_paint_ms": 215
-      },
-      {
-        "version": 226,
-        "observation_to_paint_ms": 197
-      },
-      {
-        "version": 227,
-        "observation_to_paint_ms": 212
-      },
-      {
-        "version": 228,
-        "observation_to_paint_ms": 217
-      },
-      {
-        "version": 229,
-        "observation_to_paint_ms": 203
-      },
-      {
-        "version": 230,
-        "observation_to_paint_ms": 171
-      },
-      {
-        "version": 231,
-        "observation_to_paint_ms": 177
-      },
-      {
-        "version": 232,
-        "observation_to_paint_ms": 205
-      },
-      {
-        "version": 233,
-        "observation_to_paint_ms": 214
-      },
-      {
-        "version": 234,
-        "observation_to_paint_ms": 199
-      },
-      {
-        "version": 235,
-        "observation_to_paint_ms": 181
-      },
-      {
-        "version": 236,
-        "observation_to_paint_ms": 207
-      },
-      {
-        "version": 238,
-        "observation_to_paint_ms": 114
-      },
-      {
-        "version": 240,
-        "observation_to_paint_ms": 96
-      },
-      {
-        "version": 241,
-        "observation_to_paint_ms": 124
-      },
-      {
-        "version": 242,
-        "observation_to_paint_ms": 110
-      },
-      {
-        "version": 243,
-        "observation_to_paint_ms": 136
-      },
-      {
-        "version": 244,
-        "observation_to_paint_ms": 128
-      },
-      {
-        "version": 245,
-        "observation_to_paint_ms": 178
-      },
-      {
-        "version": 246,
-        "observation_to_paint_ms": 101
-      },
-      {
-        "version": 247,
-        "observation_to_paint_ms": 148
-      },
-      {
-        "version": 248,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 249,
-        "observation_to_paint_ms": 141
-      },
-      {
-        "version": 250,
-        "observation_to_paint_ms": 175
-      },
-      {
-        "version": 251,
-        "observation_to_paint_ms": 116
-      },
-      {
-        "version": 252,
-        "observation_to_paint_ms": 133
-      },
-      {
-        "version": 253,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 254,
-        "observation_to_paint_ms": 165
-      },
-      {
-        "version": 255,
-        "observation_to_paint_ms": 141
-      },
-      {
-        "version": 256,
-        "observation_to_paint_ms": 137
-      },
-      {
-        "version": 257,
-        "observation_to_paint_ms": 154
-      },
-      {
-        "version": 258,
-        "observation_to_paint_ms": 177
-      },
-      {
-        "version": 259,
-        "observation_to_paint_ms": 197
-      },
-      {
-        "version": 260,
-        "observation_to_paint_ms": 175
-      },
-      {
-        "version": 261,
-        "observation_to_paint_ms": 179
-      },
-      {
-        "version": 262,
-        "observation_to_paint_ms": 156
-      },
-      {
-        "version": 263,
-        "observation_to_paint_ms": 173
-      },
-      {
-        "version": 264,
-        "observation_to_paint_ms": 144
-      },
-      {
-        "version": 265,
-        "observation_to_paint_ms": 143
-      },
-      {
-        "version": 266,
-        "observation_to_paint_ms": 177
-      },
-      {
-        "version": 268,
-        "observation_to_paint_ms": 134
-      },
-      {
-        "version": 269,
-        "observation_to_paint_ms": 151
-      },
-      {
-        "version": 270,
-        "observation_to_paint_ms": 206
-      },
-      {
-        "version": 272,
-        "observation_to_paint_ms": 216
-      },
-      {
-        "version": 273,
-        "observation_to_paint_ms": 191
-      },
-      {
-        "version": 274,
-        "observation_to_paint_ms": 159
-      },
-      {
-        "version": 275,
-        "observation_to_paint_ms": 178
-      },
-      {
-        "version": 276,
-        "observation_to_paint_ms": 211
-      },
-      {
-        "version": 277,
-        "observation_to_paint_ms": 152
-      },
-      {
-        "version": 278,
-        "observation_to_paint_ms": 151
-      },
-      {
-        "version": 279,
-        "observation_to_paint_ms": 178
-      },
-      {
-        "version": 280,
-        "observation_to_paint_ms": 156
-      },
-      {
-        "version": 282,
-        "observation_to_paint_ms": 165
-      },
-      {
-        "version": 283,
-        "observation_to_paint_ms": 176
-      },
-      {
-        "version": 284,
-        "observation_to_paint_ms": 212
-      },
-      {
-        "version": 285,
-        "observation_to_paint_ms": 226
-      },
-      {
-        "version": 286,
-        "observation_to_paint_ms": 205
-      },
-      {
-        "version": 288,
-        "observation_to_paint_ms": 161
-      },
-      {
-        "version": 289,
-        "observation_to_paint_ms": 164
-      },
-      {
-        "version": 290,
-        "observation_to_paint_ms": 167
-      },
-      {
-        "version": 291,
-        "observation_to_paint_ms": 196
-      },
-      {
-        "version": 292,
-        "observation_to_paint_ms": 138
-      },
-      {
-        "version": 293,
-        "observation_to_paint_ms": 152
-      },
-      {
-        "version": 294,
-        "observation_to_paint_ms": 158
-      },
-      {
-        "version": 295,
-        "observation_to_paint_ms": 155
-      },
-      {
-        "version": 296,
-        "observation_to_paint_ms": 159
-      },
-      {
-        "version": 297,
-        "observation_to_paint_ms": 200
-      },
-      {
-        "version": 298,
-        "observation_to_paint_ms": 134
-      },
-      {
-        "version": 299,
-        "observation_to_paint_ms": 151
-      },
-      {
-        "version": 300,
-        "observation_to_paint_ms": 163
-      },
-      {
-        "version": 301,
-        "observation_to_paint_ms": 163
-      },
-      {
-        "version": 302,
-        "observation_to_paint_ms": 160
-      },
-      {
-        "version": 303,
-        "observation_to_paint_ms": 164
-      },
-      {
-        "version": 304,
-        "observation_to_paint_ms": 164
-      },
-      {
-        "version": 305,
-        "observation_to_paint_ms": 166
-      },
-      {
-        "version": 306,
-        "observation_to_paint_ms": 185
-      },
-      {
-        "version": 307,
-        "observation_to_paint_ms": 177
-      },
-      {
-        "version": 308,
+        "version": 4,
         "observation_to_paint_ms": 187
       },
       {
-        "version": 309,
-        "observation_to_paint_ms": 168
-      },
-      {
-        "version": 310,
-        "observation_to_paint_ms": 245
-      },
-      {
-        "version": 311,
-        "observation_to_paint_ms": 211
-      },
-      {
-        "version": 312,
-        "observation_to_paint_ms": 244
-      },
-      {
-        "version": 313,
-        "observation_to_paint_ms": 230
-      },
-      {
-        "version": 314,
-        "observation_to_paint_ms": 167
-      },
-      {
-        "version": 315,
-        "observation_to_paint_ms": 215
-      },
-      {
-        "version": 316,
+        "version": 5,
         "observation_to_paint_ms": 206
       },
       {
-        "version": 317,
-        "observation_to_paint_ms": 230
-      },
-      {
-        "version": 318,
-        "observation_to_paint_ms": 178
-      },
-      {
-        "version": 319,
-        "observation_to_paint_ms": 184
-      },
-      {
-        "version": 320,
-        "observation_to_paint_ms": 204
-      },
-      {
-        "version": 321,
-        "observation_to_paint_ms": 244
-      },
-      {
-        "version": 322,
-        "observation_to_paint_ms": 173
-      },
-      {
-        "version": 323,
-        "observation_to_paint_ms": 200
-      },
-      {
-        "version": 324,
-        "observation_to_paint_ms": 185
-      },
-      {
-        "version": 325,
-        "observation_to_paint_ms": 182
-      },
-      {
-        "version": 326,
-        "observation_to_paint_ms": 202
-      },
-      {
-        "version": 327,
-        "observation_to_paint_ms": 220
-      },
-      {
-        "version": 328,
-        "observation_to_paint_ms": 212
-      },
-      {
-        "version": 329,
-        "observation_to_paint_ms": 222
-      },
-      {
-        "version": 330,
-        "observation_to_paint_ms": 235
-      },
-      {
-        "version": 331,
-        "observation_to_paint_ms": 232
-      },
-      {
-        "version": 332,
-        "observation_to_paint_ms": 195
-      },
-      {
-        "version": 333,
-        "observation_to_paint_ms": 230
-      },
-      {
-        "version": 334,
-        "observation_to_paint_ms": 263
-      },
-      {
-        "version": 335,
-        "observation_to_paint_ms": 212
-      },
-      {
-        "version": 336,
-        "observation_to_paint_ms": 188
-      },
-      {
-        "version": 337,
-        "observation_to_paint_ms": 192
-      },
-      {
-        "version": 339,
-        "observation_to_paint_ms": 91
-      },
-      {
-        "version": 340,
-        "observation_to_paint_ms": 104
-      },
-      {
-        "version": 341,
-        "observation_to_paint_ms": 119
-      },
-      {
-        "version": 342,
-        "observation_to_paint_ms": 132
-      },
-      {
-        "version": 343,
-        "observation_to_paint_ms": 136
-      },
-      {
-        "version": 344,
-        "observation_to_paint_ms": 92
-      },
-      {
-        "version": 345,
-        "observation_to_paint_ms": 103
-      },
-      {
-        "version": 346,
-        "observation_to_paint_ms": 158
-      },
-      {
-        "version": 347,
-        "observation_to_paint_ms": 118
-      },
-      {
-        "version": 348,
-        "observation_to_paint_ms": 110
-      },
-      {
-        "version": 349,
-        "observation_to_paint_ms": 140
-      },
-      {
-        "version": 350,
-        "observation_to_paint_ms": 131
-      },
-      {
-        "version": 351,
-        "observation_to_paint_ms": 143
-      },
-      {
-        "version": 353,
-        "observation_to_paint_ms": 105
-      },
-      {
-        "version": 354,
-        "observation_to_paint_ms": 120
-      },
-      {
-        "version": 355,
-        "observation_to_paint_ms": 131
-      },
-      {
-        "version": 356,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 357,
-        "observation_to_paint_ms": 95
-      },
-      {
-        "version": 358,
-        "observation_to_paint_ms": 102
-      },
-      {
-        "version": 359,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 361,
-        "observation_to_paint_ms": 140
-      },
-      {
-        "version": 362,
-        "observation_to_paint_ms": 136
-      },
-      {
-        "version": 363,
-        "observation_to_paint_ms": 130
-      },
-      {
-        "version": 364,
-        "observation_to_paint_ms": 138
-      },
-      {
-        "version": 365,
-        "observation_to_paint_ms": 127
-      },
-      {
-        "version": 366,
-        "observation_to_paint_ms": 132
-      },
-      {
-        "version": 367,
-        "observation_to_paint_ms": 128
-      },
-      {
-        "version": 368,
-        "observation_to_paint_ms": 161
-      },
-      {
-        "version": 369,
-        "observation_to_paint_ms": 207
-      },
-      {
-        "version": 370,
-        "observation_to_paint_ms": 155
-      },
-      {
-        "version": 371,
-        "observation_to_paint_ms": 202
-      },
-      {
-        "version": 372,
-        "observation_to_paint_ms": 159
-      },
-      {
-        "version": 373,
-        "observation_to_paint_ms": 179
-      },
-      {
-        "version": 374,
-        "observation_to_paint_ms": 209
-      },
-      {
-        "version": 375,
-        "observation_to_paint_ms": 179
-      },
-      {
-        "version": 376,
-        "observation_to_paint_ms": 203
-      },
-      {
-        "version": 377,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 378,
+        "version": 6,
         "observation_to_paint_ms": 150
       },
       {
-        "version": 379,
-        "observation_to_paint_ms": 175
+        "version": 7,
+        "observation_to_paint_ms": 185
       },
       {
-        "version": 380,
-        "observation_to_paint_ms": 237
+        "version": 8,
+        "observation_to_paint_ms": 206
       },
       {
-        "version": 381,
-        "observation_to_paint_ms": 197
+        "version": 9,
+        "observation_to_paint_ms": 219
       },
       {
-        "version": 382,
-        "observation_to_paint_ms": 153
+        "version": 10,
+        "observation_to_paint_ms": 163
       },
       {
-        "version": 383,
-        "observation_to_paint_ms": 217
-      },
-      {
-        "version": 384,
-        "observation_to_paint_ms": 151
-      },
-      {
-        "version": 385,
-        "observation_to_paint_ms": 156
-      },
-      {
-        "version": 386,
-        "observation_to_paint_ms": 168
-      },
-      {
-        "version": 387,
+        "version": 11,
         "observation_to_paint_ms": 182
       },
       {
-        "version": 388,
-        "observation_to_paint_ms": 161
+        "version": 12,
+        "observation_to_paint_ms": 187
       },
       {
-        "version": 389,
-        "observation_to_paint_ms": 188
+        "version": 13,
+        "observation_to_paint_ms": 220
       },
       {
-        "version": 390,
-        "observation_to_paint_ms": 194
+        "version": 14,
+        "observation_to_paint_ms": 213
       },
       {
-        "version": 391,
-        "observation_to_paint_ms": 173
+        "version": 15,
+        "observation_to_paint_ms": 197
       },
       {
-        "version": 392,
-        "observation_to_paint_ms": 193
+        "version": 16,
+        "observation_to_paint_ms": 227
       },
       {
-        "version": 393,
-        "observation_to_paint_ms": 205
+        "version": 17,
+        "observation_to_paint_ms": 174
       },
       {
-        "version": 394,
-        "observation_to_paint_ms": 210
+        "version": 18,
+        "observation_to_paint_ms": 192
       },
       {
-        "version": 396,
-        "observation_to_paint_ms": 201
+        "version": 19,
+        "observation_to_paint_ms": 163
       },
       {
-        "version": 397,
-        "observation_to_paint_ms": 203
-      },
-      {
-        "version": 398,
-        "observation_to_paint_ms": 217
-      },
-      {
-        "version": 399,
+        "version": 20,
         "observation_to_paint_ms": 200
       },
       {
-        "version": 400,
-        "observation_to_paint_ms": 234
+        "version": 21,
+        "observation_to_paint_ms": 220
       },
       {
-        "version": 401,
+        "version": 22,
+        "observation_to_paint_ms": 226
+      },
+      {
+        "version": 23,
         "observation_to_paint_ms": 177
       },
       {
-        "version": 402,
-        "observation_to_paint_ms": 190
+        "version": 24,
+        "observation_to_paint_ms": 208
       },
       {
-        "version": 403,
+        "version": 25,
+        "observation_to_paint_ms": 237
+      },
+      {
+        "version": 26,
+        "observation_to_paint_ms": 267
+      },
+      {
+        "version": 27,
+        "observation_to_paint_ms": 202
+      },
+      {
+        "version": 28,
+        "observation_to_paint_ms": 217
+      },
+      {
+        "version": 29,
+        "observation_to_paint_ms": 250
+      },
+      {
+        "version": 30,
+        "observation_to_paint_ms": 184
+      },
+      {
+        "version": 32,
+        "observation_to_paint_ms": 105
+      },
+      {
+        "version": 34,
+        "observation_to_paint_ms": 118
+      },
+      {
+        "version": 35,
+        "observation_to_paint_ms": 124
+      },
+      {
+        "version": 36,
+        "observation_to_paint_ms": 120
+      },
+      {
+        "version": 37,
+        "observation_to_paint_ms": 124
+      },
+      {
+        "version": 38,
+        "observation_to_paint_ms": 150
+      },
+      {
+        "version": 39,
+        "observation_to_paint_ms": 146
+      },
+      {
+        "version": 41,
+        "observation_to_paint_ms": 74
+      },
+      {
+        "version": 42,
+        "observation_to_paint_ms": 116
+      },
+      {
+        "version": 43,
+        "observation_to_paint_ms": 94
+      },
+      {
+        "version": 44,
+        "observation_to_paint_ms": 112
+      },
+      {
+        "version": 45,
+        "observation_to_paint_ms": 118
+      },
+      {
+        "version": 46,
+        "observation_to_paint_ms": 121
+      },
+      {
+        "version": 47,
+        "observation_to_paint_ms": 115
+      },
+      {
+        "version": 48,
+        "observation_to_paint_ms": 119
+      },
+      {
+        "version": 49,
+        "observation_to_paint_ms": 124
+      },
+      {
+        "version": 50,
+        "observation_to_paint_ms": 128
+      },
+      {
+        "version": 51,
+        "observation_to_paint_ms": 161
+      },
+      {
+        "version": 52,
+        "observation_to_paint_ms": 144
+      },
+      {
+        "version": 53,
+        "observation_to_paint_ms": 156
+      },
+      {
+        "version": 54,
+        "observation_to_paint_ms": 115
+      },
+      {
+        "version": 55,
+        "observation_to_paint_ms": 131
+      },
+      {
+        "version": 56,
+        "observation_to_paint_ms": 142
+      },
+      {
+        "version": 57,
+        "observation_to_paint_ms": 147
+      },
+      {
+        "version": 58,
+        "observation_to_paint_ms": 161
+      },
+      {
+        "version": 59,
+        "observation_to_paint_ms": 159
+      },
+      {
+        "version": 60,
+        "observation_to_paint_ms": 166
+      },
+      {
+        "version": 61,
+        "observation_to_paint_ms": 137
+      },
+      {
+        "version": 62,
+        "observation_to_paint_ms": 180
+      },
+      {
+        "version": 63,
+        "observation_to_paint_ms": 227
+      },
+      {
+        "version": 64,
+        "observation_to_paint_ms": 198
+      },
+      {
+        "version": 65,
+        "observation_to_paint_ms": 167
+      },
+      {
+        "version": 66,
+        "observation_to_paint_ms": 164
+      },
+      {
+        "version": 67,
+        "observation_to_paint_ms": 163
+      },
+      {
+        "version": 68,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 69,
+        "observation_to_paint_ms": 227
+      },
+      {
+        "version": 70,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 71,
+        "observation_to_paint_ms": 215
+      },
+      {
+        "version": 72,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 73,
+        "observation_to_paint_ms": 172
+      },
+      {
+        "version": 74,
+        "observation_to_paint_ms": 178
+      },
+      {
+        "version": 75,
+        "observation_to_paint_ms": 185
+      },
+      {
+        "version": 76,
+        "observation_to_paint_ms": 183
+      },
+      {
+        "version": 77,
+        "observation_to_paint_ms": 218
+      },
+      {
+        "version": 78,
+        "observation_to_paint_ms": 196
+      },
+      {
+        "version": 79,
+        "observation_to_paint_ms": 202
+      },
+      {
+        "version": 80,
+        "observation_to_paint_ms": 201
+      },
+      {
+        "version": 81,
+        "observation_to_paint_ms": 207
+      },
+      {
+        "version": 83,
+        "observation_to_paint_ms": 100
+      },
+      {
+        "version": 84,
+        "observation_to_paint_ms": 175
+      },
+      {
+        "version": 85,
+        "observation_to_paint_ms": 103
+      },
+      {
+        "version": 86,
+        "observation_to_paint_ms": 115
+      },
+      {
+        "version": 87,
+        "observation_to_paint_ms": 109
+      },
+      {
+        "version": 88,
+        "observation_to_paint_ms": 114
+      },
+      {
+        "version": 89,
+        "observation_to_paint_ms": 120
+      },
+      {
+        "version": 90,
+        "observation_to_paint_ms": 153
+      },
+      {
+        "version": 91,
+        "observation_to_paint_ms": 165
+      },
+      {
+        "version": 93,
+        "observation_to_paint_ms": 114
+      },
+      {
+        "version": 94,
+        "observation_to_paint_ms": 138
+      },
+      {
+        "version": 95,
+        "observation_to_paint_ms": 144
+      },
+      {
+        "version": 96,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 97,
+        "observation_to_paint_ms": 160
+      },
+      {
+        "version": 98,
+        "observation_to_paint_ms": 203
+      },
+      {
+        "version": 99,
+        "observation_to_paint_ms": 158
+      },
+      {
+        "version": 100,
+        "observation_to_paint_ms": 178
+      },
+      {
+        "version": 101,
+        "observation_to_paint_ms": 121
+      },
+      {
+        "version": 102,
+        "observation_to_paint_ms": 135
+      },
+      {
+        "version": 103,
+        "observation_to_paint_ms": 147
+      },
+      {
+        "version": 104,
+        "observation_to_paint_ms": 179
+      },
+      {
+        "version": 105,
+        "observation_to_paint_ms": 161
+      },
+      {
+        "version": 106,
+        "observation_to_paint_ms": 166
+      },
+      {
+        "version": 107,
+        "observation_to_paint_ms": 206
+      },
+      {
+        "version": 108,
+        "observation_to_paint_ms": 172
+      },
+      {
+        "version": 109,
+        "observation_to_paint_ms": 187
+      },
+      {
+        "version": 110,
+        "observation_to_paint_ms": 191
+      },
+      {
+        "version": 111,
+        "observation_to_paint_ms": 217
+      },
+      {
+        "version": 112,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 113,
+        "observation_to_paint_ms": 177
+      },
+      {
+        "version": 114,
+        "observation_to_paint_ms": 222
+      },
+      {
+        "version": 116,
+        "observation_to_paint_ms": 150
+      },
+      {
+        "version": 117,
+        "observation_to_paint_ms": 170
+      },
+      {
+        "version": 118,
+        "observation_to_paint_ms": 176
+      },
+      {
+        "version": 119,
+        "observation_to_paint_ms": 203
+      },
+      {
+        "version": 120,
+        "observation_to_paint_ms": 200
+      },
+      {
+        "version": 121,
+        "observation_to_paint_ms": 235
+      },
+      {
+        "version": 122,
+        "observation_to_paint_ms": 194
+      },
+      {
+        "version": 123,
+        "observation_to_paint_ms": 210
+      },
+      {
+        "version": 124,
         "observation_to_paint_ms": 209
       },
       {
-        "version": 404,
+        "version": 125,
+        "observation_to_paint_ms": 232
+      },
+      {
+        "version": 126,
+        "observation_to_paint_ms": 244
+      },
+      {
+        "version": 127,
+        "observation_to_paint_ms": 187
+      },
+      {
+        "version": 128,
+        "observation_to_paint_ms": 196
+      },
+      {
+        "version": 129,
+        "observation_to_paint_ms": 257
+      },
+      {
+        "version": 130,
+        "observation_to_paint_ms": 245
+      },
+      {
+        "version": 132,
+        "observation_to_paint_ms": 165
+      },
+      {
+        "version": 133,
+        "observation_to_paint_ms": 100
+      },
+      {
+        "version": 134,
+        "observation_to_paint_ms": 120
+      },
+      {
+        "version": 135,
+        "observation_to_paint_ms": 125
+      },
+      {
+        "version": 136,
+        "observation_to_paint_ms": 146
+      },
+      {
+        "version": 138,
+        "observation_to_paint_ms": 109
+      },
+      {
+        "version": 139,
+        "observation_to_paint_ms": 149
+      },
+      {
+        "version": 140,
+        "observation_to_paint_ms": 189
+      },
+      {
+        "version": 141,
+        "observation_to_paint_ms": 139
+      },
+      {
+        "version": 142,
+        "observation_to_paint_ms": 125
+      },
+      {
+        "version": 143,
+        "observation_to_paint_ms": 130
+      },
+      {
+        "version": 144,
+        "observation_to_paint_ms": 149
+      },
+      {
+        "version": 145,
+        "observation_to_paint_ms": 170
+      },
+      {
+        "version": 146,
+        "observation_to_paint_ms": 201
+      },
+      {
+        "version": 147,
+        "observation_to_paint_ms": 137
+      },
+      {
+        "version": 148,
+        "observation_to_paint_ms": 168
+      },
+      {
+        "version": 149,
+        "observation_to_paint_ms": 185
+      },
+      {
+        "version": 150,
+        "observation_to_paint_ms": 142
+      },
+      {
+        "version": 151,
+        "observation_to_paint_ms": 162
+      },
+      {
+        "version": 152,
         "observation_to_paint_ms": 181
+      },
+      {
+        "version": 153,
+        "observation_to_paint_ms": 189
+      },
+      {
+        "version": 154,
+        "observation_to_paint_ms": 160
+      },
+      {
+        "version": 155,
+        "observation_to_paint_ms": 159
+      },
+      {
+        "version": 156,
+        "observation_to_paint_ms": 179
+      },
+      {
+        "version": 157,
+        "observation_to_paint_ms": 176
+      },
+      {
+        "version": 158,
+        "observation_to_paint_ms": 183
+      },
+      {
+        "version": 159,
+        "observation_to_paint_ms": 196
+      },
+      {
+        "version": 160,
+        "observation_to_paint_ms": 218
+      },
+      {
+        "version": 161,
+        "observation_to_paint_ms": 195
+      },
+      {
+        "version": 162,
+        "observation_to_paint_ms": 227
+      },
+      {
+        "version": 163,
+        "observation_to_paint_ms": 197
+      },
+      {
+        "version": 164,
+        "observation_to_paint_ms": 222
+      },
+      {
+        "version": 165,
+        "observation_to_paint_ms": 235
+      },
+      {
+        "version": 167,
+        "observation_to_paint_ms": 144
+      },
+      {
+        "version": 168,
+        "observation_to_paint_ms": 140
+      },
+      {
+        "version": 169,
+        "observation_to_paint_ms": 177
+      },
+      {
+        "version": 170,
+        "observation_to_paint_ms": 118
+      },
+      {
+        "version": 171,
+        "observation_to_paint_ms": 119
+      },
+      {
+        "version": 172,
+        "observation_to_paint_ms": 117
+      },
+      {
+        "version": 173,
+        "observation_to_paint_ms": 130
+      },
+      {
+        "version": 174,
+        "observation_to_paint_ms": 128
+      },
+      {
+        "version": 175,
+        "observation_to_paint_ms": 147
+      },
+      {
+        "version": 176,
+        "observation_to_paint_ms": 103
+      },
+      {
+        "version": 177,
+        "observation_to_paint_ms": 165
+      },
+      {
+        "version": 178,
+        "observation_to_paint_ms": 106
+      },
+      {
+        "version": 179,
+        "observation_to_paint_ms": 154
+      },
+      {
+        "version": 180,
+        "observation_to_paint_ms": 125
+      },
+      {
+        "version": 181,
+        "observation_to_paint_ms": 137
+      },
+      {
+        "version": 182,
+        "observation_to_paint_ms": 142
+      },
+      {
+        "version": 183,
+        "observation_to_paint_ms": 164
+      },
+      {
+        "version": 184,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 185,
+        "observation_to_paint_ms": 136
+      },
+      {
+        "version": 186,
+        "observation_to_paint_ms": 134
+      },
+      {
+        "version": 187,
+        "observation_to_paint_ms": 140
+      },
+      {
+        "version": 188,
+        "observation_to_paint_ms": 144
+      },
+      {
+        "version": 189,
+        "observation_to_paint_ms": 140
+      },
+      {
+        "version": 190,
+        "observation_to_paint_ms": 147
+      },
+      {
+        "version": 191,
+        "observation_to_paint_ms": 194
+      },
+      {
+        "version": 192,
+        "observation_to_paint_ms": 137
+      },
+      {
+        "version": 193,
+        "observation_to_paint_ms": 220
+      },
+      {
+        "version": 194,
+        "observation_to_paint_ms": 157
+      },
+      {
+        "version": 195,
+        "observation_to_paint_ms": 177
+      },
+      {
+        "version": 196,
+        "observation_to_paint_ms": 197
+      },
+      {
+        "version": 197,
+        "observation_to_paint_ms": 169
+      },
+      {
+        "version": 198,
+        "observation_to_paint_ms": 182
+      },
+      {
+        "version": 199,
+        "observation_to_paint_ms": 215
+      },
+      {
+        "version": 200,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 201,
+        "observation_to_paint_ms": 198
+      },
+      {
+        "version": 202,
+        "observation_to_paint_ms": 171
+      },
+      {
+        "version": 203,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 204,
+        "observation_to_paint_ms": 228
+      },
+      {
+        "version": 205,
+        "observation_to_paint_ms": 212
+      },
+      {
+        "version": 206,
+        "observation_to_paint_ms": 208
+      },
+      {
+        "version": 207,
+        "observation_to_paint_ms": 221
+      },
+      {
+        "version": 208,
+        "observation_to_paint_ms": 219
+      },
+      {
+        "version": 210,
+        "observation_to_paint_ms": 124
+      },
+      {
+        "version": 211,
+        "observation_to_paint_ms": 147
+      },
+      {
+        "version": 212,
+        "observation_to_paint_ms": 91
+      },
+      {
+        "version": 213,
+        "observation_to_paint_ms": 157
+      },
+      {
+        "version": 214,
+        "observation_to_paint_ms": 88
+      },
+      {
+        "version": 215,
+        "observation_to_paint_ms": 100
+      },
+      {
+        "version": 216,
+        "observation_to_paint_ms": 104
+      },
+      {
+        "version": 217,
+        "observation_to_paint_ms": 144
+      },
+      {
+        "version": 218,
+        "observation_to_paint_ms": 136
+      },
+      {
+        "version": 219,
+        "observation_to_paint_ms": 160
+      },
+      {
+        "version": 221,
+        "observation_to_paint_ms": 109
+      },
+      {
+        "version": 222,
+        "observation_to_paint_ms": 118
+      },
+      {
+        "version": 223,
+        "observation_to_paint_ms": 187
+      },
+      {
+        "version": 224,
+        "observation_to_paint_ms": 175
+      },
+      {
+        "version": 225,
+        "observation_to_paint_ms": 117
+      },
+      {
+        "version": 226,
+        "observation_to_paint_ms": 133
+      },
+      {
+        "version": 227,
+        "observation_to_paint_ms": 113
+      },
+      {
+        "version": 228,
+        "observation_to_paint_ms": 123
+      },
+      {
+        "version": 229,
+        "observation_to_paint_ms": 137
+      },
+      {
+        "version": 230,
+        "observation_to_paint_ms": 157
+      },
+      {
+        "version": 231,
+        "observation_to_paint_ms": 132
+      },
+      {
+        "version": 232,
+        "observation_to_paint_ms": 164
+      },
+      {
+        "version": 233,
+        "observation_to_paint_ms": 156
+      },
+      {
+        "version": 234,
+        "observation_to_paint_ms": 183
+      },
+      {
+        "version": 235,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 236,
+        "observation_to_paint_ms": 146
+      },
+      {
+        "version": 237,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 238,
+        "observation_to_paint_ms": 232
+      },
+      {
+        "version": 239,
+        "observation_to_paint_ms": 191
+      },
+      {
+        "version": 241,
+        "observation_to_paint_ms": 128
+      },
+      {
+        "version": 242,
+        "observation_to_paint_ms": 134
+      },
+      {
+        "version": 243,
+        "observation_to_paint_ms": 182
+      },
+      {
+        "version": 244,
+        "observation_to_paint_ms": 189
+      },
+      {
+        "version": 245,
+        "observation_to_paint_ms": 236
+      },
+      {
+        "version": 246,
+        "observation_to_paint_ms": 193
+      },
+      {
+        "version": 247,
+        "observation_to_paint_ms": 222
+      },
+      {
+        "version": 248,
+        "observation_to_paint_ms": 157
+      },
+      {
+        "version": 249,
+        "observation_to_paint_ms": 197
+      },
+      {
+        "version": 250,
+        "observation_to_paint_ms": 217
+      },
+      {
+        "version": 251,
+        "observation_to_paint_ms": 189
+      },
+      {
+        "version": 252,
+        "observation_to_paint_ms": 198
+      },
+      {
+        "version": 253,
+        "observation_to_paint_ms": 209
+      },
+      {
+        "version": 254,
+        "observation_to_paint_ms": 220
+      },
+      {
+        "version": 255,
+        "observation_to_paint_ms": 224
+      },
+      {
+        "version": 256,
+        "observation_to_paint_ms": 229
+      },
+      {
+        "version": 257,
+        "observation_to_paint_ms": 180
+      },
+      {
+        "version": 258,
+        "observation_to_paint_ms": 192
+      },
+      {
+        "version": 259,
+        "observation_to_paint_ms": 213
+      },
+      {
+        "version": 261,
+        "observation_to_paint_ms": 97
+      },
+      {
+        "version": 262,
+        "observation_to_paint_ms": 119
+      },
+      {
+        "version": 263,
+        "observation_to_paint_ms": 105
+      },
+      {
+        "version": 264,
+        "observation_to_paint_ms": 103
+      },
+      {
+        "version": 265,
+        "observation_to_paint_ms": 122
+      },
+      {
+        "version": 266,
+        "observation_to_paint_ms": 124
+      },
+      {
+        "version": 267,
+        "observation_to_paint_ms": 142
+      },
+      {
+        "version": 268,
+        "observation_to_paint_ms": 98
+      },
+      {
+        "version": 269,
+        "observation_to_paint_ms": 104
+      },
+      {
+        "version": 270,
+        "observation_to_paint_ms": 110
+      },
+      {
+        "version": 271,
+        "observation_to_paint_ms": 116
+      },
+      {
+        "version": 272,
+        "observation_to_paint_ms": 110
+      },
+      {
+        "version": 273,
+        "observation_to_paint_ms": 108
+      },
+      {
+        "version": 274,
+        "observation_to_paint_ms": 116
+      },
+      {
+        "version": 275,
+        "observation_to_paint_ms": 120
+      },
+      {
+        "version": 276,
+        "observation_to_paint_ms": 104
+      },
+      {
+        "version": 277,
+        "observation_to_paint_ms": 106
+      },
+      {
+        "version": 278,
+        "observation_to_paint_ms": 109
+      },
+      {
+        "version": 279,
+        "observation_to_paint_ms": 106
+      },
+      {
+        "version": 280,
+        "observation_to_paint_ms": 103
+      },
+      {
+        "version": 281,
+        "observation_to_paint_ms": 115
+      },
+      {
+        "version": 282,
+        "observation_to_paint_ms": 135
+      },
+      {
+        "version": 283,
+        "observation_to_paint_ms": 155
+      },
+      {
+        "version": 284,
+        "observation_to_paint_ms": 161
+      },
+      {
+        "version": 285,
+        "observation_to_paint_ms": 156
+      },
+      {
+        "version": 286,
+        "observation_to_paint_ms": 121
+      },
+      {
+        "version": 287,
+        "observation_to_paint_ms": 189
+      },
+      {
+        "version": 288,
+        "observation_to_paint_ms": 137
+      },
+      {
+        "version": 289,
+        "observation_to_paint_ms": 156
+      },
+      {
+        "version": 290,
+        "observation_to_paint_ms": 196
+      },
+      {
+        "version": 291,
+        "observation_to_paint_ms": 148
+      },
+      {
+        "version": 292,
+        "observation_to_paint_ms": 183
+      },
+      {
+        "version": 293,
+        "observation_to_paint_ms": 172
+      },
+      {
+        "version": 294,
+        "observation_to_paint_ms": 188
+      },
+      {
+        "version": 295,
+        "observation_to_paint_ms": 227
+      },
+      {
+        "version": 296,
+        "observation_to_paint_ms": 195
+      },
+      {
+        "version": 297,
+        "observation_to_paint_ms": 180
+      },
+      {
+        "version": 298,
+        "observation_to_paint_ms": 156
+      },
+      {
+        "version": 299,
+        "observation_to_paint_ms": 171
+      },
+      {
+        "version": 300,
+        "observation_to_paint_ms": 167
+      },
+      {
+        "version": 301,
+        "observation_to_paint_ms": 178
+      },
+      {
+        "version": 302,
+        "observation_to_paint_ms": 187
+      },
+      {
+        "version": 303,
+        "observation_to_paint_ms": 221
+      },
+      {
+        "version": 304,
+        "observation_to_paint_ms": 192
+      },
+      {
+        "version": 305,
+        "observation_to_paint_ms": 172
+      },
+      {
+        "version": 306,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 307,
+        "observation_to_paint_ms": 158
+      },
+      {
+        "version": 308,
+        "observation_to_paint_ms": 157
+      },
+      {
+        "version": 309,
+        "observation_to_paint_ms": 161
+      },
+      {
+        "version": 310,
+        "observation_to_paint_ms": 196
+      },
+      {
+        "version": 311,
+        "observation_to_paint_ms": 167
+      },
+      {
+        "version": 312,
+        "observation_to_paint_ms": 182
+      },
+      {
+        "version": 313,
+        "observation_to_paint_ms": 177
+      },
+      {
+        "version": 314,
+        "observation_to_paint_ms": 184
+      },
+      {
+        "version": 315,
+        "observation_to_paint_ms": 233
+      },
+      {
+        "version": 316,
+        "observation_to_paint_ms": 195
+      },
+      {
+        "version": 317,
+        "observation_to_paint_ms": 204
+      },
+      {
+        "version": 318,
+        "observation_to_paint_ms": 228
+      },
+      {
+        "version": 319,
+        "observation_to_paint_ms": 203
+      },
+      {
+        "version": 320,
+        "observation_to_paint_ms": 207
+      },
+      {
+        "version": 321,
+        "observation_to_paint_ms": 200
+      },
+      {
+        "version": 322,
+        "observation_to_paint_ms": 227
+      },
+      {
+        "version": 323,
+        "observation_to_paint_ms": 206
+      },
+      {
+        "version": 324,
+        "observation_to_paint_ms": 222
+      },
+      {
+        "version": 325,
+        "observation_to_paint_ms": 211
+      },
+      {
+        "version": 326,
+        "observation_to_paint_ms": 203
+      },
+      {
+        "version": 327,
+        "observation_to_paint_ms": 181
+      },
+      {
+        "version": 328,
+        "observation_to_paint_ms": 193
+      },
+      {
+        "version": 329,
+        "observation_to_paint_ms": 219
+      },
+      {
+        "version": 330,
+        "observation_to_paint_ms": 214
+      },
+      {
+        "version": 331,
+        "observation_to_paint_ms": 185
+      },
+      {
+        "version": 332,
+        "observation_to_paint_ms": 203
+      },
+      {
+        "version": 334,
+        "observation_to_paint_ms": 133
+      },
+      {
+        "version": 335,
+        "observation_to_paint_ms": 128
+      },
+      {
+        "version": 336,
+        "observation_to_paint_ms": 169
+      },
+      {
+        "version": 337,
+        "observation_to_paint_ms": 120
+      },
+      {
+        "version": 338,
+        "observation_to_paint_ms": 138
+      },
+      {
+        "version": 339,
+        "observation_to_paint_ms": 104
+      },
+      {
+        "version": 340,
+        "observation_to_paint_ms": 115
+      },
+      {
+        "version": 341,
+        "observation_to_paint_ms": 134
+      },
+      {
+        "version": 342,
+        "observation_to_paint_ms": 102
+      },
+      {
+        "version": 343,
+        "observation_to_paint_ms": 109
+      },
+      {
+        "version": 344,
+        "observation_to_paint_ms": 114
+      },
+      {
+        "version": 345,
+        "observation_to_paint_ms": 132
+      },
+      {
+        "version": 346,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 347,
+        "observation_to_paint_ms": 177
+      },
+      {
+        "version": 348,
+        "observation_to_paint_ms": 104
+      },
+      {
+        "version": 349,
+        "observation_to_paint_ms": 121
+      },
+      {
+        "version": 350,
+        "observation_to_paint_ms": 154
+      },
+      {
+        "version": 351,
+        "observation_to_paint_ms": 102
+      },
+      {
+        "version": 352,
+        "observation_to_paint_ms": 92
+      },
+      {
+        "version": 353,
+        "observation_to_paint_ms": 126
+      },
+      {
+        "version": 354,
+        "observation_to_paint_ms": 151
+      },
+      {
+        "version": 355,
+        "observation_to_paint_ms": 101
+      },
+      {
+        "version": 356,
+        "observation_to_paint_ms": 135
+      },
+      {
+        "version": 357,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 358,
+        "observation_to_paint_ms": 160
+      },
+      {
+        "version": 359,
+        "observation_to_paint_ms": 192
+      },
+      {
+        "version": 360,
+        "observation_to_paint_ms": 164
+      },
+      {
+        "version": 361,
+        "observation_to_paint_ms": 168
+      },
+      {
+        "version": 362,
+        "observation_to_paint_ms": 171
+      },
+      {
+        "version": 363,
+        "observation_to_paint_ms": 191
+      },
+      {
+        "version": 364,
+        "observation_to_paint_ms": 136
+      },
+      {
+        "version": 365,
+        "observation_to_paint_ms": 197
+      },
+      {
+        "version": 366,
+        "observation_to_paint_ms": 146
+      },
+      {
+        "version": 367,
+        "observation_to_paint_ms": 159
+      },
+      {
+        "version": 368,
+        "observation_to_paint_ms": 174
+      },
+      {
+        "version": 369,
+        "observation_to_paint_ms": 169
+      },
+      {
+        "version": 370,
+        "observation_to_paint_ms": 180
+      },
+      {
+        "version": 371,
+        "observation_to_paint_ms": 172
+      },
+      {
+        "version": 372,
+        "observation_to_paint_ms": 192
+      },
+      {
+        "version": 373,
+        "observation_to_paint_ms": 177
+      },
+      {
+        "version": 374,
+        "observation_to_paint_ms": 210
+      },
+      {
+        "version": 375,
+        "observation_to_paint_ms": 180
+      },
+      {
+        "version": 376,
+        "observation_to_paint_ms": 207
+      },
+      {
+        "version": 377,
+        "observation_to_paint_ms": 199
+      },
+      {
+        "version": 378,
+        "observation_to_paint_ms": 194
+      },
+      {
+        "version": 379,
+        "observation_to_paint_ms": 197
+      },
+      {
+        "version": 380,
+        "observation_to_paint_ms": 200
+      },
+      {
+        "version": 382,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 383,
+        "observation_to_paint_ms": 167
+      },
+      {
+        "version": 384,
+        "observation_to_paint_ms": 165
+      },
+      {
+        "version": 385,
+        "observation_to_paint_ms": 162
+      },
+      {
+        "version": 386,
+        "observation_to_paint_ms": 167
+      },
+      {
+        "version": 387,
+        "observation_to_paint_ms": 204
+      },
+      {
+        "version": 388,
+        "observation_to_paint_ms": 181
+      },
+      {
+        "version": 389,
+        "observation_to_paint_ms": 201
+      },
+      {
+        "version": 390,
+        "observation_to_paint_ms": 173
+      },
+      {
+        "version": 391,
+        "observation_to_paint_ms": 193
+      },
+      {
+        "version": 392,
+        "observation_to_paint_ms": 211
+      },
+      {
+        "version": 393,
+        "observation_to_paint_ms": 240
+      },
+      {
+        "version": 394,
+        "observation_to_paint_ms": 188
+      },
+      {
+        "version": 396,
+        "observation_to_paint_ms": 156
+      },
+      {
+        "version": 397,
+        "observation_to_paint_ms": 155
+      },
+      {
+        "version": 398,
+        "observation_to_paint_ms": 175
+      },
+      {
+        "version": 399,
+        "observation_to_paint_ms": 187
+      },
+      {
+        "version": 400,
+        "observation_to_paint_ms": 174
+      },
+      {
+        "version": 401,
+        "observation_to_paint_ms": 201
+      },
+      {
+        "version": 402,
+        "observation_to_paint_ms": 191
+      },
+      {
+        "version": 403,
+        "observation_to_paint_ms": 190
+      },
+      {
+        "version": 404,
+        "observation_to_paint_ms": 197
       },
       {
         "version": 405,
@@ -2009,487 +2057,495 @@
       },
       {
         "version": 406,
-        "observation_to_paint_ms": 215
-      },
-      {
-        "version": 407,
-        "observation_to_paint_ms": 212
-      },
-      {
-        "version": 408,
-        "observation_to_paint_ms": 250
-      },
-      {
-        "version": 409,
-        "observation_to_paint_ms": 202
-      },
-      {
-        "version": 410,
-        "observation_to_paint_ms": 239
-      },
-      {
-        "version": 412,
-        "observation_to_paint_ms": 136
-      },
-      {
-        "version": 413,
-        "observation_to_paint_ms": 115
-      },
-      {
-        "version": 414,
-        "observation_to_paint_ms": 126
-      },
-      {
-        "version": 415,
-        "observation_to_paint_ms": 139
-      },
-      {
-        "version": 416,
-        "observation_to_paint_ms": 116
-      },
-      {
-        "version": 417,
-        "observation_to_paint_ms": 144
-      },
-      {
-        "version": 418,
-        "observation_to_paint_ms": 143
-      },
-      {
-        "version": 419,
-        "observation_to_paint_ms": 120
-      },
-      {
-        "version": 420,
-        "observation_to_paint_ms": 142
-      },
-      {
-        "version": 421,
-        "observation_to_paint_ms": 135
-      },
-      {
-        "version": 422,
-        "observation_to_paint_ms": 139
-      },
-      {
-        "version": 423,
-        "observation_to_paint_ms": 141
-      },
-      {
-        "version": 424,
-        "observation_to_paint_ms": 135
-      },
-      {
-        "version": 425,
-        "observation_to_paint_ms": 178
-      },
-      {
-        "version": 426,
-        "observation_to_paint_ms": 143
-      },
-      {
-        "version": 427,
-        "observation_to_paint_ms": 165
-      },
-      {
-        "version": 428,
-        "observation_to_paint_ms": 157
-      },
-      {
-        "version": 429,
-        "observation_to_paint_ms": 177
-      },
-      {
-        "version": 430,
-        "observation_to_paint_ms": 204
-      },
-      {
-        "version": 431,
-        "observation_to_paint_ms": 153
-      },
-      {
-        "version": 432,
-        "observation_to_paint_ms": 139
-      },
-      {
-        "version": 433,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 434,
         "observation_to_paint_ms": 200
       },
       {
-        "version": 436,
-        "observation_to_paint_ms": 136
-      },
-      {
-        "version": 437,
-        "observation_to_paint_ms": 170
-      },
-      {
-        "version": 438,
-        "observation_to_paint_ms": 166
-      },
-      {
-        "version": 439,
-        "observation_to_paint_ms": 177
-      },
-      {
-        "version": 440,
-        "observation_to_paint_ms": 182
-      },
-      {
-        "version": 441,
-        "observation_to_paint_ms": 166
-      },
-      {
-        "version": 442,
-        "observation_to_paint_ms": 180
-      },
-      {
-        "version": 443,
-        "observation_to_paint_ms": 188
-      },
-      {
-        "version": 444,
+        "version": 407,
         "observation_to_paint_ms": 214
       },
       {
-        "version": 445,
-        "observation_to_paint_ms": 266
+        "version": 408,
+        "observation_to_paint_ms": 231
       },
       {
-        "version": 446,
-        "observation_to_paint_ms": 190
+        "version": 410,
+        "observation_to_paint_ms": 144
       },
       {
-        "version": 447,
-        "observation_to_paint_ms": 216
+        "version": 411,
+        "observation_to_paint_ms": 136
       },
       {
-        "version": 448,
-        "observation_to_paint_ms": 172
+        "version": 412,
+        "observation_to_paint_ms": 143
       },
       {
-        "version": 449,
-        "observation_to_paint_ms": 235
+        "version": 414,
+        "observation_to_paint_ms": 91
       },
       {
-        "version": 450,
-        "observation_to_paint_ms": 178
+        "version": 415,
+        "observation_to_paint_ms": 105
       },
       {
-        "version": 451,
-        "observation_to_paint_ms": 182
+        "version": 416,
+        "observation_to_paint_ms": 138
       },
       {
-        "version": 452,
-        "observation_to_paint_ms": 180
+        "version": 417,
+        "observation_to_paint_ms": 110
       },
       {
-        "version": 454,
-        "observation_to_paint_ms": 178
+        "version": 418,
+        "observation_to_paint_ms": 101
       },
       {
-        "version": 456,
+        "version": 419,
+        "observation_to_paint_ms": 121
+      },
+      {
+        "version": 420,
         "observation_to_paint_ms": 124
       },
       {
-        "version": 457,
-        "observation_to_paint_ms": 143
+        "version": 421,
+        "observation_to_paint_ms": 102
       },
       {
-        "version": 458,
-        "observation_to_paint_ms": 126
+        "version": 422,
+        "observation_to_paint_ms": 111
       },
       {
-        "version": 459,
-        "observation_to_paint_ms": 133
+        "version": 423,
+        "observation_to_paint_ms": 114
       },
       {
-        "version": 460,
-        "observation_to_paint_ms": 140
-      },
-      {
-        "version": 461,
-        "observation_to_paint_ms": 173
-      },
-      {
-        "version": 462,
-        "observation_to_paint_ms": 117
-      },
-      {
-        "version": 463,
-        "observation_to_paint_ms": 143
-      },
-      {
-        "version": 464,
-        "observation_to_paint_ms": 122
-      },
-      {
-        "version": 465,
-        "observation_to_paint_ms": 133
-      },
-      {
-        "version": 466,
-        "observation_to_paint_ms": 130
-      },
-      {
-        "version": 467,
-        "observation_to_paint_ms": 143
-      },
-      {
-        "version": 468,
-        "observation_to_paint_ms": 183
-      },
-      {
-        "version": 469,
-        "observation_to_paint_ms": 133
-      },
-      {
-        "version": 470,
-        "observation_to_paint_ms": 153
-      },
-      {
-        "version": 471,
-        "observation_to_paint_ms": 168
-      },
-      {
-        "version": 472,
-        "observation_to_paint_ms": 197
-      },
-      {
-        "version": 473,
-        "observation_to_paint_ms": 138
-      },
-      {
-        "version": 474,
-        "observation_to_paint_ms": 112
-      },
-      {
-        "version": 475,
-        "observation_to_paint_ms": 129
-      },
-      {
-        "version": 476,
-        "observation_to_paint_ms": 154
-      },
-      {
-        "version": 477,
-        "observation_to_paint_ms": 137
-      },
-      {
-        "version": 478,
-        "observation_to_paint_ms": 181
-      },
-      {
-        "version": 479,
-        "observation_to_paint_ms": 109
-      },
-      {
-        "version": 480,
-        "observation_to_paint_ms": 112
-      },
-      {
-        "version": 481,
-        "observation_to_paint_ms": 131
-      },
-      {
-        "version": 482,
-        "observation_to_paint_ms": 158
-      },
-      {
-        "version": 483,
-        "observation_to_paint_ms": 137
-      },
-      {
-        "version": 484,
-        "observation_to_paint_ms": 133
-      },
-      {
-        "version": 485,
-        "observation_to_paint_ms": 109
-      },
-      {
-        "version": 486,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 487,
-        "observation_to_paint_ms": 153
-      },
-      {
-        "version": 489,
-        "observation_to_paint_ms": 108
-      },
-      {
-        "version": 490,
-        "observation_to_paint_ms": 140
-      },
-      {
-        "version": 491,
-        "observation_to_paint_ms": 159
-      },
-      {
-        "version": 492,
-        "observation_to_paint_ms": 146
-      },
-      {
-        "version": 493,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 494,
-        "observation_to_paint_ms": 122
-      },
-      {
-        "version": 495,
-        "observation_to_paint_ms": 120
-      },
-      {
-        "version": 496,
-        "observation_to_paint_ms": 142
-      },
-      {
-        "version": 497,
-        "observation_to_paint_ms": 154
-      },
-      {
-        "version": 498,
-        "observation_to_paint_ms": 140
-      },
-      {
-        "version": 499,
-        "observation_to_paint_ms": 145
-      },
-      {
-        "version": 500,
-        "observation_to_paint_ms": 144
-      },
-      {
-        "version": 501,
-        "observation_to_paint_ms": 149
-      },
-      {
-        "version": 502,
-        "observation_to_paint_ms": 176
-      },
-      {
-        "version": 503,
-        "observation_to_paint_ms": 127
-      },
-      {
-        "version": 504,
-        "observation_to_paint_ms": 167
-      },
-      {
-        "version": 505,
-        "observation_to_paint_ms": 218
-      },
-      {
-        "version": 506,
-        "observation_to_paint_ms": 173
-      },
-      {
-        "version": 507,
-        "observation_to_paint_ms": 146
-      },
-      {
-        "version": 508,
-        "observation_to_paint_ms": 166
-      },
-      {
-        "version": 509,
-        "observation_to_paint_ms": 194
-      },
-      {
-        "version": 511,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 512,
-        "observation_to_paint_ms": 160
-      },
-      {
-        "version": 513,
-        "observation_to_paint_ms": 173
-      },
-      {
-        "version": 514,
-        "observation_to_paint_ms": 156
-      },
-      {
-        "version": 515,
-        "observation_to_paint_ms": 179
-      },
-      {
-        "version": 516,
-        "observation_to_paint_ms": 134
-      },
-      {
-        "version": 517,
-        "observation_to_paint_ms": 140
-      },
-      {
-        "version": 518,
+        "version": 424,
         "observation_to_paint_ms": 141
       },
       {
-        "version": 519,
-        "observation_to_paint_ms": 139
+        "version": 425,
+        "observation_to_paint_ms": 102
       },
       {
-        "version": 520,
-        "observation_to_paint_ms": 138
+        "version": 426,
+        "observation_to_paint_ms": 91
       },
       {
-        "version": 521,
-        "observation_to_paint_ms": 139
+        "version": 427,
+        "observation_to_paint_ms": 110
       },
       {
-        "version": 522,
-        "observation_to_paint_ms": 164
+        "version": 428,
+        "observation_to_paint_ms": 106
       },
       {
-        "version": 523,
-        "observation_to_paint_ms": 144
+        "version": 429,
+        "observation_to_paint_ms": 153
       },
       {
-        "version": 524,
-        "observation_to_paint_ms": 149
+        "version": 430,
+        "observation_to_paint_ms": 96
       },
       {
-        "version": 525,
-        "observation_to_paint_ms": 186
+        "version": 431,
+        "observation_to_paint_ms": 123
       },
       {
-        "version": 526,
+        "version": 432,
+        "observation_to_paint_ms": 145
+      },
+      {
+        "version": 433,
+        "observation_to_paint_ms": 98
+      },
+      {
+        "version": 434,
+        "observation_to_paint_ms": 179
+      },
+      {
+        "version": 435,
+        "observation_to_paint_ms": 170
+      },
+      {
+        "version": 436,
+        "observation_to_paint_ms": 105
+      },
+      {
+        "version": 437,
         "observation_to_paint_ms": 152
       },
       {
-        "version": 528,
-        "observation_to_paint_ms": 104
+        "version": 438,
+        "observation_to_paint_ms": 114
       },
       {
-        "version": 529,
-        "observation_to_paint_ms": 172
+        "version": 439,
+        "observation_to_paint_ms": 115
       },
       {
-        "version": 530,
-        "observation_to_paint_ms": 197
+        "version": 440,
+        "observation_to_paint_ms": 114
       },
       {
-        "version": 531,
-        "observation_to_paint_ms": 146
+        "version": 441,
+        "observation_to_paint_ms": 124
       },
       {
-        "version": 532,
+        "version": 442,
+        "observation_to_paint_ms": 121
+      },
+      {
+        "version": 444,
+        "observation_to_paint_ms": 138
+      },
+      {
+        "version": 445,
+        "observation_to_paint_ms": 165
+      },
+      {
+        "version": 446,
+        "observation_to_paint_ms": 123
+      },
+      {
+        "version": 447,
+        "observation_to_paint_ms": 133
+      },
+      {
+        "version": 448,
+        "observation_to_paint_ms": 82
+      },
+      {
+        "version": 449,
+        "observation_to_paint_ms": 128
+      },
+      {
+        "version": 450,
+        "observation_to_paint_ms": 153
+      },
+      {
+        "version": 451,
+        "observation_to_paint_ms": 93
+      },
+      {
+        "version": 452,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 453,
+        "observation_to_paint_ms": 133
+      },
+      {
+        "version": 454,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 455,
+        "observation_to_paint_ms": 119
+      },
+      {
+        "version": 456,
+        "observation_to_paint_ms": 111
+      },
+      {
+        "version": 457,
+        "observation_to_paint_ms": 127
+      },
+      {
+        "version": 458,
+        "observation_to_paint_ms": 140
+      },
+      {
+        "version": 459,
+        "observation_to_paint_ms": 118
+      },
+      {
+        "version": 460,
+        "observation_to_paint_ms": 130
+      },
+      {
+        "version": 461,
+        "observation_to_paint_ms": 133
+      },
+      {
+        "version": 462,
         "observation_to_paint_ms": 137
       },
       {
-        "version": 533,
+        "version": 463,
+        "observation_to_paint_ms": 146
+      },
+      {
+        "version": 464,
+        "observation_to_paint_ms": 201
+      },
+      {
+        "version": 465,
+        "observation_to_paint_ms": 148
+      },
+      {
+        "version": 466,
+        "observation_to_paint_ms": 174
+      },
+      {
+        "version": 467,
+        "observation_to_paint_ms": 121
+      },
+      {
+        "version": 468,
+        "observation_to_paint_ms": 142
+      },
+      {
+        "version": 469,
+        "observation_to_paint_ms": 153
+      },
+      {
+        "version": 470,
+        "observation_to_paint_ms": 143
+      },
+      {
+        "version": 471,
+        "observation_to_paint_ms": 142
+      },
+      {
+        "version": 472,
+        "observation_to_paint_ms": 155
+      },
+      {
+        "version": 473,
+        "observation_to_paint_ms": 171
+      },
+      {
+        "version": 474,
+        "observation_to_paint_ms": 158
+      },
+      {
+        "version": 475,
+        "observation_to_paint_ms": 169
+      },
+      {
+        "version": 476,
+        "observation_to_paint_ms": 163
+      },
+      {
+        "version": 477,
+        "observation_to_paint_ms": 167
+      },
+      {
+        "version": 478,
+        "observation_to_paint_ms": 194
+      },
+      {
+        "version": 479,
+        "observation_to_paint_ms": 183
+      },
+      {
+        "version": 480,
+        "observation_to_paint_ms": 144
+      },
+      {
+        "version": 481,
+        "observation_to_paint_ms": 155
+      },
+      {
+        "version": 482,
+        "observation_to_paint_ms": 161
+      },
+      {
+        "version": 483,
+        "observation_to_paint_ms": 172
+      },
+      {
+        "version": 484,
+        "observation_to_paint_ms": 150
+      },
+      {
+        "version": 485,
+        "observation_to_paint_ms": 168
+      },
+      {
+        "version": 486,
+        "observation_to_paint_ms": 225
+      },
+      {
+        "version": 487,
+        "observation_to_paint_ms": 179
+      },
+      {
+        "version": 488,
+        "observation_to_paint_ms": 150
+      },
+      {
+        "version": 489,
+        "observation_to_paint_ms": 183
+      },
+      {
+        "version": 490,
+        "observation_to_paint_ms": 167
+      },
+      {
+        "version": 491,
+        "observation_to_paint_ms": 186
+      },
+      {
+        "version": 492,
+        "observation_to_paint_ms": 148
+      },
+      {
+        "version": 493,
+        "observation_to_paint_ms": 214
+      },
+      {
+        "version": 494,
+        "observation_to_paint_ms": 164
+      },
+      {
+        "version": 495,
+        "observation_to_paint_ms": 176
+      },
+      {
+        "version": 496,
+        "observation_to_paint_ms": 181
+      },
+      {
+        "version": 497,
+        "observation_to_paint_ms": 174
+      },
+      {
+        "version": 498,
+        "observation_to_paint_ms": 180
+      },
+      {
+        "version": 499,
+        "observation_to_paint_ms": 171
+      },
+      {
+        "version": 500,
+        "observation_to_paint_ms": 176
+      },
+      {
+        "version": 501,
+        "observation_to_paint_ms": 176
+      },
+      {
+        "version": 502,
+        "observation_to_paint_ms": 175
+      },
+      {
+        "version": 503,
+        "observation_to_paint_ms": 188
+      },
+      {
+        "version": 504,
+        "observation_to_paint_ms": 210
+      },
+      {
+        "version": 505,
+        "observation_to_paint_ms": 257
+      },
+      {
+        "version": 506,
+        "observation_to_paint_ms": 202
+      },
+      {
+        "version": 507,
+        "observation_to_paint_ms": 227
+      },
+      {
+        "version": 508,
+        "observation_to_paint_ms": 191
+      },
+      {
+        "version": 509,
+        "observation_to_paint_ms": 193
+      },
+      {
+        "version": 510,
+        "observation_to_paint_ms": 190
+      },
+      {
+        "version": 511,
+        "observation_to_paint_ms": 217
+      },
+      {
+        "version": 512,
+        "observation_to_paint_ms": 238
+      },
+      {
+        "version": 513,
+        "observation_to_paint_ms": 216
+      },
+      {
+        "version": 515,
+        "observation_to_paint_ms": 159
+      },
+      {
+        "version": 516,
+        "observation_to_paint_ms": 115
+      },
+      {
+        "version": 517,
+        "observation_to_paint_ms": 131
+      },
+      {
+        "version": 518,
+        "observation_to_paint_ms": 161
+      },
+      {
+        "version": 519,
+        "observation_to_paint_ms": 133
+      },
+      {
+        "version": 520,
+        "observation_to_paint_ms": 137
+      },
+      {
+        "version": 521,
+        "observation_to_paint_ms": 150
+      },
+      {
+        "version": 522,
+        "observation_to_paint_ms": 121
+      },
+      {
+        "version": 523,
         "observation_to_paint_ms": 128
+      },
+      {
+        "version": 524,
+        "observation_to_paint_ms": 147
+      },
+      {
+        "version": 525,
+        "observation_to_paint_ms": 145
+      },
+      {
+        "version": 526,
+        "observation_to_paint_ms": 164
+      },
+      {
+        "version": 527,
+        "observation_to_paint_ms": 211
+      },
+      {
+        "version": 528,
+        "observation_to_paint_ms": 141
+      },
+      {
+        "version": 529,
+        "observation_to_paint_ms": 135
+      },
+      {
+        "version": 530,
+        "observation_to_paint_ms": 146
+      },
+      {
+        "version": 531,
+        "observation_to_paint_ms": 151
+      },
+      {
+        "version": 532,
+        "observation_to_paint_ms": 157
       },
       {
         "version": 534,
@@ -2497,119 +2553,123 @@
       },
       {
         "version": 535,
-        "observation_to_paint_ms": 132
+        "observation_to_paint_ms": 198
       },
       {
         "version": 536,
-        "observation_to_paint_ms": 121
-      },
-      {
-        "version": 537,
-        "observation_to_paint_ms": 125
-      },
-      {
-        "version": 538,
-        "observation_to_paint_ms": 143
-      },
-      {
-        "version": 539,
-        "observation_to_paint_ms": 148
-      },
-      {
-        "version": 540,
-        "observation_to_paint_ms": 125
-      },
-      {
-        "version": 541,
-        "observation_to_paint_ms": 137
-      },
-      {
-        "version": 542,
-        "observation_to_paint_ms": 163
-      },
-      {
-        "version": 543,
-        "observation_to_paint_ms": 203
-      },
-      {
-        "version": 544,
-        "observation_to_paint_ms": 172
-      },
-      {
-        "version": 546,
-        "observation_to_paint_ms": 134
-      },
-      {
-        "version": 547,
-        "observation_to_paint_ms": 139
-      },
-      {
-        "version": 548,
-        "observation_to_paint_ms": 201
-      },
-      {
-        "version": 549,
-        "observation_to_paint_ms": 177
-      },
-      {
-        "version": 550,
-        "observation_to_paint_ms": 236
-      },
-      {
-        "version": 551,
         "observation_to_paint_ms": 151
       },
       {
-        "version": 552,
-        "observation_to_paint_ms": 123
-      },
-      {
-        "version": 553,
-        "observation_to_paint_ms": 123
-      },
-      {
-        "version": 554,
-        "observation_to_paint_ms": 163
-      },
-      {
-        "version": 555,
-        "observation_to_paint_ms": 144
-      },
-      {
-        "version": 556,
-        "observation_to_paint_ms": 202
-      },
-      {
-        "version": 557,
-        "observation_to_paint_ms": 163
-      },
-      {
-        "version": 558,
-        "observation_to_paint_ms": 123
-      },
-      {
-        "version": 559,
-        "observation_to_paint_ms": 142
-      },
-      {
-        "version": 560,
-        "observation_to_paint_ms": 140
-      },
-      {
-        "version": 561,
+        "version": 537,
         "observation_to_paint_ms": 139
       },
       {
+        "version": 538,
+        "observation_to_paint_ms": 137
+      },
+      {
+        "version": 539,
+        "observation_to_paint_ms": 160
+      },
+      {
+        "version": 540,
+        "observation_to_paint_ms": 164
+      },
+      {
+        "version": 541,
+        "observation_to_paint_ms": 189
+      },
+      {
+        "version": 542,
+        "observation_to_paint_ms": 195
+      },
+      {
+        "version": 543,
+        "observation_to_paint_ms": 144
+      },
+      {
+        "version": 544,
+        "observation_to_paint_ms": 157
+      },
+      {
+        "version": 545,
+        "observation_to_paint_ms": 169
+      },
+      {
+        "version": 546,
+        "observation_to_paint_ms": 177
+      },
+      {
+        "version": 547,
+        "observation_to_paint_ms": 197
+      },
+      {
+        "version": 548,
+        "observation_to_paint_ms": 204
+      },
+      {
+        "version": 549,
+        "observation_to_paint_ms": 189
+      },
+      {
+        "version": 550,
+        "observation_to_paint_ms": 208
+      },
+      {
+        "version": 551,
+        "observation_to_paint_ms": 221
+      },
+      {
+        "version": 552,
+        "observation_to_paint_ms": 221
+      },
+      {
+        "version": 553,
+        "observation_to_paint_ms": 219
+      },
+      {
+        "version": 555,
+        "observation_to_paint_ms": 111
+      },
+      {
+        "version": 556,
+        "observation_to_paint_ms": 154
+      },
+      {
+        "version": 557,
+        "observation_to_paint_ms": 89
+      },
+      {
+        "version": 558,
+        "observation_to_paint_ms": 117
+      },
+      {
+        "version": 559,
+        "observation_to_paint_ms": 136
+      },
+      {
+        "version": 560,
+        "observation_to_paint_ms": 125
+      },
+      {
+        "version": 561,
+        "observation_to_paint_ms": 151
+      },
+      {
         "version": 562,
-        "observation_to_paint_ms": 112
+        "observation_to_paint_ms": 103
       },
       {
         "version": 563,
-        "observation_to_paint_ms": 133
+        "observation_to_paint_ms": 98
+      },
+      {
+        "version": 564,
+        "observation_to_paint_ms": 117
       }
     ]
   },
-  "source_manifest_sha256": "abcdf1ee96b141c6538031ea7dcc67cf1cfb6b500ec968cfe65db38db0b859c1",
+  "source_manifest_sha256": "309324842fb41679c0515dc4d2acd058943b5ec6a7b71a63e463dabb0374cf19",
   "unverified": [
     "macOS/Linux native desktop installation and window lifetime",
     "GPU/sparse/distributed/non-Python built-in adapters",
