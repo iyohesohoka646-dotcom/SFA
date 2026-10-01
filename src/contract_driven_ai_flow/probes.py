@@ -21,7 +21,9 @@ def translate(expression: str) -> str:
         index = 0
         while index < len(tokens):
             token = tokens[index]
-            if token.string == "$" and token.type == tokenize.ERRORTOKEN:
+            # Python 3.12+ emits unsupported punctuation as OP instead of
+            # ERRORTOKEN. The exact token text still excludes string literals.
+            if token.string == "$":
                 index += 1
                 if index >= len(tokens) or tokens[index].type != tokenize.NAME or tokens[index].string not in ("input", "output"):
                     raise ValueError("Only $input and $output are supported")

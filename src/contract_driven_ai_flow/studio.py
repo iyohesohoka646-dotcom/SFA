@@ -128,12 +128,19 @@ def _start(root: Path, port: int | None, *, workspace: bool) -> dict:
         flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB
     launch_id = secrets.token_hex(16)
     with (root / ".cdaf/studio.log").open("ab") as log:
-        child = subprocess.Popen(
-            [sys.executable, "-X", "utf8", "-m", "contract_driven_ai_flow.studio", str(root), str(port), launch_id, "workspace" if workspace else "project"],
-            cwd=root, env={**os.environ, "PYTHONUTF8": "1"},
-            stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
-            creationflags=flags, start_new_session=os.name != "nt", close_fds=True,
-        )
+        arguments = [sys.executable, "-X", "utf8", "-m", "contract_driven_ai_flow.studio", str(root), str(port), launch_id, "workspace" if workspace else "project"]
+        options = dict(cwd=root, env={**os.environ, "PYTHONUTF8": "1"},
+                       stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
+                       creationflags=flags, start_new_session=os.name != "nt", close_fds=True)
+        try:
+            child = subprocess.Popen(arguments, **options)
+        except OSError as exc:
+            if os.name != "nt" or getattr(exc, "winerror", None) != 5:
+                raise
+            # Restricted Windows job hosts can deny breakaway. Keep console
+            # detachment, while respecting that host's job lifetime policy.
+            options["creationflags"] = flags & ~subprocess.CREATE_BREAKAWAY_FROM_JOB
+            child = subprocess.Popen(arguments, **options)
     deadline = time.monotonic() + 20
     while time.monotonic() < deadline:
         state = read_state(root)

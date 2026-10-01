@@ -96,7 +96,7 @@ def main():
         "examples": examples, "archify": archify,
         "measurements": {name: read(f"docs/assets/{name}.json") for name in ("browser-performance", "large-graph-performance", "capture-performance")},
         "source_manifest_sha256": digest(source_manifest), "source_manifest": manifest,
-        "pending_external_gates": ["macOS/Linux CI execution", "live paid-model calls", "remote rename, push and publication"],
+        "pending_external_gates": ["cross-platform CI result recorded separately", "live paid-model calls", "default-branch merge, repository rename and PyPI publication"],
     }
     destination = repository / "docs/assets/validation.json"
     destination.write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

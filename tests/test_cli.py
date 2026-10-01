@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import yaml
+from click import unstyle
 from typer.testing import CliRunner
 
 from sfa.cli import app
@@ -401,4 +402,4 @@ def test_list_graph_help(tmp_path: Path) -> None:
     for cmd in ["list", "graph"]:
         res = runner.invoke(app, [cmd, "--help"])
         assert res.exit_code == 0
-        assert "--project" in res.stdout
+        assert "--project" in unstyle(res.stdout)

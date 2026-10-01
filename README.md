@@ -7,6 +7,14 @@ Visual flow-based programming with explicit contracts, bounded AI code changes, 
 
 [简体中文](README.zh-CN.md) · [Getting started](docs/workflow.md) · [CLI reference](docs/cli.md) · [Web/CLI coverage](docs/web-cli-delivery.md) · [Architecture](docs/architecture.md)
 
+The local Studio is available in [draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1). Install the feature branch with Python 3.11+ and Git, then open the bundled Web UI:
+
+```console
+python -m pip install "git+https://github.com/iyohesohoka646-dotcom/SFA.git@feat/contract-driven-ai-flow"
+python -m contract_driven_ai_flow studio
+python -m contract_driven_ai_flow shortcut
+```
+
 ![Local Studio showing a real completed execution with a failed quality assertion](docs/assets/studio-runtime.png)
 
 Build a controllable, composable Python code structure. Humans define module interfaces and data dependencies; AI proposes implementations inside those boundaries. Review architecture and code separately, then inspect revision-bound execution evidence on the same canvas.

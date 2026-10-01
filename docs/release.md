@@ -1,6 +1,6 @@
 # 0.2.0 release candidate
 
-This is a local, reviewable release candidate in `feat/contract-driven-ai-flow`, based on SFA `c9a745e851d155b4c5fdede2d6cd2758c530e3c0`. Product names, README, Python distribution/import/CLI and executable examples are updated. The remote remains SFA; [prepared repository metadata](repository-metadata.json) records the proposed name, About text and topics. No push, repository rename, package publication or online hosting has been performed.
+This is a reviewable release candidate in `feat/contract-driven-ai-flow`, based on SFA `c9a745e851d155b4c5fdede2d6cd2758c530e3c0`, now available in [draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1). Product names, README, Python distribution/import/CLI and executable examples are updated. The remote remains SFA; [prepared repository metadata](repository-metadata.json) records the proposed name, About text and topics. The feature branch was pushed with explicit user authorization. Repository rename, default-branch merge, PyPI publication and online hosting have not been performed.
 
 ## Verification record
 

@@ -1,5 +1,13 @@
 # Contract-Driven AI Flow
 
+本地工作台已发布到[草稿 PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1) 的功能分支。使用 Python 3.11+ 和 Git 安装后即可打开内置 Web UI，并创建桌面快捷方式：
+
+```console
+python -m pip install "git+https://github.com/iyohesohoka646-dotcom/SFA.git@feat/contract-driven-ai-flow"
+python -m contract_driven_ai_flow studio
+python -m contract_driven_ai_flow shortcut
+```
+
 **Visual Flow-Based Programming for AI-Assisted Development**
 契约驱动的 AI 可视化数据流编程。
 
