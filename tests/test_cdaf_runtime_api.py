@@ -70,7 +70,9 @@ def single(tmp_path, source, *, output=None, timeout=3, retries=0, probes=None):
 
 @pytest.mark.parametrize("source,state,error", [("raise RuntimeError('import failed')\ndef f():\n    return 1\n", "failed", "RuntimeError"), ("def f():\n    import os\n    os._exit(3)\n", "failed", "WorkerExit"), ("def f():\n    import time\n    time.sleep(10)\n", "failed", "Timeout"), ("def f():\n    return object()\n", "failed", "TypeError")])
 def test_import_crash_timeout_unsupported_have_final_evidence(tmp_path, source, state, error):
-    root = single(tmp_path, source, timeout=.7)
+    # Only the sleeping case tests a short deadline. Other cases need enough
+    # time for a cold spawned interpreter to report their actual failure.
+    root = single(tmp_path, source, timeout=3 if error == "Timeout" else 10)
     result = Runner(root).run({})
     assert result["status"] == state
     events = Store(root).events(result["id"])

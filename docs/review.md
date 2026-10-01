@@ -37,3 +37,9 @@ A second independent read-only review reproduced one Critical and five Important
 | One invalid YAML definition blocks the project catalogue and startup | Convert YAML parse failures to a readable project error and mark the catalogue entry unavailable; healthy projects and workspace startup continue. |
 
 The earlier sixteen whole-branch cases remain intact. `tests/test_cdaf_studio.py` now has six lifecycle cases, including concurrent launches of the same project. The ten browser tasks additionally verify empty-directory onboarding, mobile overflow, keyboard tabs, focus-return dialogs, probe editing and session recovery. Isolated installed-wheel and source-install results are recorded separately in the release evidence. The reviewer did not independently re-review the fix pass.
+
+## Cross-platform CI follow-up
+
+The first remote matrix run exposed three differences absent from the original Windows/Python 3.11 setup. Python 3.12+ tokenizes unsupported `$` punctuation as OP, so the translator now recognizes the exact token text while preserving string literals. Restricted Windows job hosts reject CREATE_BREAKAWAY_FROM_JOB; the launcher retries that specific access-denied failure with console detachment retained, respecting the host's job lifetime. The legacy CLI help test now compares visible text after removing ANSI styling.
+
+A separate Python 3.13 run exposed a test-fixture deadline: a 0.7-second budget could expire during cold interpreter startup before import/exit/encoding errors were reported. Only the sleeping case now uses a short deadline; the three error cases have enough startup budget to test their intended failure. The actual timeout case still checks the Timeout event and final run evidence. Matrix results are recorded separately from the local receipts.
