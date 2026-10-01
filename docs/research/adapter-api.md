@@ -31,4 +31,8 @@ my-tensor = "my_package.adapters:MyAdapter"
 
 历史样例在发布时复制，完整值仅在 `full` 策略及有产物目录时保存。数值产物采用禁止 pickle 的 `.npy`；表格产物依赖可选 PyArrow，使用 Arrow IPC 与类型化单元编码。切片读取指定观察的产物，缺失时返回不可用，不能读取最新活对象代替。默认完整产物上限为单个 64 MiB、单运行 256 MiB。
 
-独立运行器可以产生同一版本的 `ObservationEvent`，无需依赖 Python 数据适配器。可视化扩展消费脱敏的描述符和有界样例；实现阶段应声明支持的能力和类型 ID，不能依赖任意 Python 对象。运行器和前端渲染注册接口随工作台交付一并固定。
+独立运行器可以产生同一版本的 `ObservationEvent`，无需依赖 Python 数据适配器。运行器使用 `RunnerRegistry`，发行入口组为 `cdaf.research.runners`；探针使用 `ProbeRegistry`，入口组为 `cdaf.research.probes`。两者均须显式启用，不会自动执行已安装插件。
+
+前端渲染器协议 v1 位于 `web/src/research/renderer-registry.ts`，注册 `{protocolVersion: 1, id, supports(descriptor), Component}`。组件接收脱敏 `SnapshotRef`，通过描述符的 backend/kind/capabilities 选择视图；未知类型保留通用预览。`PointCloudView.tsx` 是独立点云适配器的完整示例，在 `main.tsx` 注册，浏览器验收使用真实 SDK 捕获的点云记录。新增渲染器需要重新构建前端；首版不从网络加载任意 JavaScript 插件。
+
+GPU、稀疏、分布式、延迟对象与其他语言执行器当前尚无内置适配，注册接口为它们保留位置。插件应提供有界预览，明确说明是否发生设备传输、计算或物化，并注明观察覆盖范围。声明可扩展性不等于已验证这些后端。

@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-10-01T13:14:27.510273+00:00",
+  "measured_at": "2026-10-01T14:21:05.906522+00:00",
   "fixture": {
     "logical_values": 1000,
     "maximum_visible_nodes": 80,
@@ -9,91 +9,117 @@
   "measurements": [
     {
       "paint": [
-        1.1000000089406967,
-        1.6000000089406967,
         2,
-        2.4000000059604645,
-        3,
-        3.199999988079071,
-        3.2999999970197678,
-        3.4000000059604645,
-        4.100000008940697,
-        4.200000002980232,
-        4.300000011920929,
-        4.5999999940395355,
-        4.700000002980232,
-        4.800000011920929,
-        5,
-        5.199999988079071,
-        5.5,
-        5.700000002980232,
-        6.0999999940395355,
-        6.4000000059604645
+        2,
+        2.7999999970197678,
+        2.8999999910593033,
+        3.0999999940395355,
+        4.299999997019768,
+        4.299999997019768,
+        4.5,
+        4.5,
+        5.299999997019768,
+        5.600000008940697,
+        8.400000005960464,
+        12.099999994039536,
+        12.899999991059303,
+        13.600000008940697,
+        20.5,
+        21.100000008940697,
+        21.200000002980232,
+        22.5,
+        22.799999997019768,
+        25.799999997019768,
+        33.900000005960464
       ],
       "api": [
         {
+          "url": "/api/v1/research/probe-types",
+          "duration": 7.899999991059303
+        },
+        {
           "url": "/api/v1/research/info",
-          "duration": 8.900000005960464
+          "duration": 7
+        },
+        {
+          "url": "/api/v1/research/experiment",
+          "duration": 7
         },
         {
           "url": "/api/v1/research/runs",
-          "duration": 7.700000002980232
+          "duration": 6
         },
         {
-          "url": "/api/v1/research/runs/b78dee7be12741f581934f57ba9f7068/bootstrap",
-          "duration": 132.29999999701977
+          "url": "/api/v1/research/runs/bc791c4d43ca42f2bf561e919cf305d1/bootstrap",
+          "duration": 11.399999991059303
         },
         {
-          "url": "/api/v1/research/snapshots/s0-10",
-          "duration": 6.9000000059604645
+          "url": "/api/v1/research/runs/bc791c4d43ca42f2bf561e919cf305d1/source",
+          "duration": 34
         },
         {
-          "url": "/api/v1/research/snapshots/s999-10",
-          "duration": 5.399999991059303
+          "url": "/api/v1/research/snapshots/b97cd01e5ae54f6cb57e0bc2deff7c73",
+          "duration": 6.799999997019768
         },
         {
-          "url": "/api/v1/research/snapshots/s7-10",
+          "url": "/api/v1/research/runs/adacbdfb916f40f687ebcdffb32f46ec/source",
           "duration": 5.200000002980232
         },
         {
-          "url": "/api/v1/research/snapshots/s20-10",
-          "duration": 5.4000000059604645
-        },
-        {
-          "url": "/api/v1/research/snapshots/s999-10",
-          "duration": 4.399999991059303
-        },
-        {
-          "url": "/api/v1/research/snapshots/s15-10",
-          "duration": 4.299999997019768
-        },
-        {
-          "url": "/api/v1/research/snapshots/s7-10",
-          "duration": 4.799999997019768
-        },
-        {
-          "url": "/api/v1/research/snapshots/s81-10",
-          "duration": 5.299999997019768
-        },
-        {
-          "url": "/api/v1/research/snapshots/s999-10",
-          "duration": 7.200000002980232
+          "url": "/api/v1/research/runs/adacbdfb916f40f687ebcdffb32f46ec/bootstrap",
+          "duration": 102.79999999701977
         },
         {
           "url": "/api/v1/research/snapshots/s0-10",
-          "duration": 6.199999988079071
+          "duration": 6.5
+        },
+        {
+          "url": "/api/v1/research/snapshots/s999-10",
+          "duration": 15.599999994039536
+        },
+        {
+          "url": "/api/v1/research/snapshots/s7-10",
+          "duration": 14.300000011920929
+        },
+        {
+          "url": "/api/v1/research/snapshots/s20-10",
+          "duration": 16.900000005960464
+        },
+        {
+          "url": "/api/v1/research/snapshots/s999-10",
+          "duration": 13.799999997019768
+        },
+        {
+          "url": "/api/v1/research/snapshots/s15-10",
+          "duration": 12.399999991059303
+        },
+        {
+          "url": "/api/v1/research/snapshots/s7-10",
+          "duration": 16.400000005960464
+        },
+        {
+          "url": "/api/v1/research/snapshots/s81-10",
+          "duration": 17.100000008940697
+        },
+        {
+          "url": "/api/v1/research/snapshots/s999-10",
+          "duration": 12.199999988079071
+        },
+        {
+          "url": "/api/v1/research/snapshots/s0-10",
+          "duration": 11.799999997019768
         },
         {
           "url": "/api/v1/research/snapshots/s1-10",
-          "duration": 4.0999999940395355
+          "duration": 18
         }
       ],
       "longTasks": [],
-      "ready": 1032.9000000059605,
-      "count": 20,
-      "p50": 4.300000011920929,
-      "p95": 6.0999999940395355,
-      "detailP95": 7.200000002980232
+      "ready": 1795.2000000029802,
+      "count": 22,
+      "p50": 8.400000005960464,
+      "p95": 25.799999997019768,
+      "detailP95": 18
     }
   ],
   "scope": "Synthetic UI history fixture; excludes scientific computation and initial server preparation"

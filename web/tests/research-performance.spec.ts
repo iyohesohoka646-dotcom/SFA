@@ -15,7 +15,9 @@ test('research-performance: 1000 values and 10000 events stay interactive', asyn
   });
   await page.goto('/#session=research-test-session');
   await expect(page.getByRole('heading', {name: 'Scientific Dataflow Inspector'})).toBeVisible();
+  await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Analysis · completed'}).last().textContent()||''});
   await expect(page.getByTestId('variable-count')).toHaveText('1000');
+  await page.getByRole('button',{name:'展开运算链',exact:true}).click();
   await expect(page.getByTestId('flow-node')).toHaveCount(80);
   for (const name of ['X999', 'X7', 'X20', 'X999', 'X15', 'X7', 'X81', 'X999', 'X0', 'X1']) {
     await page.getByRole('searchbox', {name: '搜索变量'}).fill(name);
@@ -39,6 +41,7 @@ test('research-performance: slow details do not disable input and selection', as
     await route.continue().catch(()=>{});
   });
   await page.goto('/#session=research-test-session');
+  await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Analysis · completed'}).last().textContent()||''});
   const search = page.getByRole('searchbox', {name: '搜索变量'});
   await expect(page.getByTestId('variable-count')).toHaveText('1000');
   await search.fill('X7');

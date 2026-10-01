@@ -6,9 +6,10 @@ export interface ResearchState {
   operations: Map<string, OperationRecord>; probes: Map<string, ProbeResult[]>;
   dependencies: Map<string, string[]>; timeline: ObservationEvent[];
   status: string; omittedBindings: number;
+  summary:Record<string,unknown>;
 }
 export const createState = (runId: string): ResearchState => ({runId,lastSequence:0,topologyVersion:0,latest:new Map(),snapshots:new Map(),
-  operations:new Map(),probes:new Map(),dependencies:new Map(),timeline:[],status:'queued',omittedBindings:0});
+  operations:new Map(),probes:new Map(),dependencies:new Map(),timeline:[],status:'queued',omittedBindings:0,summary:{}});
 
 function bound<K,V>(map: Map<K,V>, maximum: number) {
   while (map.size>maximum) map.delete(map.keys().next().value!);
@@ -51,5 +52,5 @@ export function applyEvent(state: ResearchState, event: ObservationEvent): Resea
   }
   const status=event.kind==='run.finished'?String(event.payload.status):event.kind==='control.paused'?'paused':
     ['control.resumed','run.started'].includes(event.kind)?'running':state.status;
-  return {...state,lastSequence:event.sequence,status,timeline:[...state.timeline.slice(-511),event]};
+  return {...state,lastSequence:event.sequence,status,summary:event.kind==='run.finished'?event.payload:state.summary,timeline:[...state.timeline.slice(-511),event]};
 }

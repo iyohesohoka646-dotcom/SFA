@@ -27,6 +27,20 @@ if __name__ == "__main__":
             events.append(ObservationEvent(run_id=run["id"], kind="value.observed", snapshot_id=snapshot.id, payload={"snapshot": snapshot.model_dump(mode="json")}))
         store.append(events)
     store.append([ObservationEvent(run_id=run["id"], kind="run.finished", payload={"status":"completed", "quality":"unconfigured"})])
+    import importlib.util
+    import sys
+    from contract_driven_ai_flow.research.agent.sdk import TraceSession
+    from contract_driven_ai_flow.research.agent.registry import AdapterRegistry
+    spec = importlib.util.spec_from_file_location("pointcloud_example", base / "examples/research/custom-adapter.py")
+    example = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = example
+    spec.loader.exec_module(example)
+    registry = AdapterRegistry()
+    registry.register(example.PointCloudAdapter())
+    extension = store.create_run(str(script), interpreter=sys.executable, source_digest="fixture-source", name="Point cloud extension")
+    with TraceSession("Point cloud", run_id=extension["id"], registry=registry) as trace:
+        trace.watch("points", example.PointCloud(((1.0,2.0),(3.0,4.0))))
+    store.append([ObservationEvent.model_validate(e) for e in trace.transport.drain()])
     app = create_research_app(root, token="research-test-session", port=8879)
     app.mount("/", StaticFiles(directory=base / "src/contract_driven_ai_flow/static", html=True))
     uvicorn.run(app, host="127.0.0.1", port=8879, access_log=False)

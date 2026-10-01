@@ -9,6 +9,13 @@ let elk:InstanceType<typeof ELK>|undefined;
 export type Point = { x: number; y: number };
 export type View = { positions: Record<string, Point>; collapsed: string[]; theme: string };
 
+export async function layoutResearch(nodes:Node[],edges:Edge[]):Promise<Map<string,Point>>{
+  elk??=new ELK({workerFactory:()=>new Worker(workerUrl)});
+  const graph=await elk.layout({id:'research',layoutOptions:{'elk.algorithm':'layered','elk.direction':'RIGHT','elk.spacing.nodeNode':'30','elk.layered.spacing.nodeNodeBetweenLayers':'44'},
+    children:nodes.map(node=>({id:node.id,width:148,height:62})),edges:edges.map(edge=>({id:edge.id,sources:[edge.source],targets:[edge.target]}))});
+  return new Map(graph.children?.map(node=>[node.id,{x:node.x||0,y:node.y||0}])||[]);
+}
+
 export async function layoutGraph(project: ProjectSpec, view: View): Promise<{ nodes: Node[]; edges: Edge[]; elapsed: number }> {
   elk??=new ELK({ workerFactory: () => new Worker(workerUrl) });
   const started = performance.now();

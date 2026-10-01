@@ -176,3 +176,22 @@ def test_complex_magnitude_overflow_does_not_invent_nonfinite_components():
     assert observed["statistics"]["finite_count"] == 1
     assert observed["statistics"]["inf_count"] == 0
     assert observed["statistics"]["numeric_metric"] == "magnitude"
+
+
+def test_numeric_table_nonfinite_counts_do_not_become_a_finite_pass():
+    from contract_driven_ai_flow.research.models import ProbeSpec, SnapshotRef
+    from contract_driven_ai_flow.research.probes import evaluate_probe
+
+    observed = session().watch("frame", pd.DataFrame({"measurement": [1.0, np.nan, np.inf]}))
+    assert observed["statistics"]["finite_count"] == 1
+    assert observed["statistics"]["nan_count"] == 1
+    assert observed["statistics"]["inf_count"] == 1
+    assert observed["statistics"]["exact"] is True
+    result = evaluate_probe(ProbeSpec(id="finite", kind="finite"), SnapshotRef.model_validate(observed))
+    assert result.status == "fail"
+
+
+def test_mixed_table_statistics_cannot_certify_all_cells_as_numeric():
+    observed = session().watch("frame", pd.DataFrame({"number": [1.0, 2.0], "label": ["a", "b"]}))
+    assert observed["statistics"]["exact"] is False
+    assert observed["statistics"]["numeric_sample_count"] == 2

@@ -91,6 +91,10 @@ class ObservationEvent(WireModel):
 
     @model_validator(mode="after")
     def strict_json(self):
+        if self.kind == "value.observed" and "snapshot" in self.payload:
+            self.payload["snapshot"] = SnapshotRef.model_validate(self.payload["snapshot"]).model_dump(mode="json")
+        if self.kind.startswith("operation.") and "operation" in self.payload:
+            self.payload["operation"] = OperationRecord.model_validate(self.payload["operation"]).model_dump(mode="json")
         # Prevent NaN/Infinity from crossing JSON and browser boundaries.
         encoded = json.dumps(self.model_dump(mode="json"), ensure_ascii=False, allow_nan=False)
         if len(encoded.encode("utf-8")) > 2 * 1024 * 1024:

@@ -201,9 +201,17 @@ class PandasAdapter:
                     missing += 1
                 if type(v) in (int, float, bool):
                     numeric.append(v)
-            stats = numeric_statistics(np.asarray(numeric, dtype=float), population)
+                elif type(v) is dict and v.get("type") == "nonfinite":
+                    numeric.append(float(v["value"]))
+                elif v is None and sys.modules["pandas"].api.types.is_numeric_dtype(frame.iloc[:, c].dtype):
+                    numeric.append(float("nan"))
+                elif type(v) is dict and v.get("type") == "complex":
+                    def component(item):
+                        return float(item["value"]) if type(item) is dict and item.get("type") == "nonfinite" else item
+                    numeric.append(complex(component(v["real"]), component(v["imag"])))
+            stats = numeric_statistics(np.asarray(numeric), population)
             stats.update(sample_count=len(chosen), numeric_sample_count=len(numeric), missing_count=missing,
-                         exact=len(chosen) == population and not private,
+                         exact=len(chosen) == population and len(numeric) == population,
                          method="all" if len(chosen) == population else "uniform-grid")
         return CaptureResult(descriptor, sample=sample, statistics=stats,
                              fidelity="exact" if len(rows) * len(columns) == population else "sampled",

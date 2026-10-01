@@ -90,8 +90,14 @@ class ExperimentStore:
             rows = db.execute("SELECT s.body FROM snapshots s WHERE s.run_id=? AND s.version=(SELECT MAX(o.version) FROM snapshots o WHERE o.run_id=s.run_id AND o.binding_id=s.binding_id) ORDER BY s.rowid LIMIT 2048", (run_id,)).fetchall()
             operations = db.execute("SELECT body FROM operations WHERE run_id=? ORDER BY rowid DESC LIMIT 256", (run_id,)).fetchall()
             probes = db.execute("SELECT body FROM events WHERE run_id=? AND json_extract(body,'$.kind')='probe.evaluated' ORDER BY sequence DESC LIMIT 512", (run_id,)).fetchall()
+        indexed = []
+        for r in rows:
+            snapshot = json.loads(r["body"])
+            snapshot["sample"] = {}
+            snapshot["coverage"]["delivery"] = "metadata-index"
+            indexed.append(snapshot)
         return {"run": self._run(row), "cursor": cursor, "binding_count": count,
-                "snapshots": [json.loads(r["body"]) for r in rows], "operations": [json.loads(r["body"]) for r in reversed(operations)],
+                "snapshots": indexed, "operations": [json.loads(r["body"]) for r in reversed(operations)],
                 "probe_events": [json.loads(r["body"]) for r in reversed(probes)]}
 
     def runs(self, limit: int = 100) -> list[dict]:
@@ -179,6 +185,19 @@ class ExperimentStore:
         with self.connect() as db:
             rows = db.execute("SELECT body FROM operations WHERE run_id=? ORDER BY rowid LIMIT ?", (run_id, limit)).fetchall()
         return [OperationRecord.model_validate_json(row["body"]) for row in rows]
+
+    def history(self, run_id: str, binding: str, before: int | None = None, limit=100):
+        self.run(run_id)
+        if not 1 <= limit <= 1000 or before is not None and before < 1:
+            raise ValueError("Invalid variable history page")
+        query = "SELECT body FROM snapshots WHERE run_id=? AND binding_id=?"
+        parameters = [run_id, binding]
+        if before is not None:
+            query += " AND version<?"
+            parameters.append(before)
+        with self.connect() as db:
+            rows = db.execute(query + " ORDER BY version DESC LIMIT ?", (*parameters, limit)).fetchall()
+        return [SnapshotRef.model_validate_json(row["body"]) for row in rows]
 
     def recover_runs(self):
         from ..storage import process_alive

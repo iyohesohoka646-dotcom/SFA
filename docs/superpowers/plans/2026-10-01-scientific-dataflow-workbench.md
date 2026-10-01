@@ -68,11 +68,11 @@
 - Produces: `MatrixView({snapshot: SnapshotRef, selectors, onSelect})`；`OperationView({operation: OperationRecord, snapshots})`；`explainOperation(operation, descriptors): Explanation`。
 - 未保存的历史完整值显示“此版本未保存完整数据”，高维切片明确固定轴，抽样图有方法和精度标签。
 
-- [ ] **Step 1:** 写真实标准化／协方差／PCA 案例的源码跳转、shape 改变、历史切片不可用、NaN 来源定位、探针添加；补充复数、空矩阵、重复索引、无轴语义和中文注释用例。
-- [ ] **Step 2:** 运行 `npm run test:e2e --prefix web -- research-workbench research-matrix`，确认功能尚不存在而失败。
-- [ ] **Step 3:** 实现四区域工作台、Canvas 热图、虚拟化变量／表格列表、局部数据流与游标时间线；基础运算使用规则解释，未证实的单位／实验意义保持未知。首页直接打开代码与选择环境。
-- [ ] **Step 4:** 同命令通过；真实操作打开自己的脚本、启动分析、选矩阵、固定轴、追踪上游、定位故障；验证键盘、中文、低动效和错误恢复，重新测量任务 1 的性能预算。
-- [ ] **Step 5:** 提交 `feat: inspect scientific matrices and transformations in the workbench`。
+- [x] **Step 1:** 写真实标准化／协方差／PCA 案例的源码跳转、shape 改变、历史切片不可用、NaN 来源定位、探针添加；补充复数、空矩阵、重复索引、无轴语义和中文注释用例。
+- [x] **Step 2:** 运行 `npm run test:e2e --prefix web -- research-workbench research-matrix`，确认功能尚不存在而失败。
+- [x] **Step 3:** 实现四区域工作台、Canvas 热图、虚拟化变量／表格列表、局部数据流与游标时间线；基础运算使用规则解释，未证实的单位／实验意义保持未知。首页直接打开代码与选择环境。
+- [x] **Step 4:** 同命令通过；真实操作打开自己的脚本、启动分析、选矩阵、固定轴、追踪上游、定位故障；验证键盘、中文、低动效和错误恢复，重新测量任务 1 的性能预算。
+- [x] **Step 5:** 提交 `feat: inspect scientific matrices and transformations in the workbench`。
 
 ## Task 3: 全入口模型设置与有证据的解释
 

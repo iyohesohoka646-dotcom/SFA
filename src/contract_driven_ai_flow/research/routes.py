@@ -12,7 +12,7 @@ from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import Field
 
-from .models import ProbeSpec, WireModel
+from .models import ExperimentSpec, ProbeSpec, WireModel
 from .service import ResearchService, TERMINAL
 
 
@@ -33,6 +33,10 @@ class SliceRequest(WireModel):
     selectors: list[dict] = Field(default_factory=list, max_length=64)
 
 
+class SourceRequest(WireModel):
+    path: str = Field(max_length=4096)
+
+
 def attach_research_routes(app, service: ResearchService):
     router = APIRouter(prefix="/api/v1/research")
 
@@ -43,7 +47,33 @@ def attach_research_routes(app, service: ResearchService):
     @router.get("/info")
     def info():
         return {"protocol_version": 1, "root": str(service.root), "interpreter": sys.executable,
-            "examples": [{"id":"analysis", "name":"标准化、协方差与 PCA", "script":str(Path(__file__).parents[1] / "templates/research-analysis/analysis.py")}]}
+            "examples": [{"id":"analysis", "name":"标准化、协方差与 PCA", "script":str(Path(__file__).parents[1] / "templates/research-analysis/analysis.py")},
+                {"id":"edge-cases", "name":"复数、高维与表格", "script":str(Path(__file__).parents[1] / "templates/research-analysis/edge_cases.py")} ]}
+
+    @router.get("/experiment")
+    def experiment():
+        path = service.root / "research.yaml"
+        if not path.is_file():
+            return None
+        import yaml
+        return ExperimentSpec.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
+
+    @router.put("/experiment")
+    def save_experiment(spec: ExperimentSpec):
+        from ..storage import atomic_write
+        import yaml
+        atomic_write(service.root / "research.yaml", yaml.safe_dump(spec.model_dump(mode="json"), allow_unicode=True, sort_keys=False))
+        return spec
+
+    @router.post("/source-preview")
+    def source_preview(body: SourceRequest):
+        from .agent.source import read_source
+        from .agent.privacy import clean_text
+        path = Path(body.path)
+        if path.suffix != ".py" or path.stat().st_size > 10 * 1024 * 1024:
+            raise ValueError("Choose a Python script of at most 10 MiB")
+        source = read_source(path)
+        return {"path":source.path, "digest":source.digest, "code":clean_text(source.text, 10 * 1024 * 1024)}
 
     @router.post("/runs", status_code=202)
     def start(body: AnalysisRequest):
@@ -70,6 +100,18 @@ def attach_research_routes(app, service: ResearchService):
     @router.get("/runs/{run_id}/source")
     def source(run_id: str):
         return service.source(run_id)
+
+    @router.get("/runs/{run_id}/history")
+    def history(run_id: str, binding: str, before: int | None = None, limit: int = 100):
+        return [snapshot.model_dump(mode="json") for snapshot in service.store.history(run_id, binding, before, limit)]
+
+    @router.get("/runs/{run_id}/export/{format}")
+    def export(run_id: str, format: str):
+        from fastapi.responses import Response
+        if format != "html":
+            raise ValueError("Use html for the standalone research report")
+        from .export import offline_report
+        return Response(offline_report(service, run_id), media_type="text/html", headers={"Content-Disposition": f'attachment; filename="research-{run_id}.html"'})
 
     @router.get("/runs/{run_id}/event-page")
     def event_page(run_id: str, after: int = 0, limit: int = 1000):
@@ -109,6 +151,10 @@ def attach_research_routes(app, service: ResearchService):
     @router.get("/snapshots/{snapshot_id}")
     def snapshot(snapshot_id: str):
         return service.get_snapshot(snapshot_id)
+
+    @router.post("/snapshots/{snapshot_id}/probe-preview")
+    def probe_preview(snapshot_id: str, body: ProbeSpec):
+        return service.pool.evaluate(body, service.store.snapshot(snapshot_id))
 
     @router.post("/snapshots/{snapshot_id}/slice")
     def sliced(snapshot_id: str, body: SliceRequest):
