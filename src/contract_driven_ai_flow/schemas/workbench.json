@@ -346,7 +346,8 @@
         "kind": {
           "enum": [
             "branch",
-            "loop"
+            "loop",
+            "function"
           ],
           "title": "Kind",
           "type": "string"
@@ -437,6 +438,29 @@
           "minimum": 0,
           "title": "Omitted Activations",
           "type": "integer"
+        },
+        "total_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Ms",
+          "type": "number"
+        },
+        "minimum_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Minimum Ms",
+          "type": "number"
+        },
+        "maximum_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Maximum Ms",
+          "type": "number"
+        },
+        "timing": {
+          "default": "",
+          "title": "Timing",
+          "type": "string"
         }
       },
       "required": [
@@ -454,7 +478,11 @@
         "complete",
         "revision",
         "activation_samples",
-        "omitted_activations"
+        "omitted_activations",
+        "total_ms",
+        "minimum_ms",
+        "maximum_ms",
+        "timing"
       ],
       "title": "ControlSummary",
       "type": "object"
@@ -740,6 +768,13 @@
           },
           "title": "Invocations",
           "type": "array"
+        },
+        "preferences": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Preferences",
+          "type": "object"
         }
       },
       "required": [
@@ -758,7 +793,8 @@
         "diagnostics",
         "target_scope",
         "resolved_targets",
-        "invocations"
+        "invocations",
+        "preferences"
       ],
       "title": "ExecutionPlan",
       "type": "object"
@@ -1619,6 +1655,18 @@
           "default": null,
           "title": "Entrypoint"
         },
+        "implementation_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementation Digest"
+        },
         "examples": {
           "items": {
             "additionalProperties": {
@@ -1649,6 +1697,7 @@
         "resource_version",
         "dependencies",
         "entrypoint",
+        "implementation_digest",
         "examples"
       ],
       "title": "ProbeDefinition",
@@ -2041,6 +2090,18 @@
           },
           "title": "Diagnostics",
           "type": "array"
+        },
+        "pending_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pending Version"
         }
       },
       "required": [
@@ -2053,7 +2114,8 @@
         "definitions",
         "dependencies",
         "url",
-        "diagnostics"
+        "diagnostics",
+        "pending_version"
       ],
       "title": "ProbeResource",
       "type": "object"

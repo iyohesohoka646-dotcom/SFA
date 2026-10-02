@@ -87,7 +87,17 @@ class ScalarAdapter:
                 "shape": [], "dtype": type(value).__name__, "capabilities": ["preview"]}
 
     def capture(self, value, policy):
-        return CaptureResult(self.describe(value), sample={} if policy.level == "metadata" else {"values": [[cell(value)]]},
+        stats = {}
+        if policy.level in ('summary', 'full') and type(value) in (bool, int, float, complex):
+            import math
+            parts = (value.real, value.imag) if type(value) is complex else (value,)
+            finite = all(type(p) is int or math.isfinite(p) for p in parts)
+            stats = {'exact': True, 'method': 'scalar', 'sample_count': 1, 'population_count': 1,
+                'finite_count': int(finite), 'nan_count': int(any(type(p) is float and math.isnan(p) for p in parts)),
+                'inf_count': int(any(type(p) is float and math.isinf(p) for p in parts))}
+            if finite and type(value) is not complex:
+                stats.update(min=value, max=value, mean=value, variance=0)
+        return CaptureResult(self.describe(value), sample={} if policy.level == "metadata" else {"values": [[cell(value)]]},statistics=stats,
                              fidelity="metadata_only" if policy.level == "metadata" else "exact")
 
 

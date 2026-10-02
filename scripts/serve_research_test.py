@@ -4,7 +4,8 @@ import tempfile
 import uvicorn
 from fastapi.staticfiles import StaticFiles
 from contract_driven_ai_flow.research.routes import create_research_app
-from contract_driven_ai_flow.research.models import ObservationEvent, SnapshotRef, ValueDescriptor
+from contract_driven_ai_flow.research.models import ObservationEvent, SnapshotRef, ValueDescriptor, SourceRef
+from contract_driven_ai_flow.research.agent.source import read_source
 from contract_driven_ai_flow.research.store import ExperimentStore
 from browser_session import fixture_session
 
@@ -14,14 +15,16 @@ if __name__ == "__main__":
     script = root / "analysis.py"
     script.write_text("# 科研界面性能夹具，未执行计算\n" + "\n".join(f"X{i} = {i}" for i in range(1000)), encoding="utf-8")
     store = ExperimentStore(root)
-    run = store.create_run(str(script), interpreter="fixture-not-executed", source_digest="fixture-source")
+    digest = read_source(script).digest
+    run = store.create_run(str(script), interpreter="fixture-not-executed", source_digest=digest)
     source = store.state / "sources"
     source.mkdir()
-    (source / "fixture-source.txt").write_text(script.read_text(encoding="utf-8"), encoding="utf-8")
+    (source / (digest+'.txt')).write_text(script.read_text(encoding="utf-8"), encoding="utf-8")
     for version in range(1, 11):
         events = []
         for i in range(1000):
             snapshot = SnapshotRef(id=f"s{i}-{version}", run_id=run["id"], binding_id=f"main:X{i}", name=f"X{i}", scope_id="main", version=version,
+                logical_key=f'{script}::<module>::X{i}', source=SourceRef(path=str(script),line=i+2,end_line=i+2,digest=digest),
                 descriptor=ValueDescriptor(kind="matrix", backend="fixture", type_name="Matrix", shape=[4,4], dtype="float64", capabilities=["preview"]),
                 sample={"values": [[version] * 4 for _ in range(4)]}, fidelity="exact", provenance="inferred",
                 parents=[f"s{i-1}-{version}"] if i else [])
@@ -38,11 +41,14 @@ if __name__ == "__main__":
     spec.loader.exec_module(example)
     registry = AdapterRegistry()
     registry.register(example.PointCloudAdapter())
-    extension = store.create_run(str(script), interpreter=sys.executable, source_digest="fixture-source", name="Point cloud extension")
+    extension = store.create_run(str(script), interpreter=sys.executable, source_digest=digest, name="Point cloud extension")
     with TraceSession("Point cloud", run_id=extension["id"], registry=registry) as trace:
         trace.watch("points", example.PointCloud(((1.0,2.0),(3.0,4.0))))
     store.append([ObservationEvent.model_validate(e) for e in trace.transport.drain()])
     app = create_research_app(root, token=fixture_session(), port=8879)
+    # Saved runs belong to an imported version; cold import is benchmarked
+    # separately instead of making fixture startup race the object browser.
+    app.state.research.workbench.import_source(script)
     import os
     import asyncio
     from fastapi import Request

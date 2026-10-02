@@ -57,9 +57,15 @@ def register(app, output):
         safe(run)
 
     @app.command('plan')
-    def plan(analysis: str, scope: str = 'compute', run_id: str = typer.Option('', '--run'), project: Path = typer.Option(Path('.'), '--project', '-p')):
+    def plan(analysis: str, scope: str = 'compute', run_id: str = typer.Option('', '--run'),
+             target_scope: Path | None = typer.Option(None, '--target-scope'), snapshots: list[str] = typer.Option([], '--snapshot'),
+             instances: list[str] = typer.Option([], '--instance'), project: Path = typer.Option(Path('.'), '--project', '-p')):
         """Freeze an explicit compute/probes/replot plan without executing it."""
-        safe(perform, project, 'plan', {'analysis_id': analysis, 'scope': scope, 'run_id': run_id or None})
+        def invoke():
+            selector = json.loads(target_scope.read_text(encoding='utf-8-sig')) if target_scope else None
+            return perform(project, 'plan', {'analysis_id': analysis, 'scope': scope, 'run_id': run_id or None,
+                'target_scope': selector, 'snapshot_ids': snapshots, 'instance_ids': instances or None})
+        safe(invoke)
 
     @app.command('run')
     def run(plan_id: str = typer.Option(..., '--plan'), project: Path = typer.Option(Path('.'), '--project', '-p')):
@@ -101,14 +107,15 @@ def register(app, output):
         safe(run)
 
     @app.command('tools')
-    def tools(scan: bool = False, python: str = typer.Option('', '--python'), install: str = '', remove: str = '', disable: str = '', project: Path = typer.Option(Path('.'), '--project', '-p')):
+    def tools(scan: bool = False, python: str = typer.Option('', '--python'), install: str = '', remove: str = '', disable: str = '', describe: str = '', project: Path = typer.Option(Path('.'), '--project', '-p')):
         """Public catalog and explicit project-owned plotting environment management."""
         def run():
-            if sum(bool(x) for x in (scan, install, remove, disable)) > 1:
+            if sum(bool(x) for x in (scan, install, remove, disable, describe)) > 1:
                 raise ValueError('Choose one tool operation')
             with ResearchService(project) as service:
                 manager = service.workbench.tools
-                if install: output(manager.install(install))
+                if describe: output(manager.describe(describe))
+                elif install: output(manager.install(install))
                 elif remove: output(manager.remove(remove))
                 elif disable: manager.disable(disable); output(manager.catalog())
                 elif scan: output(manager.scan(python or None))
@@ -141,5 +148,79 @@ def register(app, output):
     @app.command('migrate-config')
     def migrate_config(apply: bool = False, project: Path = typer.Option(Path('.'), '--project', '-p')):
         """Preview migration; --apply backs up and preserves research.yaml."""
-        from .configuration import ConfigurationStore
-        output(safe(ConfigurationStore(project).migrate_legacy, apply=apply))
+        safe(perform, project, 'migrate', {'apply': apply})
+
+    @app.command('resources')
+    def resources(import_file: Path | None = typer.Option(None, '--import'), enable: str = '', disable: str = '',
+                  project: Path = typer.Option(Path('.'), '--project', '-p')):
+        """List capabilities or stage/review/enable a declarative extension."""
+        def invoke():
+            if sum(bool(value) for value in (import_file, enable, disable)) > 1:
+                raise ValueError('Choose --import, --enable or --disable')
+            if import_file:
+                return perform(project, 'resources.import', {'manifest': json.loads(import_file.read_text(encoding='utf-8-sig'))})
+            if enable or disable:
+                return perform(project, 'resources.enable' if enable else 'resources.disable', {'id': enable or disable})
+            return perform(project, 'resources', {})
+        safe(invoke)
+
+    @app.command('settings')
+    def settings(input_file: Path | None = typer.Option(None, '--input'), scope: str = 'project', reset: str = '',
+                 project: Path = typer.Option(Path('.'), '--project', '-p')):
+        """Read settings with provenance or save/reset an explicit group."""
+        def invoke():
+            if input_file and reset:
+                raise ValueError('Choose --input or --reset')
+            with ResearchService(project) as service:
+                current = service.workbench.preferences.load()
+            if input_file or reset:
+                arguments = {'scope': scope, 'expected_revision': current[scope + '_revision']}
+                if reset:
+                    arguments['group'] = reset
+                else:
+                    arguments['values'] = json.loads(input_file.read_text(encoding='utf-8-sig'))
+                return perform(project, 'settings.reset' if reset else 'settings.save', arguments)
+            return perform(project, 'settings', {})
+        safe(invoke)
+
+    @app.command('scope')
+    def scope(analysis: str, selector: Path | None = typer.Option(None, '--selector'),
+              project: Path = typer.Option(Path('.'), '--project', '-p')):
+        """Expand a block/project/selection to deduplicated logical targets."""
+        def invoke():
+            return perform(project, 'scope', {'analysis_id': analysis,
+                'selector': json.loads(selector.read_text(encoding='utf-8-sig')) if selector else {}})
+        safe(invoke)
+
+    @app.command('bind')
+    def bind(input_file: Path = typer.Option(..., '--input'), project: Path = typer.Option(Path('.'), '--project', '-p')):
+        """Save a probe instance, including joint input roles and a structured selector."""
+        safe(lambda: perform(project, 'bind', {'instance': json.loads(input_file.read_text(encoding='utf-8-sig'))}))
+
+    @app.command('semantics')
+    def semantics(logical_key: str = '', input_file: Path | None = typer.Option(None, '--input'),
+                  project: Path = typer.Option(Path('.'), '--project', '-p')):
+        """Inspect semantics or save {semantics,shape,expected_revision}."""
+        def invoke():
+            if input_file:
+                return perform(project, 'semantics.save', json.loads(input_file.read_text(encoding='utf-8-sig')))
+            if not logical_key:
+                raise ValueError('Provide a logical key or --input')
+            return perform(project, 'semantics', {'logical_key': logical_key})
+        safe(invoke)
+
+    @app.command('derived')
+    def derived(key: str, proposal: bool = False, retain: bool = False, release: bool = False,
+                project: Path = typer.Option(Path('.'), '--project', '-p')):
+        """Inspect provenance, retain/release inputs or generate an inert code proposal."""
+        def invoke():
+            if sum((proposal, retain, release)) > 1:
+                raise ValueError('Choose one derived-data action')
+            return perform(project,'derived.proposal' if proposal else 'derived.retention' if retain or release else 'derived',
+                {'id':key, **({'retained':retain} if retain or release else {})})
+        safe(invoke)
+
+    @app.command('expire')
+    def expire(project: Path = typer.Option(Path('.'), '--project', '-p')):
+        """Remove expired unretained bulk artifacts, preserving definitions and history."""
+        safe(perform,project,'storage.expire',{})

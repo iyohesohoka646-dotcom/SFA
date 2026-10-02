@@ -116,6 +116,30 @@ def test_comparison_keeps_inputs_separate_without_new_numeric_conclusions(tmp_pa
         assert output['parent_snapshot_ids'] == [snapshot['id'] for snapshot in snapshots]
         assert 'derived_snapshot_id' not in output['data']
 
+def test_cross_run_joint_requires_explicit_opt_in_at_plan_and_freezes_versions(tmp_path):
+    with ResearchService(tmp_path) as research:
+        analysis,first,left=inputs(research,{'A':np.array([1.,2.]),'B':np.array([3.,4.])})
+        analysis,second,right=inputs(research,{'A':np.array([5.,6.]),'B':np.array([7.,8.])})
+        with pytest.raises(ValueError,match='run'):
+            joint(research,analysis,second,[left[0],right[1]],'derive.elementwise')
+        output=joint(research,analysis,second,[left[0],right[1]],'derive.elementwise',{'allow_cross_run':True,'operation':'add'})
+        assert output['status']=='ready',output
+        derived=research.store.snapshot(output['data']['derived_snapshot_id'])
+        np.testing.assert_array_equal(np.load(research.store.state/derived.artifact_ref,allow_pickle=False),[8.,10.])
+        assert {research.store.snapshot(k).run_id for k in derived.parents}=={first,second}
+
+def test_derived_code_is_inert_reviewable_and_retention_can_be_released(tmp_path):
+    with ResearchService(tmp_path) as research:
+        analysis,run_id,snapshots=inputs(research,{'A':np.ones((2,2)),'B':np.ones((2,2))})
+        output=joint(research,analysis,run_id,snapshots,'derive.elementwise',{'operation':'add'})
+        key=output['data']['derived_id'];wb=research.workbench
+        proposal=wb.propose_derived(key)
+        assert proposal.status=='valid' and not __import__('pathlib').Path(proposal.path).exists()
+        assert 'left + right' in proposal.candidate and snapshots[0]['id'] in proposal.candidate
+        assert wb.retain_derived(key,False)['retained'] is False
+        with research.store.connect() as db:
+            assert db.execute('SELECT COUNT(*) FROM artifact_leases WHERE owner=?',('derived:'+key,)).fetchone()[0]==0
+
 
 def test_table_join_requires_complete_coordinates_and_explicit_keys(tmp_path):
     pytest.importorskip('pyarrow')

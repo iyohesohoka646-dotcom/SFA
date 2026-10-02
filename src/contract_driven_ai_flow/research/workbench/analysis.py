@@ -27,15 +27,17 @@ def targets(node):
     return [name] if name else []
 
 
-def analyze_source(path: Path) -> AnalysisDocument:
+def analyze_source(path: Path, *, archived_text=None, expected_digest=None) -> AnalysisDocument:
     path = path.expanduser().resolve()
-    if path.suffix != '.py' or not path.is_file():
+    if path.suffix != '.py' or archived_text is None and not path.is_file():
         raise ValueError('Select an existing Python source file')
-    if path.stat().st_size > 10 * 1024 * 1024:
+    if (path.stat().st_size if archived_text is None else len(archived_text.encode('utf-8'))) > 10 * 1024 * 1024:
         raise ValueError('Source exceeds 10 MiB')
-    source = read_source(path)
-    text = source.text
-    source_digest = source.digest
+    source = read_source(path) if archived_text is None else None
+    text = source.text if source else archived_text
+    source_digest = source.digest if source else digest(text)
+    if expected_digest is not None and source_digest != expected_digest:
+        raise ValueError('Archived source is redacted or incomplete; historical graph cannot be reconstructed')
     doc = AnalysisDocument(path=str(path), source_digest=source_digest)
     try:
         tree = ast.parse(text)

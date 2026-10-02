@@ -81,6 +81,7 @@ class ProbeDefinition(WireModel):
     resource_version: str | None = None
     dependencies: list[str] = Field(default_factory=list)
     entrypoint: str | None = None
+    implementation_digest: str | None = None
     examples: list[dict[str, JsonValue]] = Field(default_factory=list)
 
 
@@ -95,6 +96,7 @@ class ProbeResource(WireModel):
     dependencies: list[str] = Field(default_factory=list, max_length=128)
     url: str | None = None
     diagnostics: list[str] = Field(default_factory=list)
+    pending_version: str | None = None
 
 
 class TargetOverride(WireModel):
@@ -218,6 +220,7 @@ class ExecutionPlan(WireModel):
     target_scope: ScopeSelector = Field(default_factory=ScopeSelector)
     resolved_targets: list[TargetRef] = Field(default_factory=list)
     invocations: list[ResolvedProbeCall] = Field(default_factory=list)
+    preferences: dict[str, JsonValue] = Field(default_factory=dict)
 
 
 class TaskRecord(WireModel):

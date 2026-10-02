@@ -9,7 +9,8 @@ test('presentation is governed by default probe, deletion persists, local contro
  const run=runs.find((r:any)=>r.name==='Analysis');
  await page.getByLabel('运行记录').selectOption(run.id);
  await page.getByLabel('搜索对象',{exact:true}).fill('X7');
- const row=page.locator('.object-row-name').filter({hasText:/^X7$/}).locator('..');await expect(row).toBeVisible();await row.dblclick();
+ const row=page.locator('.object-row-name').filter({hasText:/^X7$/}).locator('..');await expect(row).toBeVisible();
+ await expect(row.locator('small')).toContainText('v10');await row.dblclick();
  await expect(page.getByRole('img',{name:'矩阵热图',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'探针台',exact:true}).first().click();
  await page.getByLabel('启用 view.auto',{exact:true}).uncheck();

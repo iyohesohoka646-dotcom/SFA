@@ -372,6 +372,7 @@ class GraphBuilder:
 def build_graph(tree, text, path, digest, objects):
     builder = GraphBuilder(text, path, digest, objects)
     root = builder.block(tree, 'file', path.replace('\\', '/').rsplit('/', 1)[-1], None, '<module>')
+    builder.block_index[root].source.end_line = max(1, len(text.splitlines()))
     builder.graph.roots = [root]
     builder.statements(tree.body, root, '<module>', {})
     builder.finish_calls()
@@ -430,3 +431,18 @@ class MemberBlockProvider:
         if any(member not in known for member in members):
             raise ValueError('Stream contains an unknown semantic member')
         return GraphBlock(id=key, logical_key=key, kind='stream', label=label, members=list(dict.fromkeys(members)))
+
+
+class StructuralBlockProvider:
+    """Contract fixture for a future folder/project importer; never parses files."""
+    def __init__(self, kind='folder'):
+        if kind not in ('folder', 'project'):
+            raise ValueError('Structural provider supports folder or project blocks')
+        self.kind = kind
+
+    def provide(self, key, label, graph, members):
+        known = {block.id for block in graph.blocks}
+        if any(member not in known for member in members):
+            raise ValueError('Structural members must reference existing blocks')
+        return GraphBlock(id=key, logical_key=key, kind=self.kind, label=label,
+                          members=list(dict.fromkeys(members)), runtime_coverage='unsupported')

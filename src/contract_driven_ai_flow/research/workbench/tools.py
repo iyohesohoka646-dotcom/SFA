@@ -71,6 +71,15 @@ class ToolManager:
                 return tool
         raise ValueError('Tool is not in the public package catalog')
 
+    def describe(self, key, *, cancel=None):
+        interpreter, version = self.resolve(key)
+        code, stdout, _ = run_process([interpreter, '-E', '-P', '-X', 'utf8',
+            str(Path(__file__).with_name('tool_metadata_worker.py'))], input=json.dumps({'tool':key}).encode(), timeout=30, cancel=cancel)
+        if code:
+            raise ValueError('Plotting method introspection failed in its selected environment')
+        from ..agent.privacy import sanitize_json
+        return sanitize_json({**json.loads(stdout), 'version':version, 'interpreter':interpreter})
+
     def install_command(self, key):
         tool = self._tool(key)
         return [str(self.python), '-X', 'utf8', '-m', 'pip', '--isolated', '--disable-pip-version-check', 'install', '--no-input', '--no-user', tool[2]]

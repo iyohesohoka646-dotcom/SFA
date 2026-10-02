@@ -4,7 +4,7 @@ import type {SnapshotRef} from '../generated';
 import {Icon} from './icons';
 import {wb} from './WorkbenchClient';
 import {ParameterForm} from './ParameterForm';
-import {purposeNames,targetNames,implementationNames} from './ProbeLibrary';
+import {purposeNames,targetNames,implementationNames} from './probe-taxonomy';
 import {scopeSelector,type Selection} from './selection';
 export function ProbeInspector({config,definitions,selected,analysis,outputs,onChange,onSave,onError,onRecorded,selection,blockScope,requested}:{config:WorkbenchConfig;definitions:ProbeDefinition[];selected?:SnapshotRef;analysis?:AnalysisDocument;outputs:ProbeOutput[];onChange:(c:WorkbenchConfig)=>void;onSave:()=>Promise<unknown>;onError:(s:string)=>void;onRecorded:(o:ProbeOutput)=>void;selection?:Selection;blockScope?:string|null;requested?:string}){
  const [adding,setAdding]=useState(false),[type,setType]=useState('view.matrix'),[range,setRange]=useState<'selection'|'block'|'project'>('selection'),[purpose,setPurpose]=useState('all'),[query,setQuery]=useState(''),[editing,setEditing]=useState<string>(),[params,setParams]=useState<Record<string,unknown>>({}),[note,setNote]=useState(''),[verdict,setVerdict]=useState('unknown'),[roles,setRoles]=useState<Record<string,string>>({}),[templates,setTemplates]=useState<{id:string;label:string;definition_id:string;parameters:Record<string,unknown>}[]>([]);

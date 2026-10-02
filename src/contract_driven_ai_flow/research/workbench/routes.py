@@ -90,6 +90,10 @@ def attach_workbench_routes(app, research):
     def analysis_source(key: str):
         return service.analysis_source(key)
 
+    @router.get('/runs/{key}/analysis')
+    def run_analysis(key: str):
+        return service.run_analysis(key)
+
     @router.get('/configuration')
     def configuration():
         return service.configurations.load()
@@ -112,7 +116,7 @@ def attach_workbench_routes(app, research):
 
     @router.post('/migration')
     def migration(apply: bool = False):
-        return service.configurations.migrate_legacy(apply=apply)
+        return service.configurations.migrate_v2(apply=apply) if service.configurations.path.exists() else service.configurations.migrate_legacy(apply=apply)
 
     @router.get('/probe-definitions')
     def definitions():
@@ -121,6 +125,11 @@ def attach_workbench_routes(app, research):
     @router.get('/resources')
     def resources():
         return service.resources.resources()
+
+    @router.get('/resources/{key}/draft')
+    def resource_draft(key: str):
+        try: return service.store.get('resource_drafts', key)
+        except KeyError: return service.store.get('resources', key)
 
     @router.post('/resources')
     def import_resource(body: dict):
@@ -208,6 +217,22 @@ def attach_workbench_routes(app, research):
     def relationships(snapshot_id: str):
         return service.relationships(snapshot_id)
 
+    @router.post('/storage/expire')
+    def expire_artifacts():
+        return research.store.expire_artifacts(service.preferences.load()['values']['storage']['retention_days'])
+
+    @router.get('/derived/{key}')
+    def derived(key: str):
+        return service.store.get('derived', key)
+
+    @router.post('/derived/{key}/retention')
+    def derived_retention(key: str, body: dict):
+        return service.retain_derived(key, body['retained'])
+
+    @router.post('/derived/{key}/proposal')
+    def derived_proposal(key: str):
+        return service.propose_derived(key)
+
     @router.get('/tools')
     def tools():
         return service.tools.catalog()
@@ -215,6 +240,10 @@ def attach_workbench_routes(app, research):
     @router.post('/tools/scan', status_code=202)
     def scan(body: ToolRequest):
         return service.jobs.submit('tools.scan', lambda task, cancel: {'receipt': service.tools.scan(body.interpreter, cancel=cancel)})
+
+    @router.post('/tools/{key}/describe', status_code=202)
+    def tool_description(key: str):
+        return service.jobs.submit('tools.describe', lambda task, cancel: {'receipt':service.tools.describe(key,cancel=cancel)})
 
     @router.post('/tools/{key}/install', status_code=202)
     def install(key: str):

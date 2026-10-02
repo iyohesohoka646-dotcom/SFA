@@ -117,6 +117,7 @@ export type ResourceId = string | null;
 export type ResourceVersion = string | null;
 export type Dependencies = string[];
 export type Entrypoint = string | null;
+export type ImplementationDigest = string | null;
 export type Examples = {
   [k: string]: JsonValue;
 }[];
@@ -231,7 +232,7 @@ export type ValidationOutputIds = string[];
 export type RollbackOf = string | null;
 export type CreatedAt3 = string;
 export type NodeId = string;
-export type Kind6 = "branch" | "loop";
+export type Kind6 = "branch" | "loop" | "function";
 export type TrueCount = number;
 export type FalseCount = number;
 export type BodyEntries = number;
@@ -688,6 +689,10 @@ export type ActivationSamples =
       }
     ];
 export type OmittedActivations = number;
+export type TotalMs = number;
+export type MinimumMs = number;
+export type MaximumMs = number;
+export type Timing = string;
 export type Id13 = string;
 export type Label5 = string;
 export type Version2 = string;
@@ -704,6 +709,7 @@ export type Definitions1 = ProbeDefinition[];
 export type Dependencies1 = string[];
 export type Url = string | null;
 export type Diagnostics3 = string[];
+export type PendingVersion = string | null;
 export type ProtocolVersion7 = 3;
 export type Id14 = string;
 export type SnapshotId2 = string;
@@ -917,6 +923,7 @@ export interface ProbeDefinition {
   resource_version: ResourceVersion;
   dependencies: Dependencies;
   entrypoint: Entrypoint;
+  implementation_digest: ImplementationDigest;
   examples: Examples;
 }
 export interface ParameterSchema {
@@ -1038,6 +1045,7 @@ export interface ExecutionPlan {
   target_scope: ScopeSelector;
   resolved_targets: ResolvedTargets;
   invocations: Invocations;
+  preferences: Preferences;
 }
 export interface ResolvedProbeCall {
   semantics: Semantics;
@@ -1057,6 +1065,9 @@ export interface Inputs2 {
 }
 export interface ResourceVersions {
   [k: string]: string;
+}
+export interface Preferences {
+  [k: string]: JsonValue;
 }
 export interface TaskRecord {
   protocol_version: ProtocolVersion5;
@@ -1111,6 +1122,10 @@ export interface ControlSummary {
   revision: Revision1;
   activation_samples: ActivationSamples;
   omitted_activations: OmittedActivations;
+  total_ms: TotalMs;
+  minimum_ms: MinimumMs;
+  maximum_ms: MaximumMs;
+  timing: Timing;
 }
 export interface ProbeResource {
   id: Id13;
@@ -1123,6 +1138,7 @@ export interface ProbeResource {
   dependencies: Dependencies1;
   url: Url;
   diagnostics: Diagnostics3;
+  pending_version: PendingVersion;
 }
 export interface DerivedData {
   protocol_version: ProtocolVersion7;

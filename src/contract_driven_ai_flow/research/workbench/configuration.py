@@ -51,9 +51,10 @@ class ConfigurationStore:
                 binding=item.get('binding', '*'), enabled=item.get('enabled', True),
                 parameters=item.get('parameters', {}), policy=item.get('policy', 'continue'),
                 budget_ms=item.get('budget_ms', 50)))
-        config = WorkbenchConfig(protocol_version=2, script=old.get('script', ''), interpreter=old.get('interpreter') or sys.executable,
+        config = WorkbenchConfig(protocol_version=3, script=old.get('script', ''), interpreter=old.get('interpreter') or sys.executable,
             arguments=old.get('arguments', []), probes=probes, adapters=old.get('adapters', []))
-        result = {'config': config.model_dump(mode='json'), 'issues': issues, 'applied': False}
+        pending, binding_issues = self._resolve_legacy_bindings(config)
+        result = {'config': config.model_dump(mode='json'), 'issues': issues + binding_issues, 'pending_rebind':pending, 'applied': False}
         if apply:
             if self.path.exists():
                 raise ValueError('workbench.yaml already exists; migration will not overwrite it')
@@ -64,3 +65,58 @@ class ConfigurationStore:
             config = self.save(config, expected_revision=0)
             result.update(config=config.model_dump(mode='json'), applied=True)
         return result
+
+    def migrate_v2(self, *, apply=False):
+        """Keep authored deletion and exact bytes; ambiguities require rebinding."""
+        from fnmatch import fnmatchcase
+        from .analysis import analyze_source
+        from .semantic_models import ScopeSelector,TargetRef
+        with self._lock:
+            raw=self.path.read_bytes();old=yaml.safe_load(raw.decode('utf-8-sig'))
+            if old.get('protocol_version',2)==3:return {'applied':False,'pending_rebind':[],'issues':[],'config':self.load().model_dump(mode='json')}
+            config=WorkbenchConfig.model_validate(old)
+            pending, issues = self._resolve_legacy_bindings(config)
+            config.protocol_version=3
+            result={'applied':False,'pending_rebind':pending,'issues':issues,'config':config.model_dump(mode='json')}
+            if apply:
+                backup=self.path.with_name(self.path.name+'.v2.bak')
+                if backup.exists() and backup.read_bytes()!=raw:raise ValueError('Migration backup already belongs to another revision')
+                if not backup.exists():atomic_write(backup,raw)
+                updated=self.save(config,expected_revision=config.revision)
+                result.update(applied=True,config=updated.model_dump(mode='json'))
+            return result
+
+    def _resolve_legacy_bindings(self, config):
+        from fnmatch import fnmatchcase
+        from .analysis import analyze_source
+        from .semantic_models import ScopeSelector, TargetRef
+        script = Path(config.script)
+        if not script.is_absolute():
+            script = self.root / script
+        analysis = analyze_source(script) if script.is_file() else None
+        pending, issues = [], []
+        for probe in config.probes:
+            if probe.definition_id == 'check.branch-observer':
+                probe.enabled = False
+                pending.append(probe.id)
+                issues.append('Legacy branch observer needs a reviewed resource and target')
+            if probe.selector is not None:
+                continue
+            if probe.binding == '*':
+                probe.selector = ScopeSelector()
+                continue
+            matches = [o for o in analysis.objects if o.kind not in ('import', 'class') and
+                       (fnmatchcase(o.name, probe.binding) or fnmatchcase(o.qualname, probe.binding))] if analysis else []
+            by_key = {o.logical_key:o for o in matches}
+            if len(by_key) == 1:
+                o = next(iter(by_key.values()))
+                probe.selector = ScopeSelector(mode='selection', targets=[TargetRef(
+                    kind='function' if o.kind == 'function' else 'data', logical_key=o.logical_key,
+                    object_id=o.id, block_id=o.block_id, analysis_id=analysis.id)])
+            else:
+                probe.enabled = False
+                probe.selector = ScopeSelector(mode='selection', targets=[])
+                if probe.id not in pending:
+                    pending.append(probe.id)
+                issues.append(f'Probe {probe.id} needs an explicit target; {len(by_key)} matches')
+        return pending, issues

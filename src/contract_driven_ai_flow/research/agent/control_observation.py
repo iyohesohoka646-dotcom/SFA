@@ -70,6 +70,36 @@ class ControlCollector:
             self.failed = True
 
     @contextmanager
+    def function(self, ref):
+        started = time.perf_counter()
+        error = False
+        try:
+            summary = self.record(ref, 'function')
+            if summary is not None:
+                summary['activations'] += 1
+        except Exception:
+            self.failed = True
+            summary = None
+        try:
+            yield
+        except BaseException:
+            error = True
+            raise
+        finally:
+            try:
+                duration = (time.perf_counter() - started) * 1000
+                if summary is not None:
+                    summary['total_ms'] = summary.get('total_ms', 0) + duration
+                    summary['maximum_ms'] = max(summary.get('maximum_ms', 0), duration)
+                    summary['minimum_ms'] = min(summary.get('minimum_ms', duration), duration)
+                    summary['exception_exits' if error else 'natural_exits'] += 1
+                    summary['timing'] = 'scope-including-observation'
+                    self._dirty.add(ref['node_id'])
+                self.tick()
+            except Exception:
+                self.failed = True
+
+    @contextmanager
     def activation(self, label, activation_id):
         parent = self._activation.get()[0]
         token = self._activation.set((activation_id, parent))

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import re
+import hashlib
+from pathlib import Path
 from jsonschema import Draft202012Validator, SchemaError
 from .models import ProbeResource
 from .store import WorkbenchStore
@@ -9,13 +11,17 @@ from .store import WorkbenchStore
 
 class ResourceManager:
     def __init__(self, root, catalog, tools=None):
+        self.root=Path(root).resolve()
         self.store = WorkbenchStore(root)
         self.catalog = catalog
         self.tools = tools
         for raw in self.store.list('resources', limit=1000):
             resource = ProbeResource.model_validate(raw)
             if resource.status == 'installed':
-                self._activate(resource)
+                try:self._activate(resource)
+                except ValueError as error:
+                    resource.status='error';resource.diagnostics=[str(error)]
+                    self.store.put('resources',resource.id,resource)
 
     def validate(self, resource):
         ids = set()
@@ -35,7 +41,9 @@ class ResourceManager:
         resource = self.validate(ProbeResource.model_validate(raw)).model_copy(deep=True, update={'status': 'draft'})
         for definition in resource.definitions:
             definition.resource_id = resource.id
-        self.store.put('resources', resource.id, resource)
+        try:active=ProbeResource.model_validate(self.store.get('resources',resource.id))
+        except KeyError:active=None
+        self.store.put('resource_drafts' if active and active.status=='installed' else 'resources', resource.id, resource)
         return resource
 
     def _activate(self, resource):
@@ -49,10 +57,18 @@ class ResourceManager:
             self.catalog.register(definition.model_copy(deep=True, update={'resource_id': resource.id, 'resource_version': resource.version}))
 
     def enable(self, key):
-        resource = self.validate(ProbeResource.model_validate(self.store.get('resources', key)))
+        try:raw=self.store.get('resource_drafts',key)
+        except KeyError:raw=self.store.get('resources',key)
+        resource = self.validate(ProbeResource.model_validate(raw))
+        for definition in resource.definitions:
+            if definition.entrypoint:
+                module=definition.entrypoint.split(':')[0]
+                path=self.root.joinpath(*module.split('.')).with_suffix('.py')
+                if path.is_file():definition.implementation_digest=hashlib.sha256(path.read_bytes()).hexdigest()
         self._activate(resource)
         resource.status = 'installed'
         self.store.put('resources', key, resource)
+        self.store.delete('resource_drafts',key)
         return resource
 
     def disable(self, key):
@@ -64,6 +80,9 @@ class ResourceManager:
 
     def resources(self):
         records = self.store.list('resources', limit=1000)
+        drafts={r['id']:r for r in self.store.list('resource_drafts',limit=1000)}
+        for record in records:
+            if record['id'] in drafts:record['pending_version']=drafts[record['id']]['version']
         builtin = [definition for definition in self.catalog.definitions() if not definition.resource_id and not definition.tool_id]
         records.append(ProbeResource(id='builtin', label='内置探针', version='3', source='builtin', status='installed', definitions=builtin).model_dump(mode='json'))
         if self.tools is not None:

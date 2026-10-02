@@ -64,7 +64,7 @@ class HarnessContextBuilder:
         analysis = self.validate_source(request.analysis_id)
         allowed = self.authorized_objects(analysis, request)
         inventory = [{'id': o.id, 'name': o.qualname, 'kind': o.kind, 'line': o.line, 'end_line': o.end_line,
-            'readable': o.id in allowed and o.kind != 'class'} for o in analysis.objects[:256]]
+            'readable': o.id in allowed and o.kind != 'class'} for o in analysis.objects[:16]]
         snapshot = None
         if request.snapshot_id:
             value = self.workbench.research.store.snapshot(request.snapshot_id)
@@ -85,8 +85,8 @@ class HarnessContextBuilder:
             if path.is_file() and path.resolve().is_relative_to(root):
                 instructions.append({'path': str(path), 'text': clean_text(path.read_text(encoding='utf-8')[:4096], 4096)})
         manifest = sanitize_json({'environment': self.environment(analysis), 'tools': tools.describe(request),
-            'focus': {'object_id': request.object_id, 'snapshot': snapshot, 'readable_source_ids': sorted(allowed), 'source_scope': 'mapped evidence and direct dependencies' if request.snapshot_id and request.object_id is None else 'selected source and direct dependencies' if request.object_id else 'project inventory'}, 'objects': inventory,
-            'inventory_partial': len(analysis.objects) > 256, 'project_guidance': instructions,
+            'focus': {'object_id': request.object_id, 'snapshot': snapshot, 'readable_source_ids': sorted(allowed)[:16], 'readable_count':len(allowed),'source_scope': 'mapped evidence and direct dependencies' if request.snapshot_id and request.object_id is None else 'selected source and direct dependencies' if request.object_id else 'project inventory'}, 'objects': inventory,
+            'inventory_partial': len(analysis.objects) > 16,'inventory_total':len(analysis.objects),'inventory_tool':'analysis.list(offset, limit)', 'project_guidance': instructions,
             'skills': skills.list(), 'role': request.policy.role, 'samples_allowed': request.policy.include_samples})
         system = ('You are a scientific workbench assistant. Use registered tools to inspect real evidence. '
             'Return one JSON object: {"tool":"name","arguments":{...}} or {"answer":"text","citations":["reference"]}. '

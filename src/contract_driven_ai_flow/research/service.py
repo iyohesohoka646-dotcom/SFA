@@ -399,7 +399,9 @@ class ResearchService:
 
     def source(self, run_id):
         run = self.store.run(run_id)
-        return {"path": run["script"], "digest": run["source_digest"], "code": (self.store.state / "sources" / (run["source_digest"] + ".txt")).read_text(encoding="utf-8")}
+        archive = self.store.state / 'sources' / (run['source_digest'] + '.txt')
+        # Preserve CRLF: universal newline decoding changes version evidence.
+        return {"path": run["script"], "digest": run["source_digest"], "code": archive.read_bytes().decode('utf-8')}
 
     def close(self):
         if self._closed:

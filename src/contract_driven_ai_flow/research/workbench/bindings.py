@@ -93,7 +93,12 @@ def resolve_calls(analysis, config, definitions, targets, snapshots=(), resource
                 if not matches:
                     raise ValueError('Joint input is not in the frozen scope')
                 if len(matches) > 1:
-                    raise ValueError('Joint input has multiple evidence versions; select one explicitly')
+                    if scope == 'compute' and all(not target.snapshot_id for target in matches):
+                        # Source assignments are candidates for one future logical
+                        # value; runtime evidence versions remain distinct.
+                        matches = [next((t for t in matches if ref.object_id == t.object_id), matches[-1])]
+                    else:
+                        raise ValueError('Joint input has multiple evidence versions; select one explicitly')
                 resolved_inputs[role] = matches[0].model_copy(deep=True)
             inputs = resolved_inputs
             if set(inputs) - {role.name for role in definition.input_roles}:

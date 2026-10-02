@@ -84,7 +84,7 @@ class GraphCoverage(WireModel):
 
 class ControlSummary(WireModel):
     node_id: str
-    kind: Literal['branch', 'loop']
+    kind: Literal['branch', 'loop', 'function']
     source: SourceRef | None = None
     true_count: int = Field(default=0, ge=0)
     false_count: int = Field(default=0, ge=0)
@@ -98,6 +98,10 @@ class ControlSummary(WireModel):
     revision: int = Field(default=0, ge=0)
     activation_samples: list[dict[str, JsonValue]] = Field(default_factory=list, max_length=16)
     omitted_activations: int = Field(default=0, ge=0)
+    total_ms: float = Field(default=0, ge=0)
+    minimum_ms: float = Field(default=0, ge=0)
+    maximum_ms: float = Field(default=0, ge=0)
+    timing: str = ''
 
 
 class SemanticGraph(WireModel):

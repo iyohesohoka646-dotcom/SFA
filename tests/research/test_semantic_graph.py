@@ -103,3 +103,14 @@ def test_decorated_function_objects_remain_mapped_to_function_plate(tmp_path):
     block = next(block for block in doc.graph.blocks if block.label == 'f')
     assert block.source_object_id == obj.id
     assert obj.block_id == block.id
+def test_folder_provider_contract_references_file_blocks_without_claiming_cross_file_parsing(tmp_path):
+    from contract_driven_ai_flow.research.workbench.analysis import analyze_source
+    from contract_driven_ai_flow.research.workbench.semantics import StructuralBlockProvider
+    script = tmp_path / 'analysis.py'
+    script.write_text('X=1\n')
+    graph = analyze_source(script).graph
+    original = graph.model_dump()
+    folder = StructuralBlockProvider('folder').provide('folder:lab','Lab',graph,graph.roots)
+    assert folder.kind == 'folder' and folder.members == graph.roots
+    assert folder.runtime_coverage == 'unsupported'
+    assert graph.model_dump() == original

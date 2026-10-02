@@ -183,14 +183,17 @@ class Transformer(ast.NodeTransformer):
         self.in_class = False
         self.qualname.append(node.name)
         qualname = ".".join(self.qualname)
-        self.references.append({'source': self.source_ref(node), 'kind': 'function', 'outputs': []})
+        from .source import source_identity
+        index = len(self.references)
+        self.references.append({'source': self.source_ref(node), 'kind': 'function', 'outputs': [],
+            'node_id': source_identity(self.filename, self.digest, node, 'block:function')})
         node = self.generic_visit(node)
         self.qualname.pop()
         self.in_class = previous_class
         # Pure-return/control-only functions still need invocation ownership.
         doc = node.body[:1] if node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str) else []
         body = node.body[len(doc):]
-        scope = ast.With(items=[ast.withitem(context_expr=self.helper("function_scope", ast.Constant(qualname)))], body=body, type_comment=None)
+        scope = ast.With(items=[ast.withitem(context_expr=self.helper("function_scope", ast.Constant(qualname), ast.Constant(index)))], body=body, type_comment=None)
         ast.copy_location(scope, body[0] if body else node)
         node.body = [*doc, scope]
         return node

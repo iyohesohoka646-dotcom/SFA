@@ -8,7 +8,7 @@ from ..agent.privacy import sanitize_json
 
 
 class WorkbenchStore:
-    kinds = {'analyses', 'plans', 'tasks', 'outputs', 'proposals', 'contexts', 'skills', 'artifacts', 'resources', 'invocations', 'semantics', 'templates', 'derived', 'settings'}
+    kinds = {'analyses', 'plans', 'tasks', 'outputs', 'proposals', 'contexts', 'skills', 'artifacts', 'resources', 'resource_drafts', 'invocations', 'semantics', 'templates', 'derived', 'settings'}
 
     def __init__(self, root: Path):
         self.state = root.resolve() / '.cdaf' / 'research'
@@ -51,6 +51,10 @@ class WorkbenchStore:
         with self.connect() as conn:
             rows = conn.execute('SELECT payload FROM records WHERE kind=? ORDER BY created DESC, rowid DESC LIMIT ?', (kind, min(max(int(limit), 1), 1000))).fetchall()
         return [json.loads(row['payload']) for row in rows]
+
+    def delete(self,kind,key):
+        if kind not in self.kinds:raise ValueError('Unknown workbench record kind')
+        with self.connect() as conn:conn.execute('DELETE FROM records WHERE kind=? AND id=?',(kind,key))
 
     def recover(self):
         from .ownership import owner_alive

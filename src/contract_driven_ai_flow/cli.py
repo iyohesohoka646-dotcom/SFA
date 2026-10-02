@@ -552,3 +552,6 @@ def research_migrate(source: Path, destination: Path, apply: bool = False):
 
 from .research.workbench.cli import register as register_workbench_cli
 register_workbench_cli(research_app, output)
+workbench_app = typer.Typer(help='Scientific workbench: scopes, probes, resources, settings and tasks.')
+app.add_typer(workbench_app, name='workbench')
+register_workbench_cli(workbench_app, output)

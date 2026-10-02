@@ -1,5 +1,5 @@
 import type {SerializedDockview} from 'dockview';
-export type DocumentKind = 'source' | 'data' | 'graph' | 'probes' | 'tools' | 'intelligence' | 'changes' | 'context' | 'tasks' | 'terminal' | 'comparison' | 'settings';
+export type DocumentKind = 'source' | 'data' | 'graph' | 'probes' | 'tools' | 'intelligence' | 'changes' | 'context' | 'tasks' | 'terminal' | 'comparison' | 'settings' | 'result';
 export interface WorkspaceDocument {
   id: string; kind: DocumentKind; title: string; pinned: boolean;
   reference: { analysis_id?: string; run_id?: string; snapshot_id?: string; instance_id?: string; context_id?: string; proposal_id?: string; output_id?:string };
@@ -128,11 +128,13 @@ function baseReducer(state: WorkspaceLayout, action: LayoutAction): WorkspaceLay
   return state;
 }
 
-export function restoreLayout(raw: string | null): WorkspaceLayout {
+export function restoreLayout(raw: string | null, onInvalid?:()=>void): WorkspaceLayout {
+  const invalid=()=>{onInvalid?.();return createLayout();};
   try {
-    if (!raw || raw.length > 256 * 1024) return createLayout();
+    if (!raw) return createLayout();
+    if (raw.length > 256 * 1024) return invalid();
     const state = JSON.parse(raw) as WorkspaceLayout;
-    if (state.version !== 1 || typeof state.documents !== 'object' || !state.documents || Object.keys(state.documents).length > 64) return createLayout();
+    if (state.version !== 1 || typeof state.documents !== 'object' || !state.documents || Object.keys(state.documents).length > 64) return invalid();
     const ids = new Set<string>();
     function valid(node: LayoutNode, depth = 0): boolean {
       if (!node || depth > 20 || typeof node.id !== 'string' || ids.has(node.id)) return false;
@@ -140,9 +142,9 @@ export function restoreLayout(raw: string | null): WorkspaceLayout {
       if (node.type === 'split') return ['horizontal', 'vertical'].includes(node.axis) && Number.isFinite(node.ratio) && node.ratio > 0 && node.ratio < 1 && valid(node.first, depth + 1) && valid(node.second, depth + 1);
       return node.type === 'group' && typeof node.minimized === 'boolean' && Array.isArray(node.tabs) && node.tabs.length <= 64 && node.tabs.every(id => !!state.documents[id]) && (node.active === null || node.tabs.includes(node.active));
     }
-    const kinds = ['source', 'data', 'graph', 'probes', 'tools', 'intelligence', 'changes', 'context', 'tasks', 'terminal','comparison','settings'];
-    if (!valid(state.tree) || groups(state.tree).length > 12 || !groups(state.tree).some(g => g.id === state.activeGroup)) return createLayout();
-    for (const [id, doc] of Object.entries(state.documents)) if (doc.id !== id || !kinds.includes(doc.kind) || typeof doc.title !== 'string' || typeof doc.pinned !== 'boolean' || typeof doc.reference !== 'object' || !doc.reference) return createLayout();
+    const kinds = ['source', 'data', 'graph', 'probes', 'tools', 'intelligence', 'changes', 'context', 'tasks', 'terminal','comparison','settings','result'];
+    if (!valid(state.tree) || groups(state.tree).length > 12 || !groups(state.tree).some(g => g.id === state.activeGroup)) return invalid();
+    for (const [id, doc] of Object.entries(state.documents)) if (doc.id !== id || !kinds.includes(doc.kind) || typeof doc.title !== 'string' || typeof doc.pinned !== 'boolean' || typeof doc.reference !== 'object' || !doc.reference) return invalid();
     // Validate each saved preset independently, including its own document map.
     const presets: WorkspaceLayout['presets'] = {};
     for (const [name, preset] of Object.entries(state.presets ?? {}).slice(0, 16)) {
@@ -150,7 +152,7 @@ export function restoreLayout(raw: string | null): WorkspaceLayout {
       presets[name] = { tree: saved.tree, documents: saved.documents, explorerWidth: saved.explorerWidth,dockview:saved.dockview };
     }
     return { ...state, focused: null, locked: !!state.locked, presets, explorerWidth: Math.max(170, Math.min(360, Number.isFinite(state.explorerWidth) ? state.explorerWidth : 218)) };
-  } catch { return createLayout(); }
+  } catch { return invalid(); }
 }
 
 export function layoutReducer(state:WorkspaceLayout,action:LayoutAction):WorkspaceLayout{let result=baseReducer(state,action);if(result===state)return state;if(action.type!=='dock-state')result={...result,commandRevision:(state.commandRevision??0)+1};return ['split','remove-group','load-preset','reset'].includes(action.type)?{...result,dockview:action.type==='load-preset'?result.dockview:undefined,dockRevision:(state.dockRevision??0)+1}:result;}

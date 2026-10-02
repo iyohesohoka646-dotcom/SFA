@@ -26,15 +26,18 @@ class ProbeCatalog:
             self.register(ProbeDefinition(id='check.' + kind, label=label, capability='check', execution='program'))
         for kind, execution, capability, label in [('model', 'model', 'interpret', '智能解读'), ('skill', 'skill', 'interpret', 'Skill 解读'), ('manual', 'manual', 'check', '人工判断')]:
             self.register(ProbeDefinition(id=capability + '.' + kind, label=label, capability=capability, execution=execution,
+                parameter_schema={'type':'object','properties':{'prompt':{'type':'string'}, 'provider_id':{'type':'string'},
+                    'model':{'type':'string'}, **({'skill_id':{'type':'string'}} if execution=='skill' else {})}},
                 supported_targets=['data', 'operation', 'function', 'control', 'file', 'project']))
         self.register(ProbeDefinition(id='check.structure', label='源码结构检查', capability='check', execution='builtin',
             supported_targets=['file', 'function', 'control'], evidence='metadata', output_kinds=['diagnostics']))
         self.register(ProbeDefinition(id='check.timing', label='函数与计算耗时', capability='check', execution='builtin',
-            supported_targets=['operation', 'function'], evidence='metadata', output_kinds=['metrics']))
+            supported_targets=['operation', 'function'], evidence='metadata', output_kinds=['metrics'],
+            parameter_schema={'type':'object','properties':{'maximum_ms':{'type':'number','minimum':0}},'additionalProperties':False}))
         self.register(ProbeDefinition(id='view.controls', label='条件与循环统计', capability='view', execution='builtin',
             supported_targets=['control', 'function', 'file'], evidence='metadata', output_kinds=['control_summary']))
         self.register(ProbeDefinition(id='view.compare', label='并排比较', capability='view', execution='builtin', renderer='compare', input_mode='joint',
-            input_roles=[InputRole(name='left'), InputRole(name='right')], parameter_schema={**VIEW_SCHEMA, 'properties': {**VIEW_SCHEMA['properties'], 'shared_scale': {'type': 'boolean'}, 'linked_zoom': {'type': 'boolean'}}}))
+            input_roles=[InputRole(name='left'), InputRole(name='right')], parameter_schema={**VIEW_SCHEMA, 'properties': {**VIEW_SCHEMA['properties'], 'shared_scale': {'type': 'boolean'}, 'linked_zoom': {'type': 'boolean'},'allow_cross_run':{'type':'boolean'}}}))
         for key, label in [('elementwise', '逐元素运算'), ('matmul', '矩阵乘法'), ('correlation', '数值相关'), ('join', '按键表格连接'), ('aggregate', '聚合')]:
             roles = [InputRole(name='input')] if key == 'aggregate' else [InputRole(name='left'), InputRole(name='right')]
             properties = {'missing': {'type': 'string', 'enum': ['error', 'propagate'] + (['pairwise'] if key == 'correlation' else [])},

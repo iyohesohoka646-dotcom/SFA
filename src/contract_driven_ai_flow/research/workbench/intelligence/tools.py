@@ -4,13 +4,14 @@ from ...agent.privacy import sanitize_json
 from ..analysis import analyze_source
 
 READ_TOOLS = {
-    'analysis.list': ('List source objects and candidate relationships', {}),
+    'analysis.list': ('Page source objects and candidate relationships; reads remain separately authorized', {}),
     'source.read': ('Read a scoped symbol/assignment at the frozen source digest', {'object_id': 'string'}),
     'snapshot.describe': ('Describe an authorized snapshot without raw values', {'snapshot_id': 'string'}),
     'sample.read': ('Read a bounded sanitized sample if policy allows it', {'snapshot_id': 'string'}),
     'relations.read': ('Read direct snapshot relationships and provenance', {'snapshot_id': 'string'}),
     'outputs.list': ('Read selected evidence’s probe outputs', {}),
     'tools.catalog': ('Public drawing tools, availability and adapter contracts', {}),
+    'tools.describe': ('Explicit isolated introspection of an installed public plotting adapter', {'tool_id':'string'}),
     'skill.read': ('Read an explicitly registered Skill snapshot', {'skill_id': 'string'}),
 }
 
@@ -25,12 +26,15 @@ class HarnessToolRegistry:
             definitions.pop('sample.read')
         if request.policy.role in ('parse', 'probe', 'code'):
             definitions['plan.prepare'] = ('Prepare a frozen plan without running it', {})
+            definitions['resource.propose'] = ('Stage a validated declarative probe/adapter manifest for human review; cannot enable or execute it', {'manifest':'string'})
         if request.policy.allow_execute and request.policy.role in ('probe', 'code'):
             definitions['plan.execute'] = ('Execute one prepared frozen plan and record its task', {'plan_id': 'string'})
         if request.policy.role == 'code':
             definitions['code.propose'] = ('Propose a scoped inert code fragment for human review', {'object_id': 'string', 'candidate': 'string'})
-        return [{'name': name, 'description': description, 'arguments': {'type': 'object', 'properties': {k: {'type': v} for k, v in fields.items()}, 'required': list(fields), 'additionalProperties': False}}
+        result=[{'name': name, 'description': description, 'arguments': {'type': 'object', 'properties': {k: {'type': v} for k, v in fields.items()}, 'required': list(fields), 'additionalProperties': False}}
                 for name, (description, fields) in definitions.items()]
+        next(d for d in result if d['name']=='analysis.list')['arguments']['properties']={'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':32}}
+        return result
 
     def call(self, name, arguments, request):
         import jsonschema
@@ -50,7 +54,8 @@ class HarnessToolRegistry:
             data = obj.model_dump(mode='json')
             reference = 'source:' + key
         elif name == 'analysis.list':
-            data = {'objects': [o.model_dump(exclude={'code'}, mode='json') for o in analysis.objects[:256]], 'relations': [r.model_dump(mode='json') for r in analysis.relations[:512]], 'partial': len(analysis.objects) > 256}
+            offset=arguments.get('offset',0);limit=arguments.get('limit',16);page=analysis.objects[offset:offset+limit];ids={o.id for o in page};allowed=self.context.authorized_objects(analysis,request)
+            data = {'objects': [{**o.model_dump(exclude={'code'},mode='json'),'readable':o.id in allowed} for o in page], 'relations': [r.model_dump(mode='json') for r in analysis.relations if r.source in ids or r.target in ids][:64], 'partial': offset+limit<len(analysis.objects),'total':len(analysis.objects),'next_offset':offset+limit if offset+limit<len(analysis.objects) else None}
             reference = 'analysis:' + analysis.id
         elif name.startswith('snapshot.') or name in ('sample.read', 'relations.read'):
             key = arguments['snapshot_id']
@@ -74,6 +79,13 @@ class HarnessToolRegistry:
             data = self.workbench.outputs(run_id=request.run_id, snapshot_id=request.snapshot_id)[:32] if request.run_id or request.snapshot_id else []
         elif name == 'tools.catalog':
             data = self.workbench.tools.catalog()
+        elif name == 'tools.describe':
+            data = self.workbench.tools.describe(arguments['tool_id'])
+            reference = 'drawing-methods:' + arguments['tool_id']
+        elif name == 'resource.propose':
+            import json
+            data = self.workbench.resources.import_manifest(json.loads(arguments['manifest'])).model_dump(mode='json')
+            reference = 'resource-draft:' + data['id']
         elif name == 'skill.read':
             data = self.skills.load(arguments['skill_id'])
             reference = 'skill:' + data['id']

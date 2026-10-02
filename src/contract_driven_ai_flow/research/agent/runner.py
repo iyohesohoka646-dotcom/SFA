@@ -164,7 +164,7 @@ class ObservationRuntime:
                     self.session.watch(name, value, source=source, parent_snapshots=parents, provenance="observed",
                         coverage={"mode": "auto", "alias_update": "observed", "hidden_mutations": "not_observed"})
 
-    def function_scope(self, qualname):
+    def function_scope(self, qualname, identifier):
         frame = sys._getframe(1)
         declared = set(frame.f_code.co_varnames) | set(frame.f_code.co_cellvars)
         scope_id = qualname + ":" + uuid.uuid4().hex
@@ -173,7 +173,7 @@ class ObservationRuntime:
         def managed():
             token = self._frames.set((*self._frames.get(), (scope_id, declared)))
             try:
-                with self.session.scope(scope_id), self.controls.activation(qualname, scope_id):
+                with self.session.scope(scope_id), self.controls.activation(qualname, scope_id), self.controls.function(self.references[identifier]):
                     yield
             finally:
                 self._frames.reset(token)

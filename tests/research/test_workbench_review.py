@@ -83,8 +83,8 @@ def test_cancelled_historical_probes_can_be_retried_without_poisoning_run(tmp_pa
         probes = [ProbeInstance(id='a', definition_id='check.finite', binding='X'), ProbeInstance(id='b', definition_id='check.shape', binding='X', parameters={'expected': [2, 2]})]
         wb.configure(cfg.model_copy(update={'probes': probes}), expected_revision=cfg.revision)
         render = wb.drawing.render
-        def cancelled(instance, value, *, cancel=None):
-            result = render(instance, value, cancel=cancel)
+        def cancelled(instance, value, *, cancel=None, **kwargs):
+            result = render(instance, value, cancel=cancel, **kwargs)
             cancel.set()
             return result
         monkeypatch.setattr(wb.drawing, 'render', cancelled)
