@@ -1,6 +1,6 @@
 # Windows desktop shell
 
-Electron wraps the same scientific Web UI and owns only its backend. Node integration is disabled; preload is isolated/sandboxed and navigation is restricted to the local service origin. Startup, retry and close cleanup are tested. Open Terminal uses a fixed PowerShell file with structured arguments.
+Electron wraps the same scientific Web UI and owns only its backend. Node integration is disabled; preload is isolated/sandboxed and navigation is restricted to the local service origin. Startup, retry and close cleanup are tested. Open Terminal focuses the shared embedded xterm.js/PTY view. Shell, Python and application CLI sessions retain their state while hidden and are cleaned up with their owner.
 
 ## Development
 

@@ -127,12 +127,7 @@ class ResearchService:
         if len(configured) > 128:
             raise ValueError("An analysis can configure at most 128 probes")
         run = self.store.create_run(source.path, interpreter=str(python), source_digest=source.digest, name=Path(source.path).stem)
-        archive = self.store.state / "sources"
-        archive.mkdir(exist_ok=True)
-        source_path = archive / (source.digest + ".txt")
-        if not source_path.exists():
-            from ..storage import atomic_write
-            atomic_write(source_path, clean_text(source.text, 10 * 1024 * 1024))
+        self.store.archive_source(source.digest, source.text)
         listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         listener.bind(("127.0.0.1", 0))
         listener.listen(2)

@@ -1,64 +1,828 @@
-import {memo,useEffect,useMemo,useRef,useState} from 'react';
-import {Background,Controls,Handle,Position,ReactFlow,ReactFlowProvider,useReactFlow,useNodesState,type Edge,type Node,type NodeProps,MarkerType} from '@xyflow/react';
-import {request} from '../client';
-import type {ResearchState} from '../state';
-import type {AnalysisDocument,TargetRef,ControlSummary,GraphNode,GraphBlock} from './generated';
-import type {WorkspaceDocument} from './layout';
-import {projectGraph,selectionKey,choose,type Selection} from './selection';
-import {layoutSemantic} from '../../graph';
-import {Icon} from './icons';
-import {wb} from './WorkbenchClient';
-import {client} from '../client';
-import {createState,indexSnapshot} from '../state';
-const names:Record<string,string>={function:'函数',class:'类',condition:'条件',loop:'循环',file:'文件',operation:'运算',parameter:'参数',data:'数据',return:'返回',merge:'合流',call:'调用',entry:'入口',exit:'出口',loop_header:'循环头',try:'异常',unknown:'动态'};
-function SemanticNode({data}:NodeProps){const ports=(data.ports??[]) as GraphNode['ports'];return <div className={'semantic-node kind-'+data.kind} data-testid="relation-node"><div className="semantic-heading"><small>{names[String(data.kind)]??String(data.kind)}</small><strong title={String(data.label)}>{String(data.label)}</strong></div>{ports.map((p,i)=><div className={'semantic-port port-'+p.direction} key={p.id} style={{top:34+i*13}}><Handle id={p.id} type={p.direction==='input'?'target':'source'} position={p.direction==='input'?Position.Left:Position.Right}/><span>{p.name}</span></div>)}<Handle type="target" position={Position.Left}/><Handle type="source" position={Position.Right}/>{data.count!==undefined&&<small className="control-count">{String(data.count)} · {String(data.complete?'完整':'至少')}</small>}</div>;}
-function BlockNode({data}:NodeProps){return <div className={'semantic-plate kind-'+data.kind}><header><Icon name={data.kind==='function'?'source':'graph'} size={13}/><strong>{String(data.label)}</strong><small>{names[String(data.kind)]}</small><button aria-label={(data.collapsed?'展开 ':'折叠 ')+data.label} onClick={e=>{e.stopPropagation();(data.collapse as ()=>void)();}}>{data.collapsed?'展开':'折叠'}</button></header><Handle type="target" position={Position.Left}/><Handle type="source" position={Position.Right}/>{Boolean(data.collapsed)&&<span className="plate-summary">{String(data.members)} 个内部单元</span>}{data.count!==undefined&&<span className="plate-counter">{Boolean(data.complete)?'':'至少 '}{String(data.count)} 次</span>}</div>;}
-const nodeTypes={semantic:SemanticNode,plate:BlockNode};
-const edgeColors:Record<string,string>={data:'#237767',control:'#956b22',call:'#6658a4',argument:'#6658a4',return:'#47769b',merge:'#956b22',backedge:'#a15736',block:'#687a8a'};
-function GraphInner({document,state,analysis,selection,onSelection,scope,onEnter,onOpen,onSource,onBind,onError}:{document:WorkspaceDocument;state:ResearchState;analysis?:AnalysisDocument;selection:Selection;onSelection:(s:Selection)=>void;scope:string|null;onEnter:(id:string|null)=>void;onOpen:(t:TargetRef)=>void;onSource:(t:TargetRef)=>void;onBind:()=>void;onError:(s:string)=>void}){
- const [nodes,setNodes,onNodesChange]=useNodesState<Node>([]),[edges,setEdges]=useState<Edge[]>([]),[closed,setClosed]=useState<Set<string>>(new Set()),[view,setView]=useState<'structure'|'data'|'execution'>('structure'),[dim,setDim]=useState(false),[query,setQuery]=useState(''),[direction,setDirection]=useState('RIGHT'),[arrange,setArrange]=useState(0),[time,setTime]=useState(0),[controls,setControls]=useState<ControlSummary[]>([]),[menu,setMenu]=useState<{x:number;y:number;target:TargetRef}>();
- useEffect(()=>{const apply=()=>{try{const s=JSON.parse(localStorage.getItem('cdaf-graph-settings')??'{}');setDim(s.dim_unrelated??false);if(s.direction)setDirection(s.direction);if(s.view)setView(s.view);}catch{onError('图设置不可读取');}};apply();window.addEventListener('cdaf-preferences-changed',apply);return()=>window.removeEventListener('cdaf-preferences-changed',apply);},[]);
- const [relations,setRelations]=useState(new Set(['data','control','call','block']));
- const flow=useReactFlow(),positions=useRef(new Map<string,{x:number;y:number}>()),first=useRef(true),generation=useRef(0);
- const graph=analysis?.graph;
- const collapsed=useMemo(()=>new Set([...closed,...(graph&&graph.nodes.length>350?graph.blocks.filter(b=>b.kind==='function'&&!closed.has('open:'+b.id)).map(b=>b.id):[])]),[closed,graph]);
- const projection=useMemo(()=>graph?projectGraph(graph,collapsed,view,scope):{nodes:[],edges:[],omitted:0},[graph,collapsed,view,scope]);
- const targets=useMemo(()=>new Map(projection.nodes.map(n=>{const data=n as GraphNode,block=n as GraphBlock,kind=n.plate?(block.kind==='function'?'function':block.kind==='file'?'file':'control'):data.kind==='data'||data.kind==='parameter'?'data':'operation';const snapshot=[...state.latest.values()].find(s=>s.logical_key===n.logical_key);return [n.id,{kind,logical_key:n.logical_key??n.id,block_id:n.plate?n.id:data.block_id,object_id:n.source_object_id,snapshot_id:snapshot?.id,run_id:snapshot?.run_id,analysis_id:analysis?.id} as TargetRef];})),[projection,state.latest,state.lastSequence,analysis?.id]);
- const selectedKeys=useMemo(()=>new Set(selection.targets.map(selectionKey)),[selection]);
- const selectedIds=useMemo(()=>new Set([...targets].filter(([,t])=>(selectedKeys.has(selectionKey(t))||Boolean(t.object_id&&selection.targets.some(s=>s.object_id===t.object_id)))).map(([id])=>id)),[targets,selectedKeys]);
- const direct=useMemo(()=>new Set(projection.edges.filter(e=>selectedIds.has(e.source)||selectedIds.has(e.target)).flatMap(e=>[e.source,e.target])),[projection,selectedIds]);
- useEffect(()=>{if(view!=='execution'||!state.runId)return;let live=true;const load=()=>request<{summaries:ControlSummary[]}>('/runs/'+encodeURIComponent(state.runId)+'/controls').then(c=>{if(live)setControls(c.summaries);}).catch(e=>{if(live)onError(e.message);});void load();const timer=setInterval(()=>void load(),1000);return()=>{live=false;clearInterval(timer);};},[state.runId,view]);
- const toggle=(id:string)=>setClosed(old=>{const n=new Set(old);if(collapsed.has(id)){n.delete(id);n.add('open:'+id);}else{n.add(id);n.delete('open:'+id);}return n;});
- const structuralKey=projection.nodes.map(n=>n.id).join('|')+projection.edges.map(e=>e.id).join('|')+direction+arrange;
- useEffect(()=>{
- const version=++generation.current,started=performance.now(),ids=new Set(projection.nodes.map(n=>n.id));
- const seed:Node[]=projection.nodes.map((n,i)=>{const block=n as GraphBlock,data=n as GraphNode,parent=n.parent_id&&ids.has(n.parent_id)?n.parent_id:undefined;return {id:n.id,type:n.plate?'plate':'semantic',parentId:parent,position:positions.current.get(n.id)??{x:i*200,y:0},style:{width:n.plate?280:190,height:n.plate?110:Math.max(74,42+(data.ports?.length??0)*13)},data:{label:n.label,kind:n.kind,ports:data.ports??[],members:block.members?.length??0,collapsed:collapsed.has(n.id),collapse:()=>toggle(n.id)},ariaLabel:n.label};});
- const lines:Edge[]=projection.edges.map(e=>({id:e.id,source:e.source,target:e.target,sourceHandle:e.source_port??undefined,targetHandle:e.target_port??undefined,type:'smoothstep',label:(e.branch?{true:'真',false:'假',body:'循环体',exit:'出口',exception:'异常'}[e.branch]:e.label)+(e.count>1?' ×'+e.count:''),markerEnd:{type:MarkerType.ArrowClosed,width:12,height:12},data:{kind:e.kind,original_ids:e.original_ids},style:{stroke:edgeColors[e.kind]??'#647b84',strokeDasharray:e.kind==='data'?undefined:e.kind==='backedge'?'3 3':'7 4'},labelStyle:{fontSize:10,fill:'var(--muted)'},labelBgStyle:{fill:'var(--surface)'}}));
- setNodes(seed);setEdges(lines);
- void layoutSemantic(seed,lines,direction).then(points=>{if(version!==generation.current)return;setNodes(current=>current.map(n=>{const p=points.get(n.id);return p?{...n,position:positions.current.get(n.id)??{x:p.x,y:p.y},style:{...n.style,width:p.width,height:p.height}}:n;}));setTime(performance.now()-started);if(first.current){first.current=false;requestAnimationFrame(()=>void flow.fitView({padding:.15,maxZoom:1,duration:0}));}}).catch(e=>{if(version===generation.current)onError('布局失败：'+e.message);});
- return()=>{generation.current++;};
- },[structuralKey]);
- useEffect(()=>{
- const counters=new Map(controls.map(c=>[c.node_id,c]));
- setNodes(current=>current.map(n=>{const c=counters.get(n.id),selected=selectedIds.has(n.id);return {...n,selected,hidden:query.length>0&&!String(n.data.label).toLowerCase().includes(query.toLowerCase())&&!direct.has(n.id)&&n.type!=='plate',style:{...n.style,opacity:dim&&selection.targets.length&&!selected&&!direct.has(n.id)?.34:1},data:{...n.data,count:view==='execution'?(c?.kind==='branch'?(c.true_count+c.false_count):c?.kind==='function'?c.activations:c?.body_entries):undefined,complete:c?.complete}};}));
- setEdges(current=>current.map(e=>{const kind=String(e.data?.kind),category=['argument','return'].includes(kind)?'call':['backedge','merge'].includes(kind)?'control':kind,active=selectedIds.has(e.source)||selectedIds.has(e.target);return {...e,hidden:!relations.has(category),style:{...e.style,strokeWidth:active?2.8:1.3,opacity:dim&&selection.targets.length&&!active?.32:1}};}));
- },[selectedIds,direct,dim,query,relations,view,controls,structuralKey]);
- return <div className="wb-graph-pane" onKeyDown={e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'&&!(e.target instanceof HTMLInputElement)){e.preventDefault();onSelection({targets:[...targets.values()],anchor:null});}if(e.key==='ContextMenu'||e.shiftKey&&e.key==='F10'){const target=selection.targets[0];if(target){e.preventDefault();setMenu({x:400,y:250,target});}}}}><div className="wb-view-toolbar"><strong>计算关系图</strong><select aria-label="关系图视图" value={view} onChange={e=>setView(e.target.value as typeof view)}><option value="structure">结构</option><option value="data">数据</option><option value="execution">执行</option></select><input type="search" aria-label="搜索计算对象" placeholder="搜索" value={query} onChange={e=>setQuery(e.target.value)}/><button onClick={()=>onEnter(null)}>总览</button><button onClick={()=>void flow.fitView({padding:.18,duration:0})}>适应画布</button><details><summary>布局与关系</summary><div className="workspace-menu"><label><input type="checkbox" checked={dim} onChange={e=>setDim(e.target.checked)}/>淡化无关对象</label>{['data','control','call','block'].map(k=><label key={k}><input type="checkbox" checked={relations.has(k)} onChange={()=>setRelations(s=>{const n=new Set(s);n.has(k)?n.delete(k):n.add(k);return n;})}/>{({data:'数据',control:'控制',call:'调用',block:'块间'} as Record<string,string>)[k]}关系</label>)}<select aria-label="布局方向" value={direction} onChange={e=>setDirection(e.target.value)}><option value="RIGHT">从左到右</option><option value="DOWN">从上到下</option></select><button onClick={()=>{for(const n of projection.nodes)positions.current.delete(n.id);setArrange(n=>n+1);}}>整理当前块</button><button onClick={()=>{positions.current.clear();setClosed(new Set());setArrange(n=>n+1);}}>整理全部</button></div></details></div>
- <div className="wb-graph-canvas"><ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodesChange={onNodesChange} nodesConnectable={false} minZoom={.02} maxZoom={2} selectionOnDrag panOnDrag={[1,2]} multiSelectionKeyCode={['Control','Meta']} proOptions={{hideAttribution:true}} onNodeClick={(e,n)=>{const t=targets.get(n.id);if(t)onSelection(choose(selection,t,[...targets.values()],{toggle:e.ctrlKey||e.metaKey,shift:e.shiftKey}));}} onSelectionEnd={()=>{const selected=flow.getNodes().filter(n=>n.selected).flatMap(n=>targets.get(n.id)?[targets.get(n.id)!]:[]);if(selected.length)onSelection({targets:selected,anchor:null});}} onNodeContextMenu={(e,n)=>{e.preventDefault();const t=targets.get(n.id);if(t){if(!selectedKeys.has(selectionKey(t)))onSelection({targets:[t],anchor:selectionKey(t)});setMenu({x:e.clientX,y:e.clientY,target:t});}}} onNodeDragStop={(_,n)=>{positions.current.set(n.id,n.position);}}><Background gap={24} color="var(--line)"/><Controls showInteractive={false}/></ReactFlow></div>
- <div className="wb-graph-legend"><span style={{color:edgeColors.data}}>数据</span><span style={{color:edgeColors.control}}>条件 / 控制</span><span style={{color:edgeColors.call}}>调用</span><span style={{color:edgeColors.backedge}}>循环回边</span><span data-testid="graph-layout-metric">{projection.nodes.length} 单元 · {projection.omitted} 已折叠 · {time.toFixed(0)} ms</span></div>
- {menu&&<div className="context-backdrop" onClick={()=>setMenu(undefined)}><div role="menu" className="workspace-menu object-context" style={{left:Math.min(menu.x,innerWidth-210),top:Math.min(menu.y,innerHeight-210)}}><button disabled={!menu.target.snapshot_id} onClick={()=>onOpen(menu.target)}>打开数据</button><button onClick={()=>onSource(menu.target)}>定位源码</button>{menu.target.kind!=='data'&&menu.target.block_id&&<button onClick={()=>onEnter(menu.target.block_id!)}>进入此块</button>}<button onClick={onBind}>绑定探针</button></div></div>}</div>;
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Background,
+  Controls,
+  Handle,
+  Position,
+  ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
+  useNodesState,
+  type Edge,
+  type Node,
+  type NodeProps,
+  MarkerType,
+} from "@xyflow/react";
+import { request } from "../client";
+import type { ResearchState } from "../state";
+import type {
+  AnalysisDocument,
+  TargetRef,
+  ControlSummary,
+  GraphNode,
+  GraphBlock,
+} from "./generated";
+import type { WorkspaceDocument } from "./layout";
+import {
+  projectGraph,
+  selectionKey,
+  choose,
+  initialCollapsed,
+  type Selection,
+} from "./selection";
+import { layoutSemantic } from "../../graph";
+import { Icon } from "./icons";
+import { wb } from "./WorkbenchClient";
+import { client } from "../client";
+import { createState, indexSnapshot } from "../state";
+const names: Record<string, string> = {
+  function: "函数",
+  class: "类",
+  condition: "条件",
+  loop: "循环",
+  file: "文件",
+  operation: "运算",
+  parameter: "参数",
+  data: "数据",
+  return: "返回",
+  merge: "合流",
+  call: "调用",
+  entry: "入口",
+  exit: "出口",
+  loop_header: "循环头",
+  try: "异常",
+  unknown: "动态",
+};
+function SemanticNode({ data }: NodeProps) {
+  const ports = (data.ports ?? []) as GraphNode["ports"];
+  return (
+    <div
+      className={
+        "semantic-node kind-" +
+        data.kind +
+        " execution-" +
+        (data.status ?? "unobserved")
+      }
+      data-testid="relation-node"
+    >
+      <div className="semantic-heading">
+        <small>{names[String(data.kind)] ?? String(data.kind)}</small>
+        <strong title={String(data.label)}>{String(data.label)}</strong>
+      </div>
+      {ports.map((p, i) => (
+        <div
+          className={"semantic-port port-" + p.direction}
+          key={p.id}
+          style={{ top: 34 + i * 13 }}
+        >
+          <Handle
+            id={p.id}
+            type={p.direction === "input" ? "target" : "source"}
+            position={p.direction === "input" ? Position.Left : Position.Right}
+          />
+          <span>{p.name}</span>
+        </div>
+      ))}
+      <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Right} />
+      {data.status !== undefined && (
+        <small className="execution-state">{String(data.status)}</small>
+      )}
+      {data.count !== undefined && (
+        <small className="control-count">
+          {String(data.count)} · {String(data.complete ? "完整" : "至少")}
+        </small>
+      )}
+    </div>
+  );
 }
-export const RelationGraph=memo(function RelationGraph(props:Parameters<typeof GraphInner>[0]){
- const [historical,setHistorical]=useState<{analysis:AnalysisDocument;state:ResearchState}>(),[error,setError]=useState('');
- const run=props.document.reference.run_id;
- useEffect(()=>{setHistorical(undefined);setError('');if(!run)return;const abort=new AbortController();
- void Promise.all([wb.runAnalysis(run,abort.signal),run===props.state.runId?Promise.resolve(null):client.bootstrap(run,abort.signal)]).then(([analysis,boot])=>{
- if(abort.signal.aborted)return;const state=boot?createState(run):props.state;
- if(boot){const parents=new Map(Object.entries(boot.parent_bindings));for(const s of boot.snapshots)indexSnapshot(state,s,parents);for(const o of boot.operations)state.operations.set(o.id,o);state.status=boot.run.status;state.lastSequence=boot.cursor;}
- setHistorical({analysis,state});}).catch(e=>{if(!abort.signal.aborted)setError(e.message);});return()=>abort.abort();},[run,props.state.runId,props.document.reference.analysis_id]);
- if(run&&error)return <div className="wb-empty" role="alert">此运行的计算结构不可用：{error}</div>;
- if(run&&!historical)return <div className="wb-empty">读取运行的计算结构…</div>;
- const analysis=run?historical?.analysis:props.analysis,state=run&&run!==props.state.runId?historical!.state:props.state;
- const scope=analysis?.graph.blocks.some(b=>b.id===props.scope)?props.scope:null;
- return <ReactFlowProvider><GraphInner {...props} analysis={analysis} state={state} scope={scope}/></ReactFlowProvider>;
+function BlockNode({ data }: NodeProps) {
+  return (
+    <div
+      data-testid="relation-node"
+      className={"semantic-plate kind-" + data.kind}
+    >
+      <header>
+        <Icon name={data.kind === "function" ? "source" : "graph"} size={13} />
+        <strong>{String(data.label)}</strong>
+        <small>{names[String(data.kind)]}</small>
+        <button
+          aria-label={(data.collapsed ? "展开 " : "折叠 ") + data.label}
+          onClick={(e) => {
+            e.stopPropagation();
+            (data.collapse as () => void)();
+          }}
+        >
+          {data.collapsed ? "展开" : "折叠"}
+        </button>
+      </header>
+      <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Right} />
+      {Boolean(data.collapsed) && (
+        <span className="plate-summary">{String(data.members)} 个内部单元</span>
+      )}
+      {data.count !== undefined && (
+        <span className="plate-counter">
+          {Boolean(data.complete) ? "" : "至少 "}
+          {String(data.count)} 次
+        </span>
+      )}
+    </div>
+  );
+}
+const nodeTypes = { semantic: SemanticNode, plate: BlockNode };
+const edgeColors: Record<string, string> = {
+  data: "#237767",
+  control: "#956b22",
+  call: "#6658a4",
+  argument: "#6658a4",
+  return: "#47769b",
+  merge: "#956b22",
+  backedge: "#a15736",
+  block: "#687a8a",
+};
+function GraphInner({
+  document,
+  state,
+  analysis,
+  selection,
+  onSelection,
+  scope,
+  onEnter,
+  onOpen,
+  onSource,
+  onBind,
+  onError,
+}: {
+  document: WorkspaceDocument;
+  state: ResearchState;
+  analysis?: AnalysisDocument;
+  selection: Selection;
+  onSelection: (s: Selection) => void;
+  scope: string | null;
+  onEnter: (id: string | null) => void;
+  onOpen: (t: TargetRef) => void;
+  onSource: (t: TargetRef) => void;
+  onBind: () => void;
+  onError: (s: string) => void;
+}) {
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]),
+    [edges, setEdges] = useState<Edge[]>([]),
+    [closed, setClosed] = useState<Set<string>>(new Set()),
+    [view, setView] = useState<"structure" | "data" | "execution">("structure"),
+    [dim, setDim] = useState(false),
+    [query, setQuery] = useState(""),
+    [direction, setDirection] = useState("RIGHT"),
+    [arrange, setArrange] = useState(0),
+    [time, setTime] = useState(0),
+    [controls, setControls] = useState<ControlSummary[]>([]),
+    [menu, setMenu] = useState<{ x: number; y: number; target: TargetRef }>();
+  useEffect(() => {
+    const apply = () => {
+      try {
+        const s = JSON.parse(
+          localStorage.getItem("cdaf-graph-settings") ?? "{}",
+        );
+        setDim(s.dim_unrelated ?? false);
+        if (s.direction) setDirection(s.direction);
+        if (s.view) setView(s.view);
+      } catch {
+        onError("图设置不可读取");
+      }
+    };
+    apply();
+    window.addEventListener("cdaf-preferences-changed", apply);
+    return () => window.removeEventListener("cdaf-preferences-changed", apply);
+  }, []);
+  const [relations, setRelations] = useState(
+    new Set(["data", "control", "call", "block"]),
+  );
+  const flow = useReactFlow(),
+    positions = useRef(new Map<string, { x: number; y: number }>()),
+    first = useRef(true),
+    generation = useRef(0);
+  const graph = analysis?.graph,
+    pinned = useRef(new Set<string>()),
+    positionKey = "cdaf-graph-positions:" + analysis?.id;
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem(positionKey) ?? "{}",
+      ) as Record<string, { x: number; y: number }>;
+      positions.current = new Map(
+        Object.entries(saved).filter(
+          ([, p]) => Number.isFinite(p.x) && Number.isFinite(p.y),
+        ),
+      );
+      pinned.current = new Set(positions.current.keys());
+    } catch {
+      onError("图位置记录不可读取");
+    }
+    first.current = true;
+  }, [positionKey]);
+  useEffect(() => {
+    // Projection and scope changes navigate the graph; selection never does.
+    first.current = true;
+  }, [view === "data", scope]);
+  const persistPositions = () =>
+    localStorage.setItem(
+      positionKey,
+      JSON.stringify(
+        Object.fromEntries(
+          [...positions.current].filter(([id]) => pinned.current.has(id)),
+        ),
+      ),
+    );
+  const collapsed = useMemo(
+    () => (graph ? initialCollapsed(graph, closed) : new Set(closed)),
+    [closed, graph],
+  );
+  const projection = useMemo(
+    () =>
+      graph
+        ? projectGraph(graph, collapsed, view, scope)
+        : { nodes: [], edges: [], omitted: 0 },
+    [graph, collapsed, view, scope],
+  );
+  const latestByKey = useMemo(
+    () => new Map([...state.latest.values()].map((s) => [s.logical_key, s])),
+    [state.latest, state.lastSequence],
+  );
+  const targets = useMemo(
+    () =>
+      new Map(
+        projection.nodes.map((n) => {
+          const data = n as GraphNode,
+            block = n as GraphBlock,
+            kind = n.plate
+              ? block.kind === "function"
+                ? "function"
+                : block.kind === "file"
+                  ? "file"
+                  : "control"
+              : data.kind === "data" || data.kind === "parameter"
+                ? "data"
+                : "operation";
+          const snapshot = latestByKey.get(n.logical_key);
+          return [
+            n.id,
+            {
+              kind,
+              logical_key: n.logical_key ?? n.id,
+              block_id: n.plate ? n.id : data.block_id,
+              object_id: n.source_object_id,
+              snapshot_id: snapshot?.id,
+              run_id: snapshot?.run_id,
+              analysis_id: analysis?.id,
+            } as TargetRef,
+          ];
+        }),
+      ),
+    [projection, latestByKey, analysis?.id],
+  );
+  const selectedKeys = useMemo(
+    () => new Set(selection.targets.map(selectionKey)),
+    [selection],
+  );
+  const selectedObjects = useMemo(
+    () =>
+      new Set(
+        selection.targets.flatMap((t) => (t.object_id ? [t.object_id] : [])),
+      ),
+    [selection],
+  );
+  const selectedIds = useMemo(
+    () =>
+      new Set(
+        [...targets]
+          .filter(
+            ([, t]) =>
+              selectedKeys.has(selectionKey(t)) ||
+              Boolean(t.object_id && selectedObjects.has(t.object_id)),
+          )
+          .map(([id]) => id),
+      ),
+    [targets, selectedKeys, selectedObjects],
+  );
+  const selectedBlocks = useMemo(() => {
+    const parents = new Map(
+        graph?.blocks.map((b) => [b.id, b.parent_id]) ?? [],
+      ),
+      ids = new Set<string>();
+    for (const t of selection.targets) {
+      let id: string | undefined = t.block_id ?? undefined;
+      while (id && !ids.has(id)) {
+        ids.add(id);
+        id = parents.get(id) ?? undefined;
+      }
+    }
+    return ids;
+  }, [graph, selection]);
+  const direct = useMemo(
+    () =>
+      new Set(
+        projection.edges
+          .filter((e) => selectedIds.has(e.source) || selectedIds.has(e.target))
+          .flatMap((e) => [e.source, e.target]),
+      ),
+    [projection, selectedIds],
+  );
+  useEffect(() => {
+    if (view !== "execution" || !state.runId) return;
+    let live = true;
+    const load = () =>
+      request<{ summaries: ControlSummary[] }>(
+        "/runs/" + encodeURIComponent(state.runId) + "/controls",
+      )
+        .then((c) => {
+          if (live) setControls(c.summaries);
+        })
+        .catch((e) => {
+          if (live) onError(e.message);
+        });
+    void load();
+    const timer = setInterval(() => void load(), 1000);
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, [state.runId, view]);
+  const toggle = (id: string) =>
+    setClosed((old) => {
+      const n = new Set(old);
+      if (collapsed.has(id)) {
+        n.delete(id);
+        n.add("open:" + id);
+      } else {
+        n.add(id);
+        n.delete("open:" + id);
+      }
+      return n;
+    });
+  const structuralKey =
+    projection.nodes.map((n) => n.id).join("|") +
+    projection.edges.map((e) => e.id).join("|") +
+    direction +
+    arrange +
+    (scope ?? "");
+  useEffect(() => {
+    const version = ++generation.current,
+      started = performance.now(),
+      ids = new Set(projection.nodes.map((n) => n.id));
+    const seed: Node[] = projection.nodes.map((n, i) => {
+      const block = n as GraphBlock,
+        data = n as GraphNode,
+        parent = n.parent_id && ids.has(n.parent_id) ? n.parent_id : undefined;
+      return {
+        id: n.id,
+        type: n.plate ? "plate" : "semantic",
+        parentId: parent,
+        position: positions.current.get(n.id) ?? { x: i * 200, y: 0 },
+        style: {
+          width: n.plate ? 280 : 190,
+          height: n.plate
+            ? 110
+            : Math.max(74, 42 + (data.ports?.length ?? 0) * 13),
+        },
+        data: {
+          label: n.label,
+          kind: n.kind,
+          ports: data.ports ?? [],
+          members: block.members?.length ?? 0,
+          collapsed: collapsed.has(n.id),
+          collapse: () => toggle(n.id),
+        },
+        ariaLabel: n.label,
+      };
+    });
+    const lines: Edge[] = projection.edges.map((e) => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      sourceHandle: e.source_port ?? undefined,
+      targetHandle: e.target_port ?? undefined,
+      type: "smoothstep",
+      selectable:false,focusable:false,interactionWidth:0,
+      label:
+        (e.branch
+          ? {
+              true: "真",
+              false: "假",
+              body: "循环体",
+              exit: "出口",
+              exception: "异常",
+            }[e.branch]
+          : e.label) + (e.count > 1 ? " ×" + e.count : ""),
+      markerEnd: { type: MarkerType.ArrowClosed, width: 12, height: 12 },
+      data: { kind: e.kind, original_ids: e.original_ids },
+      style: {
+        stroke: edgeColors[e.kind] ?? "#647b84",
+        strokeDasharray:
+          e.kind === "data" ? undefined : e.kind === "backedge" ? "3 3" : "7 4",
+      },
+      labelStyle: { fontSize: 10, fill: "var(--muted)" },
+      labelBgStyle: { fill: "var(--surface)" },
+    }));
+    setNodes(seed);
+    setEdges(lines);
+    setTime(0);
+    void layoutSemantic(seed, lines, direction)
+      .then((points) => {
+        if (version !== generation.current) return;
+        setNodes((current) =>
+          current.map((n) => {
+            const p = points.get(n.id);
+            return p
+              ? {
+                  ...n,
+                  position: positions.current.get(n.id) ?? { x: p.x, y: p.y },
+                  style: { ...n.style, width: p.width, height: p.height },
+                }
+              : n;
+          }),
+        );
+        setTime(performance.now() - started);
+        if (first.current) {
+          first.current = false;
+          requestAnimationFrame(
+            () => void flow.fitView({ padding: 0.15, maxZoom: 1, duration: 0 }),
+          );
+        }
+      })
+      .catch((e) => {
+        if (version === generation.current) onError("布局失败：" + e.message);
+      });
+    return () => {
+      generation.current++;
+    };
+  }, [structuralKey]);
+  useEffect(() => {
+    const observed = [...state.operations.values()].filter(
+      (o) => o.provenance === "observed" && o.source,
+    );
+    const counters = new Map(controls.map((c) => [c.node_id, c]));
+    const semanticById = new Map(projection.nodes.map((n) => [n.id, n]));
+    const byLine = new Map<string, typeof observed>();
+    for (const o of observed) {
+      const key = o.source!.path + ":" + o.source!.line;
+      byLine.set(key, [...(byLine.get(key) ?? []), o]);
+    }
+    const observedStatus = (id: string) => {
+      const source = (semanticById.get(id) as GraphNode | undefined)?.source;
+      if (!source) return;
+      for (let line = source.line; line <= source.end_line; line++) {
+        const records = byLine.get(source.path + ":" + line);
+        if (records?.length) return records.at(-1)?.status;
+      }
+    };
+    setNodes((current) =>
+      current.map((n) => {
+        const c = counters.get(n.id),
+          selected =
+            selectedIds.has(n.id) ||
+            (n.type === "plate" && selectedBlocks.has(n.id));
+        return {
+          ...n,
+          selected,
+          hidden:
+            query.length > 0 &&
+            !String(n.data.label).toLowerCase().includes(query.toLowerCase()) &&
+            !direct.has(n.id) &&
+            n.type !== "plate",
+          style: {
+            ...n.style,
+            opacity:
+              dim && selection.targets.length && !selected && !direct.has(n.id)
+                ? 0.34
+                : 1,
+          },
+          data: {
+            ...n.data,
+            status: view === "execution" ? observedStatus(n.id) : undefined,
+            count:
+              view === "execution"
+                ? c?.kind === "branch"
+                  ? c.true_count + c.false_count
+                  : c?.kind === "function"
+                    ? c.activations
+                    : c?.body_entries
+                : undefined,
+            complete: c?.complete,
+          },
+        };
+      }),
+    );
+    setEdges((current) =>
+      current.map((e) => {
+        const kind = String(e.data?.kind),
+          category = ["argument", "return"].includes(kind)
+            ? "call"
+            : ["backedge", "merge"].includes(kind)
+              ? "control"
+              : kind,
+          active = selectedIds.has(e.source) || selectedIds.has(e.target);
+        return {
+          ...e,
+          hidden: !relations.has(category),
+          style: {
+            ...e.style,
+            strokeWidth: active ? 2.8 : 1.3,
+            opacity: dim && selection.targets.length && !active ? 0.32 : 1,
+          },
+        };
+      }),
+    );
+  }, [
+    selectedIds,
+    selectedBlocks,
+    direct,
+    dim,
+    query,
+    relations,
+    view,
+    controls,
+    structuralKey,
+    state.lastSequence,
+  ]);
+  return (
+    <div
+      className="wb-graph-pane"
+      onKeyDown={(e) => {
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.key.toLowerCase() === "a" &&
+          !(e.target instanceof HTMLInputElement)
+        ) {
+          e.preventDefault();
+          onSelection({ targets: [...targets.values()], anchor: null });
+        }
+        if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) {
+          const target = selection.targets[0];
+          if (target) {
+            e.preventDefault();
+            setMenu({ x: 400, y: 250, target });
+          }
+        }
+      }}
+    >
+      <div className="wb-view-toolbar">
+        <strong>计算关系图</strong>
+        <select
+          aria-label="关系图视图"
+          value={view}
+          onChange={(e) => setView(e.target.value as typeof view)}
+        >
+          <option value="structure">结构</option>
+          <option value="data">数据</option>
+          <option value="execution">执行</option>
+        </select>
+        <input
+          type="search"
+          aria-label="搜索计算对象"
+          placeholder="搜索"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button onClick={() => onEnter(null)}>总览</button>
+        <button
+          onClick={() => void flow.fitView({ padding: 0.18, duration: 0 })}
+        >
+          适应画布
+        </button>
+        <details>
+          <summary>布局与关系</summary>
+          <div className="workspace-menu">
+            <label>
+              <input
+                type="checkbox"
+                checked={dim}
+                onChange={(e) => setDim(e.target.checked)}
+              />
+              淡化无关对象
+            </label>
+            {["data", "control", "call", "block"].map((k) => (
+              <label key={k}>
+                <input
+                  type="checkbox"
+                  checked={relations.has(k)}
+                  onChange={() =>
+                    setRelations((s) => {
+                      const n = new Set(s);
+                      n.has(k) ? n.delete(k) : n.add(k);
+                      return n;
+                    })
+                  }
+                />
+                {
+                  (
+                    {
+                      data: "数据",
+                      control: "控制",
+                      call: "调用",
+                      block: "块间",
+                    } as Record<string, string>
+                  )[k]
+                }
+                关系
+              </label>
+            ))}
+            <select
+              aria-label="布局方向"
+              value={direction}
+              onChange={(e) => setDirection(e.target.value)}
+            >
+              <option value="RIGHT">从左到右</option>
+              <option value="DOWN">从上到下</option>
+            </select>
+            <button
+              onClick={() => {
+                for (const n of projection.nodes)
+                  if (!pinned.current.has(n.id)) positions.current.delete(n.id);
+                setArrange((n) => n + 1);
+              }}
+            >
+              整理当前块
+            </button>
+            <button
+              onClick={() => {
+                for (const id of positions.current.keys())
+                  if (!pinned.current.has(id)) positions.current.delete(id);
+                setClosed(new Set());
+                setArrange((n) => n + 1);
+              }}
+            >
+              整理全部
+            </button>
+          </div>
+        </details>
+      </div>
+      <div className="wb-graph-canvas">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
+          nodesConnectable={false}
+          minZoom={0.02}
+          maxZoom={2}
+          onlyRenderVisibleElements
+          selectionOnDrag
+          panOnDrag={[1, 2]}
+          multiSelectionKeyCode={["Control", "Meta"]}
+          proOptions={{ hideAttribution: true }}
+          onNodeClick={(e, n) => {
+            const t = targets.get(n.id);
+            if (t)
+              onSelection(
+                choose(selection, t, [...targets.values()], {
+                  toggle: e.ctrlKey || e.metaKey,
+                  shift: e.shiftKey,
+                }),
+              );
+          }}
+          onSelectionEnd={() => {
+            const selected = flow
+              .getNodes()
+              .filter((n) => n.selected)
+              .flatMap((n) => (targets.get(n.id) ? [targets.get(n.id)!] : []));
+            if (selected.length)
+              onSelection({ targets: selected, anchor: null });
+          }}
+          onNodeContextMenu={(e, n) => {
+            e.preventDefault();
+            const t = targets.get(n.id);
+            if (t) {
+              if (!selectedKeys.has(selectionKey(t)))
+                onSelection({ targets: [t], anchor: selectionKey(t) });
+              setMenu({ x: e.clientX, y: e.clientY, target: t });
+            }
+          }}
+          onNodeDragStop={(_, n) => {
+            positions.current.set(n.id, n.position);
+            if (pinned.current.has(n.id)) persistPositions();
+          }}
+        >
+          <Background gap={24} color="var(--line)" />
+          <Controls showInteractive={false} />
+        </ReactFlow>
+      </div>
+      <div className="wb-graph-legend">
+        <span style={{ color: edgeColors.data }}>数据</span>
+        <span style={{ color: edgeColors.control }}>条件 / 控制</span>
+        <span style={{ color: edgeColors.call }}>调用</span>
+        <span style={{ color: edgeColors.backedge }}>循环回边</span>
+        <span data-testid="graph-layout-metric">
+          {projection.nodes.length} 单元 · {projection.omitted} 已折叠 ·{" "}
+          {time.toFixed(0)} ms
+        </span>
+      </div>
+      {menu && (
+        <div className="context-backdrop" onClick={() => setMenu(undefined)}>
+          <div
+            role="menu"
+            className="workspace-menu object-context"
+            style={{
+              left: Math.min(menu.x, innerWidth - 210),
+              top: Math.min(menu.y, innerHeight - 210),
+            }}
+          >
+            <button
+              disabled={!menu.target.snapshot_id}
+              onClick={() => onOpen(menu.target)}
+            >
+              打开数据
+            </button>
+            <button onClick={() => onSource(menu.target)}>定位源码</button>
+            {menu.target.kind !== "data" && menu.target.block_id && (
+              <button onClick={() => onEnter(menu.target.block_id!)}>
+                进入此块
+              </button>
+            )}
+            <button onClick={onBind}>绑定探针</button>
+            <button
+              onClick={() => {
+                const id =
+                  menu.target.kind === "operation"
+                    ? menu.target.logical_key
+                    : menu.target.block_id;
+                const n = flow.getNodes().find((n) => n.id === id);
+                if (n) {
+                  if (pinned.current.has(n.id)) pinned.current.delete(n.id);
+                  else {
+                    pinned.current.add(n.id);
+                    positions.current.set(n.id, n.position);
+                  }
+                  persistPositions();
+                }
+              }}
+            >
+              {pinned.current.has(
+                menu.target.kind === "operation"
+                  ? menu.target.logical_key
+                  : (menu.target.block_id ?? ""),
+              )
+                ? "取消固定位置"
+                : "固定位置"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+export const RelationGraph = memo(function RelationGraph(
+  props: Parameters<typeof GraphInner>[0],
+) {
+  const [historical, setHistorical] = useState<{
+      analysis: AnalysisDocument;
+      state: ResearchState;
+    }>(),
+    [error, setError] = useState("");
+  const run = props.document.reference.run_id;
+  useEffect(() => {
+    setHistorical(undefined);
+    setError("");
+    if (!run) return;
+    const abort = new AbortController();
+    void Promise.all([
+      wb.runAnalysis(run, abort.signal),
+      run === props.state.runId
+        ? Promise.resolve(null)
+        : client.bootstrap(run, abort.signal),
+    ])
+      .then(([analysis, boot]) => {
+        if (abort.signal.aborted) return;
+        const state = boot ? createState(run) : props.state;
+        if (boot) {
+          const parents = new Map(Object.entries(boot.parent_bindings));
+          for (const s of boot.snapshots) indexSnapshot(state, s, parents);
+          for (const o of boot.operations) state.operations.set(o.id, o);
+          state.status = boot.run.status;
+          state.lastSequence = boot.cursor;
+        }
+        setHistorical({ analysis, state });
+      })
+      .catch((e) => {
+        if (!abort.signal.aborted) setError(e.message);
+      });
+    return () => abort.abort();
+  }, [run, props.document.reference.analysis_id]);
+  if (run && error)
+    return (
+      <div className="wb-empty" role="alert">
+        此运行的计算结构不可用：{error}
+      </div>
+    );
+  if (run && !historical)
+    return <div className="wb-empty">读取运行的计算结构…</div>;
+  const analysis = run ? historical?.analysis : props.analysis,
+    state = run && run !== props.state.runId ? historical!.state : props.state;
+  const scope = analysis?.graph.blocks.some((b) => b.id === props.scope)
+    ? props.scope
+    : null;
+  return (
+    <ReactFlowProvider>
+      <GraphInner {...props} analysis={analysis} state={state} scope={scope} />
+    </ReactFlowProvider>
+  );
 });

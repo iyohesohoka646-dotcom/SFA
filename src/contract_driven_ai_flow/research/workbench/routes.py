@@ -25,7 +25,7 @@ class SaveSemantics(WireModel):
 
 class PlanRequest(WireModel):
     analysis_id: str
-    scope: str = 'compute'
+    scope: str = "compute"
     run_id: str | None = None
     snapshot_ids: list[str] = Field(default_factory=list, max_length=512)
     instance_ids: list[str] | None = None
@@ -53,7 +53,7 @@ class ManualRequest(WireModel):
     analysis_id: str
     snapshot_id: str | None = None
     note: str = Field(max_length=4096)
-    verdict: str = 'unknown'
+    verdict: str = "unknown"
 
 
 class ProposalRequest(WireModel):
@@ -72,242 +72,305 @@ def attach_workbench_routes(app, research):
     service = research.workbench
     service.models = app.state.models
     app.state.workbench = service
-    router = APIRouter(prefix='/api/v1/research/workbench')
+    router = APIRouter(prefix="/api/v1/research/workbench")
 
-    @router.post('/analyses')
+    @router.post("/analyses")
     def imported(body: ImportRequest):
         return service.import_source(body.path)
 
-    @router.get('/analyses')
+    @router.get("/analyses")
     def analyses():
-        return service.store.list('analyses')
+        return service.store.list("analyses")
 
-    @router.get('/analyses/{key}')
+    @router.get("/analyses/{key}")
     def analysis(key: str):
         return service.analysis(key)
 
-    @router.get('/analyses/{key}/source')
+    @router.get("/analyses/{key}/source")
     def analysis_source(key: str):
         return service.analysis_source(key)
 
-    @router.get('/runs/{key}/analysis')
+    @router.get("/runs/{key}/analysis")
     def run_analysis(key: str):
         return service.run_analysis(key)
 
-    @router.get('/configuration')
+    @router.get("/configuration")
     def configuration():
         return service.configurations.load()
 
-    @router.put('/configuration')
+    @router.put("/configuration")
     def configure(body: SaveConfig):
         return service.configure(body.config, expected_revision=body.expected_revision)
 
-    @router.get('/settings')
+    @router.get("/settings")
     def settings():
         return service.preferences.load()
 
-    @router.put('/settings')
+    @router.put("/settings")
     def save_settings(body: dict):
-        return service.preferences.save(body['scope'], body['values'], expected_revision=body['expected_revision'])
+        return service.preferences.save(
+            body["scope"], body["values"], expected_revision=body["expected_revision"]
+        )
 
-    @router.post('/settings/reset')
+    @router.post("/settings/reset")
     def reset_settings(body: dict):
-        return service.preferences.reset(body['scope'], body['group'], expected_revision=body['expected_revision'])
+        return service.preferences.reset(
+            body["scope"], body["group"], expected_revision=body["expected_revision"]
+        )
 
-    @router.post('/migration')
+    @router.post("/migration")
     def migration(apply: bool = False):
-        return service.configurations.migrate_v2(apply=apply) if service.configurations.path.exists() else service.configurations.migrate_legacy(apply=apply)
+        return (
+            service.configurations.migrate_v2(apply=apply)
+            if service.configurations.path.exists()
+            else service.configurations.migrate_legacy(apply=apply)
+        )
 
-    @router.get('/probe-definitions')
+    @router.get("/probe-definitions")
     def definitions():
         return service.catalog.definitions()
 
-    @router.get('/resources')
+    @router.get("/resources")
     def resources():
         return service.resources.resources()
 
-    @router.get('/resources/{key}/draft')
+    @router.get("/resources/{key}/draft")
     def resource_draft(key: str):
-        try: return service.store.get('resource_drafts', key)
-        except KeyError: return service.store.get('resources', key)
+        try:
+            return service.store.get("resource_drafts", key)
+        except KeyError:
+            return service.store.get("resources", key)
 
-    @router.post('/resources')
+    @router.post("/resources")
     def import_resource(body: dict):
         return service.resources.import_manifest(body)
 
-    @router.post('/resources/{key}/enable')
-    def enable_resource(key: str):
-        return service.resources.enable(key)
+    @router.post("/resources/{key}/enable")
+    def enable_resource(key: str, body: dict):
+        return service.resources.enable(
+            key, expected_digest=body.get("expected_digest")
+        )
 
-    @router.post('/resources/{key}/disable')
+    @router.post("/resources/{key}/disable")
     def disable_resource(key: str):
         return service.resources.disable(key)
 
-    @router.get('/snapshots/{key}/presenters')
+    @router.get("/snapshots/{key}/presenters")
     def presenters(key: str, analysis_id: str | None = None):
         return service.presenters(key, analysis_id)
 
-    @router.get('/snapshots/{key}/semantics')
+    @router.get("/snapshots/{key}/semantics")
     def semantics(key: str):
         snapshot = research.store.snapshot(key)
         return service.semantics.get(snapshot.logical_key)
 
-    @router.put('/snapshots/{key}/semantics')
+    @router.put("/snapshots/{key}/semantics")
     def save_semantics(key: str, body: SaveSemantics):
         snapshot = research.store.snapshot(key)
         if snapshot.logical_key != body.semantics.logical_key:
-            raise ValueError('Data semantics belongs to another logical object')
-        return service.semantics.save(body.semantics, shape=snapshot.descriptor.shape, expected_revision=body.expected_revision)
+            raise ValueError("Data semantics belongs to another logical object")
+        return service.semantics.save(
+            body.semantics,
+            shape=snapshot.descriptor.shape,
+            expected_revision=body.expected_revision,
+        )
 
-    @router.get('/templates')
+    @router.get("/templates")
     def templates():
         return service.semantics.templates()
 
-    @router.post('/templates')
+    @router.post("/templates")
     def save_template(body: dict):
-        return service.semantics.save_template(body['id'], body['label'], body['definition_id'], body['parameters'],
-            DataSemantics.model_validate(body['semantics']) if body.get('semantics') else None)
+        return service.semantics.save_template(
+            body["id"],
+            body["label"],
+            body["definition_id"],
+            body["parameters"],
+            (
+                DataSemantics.model_validate(body["semantics"])
+                if body.get("semantics")
+                else None
+            ),
+        )
 
-    @router.post('/plans')
+    @router.post("/plans")
     def plan(body: PlanRequest):
         return service.plan(**body.model_dump())
 
-    @router.get('/plans/{key}')
+    @router.get("/plans/{key}")
     def get_plan(key: str):
-        return service.store.get('plans', key)
+        return service.store.get("plans", key)
 
-    @router.post('/execute', status_code=202)
+    @router.post("/execute", status_code=202)
     def execute(body: ExecuteRequest):
         return service.execute(body.plan_id)
 
-    @router.post('/evaluate', status_code=202)
+    @router.post("/evaluate", status_code=202)
     def evaluate(body: EvidenceRequest):
         return service.execute_probes(**body.model_dump())
 
-    @router.post('/replot', status_code=202)
+    @router.post("/replot", status_code=202)
     def replot(body: EvidenceRequest):
         return service.replot(**body.model_dump())
 
-    @router.get('/tasks')
+    @router.get("/tasks")
     def tasks():
         return service.jobs.list()
 
-    @router.get('/tasks/{key}')
+    @router.get("/tasks/{key}")
     def task(key: str):
         return service.task(key)
 
-    @router.post('/tasks/{key}/cancel')
+    @router.post("/tasks/{key}/cancel")
     def cancel(key: str):
         return service.jobs.cancel(key)
 
-    @router.get('/outputs')
-    def outputs(task_id: str | None = None, run_id: str | None = None, snapshot_id: str | None = None):
+    @router.get("/outputs")
+    def outputs(
+        task_id: str | None = None,
+        run_id: str | None = None,
+        snapshot_id: str | None = None,
+    ):
         return service.outputs(task_id=task_id, run_id=run_id, snapshot_id=snapshot_id)
 
-    @router.get('/outputs/{key}')
+    @router.get("/outputs/{key}")
     def output(key: str):
-        return service.store.get('outputs', key)
+        return service.store.get("outputs", key)
 
-    @router.get('/artifacts/{key}')
+    @router.get("/artifacts/{key}")
     def artifact(key: str):
         path, receipt = service.drawing.artifact(key)
-        return FileResponse(path, media_type=receipt['mime'], headers={'Content-Security-Policy': "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:", 'X-Content-Type-Options': 'nosniff'})
+        return FileResponse(
+            path,
+            media_type=receipt["mime"],
+            headers={
+                "Content-Security-Policy": "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
 
-    @router.get('/relationships/{snapshot_id}')
+    @router.get("/relationships/{snapshot_id}")
     def relationships(snapshot_id: str):
         return service.relationships(snapshot_id)
 
-    @router.post('/storage/expire')
+    @router.post("/storage/expire")
     def expire_artifacts():
-        return research.store.expire_artifacts(service.preferences.load()['values']['storage']['retention_days'])
+        return research.store.expire_artifacts(
+            service.preferences.load()["values"]["storage"]["retention_days"]
+        )
 
-    @router.get('/derived/{key}')
+    @router.get("/derived/{key}")
     def derived(key: str):
-        return service.store.get('derived', key)
+        return service.store.get("derived", key)
 
-    @router.post('/derived/{key}/retention')
+    @router.post("/derived/{key}/retention")
     def derived_retention(key: str, body: dict):
-        return service.retain_derived(key, body['retained'])
+        return service.retain_derived(key, body["retained"])
 
-    @router.post('/derived/{key}/proposal')
+    @router.post("/derived/{key}/proposal")
     def derived_proposal(key: str):
         return service.propose_derived(key)
 
-    @router.get('/tools')
+    @router.get("/tools")
     def tools():
         return service.tools.catalog()
 
-    @router.post('/tools/scan', status_code=202)
+    @router.post("/tools/scan", status_code=202)
     def scan(body: ToolRequest):
-        return service.jobs.submit('tools.scan', lambda task, cancel: {'receipt': service.tools.scan(body.interpreter, cancel=cancel)})
+        return service.jobs.submit(
+            "tools.scan",
+            lambda task, cancel: {
+                "receipt": service.tools.scan(body.interpreter, cancel=cancel)
+            },
+        )
 
-    @router.post('/tools/{key}/describe', status_code=202)
+    @router.post("/tools/{key}/describe", status_code=202)
     def tool_description(key: str):
-        return service.jobs.submit('tools.describe', lambda task, cancel: {'receipt':service.tools.describe(key,cancel=cancel)})
+        return service.jobs.submit(
+            "tools.describe",
+            lambda task, cancel: {
+                "receipt": service.tools.describe(key, cancel=cancel)
+            },
+        )
 
-    @router.post('/tools/{key}/install', status_code=202)
+    @router.post("/tools/{key}/install", status_code=202)
     def install(key: str):
-        return service.jobs.submit('tools.install', lambda task, cancel: {'receipt': service.tools.install(key, cancel=cancel)})
+        return service.jobs.submit(
+            "tools.install",
+            lambda task, cancel: {"receipt": service.tools.install(key, cancel=cancel)},
+        )
 
-    @router.post('/tools/{key}/disable')
+    @router.post("/tools/{key}/disable")
     def disable(key: str, body: ToolRequest):
         return service.tools.disable(key, body.disabled)
 
-    @router.post('/tools/{key}/remove', status_code=202)
+    @router.post("/tools/{key}/remove", status_code=202)
     def remove(key: str):
-        return service.jobs.submit('tools.remove', lambda task, cancel: {'receipt': service.tools.remove(key, cancel=cancel)})
+        return service.jobs.submit(
+            "tools.remove",
+            lambda task, cancel: {"receipt": service.tools.remove(key, cancel=cancel)},
+        )
 
-    @router.post('/intelligence', status_code=202)
+    @router.post("/intelligence", status_code=202)
     def ask(body: HarnessRequest):
         return service.ask(body)
 
-    @router.get('/contexts')
+    @router.get("/contexts")
     def contexts():
-        return [{k: v for k, v in record.items() if k not in ('calls', 'tools')} for record in service.store.list('contexts')]
+        return [
+            {k: v for k, v in record.items() if k not in ("calls", "tools")}
+            for record in service.store.list("contexts")
+        ]
 
-    @router.get('/contexts/{key}')
+    @router.get("/contexts/{key}")
     def context(key: str):
-        return service.store.get('contexts', key)
+        return service.store.get("contexts", key)
 
-    @router.get('/skills')
+    @router.get("/skills")
     def skills():
         return service.harness.skills.list()
 
-    @router.post('/skills')
+    @router.post("/skills")
     def register_skill(body: ImportRequest):
         return service.harness.skills.register(body.path)
 
-    @router.post('/manual-results')
+    @router.post("/manual-results")
     def manual_result(body: ManualRequest):
         return service.harness.manual(**body.model_dump())
 
-    @router.get('/changes')
+    @router.get("/changes")
     def changes():
-        return service.store.list('proposals')
+        return service.store.list("proposals")
 
-    @router.post('/changes')
+    @router.post("/changes")
     def propose(body: ProposalRequest):
         if body.object_id:
-            return service.changes.propose(body.analysis_id, body.object_id, body.candidate)
-        return service.changes.propose_new(body.analysis_id, body.relative_path or 'derived_analysis.py', body.candidate)
+            return service.changes.propose(
+                body.analysis_id, body.object_id, body.candidate
+            )
+        return service.changes.propose_new(
+            body.analysis_id,
+            body.relative_path or "derived_analysis.py",
+            body.candidate,
+        )
 
-    @router.post('/changes/{key}/validate')
+    @router.post("/changes/{key}/validate")
     def validate(key: str):
         return service.changes.validate(key)
 
-    @router.post('/changes/{key}/accept')
+    @router.post("/changes/{key}/accept")
     def accept(key: str):
         return service.changes.accept(key)
 
-    @router.post('/changes/{key}/reject')
+    @router.post("/changes/{key}/reject")
     def reject(key: str):
         return service.changes.reject(key)
 
-    @router.post('/changes/{key}/rollback')
+    @router.post("/changes/{key}/rollback")
     def rollback(key: str):
         return service.changes.rollback(key)
 
-    @router.post('/changes/{key}/validation')
+    @router.post("/changes/{key}/validation")
     def record_validation(key: str, body: ValidationRequest):
         return service.changes.record_validation(key, body.run_id, body.output_ids)
 

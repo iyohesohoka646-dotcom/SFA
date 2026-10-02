@@ -136,6 +136,7 @@ export type BlockId3 = string | null;
 export type AnalysisId = string | null;
 export type RunId = string | null;
 export type SnapshotId = string | null;
+export type ExactEvidence = boolean;
 export type Targets = TargetRef[];
 export type ExcludedKeys = string[];
 export type Origin = "project_default" | "local" | "manual";
@@ -710,6 +711,7 @@ export type Dependencies1 = string[];
 export type Url = string | null;
 export type Diagnostics3 = string[];
 export type PendingVersion = string | null;
+export type ReviewDigest = string | null;
 export type ProtocolVersion7 = 3;
 export type Id14 = string;
 export type SnapshotId2 = string;
@@ -965,6 +967,7 @@ export interface TargetRef {
   analysis_id: AnalysisId;
   run_id: RunId;
   snapshot_id: SnapshotId;
+  exact_evidence: ExactEvidence;
 }
 export interface Inputs1 {
   [k: string]: TargetRef;
@@ -1139,6 +1142,7 @@ export interface ProbeResource {
   url: Url;
   diagnostics: Diagnostics3;
   pending_version: PendingVersion;
+  review_digest: ReviewDigest;
 }
 export interface DerivedData {
   protocol_version: ProtocolVersion7;

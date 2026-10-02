@@ -1,8 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { session } from './session';
-import { chooseValue, chooseExample, runCompute, researchApi } from './scientific-helpers';
+import { chooseValue, chooseExample, runCompute, researchApi, bindProbe, runMode } from './scientific-helpers';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+let savedConfiguration: any;
+test.beforeEach(async({request})=>{const r=await request.get('http://127.0.0.1:8879/api/v1/research/workbench/configuration',{headers:{Authorization:'Bearer '+session}});savedConfiguration=await r.json();});
+test.afterEach(async({request})=>{const url='http://127.0.0.1:8879/api/v1/research/workbench/configuration',headers={Authorization:'Bearer '+session};const current=await(await request.get(url,{headers})).json();await request.put(url,{headers,data:{config:{...savedConfiguration,revision:current.revision},expected_revision:current.revision}});});
 
 test('probe configuration is inert and execution produces real views and checks', async ({ page }) => {
   let executions = 0;
@@ -14,10 +18,7 @@ test('probe configuration is inert and execution produces real views and checks'
   await page.getByRole('button', { name: '导入解析', exact: true }).click();
   await page.getByRole('button', { name: '打开源码配置' }).click();
   await page.getByRole('button', { name: '探针台', exact: true }).first().click();
-  await page.getByRole('button', { name: '添加探针', exact: true }).click();
-  await page.getByLabel('探针类型').selectOption('view.relationships');
-  await page.getByLabel('探针绑定').fill('*');
-  await page.getByRole('button', { name: '确认添加探针' }).click();
+  await bindProbe(page,'view.relationships');
   expect(executions).toBe(0);
   await page.getByRole('button', { name: '运行', exact: true }).click();
   await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed', { timeout: 60000 });
@@ -26,18 +27,18 @@ test('probe configuration is inert and execution produces real views and checks'
   await page.getByRole('button', { name: '计算关系图', exact: true }).first().click();
   await expect(page.getByTestId('relation-node').first()).toBeVisible();
   await page.getByTestId('relation-node').first().click();
-  await expect(page.locator('.relation-focus')).toBeVisible();
+  await expect(page.locator('.react-flow__node.selected')).not.toHaveCount(0);
 });
 
 test('fixed data versions remain visible side by side across selection and reload', async ({ page }) => {
   await page.goto('http://127.0.0.1:8879/#session=' + session);
   const runs = await researchApi(page, 'research/runs');
-  await page.getByLabel('运行记录').selectOption(runs.find((r: {source_digest:string;name:string}) => r.source_digest === 'fixture-source' && !r.name?.includes('Point cloud')).id);
+  await page.getByLabel('运行记录').selectOption(runs.find((r: {source_digest:string;name:string}) => r.name==='Analysis').id);
   await chooseValue(page, 'X7');
   await page.getByRole('button', { name: '查看变量历史', exact: true }).click();
   await page.getByRole('button', { name: '并排固定此版本', exact: true }).click();
   await chooseValue(page, 'X7');
-  await page.getByRole('button', { name: '查看变量历史', exact: true }).first().click();
+  const history=page.getByRole('button', { name: '查看变量历史', exact: true }).filter({visible:true}).first();if(await history.getAttribute('aria-expanded')!=='true')await history.click();
   await page.getByRole('button', { name: '版本 1', exact: true }).first().click();
   await expect(page.getByTestId('matrix-definition').filter({ hasText: /v1\s·/ })).toBeVisible();
   await expect(page.getByTestId('matrix-definition').filter({ hasText: 'v10' })).toBeVisible();
@@ -60,7 +61,7 @@ test('automatic harness reads tools, proposes a scoped diff and waits for accept
   await page.getByRole('button', { name: '智能助手', exact: true }).click();
   await page.getByLabel('智能任务角色').selectOption('code'); await page.getByRole('button', { name: '任务设置' }).click();
   await page.getByLabel('任务模型服务').selectOption('harness-lab'); await page.getByLabel('任务指令').fill('将 calculate 的加一改成加二，提出供我审查的修改。');
-  await page.getByRole('button', { name: '执行智能任务' }).click(); await expect(page.getByTestId('task-record').first().locator('strong')).toContainText('intelligence.code');
+  await page.getByRole('button', { name: '执行智能任务' }).click(); await expect(page.getByTestId('task-record').first().locator(':scope > strong')).toContainText('intelligence.code');
   await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed');
   expect(readFileSync(path, 'utf8')).toBe(original);
   await page.getByRole('button', { name: '查看智能结果' }).first().click();
@@ -76,8 +77,8 @@ test('automatic harness reads tools, proposes a scoped diff and waits for accept
 
 test('tool catalog and automatic intelligence context remain independently accessible', async ({ page }) => {
   await page.goto('http://127.0.0.1:8879/#session=' + session);
-  await page.getByRole('button', { name: '工具库', exact: true }).first().click();
-  await expect(page.getByRole('cell', { name: 'PyVista', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '探针库', exact: true }).first().click();
+  await page.getByRole('button',{name:'可获取资源',exact:true}).click();await expect(page.getByRole('cell', { name: 'PyVista', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '检测工具', exact: true }).click();
   await expect(page.getByTestId('task-record').first()).toContainText('completed', { timeout: 30000 });
   await page.getByRole('button', { name: '智能助手', exact: true }).first().click();
@@ -103,12 +104,12 @@ test('real plotting is explicit and saved artifacts remain independent of comput
   await page.getByLabel('脚本参数 JSON').fill('[]');await page.getByLabel('计算解释器').focus();
   await page.getByRole('button',{name:'导入解析',exact:true}).click();await expect(page.getByRole('button',{name:'导入解析',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'打开源码配置'}).click();await page.getByRole('button',{name:'探针台',exact:true}).click();
-  await page.getByRole('button',{name:'添加探针',exact:true}).click();await page.getByLabel('探针类型').selectOption('view.matplotlib');await page.getByLabel('探针绑定').fill('C');await page.getByRole('button',{name:'确认添加探针'}).click();
+  await bindProbe(page,'view.matplotlib','C');
   const old=await page.getByLabel('运行记录').inputValue();await page.getByRole('button',{name:'运行',exact:true}).click();await expect(page.getByLabel('运行记录')).not.toHaveValue(old);
   await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed',{timeout:60000});
-  await chooseValue(page,'C');await page.getByLabel('数据呈现').selectOption({label:'view.matplotlib'});
+  await chooseValue(page,'C');await page.getByLabel('数据呈现探针').selectOption({label:'Matplotlib'});
   await expect(page.getByRole('img',{name:'绘图探针产物'})).toBeVisible();
-  const run=await page.getByLabel('运行记录').inputValue();await page.getByLabel('运行选项').click();await page.getByRole('button',{name:'仅重绘'}).click();
+  const run=await page.getByLabel('运行记录').inputValue();await runMode(page,'replot');
   await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed');
   await expect(page.getByLabel('运行记录')).toHaveValue(run);
 });
@@ -125,7 +126,7 @@ test('manual verdict appears immediately and graph camera survives tab changes',
   await chooseExample(page); await runCompute(page); await chooseValue(page,'X');
   await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
   await expect(page.getByTestId('relation-node').first()).toBeVisible();
-  await expect(page.getByTestId('graph-layout-metric')).not.toContainText('布局 0 ms');
+  await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   const zoom = async () => Number((await page.locator('.wb-graph-canvas .react-flow__viewport').getAttribute('style'))!.match(/scale\(([^)]+)/)![1]);
   const originalZoom = await zoom();
@@ -133,19 +134,19 @@ test('manual verdict appears immediately and graph camera survives tab changes',
   await expect.poll(zoom).toBeLessThan(originalZoom * .84);
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   const camera = await page.locator('.wb-graph-canvas .react-flow__viewport').getAttribute('style');
-  await page.getByRole('button',{name:'工具库',exact:true}).first().click();
+  await page.getByRole('button',{name:'探针库',exact:true}).first().click();
   await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
-  await expect(page.getByTestId('graph-layout-metric')).not.toContainText('布局 0 ms');
+  await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   await expect(page.locator('.wb-graph-canvas .react-flow__viewport')).toHaveAttribute('style',camera!);
   await page.getByRole('button',{name:'探针台',exact:true}).first().click();
   await page.getByRole('button',{name:'添加探针',exact:true}).click();
   await page.getByLabel('探针类型').selectOption('check.manual');
   await page.getByRole('button',{name:'确认添加探针',exact:true}).click();
-  await page.getByLabel('人工判断',{exact:true}).selectOption('pass');
-  await page.getByLabel('人工判断说明').fill('人工核对数值一致');
+  await page.getByText('人工判断',{exact:true}).last().click();await page.getByLabel('人工判断结果',{exact:true}).selectOption('pass');
+  await page.getByLabel('人工判断记录').fill('人工核对数值一致');
   await page.getByRole('button',{name:'记录判断',exact:true}).click();
-  await expect(page.getByTestId('probe-output').filter({hasText:'check.manual'})).toContainText('人工核对数值一致');
+  await expect(page.getByTestId('probe-output').filter({hasText:'人工判断'})).toContainText('人工核对数值一致');
 });
 
 test('a pinned data probe executes its own historical run', async ({page}) => {
@@ -172,11 +173,16 @@ test('pinned relation graph keeps its nodes and camera after switching global ru
   await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
   await page.getByRole('tab',{name:'计算关系图',exact:true}).dblclick();
   await expect(page.getByTestId('relation-node').first()).toBeVisible();
+  await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
+  await page.getByLabel('关系图视图').selectOption('data');
+  await expect(page.getByTestId('graph-layout-metric')).toHaveText(/72 单元.*· [1-9]\d* ms$/);
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect(page.locator('.semantic-node.kind-data').first()).toBeVisible();
   const count = await page.getByTestId('relation-node').count();
   await page.getByLabel('运行记录').selectOption(other.id);
   await expect(page.getByTestId('relation-node')).toHaveCount(count);
-  await expect(page.getByTestId('relation-node').filter({has:page.locator('strong',{hasText:/^X$/})})).toBeVisible();
-  await page.getByTestId('relation-node').filter({has:page.locator('strong',{hasText:/^X$/})}).click();
+  await expect(page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first()).toBeVisible();
+  await page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first().click({button:'right'});await page.getByRole('button',{name:'打开数据',exact:true}).click();
   await expect(page.locator('.wb-data-pane .wb-evidence-bar')).toContainText(runA.slice(0,8));
 });
 
@@ -187,8 +193,7 @@ test('pause gate shows a continuation control and resumes once', async ({page}) 
   await page.getByRole('button',{name:'打开源码配置'}).click(); await page.getByLabel('分析脚本').fill(path);
   await page.getByRole('button',{name:'导入解析',exact:true}).click(); await expect(page.getByRole('button',{name:'导入解析',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'打开源码配置'}).click(); await page.getByRole('button',{name:'探针台',exact:true}).first().click();
-  await page.getByRole('button',{name:'添加探针',exact:true}).click(); await page.getByLabel('探针类型').selectOption('check.finite');
-  await page.getByLabel('探针绑定').fill('X'); await page.getByRole('button',{name:'确认添加探针',exact:true}).click();
+  await bindProbe(page,'check.finite','X');
   const cfg = await researchApi(page,'research/workbench/configuration');
   cfg.script=path; cfg.probes=[{id:'pause-finite',definition_id:'check.finite',binding:'X',parameters:{},policy:'pause',budget_ms:5000,enabled:true}];
   await researchApi(page,'research/workbench/configuration',{config:cfg,expected_revision:cfg.revision},'PUT');
@@ -216,11 +221,9 @@ test('toolbar replot applies configured probes beyond the selected value', async
   await page.goto('http://127.0.0.1:8879/#session='+session);
   await chooseExample(page); await runCompute(page); await chooseValue(page,'Z');
   await page.getByRole('button',{name:'探针台',exact:true}).first().click();
-  await page.getByRole('button',{name:'添加探针',exact:true}).click();
-  await page.getByLabel('探针类型').selectOption('view.matplotlib'); await page.getByLabel('探针绑定').fill('C');
-  await page.getByRole('button',{name:'确认添加探针',exact:true}).click();
+  await bindProbe(page,'view.matplotlib','C');
   const response=page.waitForResponse(r=>r.url().endsWith('/workbench/replot'));
-  await page.getByLabel('运行选项').click(); await page.getByRole('button',{name:'仅重绘',exact:true}).click();
+  await runMode(page,'replot');
   const reply=await response;
   expect(reply.request().postDataJSON().snapshot_ids).toEqual([]);
   const task=await reply.json();

@@ -1,4 +1,5 @@
 """UI-neutral background tasks. Geometry changes never submit jobs."""
+
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import time
@@ -13,23 +14,31 @@ class JobManager:
         self.store = store
         self.owner = current_owner()
         self.store.recover()
-        self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix='cdaf-workbench')
+        self.executor = ThreadPoolExecutor(
+            max_workers=max_workers, thread_name_prefix="cdaf-workbench"
+        )
         self._active = {}
         self._lock = threading.RLock()
         self._closed = False
 
     def update(self, task_id, **updates):
         with self._lock:
-            task = self.get(task_id).model_copy(update={**updates, 'updated_at': timestamp()})
-            self.store.put('tasks', task_id, task)
+            task = self.get(task_id).model_copy(
+                update={**updates, "updated_at": timestamp()}
+            )
+            self.store.put("tasks", task_id, task)
             return task
 
     def submit(self, kind, function, *, plan_id=None, receipt=None):
         with self._lock:
             if self._closed or len(self._active) >= 16:
-                raise ValueError('Task queue is full or closed')
-            task = TaskRecord(kind=kind, plan_id=plan_id, receipt={**(receipt or {}), '_owner': self.owner})
-            self.store.put('tasks', task.id, task)
+                raise ValueError("Task queue is full or closed")
+            task = TaskRecord(
+                kind=kind,
+                plan_id=plan_id,
+                receipt={**(receipt or {}), "_owner": self.owner},
+            )
+            self.store.put("tasks", task.id, task)
             cancel = threading.Event()
             self._active[task.id] = (cancel, None)
             future = self.executor.submit(self._run, task, cancel, function)
@@ -41,24 +50,35 @@ class JobManager:
         try:
             if cancel.is_set():
                 raise InterruptedError()
-            task = self.update(task.id, status='running')
+            task = self.update(task.id, status="running")
             result = function(task, cancel) or {}
             if cancel.is_set():
                 raise InterruptedError()
-            self.update(task.id, **{**result, 'status': result.get('status', 'completed'), 'progress': 1})
+            self.update(
+                task.id,
+                **{
+                    **result,
+                    "status": result.get("status", "completed"),
+                    "progress": 1,
+                },
+            )
         except InterruptedError:
-            self.update(task.id, status='cancelled', message='Task cancelled')
+            self.update(task.id, status="cancelled", message="Task cancelled")
         except Exception as error:
-            self.update(task.id, status='failed', message=f'Task failed ({type(error).__name__})')
+            self.update(
+                task.id,
+                status="failed",
+                message=f"Task failed ({type(error).__name__})",
+            )
         finally:
             with self._lock:
                 self._active.pop(task.id, None)
 
     def get(self, task_id):
-        return TaskRecord.model_validate(self.store.get('tasks', task_id))
+        return TaskRecord.model_validate(self.store.get("tasks", task_id))
 
     def list(self):
-        return self.store.list('tasks')
+        return self.store.list("tasks")
 
     def cancel(self, task_id):
         with self._lock:
@@ -71,10 +91,10 @@ class JobManager:
         started = time.monotonic()
         while time.monotonic() - started < timeout:
             task = self.get(task_id)
-            if task.status not in ('queued', 'running'):
+            if task.status not in ("queued", "running"):
                 return task
-            threading.Event().wait(.02)
-        raise TimeoutError('Task is still active')
+            threading.Event().wait(0.02)
+        raise TimeoutError("Task is still active")
 
     def close(self):
         with self._lock:

@@ -16,10 +16,17 @@ const fs=require('node:fs');const path=require('node:path');const os=require('no
   assert(text.includes('NATIVE-42 中文'),text);
   const id=await window.getByLabel('终端会话').inputValue();const record=JSON.parse(fs.readFileSync(path.join(root,'.cdaf/studio.json'),'utf8'));
   const state=await (await fetch(`http://127.0.0.1:${record.port}/api/v1/research/terminals/${id}`,{headers:{Authorization:'Bearer '+record.token}})).json();assert.equal(state.status,'running');
+  const children=[state.pid];
+  const output=async marker=>{const until=Date.now()+20000;let actual='';while(Date.now()<until){actual=await window.locator('.xterm-accessibility-tree').innerText();if(actual.includes(marker))return;await new Promise(r=>setTimeout(r,100));}throw new Error('Terminal output missing '+marker+': '+actual.slice(-1500));};
+  await window.getByLabel('终端配置').selectOption('cli');await window.getByRole('button',{name:'新建终端',exact:true}).click();
+  await output('Scientific');await window.getByLabel('终端输入',{exact:true}).focus();await window.keyboard.type('/help');await window.keyboard.press('Enter');await output('/workbench');
+  const cliId=await window.getByLabel('终端会话').inputValue();const cliState=await(await fetch(`http://127.0.0.1:${record.port}/api/v1/research/terminals/${cliId}`,{headers:{Authorization:'Bearer '+record.token}})).json();assert.equal(cliState.status,'running');children.push(cliState.pid);
+  await window.getByLabel('终端配置').selectOption('shell');await window.getByRole('button',{name:'新建终端',exact:true}).click();await output('PS ');await window.getByLabel('终端输入',{exact:true}).focus();await window.keyboard.type("$taskValue=6*7;Write-Output ('SHELL-'+$taskValue+' '+[char]0x4e2d+[char]0x6587)");await window.keyboard.press('Enter');await output('SHELL-42 中文');
+  const shellId=await window.getByLabel('终端会话').inputValue();const shellState=await(await fetch(`http://127.0.0.1:${record.port}/api/v1/research/terminals/${shellId}`,{headers:{Authorization:'Bearer '+record.token}})).json();children.push(shellState.pid);
   await window.screenshot({path:path.resolve(__dirname,'../../docs/assets/research-embedded-terminal.png')});
   const closed=app.waitForEvent('close');await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].close());await closed;
   await assert.rejects(fetch(`http://127.0.0.1:${record.port}/api/v1/studio`));
-  const {spawnSync}=require('node:child_process');const check=spawnSync('powershell.exe',['-NoProfile','-Command',`if(Get-Process -Id ${state.pid} -ErrorAction SilentlyContinue){exit 1}`],{windowsHide:true,timeout:10000});assert.equal(check.status,0,'Terminal child survived its owning window');
-  fs.writeFileSync(path.resolve(__dirname,'../../docs/assets/research-embedded-terminal-validation.json'),JSON.stringify({platform:process.platform,installed:!!installed,unicode:true,real_python:true,owner_exit_cleanup:true,port_released:true,result:'passed'},null,2));
+  const {spawnSync}=require('node:child_process');const check=spawnSync('powershell.exe',['-NoProfile','-Command',`if(Get-Process -Id ${children.join(',')} -ErrorAction SilentlyContinue){exit 1}`],{windowsHide:true,timeout:10000});assert.equal(check.status,0,'Terminal child survived its owning window');
+  fs.writeFileSync(path.resolve(__dirname,'../../docs/assets/research-embedded-terminal-validation.json'),JSON.stringify({platform:process.platform,installed:!!installed,unicode:true,real_python:true,real_cli:true,real_shell:true,concurrent_sessions:3,owner_exit_cleanup:true,port_released:true,result:'passed'},null,2));
  }finally{await app.close().catch(()=>{});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

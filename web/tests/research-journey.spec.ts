@@ -1,5 +1,5 @@
+import {chooseValue,selectObject,runCompute,researchApi} from './scientific-helpers';
 import {session} from './session';
-import {runCompute,chooseValue,researchApi} from './scientific-helpers';
 import {test,expect} from '@playwright/test';
 import {mkdtempSync,writeFileSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -22,8 +22,7 @@ test('research-journey: own code, numerical failure, saved probe, explanation sc
   await expect(page.getByTestId('run-status')).toHaveText('completed',{timeout:20000});
   await chooseValue(page,'Z');
   await expect(page.getByTestId('probe-output').filter({hasText:'fail'}).first()).toBeVisible();
-  await page.getByRole('searchbox',{name:'搜索变量'}).fill('Z');
-  await page.getByRole('button',{name:/^Z ·/}).first().click();
+  await chooseValue(page,'Z');
   await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
   await expect(page.getByTestId('source-selection')).toContainText('Z[1,2] = np.nan');
   await page.getByRole('button',{name:'探针台',exact:true}).click();

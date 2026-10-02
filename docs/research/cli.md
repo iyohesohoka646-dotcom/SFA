@@ -54,7 +54,7 @@ cdaf models list --project .\experiment
 交互分工参考 [Codex 的输入事件流](https://github.com/openai/codex/blob/6b4daafdb445340e5af66f067ad4057e6ed9fd81/codex-rs/tui/src/tui/event_stream.rs)，模型发现参考 [Kilo 模型选择器](https://github.com/Kilo-Org/kilocode/blob/dfb23a4e63e24e82a669a0eaf1e48e3c4ca21bec/packages/tui/src/component/dialog-model.tsx)，没有复制其代码。界面使用 Textual 后台工作机制，不在输入循环中执行计算。
 
 真实 Windows PowerShell ConPTY 验证覆盖打开脚本、运行、离线模型选择、帮助、运行中取消、取消后输入及退出恢复，记录见 [终端验证数据](../assets/research-terminal-validation.json)。其他平台的交互终端仍须在对应系统验证。
-# 工作台命令 0.4
+# 工作台命令 0.5
 
 命令均支持 `--project PATH`，管道默认 JSON，终端默认可读格式；`--json` 固定机器输出。解析不执行，计划不执行，`run` 等待完成；Ctrl+C 取消该任务。
 
@@ -79,3 +79,20 @@ cdaf research export RUN_ID --output report.html --project .
 探针增加和配置保存均不运行。配置 JSON 保留 `revision`，过期版本会拒绝保存。`ask` 使用角色的自动 harness 与共用模型设置；可用 `--provider` / `--model` 覆盖任务模型，无需配置发送文件清单。离线规则可用，远程模型需要真实服务和凭据。`changes --action propose --input proposal.json` 接收 `analysis_id`、`object_id`、`candidate` 等字段；接受和回滚均是明确操作。
 
 交互终端增加 `/workbench COMMAND JSON`，例如 `/workbench import {"path":"analysis.py"}`、`/workbench tools {}`。与 Web 命令台共用 `workbench.*` 调度，保留原有 `/open /run /probe /model /explain`。
+
+
+0.5 新增 `workbench` 别名和范围、资源、设置、联合绑定、语义及派生管理命令。命令与 Web 使用同一服务。
+
+```powershell
+cdaf --json workbench settings --project .
+cdaf workbench settings --scope project --input settings.json --project .
+cdaf workbench resources --import resource.json --project .
+cdaf workbench resources --enable RESOURCE_ID --project .
+cdaf --json workbench scope ANALYSIS_ID --selector selector.json --project .
+cdaf workbench bind --input instance.json --project .
+cdaf workbench semantics --input semantics.json --project .
+cdaf --json workbench derived --project .
+cdaf workbench migrate-config --project .
+```
+
+`selector.json` 使用 `mode: project/block/selection`；联合实例通过 `inputs` 指定精确目标角色。完整结构由工作台 JSON Schema 定义，可从案例中的 `workbench.yaml` 和清单读取。`derived --help` 提供保留和代码提案动作，`expire --help` 提供有范围的证据清理；清理保留的分析父产物会被拒绝。

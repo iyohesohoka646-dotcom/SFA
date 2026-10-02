@@ -94,7 +94,7 @@ class Lease:
 class ClientLease:
     def __init__(self,shutdown,*,clock=time.monotonic):
         self.shutdown,self.clock=shutdown,clock;self.leases={};self.closing=False
-        self._startup=clock()+120;self._idle=None
+        self._startup=clock()+120;self._idle=None;self._had_client=False
 
     def acquire(self,client_id:str)->Lease:
         if self.closing:raise ValueError('The local service is stopping')
@@ -104,7 +104,7 @@ class ClientLease:
 
     def release(self,lease_id:str)->None:
         self.leases.pop(lease_id,None)
-        if not self.leases:self._idle=self.clock()
+        if not any(lease.connections for lease in self.leases.values()):self._idle=self.clock()
 
     def renew(self,lease_id:str)->None:
         self.leases[lease_id].deadline=self.clock()+120
@@ -113,9 +113,10 @@ class ClientLease:
         lease=self.leases.get(lease_id)
         if not lease:return
         lease.connections=max(0,lease.connections+(1 if active else -1))
-        if active:lease.had_connection=True;self._idle=None
+        if active:lease.had_connection=True;self._had_client=True;self._idle=None
         elif not lease.connections:
             lease.disconnected_at=self.clock();lease.deadline=self.clock()+120
+            if not any(item.connections for item in self.leases.values()):self._idle=self.clock()
 
     def sweep(self)->None:
         if self.closing:return
@@ -123,6 +124,13 @@ class ClientLease:
         for key,lease in list(self.leases.items()):
             if not lease.connections and now>=lease.deadline:self.leases.pop(key)
         if any(lease.connections for lease in self.leases.values()):return
+        # Once a browser connected, transport closure starts the refresh grace.
+        # A dropped pagehide request or unfinished acquisition must not retain
+        # an already used service for the 120-second first-launch timeout.
+        if self._had_client:
+            if self._idle is None:self._idle=now
+            if now>=self._idle+3:self.closing=True;self.shutdown()
+            return
         if self.leases:return
         due=self._idle+3 if self._idle is not None else self._startup
         if now>=due:self.closing=True;self.shutdown()

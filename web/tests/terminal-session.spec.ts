@@ -15,3 +15,33 @@ test('embedded Python is interactive, reconnects when hidden and ends explicitly
  await page.getByRole('button',{name:'结束会话',exact:true}).click();
  await expect.poll(async()=>(await researchApi(page,'research/terminals/'+selected)).status).toBe('ended');
 });
+
+test('new sessions preserve accessibility output and remain independently interactive',async({page})=>{
+ await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.getByRole('button',{name:'终端',exact:true}).click();
+ await page.getByLabel('终端配置').selectOption('python');
+ await page.getByRole('button',{name:'新建终端',exact:true}).click();
+ await expect(page.getByLabel('终端会话')).not.toHaveValue('');
+ await page.getByLabel('无障碍输出',{exact:true}).check();
+ const first=await page.getByLabel('终端会话').inputValue();
+ await page.getByRole('button',{name:'新建终端',exact:true}).click();
+ await expect(page.getByLabel('终端会话')).not.toHaveValue(first);
+ const second=await page.getByLabel('终端会话').inputValue();expect(second).not.toBe(first);
+ await expect(page.getByLabel('终端输入',{exact:true})).toHaveAttribute('data-session-id',second);
+ await expect(page.getByLabel('无障碍输出',{exact:true})).toBeChecked();
+ await expect(page.locator('.xterm-accessibility-tree')).toBeAttached();
+ await expect.poll(async()=>await page.locator('.xterm-accessibility-tree').innerText()).toContain('>>>');
+ await page.getByLabel('终端输入',{exact:true}).focus();
+ await page.keyboard.type("print('SECOND-'+str(6*7))");await page.keyboard.press('Enter');
+ await expect.poll(async()=>await page.locator('.xterm-accessibility-tree').innerText()).toContain('SECOND-42');
+ await page.getByRole('button',{name:'结束会话',exact:true}).click();
+ await page.getByLabel('终端会话').selectOption(first);
+ await expect(page.getByLabel('终端输入',{exact:true})).toHaveAttribute('data-session-id',first);
+ await expect.poll(async()=>await page.locator('.xterm-accessibility-tree').innerText()).toContain('>>>');
+ await page.getByLabel('终端输入',{exact:true}).focus();
+ await page.keyboard.type("print('FIRST-'+str(21*2))");await page.keyboard.press('Enter');
+ await expect.poll(async()=>await page.locator('.xterm-accessibility-tree').innerText()).toContain('FIRST-42');
+ await page.getByRole('button',{name:'结束会话',exact:true}).click();
+ await expect.poll(async()=>(await researchApi(page,'research/terminals/'+first)).status).toBe('ended');
+ await expect.poll(async()=>(await researchApi(page,'research/terminals/'+second)).status).toBe('ended');
+});

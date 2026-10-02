@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {chooseValue} from './scientific-helpers';
 import type {Page} from '@playwright/test';
 import {session} from './session';
 test.use({baseURL:'http://127.0.0.1:8879'});
@@ -6,13 +7,29 @@ const deferred=()=>{let resolve!:()=>void;const promise=new Promise<void>(done=>
 const value=(id:string,name:string,version=1)=>({schema_version:1,id,run_id:'review',name,binding_id:'main:'+name,scope_id:'main',version,
  descriptor:{schema_version:1,kind:'tensor',backend:'numpy',type_name:'ndarray',shape:[2,100,100],dtype:'int64',axes:[],capabilities:['preview','slice'],metadata:{}},
  parents:[],observed_at:'',source:null,operation_id:null,provenance:'observed',fidelity:'sampled',artifact_ref:null,
- sample:{values:[[0,3],[300,303]],row_indices:[0,3],column_indices:[0,3],fixed_axes:{0:0}},statistics:{},coverage:{},redacted:[],truncation:[]});
+ logical_key:'analysis.py::<module>::'+name,sample:{values:[[0,3],[300,303]],row_indices:[0,3],column_indices:[0,3],fixed_axes:{0:0}},statistics:{},coverage:{},redacted:[],truncation:[]});
 async function fixture(page:Page,delays:{history?:ReturnType<typeof deferred>;slice?:ReturnType<typeof deferred>}={}){
+ page.on('pageerror',error=>console.error('Synthetic fixture error:',error.message));
  const entered=deferred(),x=value('x2','X',2),y=value('y1','Y'),old=value('x1','X');
  const run={id:'review',name:'Review fixture',script:'analysis.py',interpreter:'python',source_digest:'a',status:'completed',summary:{},environment:{},finished:'',started:'',owner:1};
+ const objects=['X','Y'].map((name,i)=>({id:name,logical_key:'analysis.py::<module>::'+name,name,qualname:name,kind:'variable',block_id:'file',line:i+1,column:0,end_line:i+1,end_column:8,source:'',dependencies:[],visibility:{},digest:'a'}));
+ const analysis={protocol_version:3,id:'analysis',path:'analysis.py',source_digest:'a',objects,relations:[],diagnostics:[],graph:{protocol_version:3,analysis_id:'analysis',blocks:[{id:'file',logical_key:'analysis.py',kind:'file',label:'analysis.py',parent_id:null,members:['X','Y']}],nodes:[],edges:[],diagnostics:[]}};
+ const presenter={id:'default-view',definition_id:'view.auto',enabled:true,origin:'project_default',parameters:{},overrides:{},selector:{mode:'project',targets:[],excluded_keys:[]}};
+ const originalConfig=await(await page.request.get('http://127.0.0.1:8879/api/v1/research/workbench/configuration',{headers:{Authorization:'Bearer '+session}})).json();
+ const config={...originalConfig,probes:[presenter],script:'analysis.py',interpreter:'python'};
  await page.route('**/api/v1/research/**',async route=>{
   const path=new URL(route.request().url()).pathname;let json:unknown={};
-  if(path.includes('/workbench')){await route.continue();return;}
+  if(path.includes('/workbench')){
+   if(path.endsWith('/configuration'))json=config;
+   else if(path.endsWith('/settings'))json={values:{workspace:{theme:'light',explorer_width:218,compact:false},graph:{dim_unrelated:false,view:'structure',direction:'RIGHT'}},sources:{'workspace.theme':'default','workspace.explorer_width':'default','workspace.compact':'default'}};
+   else if(path.endsWith('/probe-definitions'))json=[{id:'view.auto',label:'自动数据视图',capability:'view',purpose:'present',execution:'builtin',renderer:'auto',parameter_schema:{},supported_targets:['data'],input_mode:'each',input_roles:[]}];
+   else if(path.endsWith('/presenters'))json=[presenter];
+   else if(path.endsWith('/semantics'))json=null;
+   else if(path.endsWith('/outputs')||path.endsWith('/tasks')||path.endsWith('/templates'))json=[];
+   else if(path.endsWith('/analyses')||path.endsWith('/analysis'))json=analysis;
+   else if(path.includes('/source'))json={path:'analysis.py',digest:'a',code:'X = data\nY = X+1'};
+   await route.fulfill({json});return;
+  }
   if(path.endsWith('/info'))json={root:'.',interpreter:'python',examples:[]};
   else if(path.endsWith('/experiment'))json=null;
   else if(path.endsWith('/runs'))json=[run];
@@ -25,7 +42,7 @@ async function fixture(page:Page,delays:{history?:ReturnType<typeof deferred>;sl
   await route.fulfill({json}).catch(()=>{});
  });
  await page.goto(`/#session=${session}`);
- await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
+ await chooseValue(page,'X');await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
  return entered;
 }
 
@@ -33,7 +50,7 @@ test('review: delayed timeline selection cannot override a newer variable',async
  const pending=deferred(),entered=await fixture(page,{history:pending});
  await page.getByRole('button',{name:'查看变量历史'}).click();
  await page.getByRole('button',{name:'版本 1',exact:true}).click();await entered.promise;
- await page.getByRole('button',{name:/^Y ·/}).click();await expect(page.getByTestId('current-variable')).toHaveText('Y');
+ await chooseValue(page,'Y');await expect(page.getByTestId('current-variable')).toHaveText('Y');
  pending.resolve();await page.waitForTimeout(250);await expect(page.getByTestId('current-variable')).toHaveText('Y');
 });
 

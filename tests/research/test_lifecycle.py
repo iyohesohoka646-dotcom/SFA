@@ -62,6 +62,26 @@ def test_abandoned_startup_lease_expires_and_shutdown_is_once():
     now[0]=120.1;leases.sweep();leases.sweep();assert closed==[True]
 
 
+def test_last_transport_disconnect_stops_without_a_pagehide_request():
+    from contract_driven_ai_flow.application.lifecycle import ClientLease
+    now=[0.0];closed=[]
+    leases=ClientLease(lambda:closed.append(True),clock=lambda:now[0])
+    client=leases.acquire('one');leases.connected(client.id,True)
+    now[0]=300;leases.connected(client.id,False)
+    now[0]=302.9;leases.sweep();assert not closed
+    now[0]=303.1;leases.sweep();leases.sweep();assert closed==[True]
+
+
+def test_a_cancelled_acquisition_cannot_keep_a_used_service_alive():
+    from contract_driven_ai_flow.application.lifecycle import ClientLease
+    now=[0.0];closed=[]
+    leases=ClientLease(lambda:closed.append(True),clock=lambda:now[0])
+    leases.acquire('closed-before-response')
+    client=leases.acquire('live');leases.connected(client.id,True)
+    now[0]=20;leases.release(client.id)
+    now[0]=23.1;leases.sweep();assert closed==[True]
+
+
 def test_owned_service_plain_folder_close_releases_port_and_keeps_cli_run(tmp_path):
     from contract_driven_ai_flow.application.lifecycle import BackendOwner
     from contract_driven_ai_flow.research.service import ResearchService

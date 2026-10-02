@@ -58,10 +58,13 @@ def test_terminal_authentication_and_origin_and_cursor(tmp_path):
                 ws.receive_json()
         with client.websocket_connect('/api/v1/research/terminals/'+session['id']+'/socket',headers={'Origin':'http://127.0.0.1:8765'}) as ws:
             ws.send_json({'type':'authenticate','token':'private-test-session','after':0})
+            initial = ws.receive_json()
+            assert initial['replay'] is True
             ws.send_json({'type':'input','data':"print('WEBSOCKET_OK')\r"})
             output=''
             while 'WEBSOCKET_OK' not in output:
                 frame=ws.receive_json();output+=frame.get('data','')
+                assert frame['replay'] is False
         assert client.post('/api/v1/research/terminals/'+session['id']+'/end',headers=headers).json()['status']=='ended'
 
 def test_real_shell_commands_and_application_cli(tmp_path):

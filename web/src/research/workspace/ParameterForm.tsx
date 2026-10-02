@@ -1,10 +1,179 @@
-import {useState} from 'react';
-const labels:Record<string,string>={precision:'小数位数',show_values:'显示数值',show_coordinates:'显示坐标',row_labels:'行名称',column_labels:'列名称',palette:'配色',scale:'色阶',unit:'单位',kind:'图形',operation:'运算',broadcast:'允许广播',missing:'缺失值策略',alignment:'坐标对齐',allow_cross_run:'允许跨运行',flatten:'展开多维数据',method:'方法',axis:'聚合轴',keys:'连接键',how:'连接方式',cardinality:'连接基数',shared_scale:'共同色阶',linked_zoom:'联动缩放',prompt:'任务指令',provider_id:'模型服务',model:'模型',skill_id:'Skill'};
-export function ParameterForm({schema,value,onChange}:{schema:Record<string,unknown>;value:Record<string,unknown>;onChange:(v:Record<string,unknown>)=>void}){
- const [advanced,setAdvanced]=useState(false),[raw,setRaw]=useState(''),[error,setError]=useState('');
- const properties=(schema.properties??{}) as Record<string,{type?:string|string[];enum?:string[];default?:unknown;minimum?:number;maximum?:number}>;
- const update=(key:string,v:unknown)=>onChange({...value,[key]:v});
- return <div className="parameter-form wb-form compact">{Object.entries(properties).filter(([key])=>key!=='semantics').map(([key,field])=><label key={key}>{labels[key]??key}{field.type==='boolean'?<input aria-label={labels[key]??key} type="checkbox" checked={Boolean(value[key]??field.default)} onChange={e=>update(key,e.target.checked)}/>:field.enum?<select aria-label={labels[key]??key} value={String(value[key]??field.default??'')} onChange={e=>update(key,e.target.value)}><option value="">默认</option>{field.enum.map(v=><option key={v}>{v}</option>)}</select>:field.type==='integer'||Array.isArray(field.type)&&field.type.includes('integer')?<input aria-label={labels[key]??key} type="number" min={field.minimum} max={field.maximum} value={value[key]===null?'':Number(value[key]??field.default??'')} onChange={e=>update(key,e.target.value===''?null:Number(e.target.value))}/>:field.type==='array'?<input aria-label={labels[key]??key} value={Array.isArray(value[key])?(value[key] as unknown[]).join(','):''} placeholder="逗号分隔" onChange={e=>update(key,e.target.value?e.target.value.split(',').map(v=>v.trim()):[])}/>:field.type==='string'?<input aria-label={labels[key]??key} value={String(value[key]??'')} onChange={e=>update(key,e.target.value)}/>:null}</label>)}
- <button className="wb-text-button" onClick={()=>{setAdvanced(!advanced);setRaw(JSON.stringify(value,null,2));}}>高级参数</button>{advanced&&<><textarea aria-label="探针参数 JSON" value={raw} onChange={e=>setRaw(e.target.value)}/><button onClick={()=>{try{const v=JSON.parse(raw);if(!v||typeof v!=='object'||Array.isArray(v))throw Error();onChange(v);setError('');}catch{setError('参数须为 JSON 对象');}}}>应用参数</button>{error&&<span role="alert">{error}</span>}</>}
- </div>;
+import { useState } from "react";
+const labels: Record<string, string> = {
+  precision: "小数位数",
+  show_values: "显示数值",
+  show_coordinates: "显示坐标",
+  row_labels: "行名称",
+  column_labels: "列名称",
+  palette: "配色",
+  scale: "色阶",
+  unit: "单位",
+  kind: "图形",
+  operation: "运算",
+  broadcast: "允许广播",
+  missing: "缺失值策略",
+  alignment: "坐标对齐",
+  allow_cross_run: "允许跨运行",
+  flatten: "展开多维数据",
+  method: "方法",
+  axis: "聚合轴",
+  keys: "连接键",
+  how: "连接方式",
+  cardinality: "连接基数",
+  shared_scale: "共同色阶",
+  linked_zoom: "联动缩放",
+  prompt: "任务指令",
+  provider_id: "模型服务",
+  model: "模型",
+  skill_id: "Skill",
+  expected: "期望值",
+  min: "最小值",
+  max: "最大值",
+  max_ratio: "最大缺失比例",
+  tolerance: "容差",
+  max_ms: "耗时上限 ms",
+  maximum_ms: "耗时上限 ms",
+  max_bytes: "大小上限 bytes",
+  enable_expensive: "允许完整数据计算",
+  other_shape: "另一对象形状",
+};
+export function ParameterForm({
+  schema,
+  value,
+  onChange,
+}: {
+  schema: Record<string, unknown>;
+  value: Record<string, unknown>;
+  onChange: (v: Record<string, unknown>) => void;
+}) {
+  const [advanced, setAdvanced] = useState(false),
+    [raw, setRaw] = useState(""),
+    [error, setError] = useState("");
+  const properties = (schema.properties ?? {}) as Record<
+    string,
+    {
+      type?: string | string[];
+      enum?: string[];
+      default?: unknown;
+      minimum?: number;
+      maximum?: number;
+      items?: { type?: string };
+    }
+  >;
+  const update = (key: string, v: unknown) => onChange({ ...value, [key]: v });
+  return (
+    <div className="parameter-form wb-form compact">
+      {Object.entries(properties)
+        .filter(([key]) => key !== "semantics")
+        .map(([key, field]) => (
+          <label key={key}>
+            {labels[key] ?? key}
+            {field.type === "boolean" ? (
+              <input
+                aria-label={labels[key] ?? key}
+                type="checkbox"
+                checked={Boolean(value[key] ?? field.default)}
+                onChange={(e) => update(key, e.target.checked)}
+              />
+            ) : field.enum ? (
+              <select
+                aria-label={labels[key] ?? key}
+                value={String(value[key] ?? field.default ?? "")}
+                onChange={(e) => update(key, e.target.value)}
+              >
+                <option value="">默认</option>
+                {field.enum.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            ) : field.type === "integer" ||
+              field.type === "number" ||
+              (Array.isArray(field.type) && field.type.includes("integer")) ? (
+              <input
+                aria-label={labels[key] ?? key}
+                type="number"
+                min={field.minimum}
+                max={field.maximum}
+                value={
+                  value[key] === null
+                    ? ""
+                    : Number(value[key] ?? field.default ?? "")
+                }
+                onChange={(e) =>
+                  update(
+                    key,
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
+                }
+              />
+            ) : field.type === "array" ? (
+              <input
+                aria-label={labels[key] ?? key}
+                value={
+                  Array.isArray(value[key])
+                    ? (value[key] as unknown[]).join(",")
+                    : ""
+                }
+                placeholder="逗号分隔"
+                onChange={(e) =>
+                  update(
+                    key,
+                    e.target.value
+                      ? e.target.value
+                          .split(",")
+                          .map((v) =>
+                            field.items?.type === "integer" ||
+                            field.items?.type === "number"
+                              ? Number(v.trim())
+                              : v.trim(),
+                          )
+                      : [],
+                  )
+                }
+              />
+            ) : field.type === "string" ? (
+              <input
+                aria-label={labels[key] ?? key}
+                value={String(value[key] ?? "")}
+                onChange={(e) => update(key, e.target.value)}
+              />
+            ) : null}
+          </label>
+        ))}
+      <button
+        className="wb-text-button"
+        onClick={() => {
+          setAdvanced(!advanced);
+          setRaw(JSON.stringify(value, null, 2));
+        }}
+      >
+        高级参数
+      </button>
+      {advanced && (
+        <>
+          <textarea
+            aria-label="探针参数 JSON"
+            value={raw}
+            onChange={(e) => setRaw(e.target.value)}
+          />
+          <button
+            onClick={() => {
+              try {
+                const v = JSON.parse(raw);
+                if (!v || typeof v !== "object" || Array.isArray(v))
+                  throw Error();
+                onChange(v);
+                setError("");
+              } catch {
+                setError("参数须为 JSON 对象");
+              }
+            }}
+          >
+            应用参数
+          </button>
+          {error && <span role="alert">{error}</span>}
+        </>
+      )}
+    </div>
+  );
 }

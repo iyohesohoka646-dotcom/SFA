@@ -1,12 +1,286 @@
-import {useEffect,useState} from 'react';
-import {wb,type Preferences} from './WorkbenchClient';
-const titles:Record<string,string>={workspace:'工作区',graph:'计算关系图',probes:'探针默认值',capture:'运行与采集',intelligence:'模型与智能',extensions:'扩展环境',terminal:'终端',storage:'存储',about:'版本信息'};
-const fields:Record<string,string>={theme:'主题',explorer_width:'对象栏宽度',compact:'紧凑模式',view:'默认视图',dim_unrelated:'淡化无关对象',direction:'布局方向',concurrency:'探针并发数',precision:'默认小数位数',level:'默认采集',max_artifact_bytes:'单产物字节上限',max_run_bytes:'每次运行字节上限',max_control_details:'控制明细上限',include_samples:'允许智能任务读取样例',input_tokens:'智能输入预算',profile:'默认终端',buffer_chars:'终端回放字符上限',retention_days:'保留天数'};
-const enums:Record<string,string[]>={theme:['light','dark'],view:['structure','data','execution'],direction:['RIGHT','DOWN'],level:['metadata','summary','sample','full'],profile:['shell','python','cli']};
-export function WorkbenchSettings({onModels,onTools,onApplied,onError}:{onModels:()=>void;onTools:()=>void;onApplied:(p:Preferences)=>void;onError:(s:string)=>void}){
- const [preferences,setPreferences]=useState<Preferences>(),[group,setGroup]=useState('workspace'),[query,setQuery]=useState(''),[scope,setScope]=useState<'user'|'project'>('project'),[dirty,setDirty]=useState(false);
- useEffect(()=>{void wb.preferences().then(setPreferences).catch(e=>onError(e.message));},[]);
- const save=()=>{if(preferences)void wb.savePreferences(scope,{[group]:preferences.values[group]},preferences[scope+'_revision' as 'user_revision'|'project_revision']).then(p=>{setPreferences(p);setDirty(false);onApplied(p);}).catch(e=>onError(e.message));};
- return <div className="settings-pane"><div className="wb-view-toolbar"><strong>设置</strong><input type="search" aria-label="搜索设置" placeholder="搜索设置" value={query} onChange={e=>setQuery(e.target.value)}/><select aria-label="设置保存范围" value={scope} onChange={e=>setScope(e.target.value as typeof scope)}><option value="project">项目覆盖</option><option value="user">用户默认</option></select></div><div className="settings-body"><nav aria-label="设置分类">{Object.entries(titles).map(([id,label])=><button key={id} aria-pressed={group===id} onClick={()=>setGroup(id)}>{label}</button>)}</nav><div className="settings-content"><h2>{titles[group]}</h2>{group==='storage'&&<button onClick={()=>void wb.expire().then(r=>onError('已清理 '+r.artifacts_deleted+' 项过期产物')).catch(e=>onError(e.message))}>清理过期产物</button>}{group==='intelligence'&&<button onClick={onModels}>管理模型连接</button>}{group==='extensions'&&<button onClick={onTools}>管理探针与扩展环境</button>}{group==='about'&&<dl><dt>协议</dt><dd>科研工作台 v3</dd><dt>运行方式</dt><dd>本地 Python 服务 / Web / 桌面 / CLI</dd></dl>}
- <div className="wb-form">{Object.entries(preferences?.values[group]??{}).filter(([k])=>(fields[k]??k).includes(query)).map(([k,value])=><label key={k}>{fields[k]??k}<small>来源：{({default:'内置',user:'用户默认',project:'项目覆盖'} as Record<string,string>)[preferences!.sources[group+'.'+k]]}</small>{typeof value==='boolean'?<input aria-label={fields[k]} type="checkbox" checked={value} onChange={e=>{setDirty(true);setPreferences({...preferences!,values:{...preferences!.values,[group]:{...preferences!.values[group],[k]:e.target.checked}}});}}/>:enums[k]?<select aria-label={fields[k]} value={String(value)} onChange={e=>{setDirty(true);setPreferences({...preferences!,values:{...preferences!.values,[group]:{...preferences!.values[group],[k]:e.target.value}}});}}>{enums[k].map(v=><option key={v}>{v}</option>)}</select>:<input aria-label={fields[k]} type={typeof value==='number'?'number':'text'} value={String(value)} onChange={e=>{setDirty(true);setPreferences({...preferences!,values:{...preferences!.values,[group]:{...preferences!.values[group],[k]:typeof value==='number'?Number(e.target.value):e.target.value}}});}}/>}</label>)}</div>{preferences?.values[group]&&<div className="wb-form-actions"><button disabled={!dirty} onClick={save}>保存此组设置</button><button onClick={()=>void wb.resetPreferences(scope,group,preferences[scope+'_revision' as 'user_revision'|'project_revision']).then(p=>{setPreferences(p);onApplied(p);setDirty(false);}).catch(e=>onError(e.message))}>恢复此组默认</button></div>}</div></div></div>;
+import { useEffect, useState } from "react";
+import { wb, type Preferences } from "./WorkbenchClient";
+const titles: Record<string, string> = {
+  workspace: "工作区",
+  graph: "计算关系图",
+  probes: "探针默认值",
+  capture: "运行与采集",
+  intelligence: "模型与智能",
+  extensions: "扩展环境",
+  terminal: "终端",
+  storage: "存储",
+  about: "版本信息",
+};
+const fields: Record<string, string> = {
+  theme: "主题",
+  explorer_width: "对象栏宽度",
+  compact: "紧凑模式",
+  view: "默认视图",
+  dim_unrelated: "淡化无关对象",
+  direction: "布局方向",
+  concurrency: "探针并发数",
+  precision: "默认小数位数",
+  level: "默认采集",
+  max_artifact_bytes: "单产物字节上限",
+  max_run_bytes: "每次运行字节上限",
+  max_control_details: "控制明细上限",
+  include_samples: "允许智能任务读取样例",
+  input_tokens: "智能输入预算",
+  profile: "默认终端",
+  buffer_chars: "终端回放字符上限",
+  retention_days: "保留天数",
+};
+const enums: Record<string, string[]> = {
+  theme: ["light", "dark"],
+  view: ["structure", "data", "execution"],
+  direction: ["RIGHT", "DOWN"],
+  level: ["metadata", "summary", "sample", "full"],
+  profile: ["shell", "python", "cli"],
+};
+export function WorkbenchSettings({
+  onModels,
+  onTools,
+  onApplied,
+  onError,
+}: {
+  onModels: () => void;
+  onTools: () => void;
+  onApplied: (p: Preferences, group: string) => void;
+  onError: (s: string) => void;
+}) {
+  const [preferences, setPreferences] = useState<Preferences>(),
+    [group, setGroup] = useState("workspace"),
+    [query, setQuery] = useState(""),
+    [scope, setScope] = useState<"user" | "project">("project"),
+    [dirty, setDirty] = useState(false);
+  useEffect(() => {
+    void wb
+      .preferences()
+      .then(setPreferences)
+      .catch((e) => onError(e.message));
+  }, []);
+  const save = () => {
+    if (preferences)
+      void wb
+        .savePreferences(
+          scope,
+          { [group]: preferences.values[group] },
+          preferences[
+            (scope + "_revision") as "user_revision" | "project_revision"
+          ],
+        )
+        .then((p) => {
+          setPreferences(p);
+          setDirty(false);
+          onApplied(p, group);
+        })
+        .catch((e) => onError(e.message));
+  };
+  return (
+    <div className="settings-pane">
+      <div className="wb-view-toolbar">
+        <strong>设置</strong>
+        <input
+          type="search"
+          aria-label="搜索设置"
+          placeholder="搜索设置"
+          value={query}
+          onChange={(e) => {
+            const q = e.target.value;
+            setQuery(q);
+            const match = Object.entries(titles).find(([id, label]) =>
+              (
+                label +
+                Object.keys(preferences?.values[id] ?? {})
+                  .map((k) => (fields[k] ?? k) + k)
+                  .join(" ")
+              )
+                .toLowerCase()
+                .includes(q.toLowerCase()),
+            );
+            if (q && match) setGroup(match[0]);
+          }}
+        />
+        <select
+          aria-label="设置保存范围"
+          value={scope}
+          onChange={(e) => setScope(e.target.value as typeof scope)}
+        >
+          <option value="project">项目覆盖</option>
+          <option value="user">用户默认</option>
+        </select>
+      </div>
+      <div className="settings-body">
+        <nav aria-label="设置分类">
+          {Object.entries(titles)
+            .filter(
+              ([id, label]) =>
+                !query ||
+                (
+                  label +
+                  Object.keys(preferences?.values[id] ?? {})
+                    .map((k) => (fields[k] ?? k) + k)
+                    .join(" ")
+                )
+                  .toLowerCase()
+                  .includes(query.toLowerCase()),
+            )
+            .map(([id, label]) => (
+              <button
+                key={id}
+                aria-pressed={group === id}
+                onClick={() => setGroup(id)}
+              >
+                {label}
+              </button>
+            ))}
+        </nav>
+        <div className="settings-content">
+          <h2>{titles[group]}</h2>
+          {group === "storage" && (
+            <button
+              onClick={() =>
+                void wb
+                  .expire()
+                  .then((r) =>
+                    onError("已清理 " + r.artifacts_deleted + " 项过期产物"),
+                  )
+                  .catch((e) => onError(e.message))
+              }
+            >
+              清理过期产物
+            </button>
+          )}
+          {group === "intelligence" && (
+            <button onClick={onModels}>管理模型连接</button>
+          )}
+          {group === "extensions" && (
+            <button onClick={onTools}>管理探针与扩展环境</button>
+          )}
+          {group === "about" && (
+            <dl>
+              <dt>协议</dt>
+              <dd>科研工作台 v3</dd>
+              <dt>运行方式</dt>
+              <dd>本地 Python 服务 / Web / 桌面 / CLI</dd>
+            </dl>
+          )}
+          <div className="wb-form">
+            {Object.entries(preferences?.values[group] ?? {})
+              .filter(([k]) => (fields[k] ?? k).includes(query))
+              .map(([k, value]) => (
+                <label key={k}>
+                  {fields[k] ?? k}
+                  <small>
+                    来源：
+                    {
+                      (
+                        {
+                          default: "内置",
+                          user: "用户默认",
+                          project: "项目覆盖",
+                        } as Record<string, string>
+                      )[preferences!.sources[group + "." + k]]
+                    }
+                  </small>
+                  {typeof value === "boolean" ? (
+                    <input
+                      aria-label={fields[k]}
+                      type="checkbox"
+                      checked={value}
+                      onChange={(e) => {
+                        setDirty(true);
+                        setPreferences({
+                          ...preferences!,
+                          values: {
+                            ...preferences!.values,
+                            [group]: {
+                              ...preferences!.values[group],
+                              [k]: e.target.checked,
+                            },
+                          },
+                        });
+                      }}
+                    />
+                  ) : enums[k] ? (
+                    <select
+                      aria-label={fields[k]}
+                      value={String(value)}
+                      onChange={(e) => {
+                        setDirty(true);
+                        setPreferences({
+                          ...preferences!,
+                          values: {
+                            ...preferences!.values,
+                            [group]: {
+                              ...preferences!.values[group],
+                              [k]: e.target.value,
+                            },
+                          },
+                        });
+                      }}
+                    >
+                      {enums[k].map((v) => (
+                        <option key={v}>{v}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      aria-label={fields[k]}
+                      type={typeof value === "number" ? "number" : "text"}
+                      value={String(value)}
+                      onChange={(e) => {
+                        setDirty(true);
+                        setPreferences({
+                          ...preferences!,
+                          values: {
+                            ...preferences!.values,
+                            [group]: {
+                              ...preferences!.values[group],
+                              [k]:
+                                typeof value === "number"
+                                  ? Number(e.target.value)
+                                  : e.target.value,
+                            },
+                          },
+                        });
+                      }}
+                    />
+                  )}
+                </label>
+              ))}
+          </div>
+          {preferences?.values[group] && (
+            <div className="wb-form-actions">
+              <button disabled={!dirty} onClick={save}>
+                保存此组设置
+              </button>
+              <button
+                onClick={() =>
+                  void wb
+                    .resetPreferences(
+                      scope,
+                      group,
+                      preferences[
+                        (scope + "_revision") as
+                          | "user_revision"
+                          | "project_revision"
+                      ],
+                    )
+                    .then((p) => {
+                      setPreferences(p);
+                      onApplied(p, group);
+                      setDirty(false);
+                    })
+                    .catch((e) => onError(e.message))
+                }
+              >
+                恢复此组默认
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

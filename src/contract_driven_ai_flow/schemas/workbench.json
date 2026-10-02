@@ -2102,6 +2102,18 @@
           ],
           "default": null,
           "title": "Pending Version"
+        },
+        "review_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Digest"
         }
       },
       "required": [
@@ -2115,7 +2127,8 @@
         "dependencies",
         "url",
         "diagnostics",
-        "pending_version"
+        "pending_version",
+        "review_digest"
       ],
       "title": "ProbeResource",
       "type": "object"
@@ -2631,6 +2644,11 @@
           ],
           "default": null,
           "title": "Snapshot Id"
+        },
+        "exact_evidence": {
+          "default": false,
+          "title": "Exact Evidence",
+          "type": "boolean"
         }
       },
       "required": [
@@ -2640,7 +2658,8 @@
         "block_id",
         "analysis_id",
         "run_id",
-        "snapshot_id"
+        "snapshot_id",
+        "exact_evidence"
       ],
       "title": "TargetRef",
       "type": "object"

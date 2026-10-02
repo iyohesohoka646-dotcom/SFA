@@ -43,3 +43,14 @@ def read_source(path: Path) -> SourceFile:
     raw = resolved.read_bytes()
     encoding, _ = tokenize.detect_encoding(io.BytesIO(raw).readline)
     return SourceFile(str(resolved), raw.decode(encoding), hashlib.sha256(raw).hexdigest())
+
+
+def cached_source_segment(lines: list[bytes], node) -> str:
+    """AST offsets use UTF-8 bytes; callers cache lines once per document."""
+    start, end = getattr(node, 'lineno', None), getattr(node, 'end_lineno', None)
+    left, right = getattr(node, 'col_offset', None), getattr(node, 'end_col_offset', None)
+    if None in (start, end, left, right):
+        return ''
+    if start == end:
+        return lines[start - 1][left:right].decode('utf-8')
+    return (lines[start - 1][left:] + b''.join(lines[start:end - 1]) + lines[end - 1][:right]).decode('utf-8')

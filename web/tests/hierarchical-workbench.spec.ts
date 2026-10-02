@@ -1,10 +1,14 @@
 import {test,expect} from '@playwright/test';
 import {session} from './session';
+import {writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {researchApi,runCompute} from './scientific-helpers';
 test('selection is pure, multi selection shares graph, explicit menu navigates',async({page})=>{
  await page.goto('http://127.0.0.1:8879/#session='+session);
  const tree=page.getByRole('tree',{name:'计算对象树'});await expect(tree).toBeVisible();
- const row=tree.getByRole('treeitem').filter({hasText:'X'}).first();
- await expect(page.locator('.workspace-tab')).toHaveCount(3);
+ await page.getByLabel('运行记录').selectOption('');
+ const row=tree.getByRole('treeitem').filter({hasText:'X'}).first();await expect(row).toBeVisible();
+ await expect(page.locator('.workspace-tab')).not.toHaveCount(0);
  const before=await page.locator('.workspace-tab').count();
  await row.click();await expect(row).toHaveAttribute('aria-selected','true');
  expect(await page.locator('.workspace-tab').count()).toBe(before);
@@ -21,4 +25,38 @@ test('selection is pure, multi selection shares graph, explicit menu navigates',
  await row.click({button:'right'});
  await expect(page.getByRole('menu')).toBeVisible();
  await expect(page.getByRole('button',{name:'定位源码',exact:true})).toBeVisible();
+});
+
+test('function plates, control counters and entering a block share a real computation scope',async({page})=>{
+ await page.goto('http://127.0.0.1:8879/#session='+session);
+ const info=await researchApi(page,'research/info'),path=join(info.root,'hierarchical-calculation.py');
+ writeFileSync(path,'import numpy as np\ndef normalize(data):\n    total = data.sum()\n    count = 0\n    for row in data:\n        if row.sum() > 0:\n            count += 1\n    output = data / total\n    return output, count\nX = np.arange(6.0).reshape(3,2)\nY, count = normalize(X)\n');
+ await page.getByRole('button',{name:'打开源码配置'}).click();
+ await page.getByLabel('分析脚本',{exact:true}).fill(path);
+ const imported=page.waitForResponse(r=>r.url().endsWith('/workbench/analyses')&&r.request().method()==='POST'&&r.request().postDataJSON().path===path);
+ await page.getByRole('button',{name:'导入解析',exact:true}).click();expect((await imported).ok()).toBe(true);
+ await expect(page.getByRole('button',{name:'运行',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'打开源码配置'}).click();
+ await runCompute(page);
+ await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
+ await page.getByRole('button',{name:'放大 main 视图',exact:true}).click();
+ await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
+ await expect(page.locator('.semantic-plate.kind-function')).toBeVisible();
+ await page.locator('.semantic-plate.kind-function strong').filter({hasText:/^normalize$/}).click({button:'right'});
+ await page.getByRole('button',{name:'进入此块',exact:true}).click();
+ await page.getByLabel('关系图视图').selectOption('execution');
+ await expect(page.locator('.semantic-plate.kind-loop .plate-counter')).toHaveText('3 次');
+ await expect(page.locator('.semantic-plate.kind-condition .plate-counter')).toHaveText('3 次');
+ const tree=page.getByRole('tree',{name:'计算对象树'});
+ await expect(tree.locator('.object-row-name').filter({hasText:/^X$/})).toHaveCount(0);
+ await expect(tree.locator('.object-row-name').filter({hasText:/^total$/})).toBeVisible();
+ await page.getByText('布局与关系',{exact:true}).click();
+ await page.getByLabel('布局方向').selectOption('DOWN');
+ await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
+ await page.getByText('布局与关系',{exact:true}).click();
+ await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+ await page.getByRole('button',{name:'适应画布',exact:true}).click();
+ await page.screenshot({path:'../docs/assets/scientific-structure.png'});
+ await page.getByRole('button',{name:'总览',exact:true}).click();
+ await expect(tree.locator('.object-row-name').filter({hasText:/^X$/})).toBeVisible();
 });

@@ -6,9 +6,9 @@ test('workspace minimizes, resizes, locks and restores named layouts without exe
   page.on('request', request => { if (/\/(execute|intelligence|replot|evaluate)$/.test(request.url()) && request.method() === 'POST') executions++; });
   await page.goto('http://127.0.0.1:8879/#session=' + session);
   await expect(page.getByRole('button', { name: '锁定布局', exact: true })).toBeVisible();
-  const horizontal = page.getByRole('separator', { name: '调整 columns 分屏' });
+  const horizontal = page.locator('.dv-horizontal > .dv-sash-container > .dv-sash.dv-enabled').filter({visible:true}).first();
   await horizontal.focus(); await page.keyboard.press('ArrowRight');
-  const vertical = page.getByRole('separator', { name: '调整 rows 分屏' });
+  const vertical = page.locator('.dv-vertical > .dv-sash-container > .dv-sash.dv-enabled').filter({visible:true}).first();
   await vertical.focus(); await page.keyboard.press('ArrowUp');
   const bounds = await horizontal.boundingBox();
   if (bounds) { await page.mouse.move(bounds.x + 2, bounds.y + 60); await page.mouse.down(); await page.mouse.move(bounds.x + 40, bounds.y + 60); await page.mouse.up(); }

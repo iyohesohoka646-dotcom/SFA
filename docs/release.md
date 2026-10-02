@@ -1,32 +1,30 @@
-# Scientific Dataflow Inspector 0.4.0 本地候选版
+# Scientific Dataflow Inspector 0.5.0 本地候选版
 
-0.4 提供统一探针工作台：独立标签与横纵分屏、视图缩小/全屏/关闭、命名与固定布局、版本并排、直接计算关系高亮、公开绘图库管理、自动智能任务 harness 和人工审查的代码提案。Web、Windows 桌面、交互终端和批处理 CLI 共用服务。发行名和旧架构入口保留，远端仓库仍为 SFA。[草稿 PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1) 承载审查，没有合并 master 或发布 PyPI。
+0.5 将研究范围、探针和运行证据连成完整工作台：对象树与分层计算图共享选择；函数、条件和循环用可折叠底板表达；呈现、检验、解释和推导探针分别绑定到明确目标；多对象可以并排比较、计算派生数据并追溯输入。Web、Windows 桌面和 CLI 使用同一套服务。发行包继续使用 `contract-driven-ai-flow`，导入名和旧架构入口保留。[草稿 PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1) 用于审查，尚未合并 master 或发布 PyPI。
 
-## 验证
+## 操作
 
-本轮完整 Python 检查 **573 passed**；前端单元测试 **20 passed**；完整真实浏览器检查 **45 passed**。浏览器旅程包含无执行解析、配置后计算、真实绘图和只重绘、矩阵图例与异常、复数/高维/表格/自定义点云、固定版本与历史图、布局恢复、窄屏、暂停后继续、过期响应、慢模型取消、自动工具循环和局部代码提案接受。CLI 与 HTTP 使用同一服务。
+选择 Python 脚本后点击“导入解析”；这一步不运行用户代码。单击对象或图节点只选择，Ctrl/Cmd 和 Shift 支持多选；双击、Enter 或右键菜单才打开数据、源码或进入块。关系图默认为结构总览，保留完整背景；“淡化无关对象”可单独开启。首次导入和结构变化使用 ELK Worker 布局，选择、数值更新和虚化不重新布局。
 
-[本轮性能数据](assets/scientific-performance.json) 来自 1000 个变量、10000 条事件的有界夹具，最新点击到绘制 P95 **5.8 ms**、数据详情 P95 **6.9 ms**。这验证当前界面夹具；科研采集开销的历史实测、CPU 矩阵计算与十分钟采集在[性能说明](research/performance.md)中分别记录，不构成任意环境的速度保证。
+新项目提供可见、可停用和可删除的“自动数据视图”探针。对象名称、类型、形状和来源始终可见，表格、热图和其他图形由有效呈现探针提供。探针库分别管理公开资源、已安装扩展、自定义程序和 Skill；参数修改先保存绑定，计算、绘图和模型调用都需要明确点击执行。联合计算需要完整输入，缺少完整数据或坐标会给出诊断，补采集产生新运行。
 
-全新 wheel 与 source 安装检查执行真实计算、四个绘图库、离线报告与模型 HTTP 工具循环夹具。当前 wheel 与项目内独立 Python 的 **221 个包文件**已逐字节核对。桌面运行时会强制重装同版本候选包后检查全部资源，避免元数据版本相同但实际代码陈旧。最终原生回执与安装包摘要见本轮发行记录。
-
-[Windows 原生回执](assets/research-desktop-validation.json)已通过：运行中文脚本、矩阵异常与色带、配置绘图后只重绘、自动上下文、CLI 共用历史、报告脱敏、实际关窗与端口释放。[发行回执](assets/scientific-release-validation.json)记录本轮包摘要与文件核对。此原生检查运行的是打包目录中的程序，NSIS 安装向导本轮未执行；安装包已构建，仍为未签名本地候选。
-
-矩阵默认使用显示单元的最小值到最大值线性色阶，提供数值色带、恒定值标识、缺失/NaN/Inf 纹理和原始行列索引；统计与采集细节可折叠。关系图点击显示直接输入、直接下游及来源，视图位置独立于执行语义。
-
-## 使用
+“设置”管理工作区、关系图、默认探针、采集、智能模型、扩展环境、终端和存储。模型设置保留顶部直接入口。Dockview 支持横纵分屏、标签拖动、缩小恢复、放大还原、命名布局和锁定。任务、结果和事件按运行、阶段、目标与探针筛选。内嵌终端支持 Python、应用 CLI 和系统 Shell；隐藏保留进程，显式结束或关闭拥有服务的应用时清理进程。
 
 ```powershell
-python -m pip install "contract-driven-ai-flow[research,views] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
+python -m pip install "contract-driven-ai-flow[research,tables,views] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
 cdaf studio --project .\experiment
 cdaf terminal --project .\experiment
-cdaf research --help
+cdaf workbench --help
 ```
 
-顶部文件菜单选择脚本并“导入解析”，配置探针后“运行”。绘图库也可以在工具库安装到项目管理环境，计算环境单独选择。关闭最后一个拥有的浏览器标签后服务停止，刷新有宽限；持续服务用 `cdaf serve`。Windows 可运行 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`，或使用同目录 NSIS 安装包。[完整使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
+Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包位于同一目录。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
 
-## 已知范围
+## 验证与边界
 
-Python 本地工作台、NumPy/pandas/标准标量及独立点云适配路径已验证；GPU、稀疏、分布式和其他语言的内置后端尚未提供。Bokeh/PyVista/HoloViews 是公开候选，当前四个实际绘图适配器是 Matplotlib、Seaborn、Plotly、Altair。关系图区分观察和推断，任意拖线编辑程序语义尚未实现。反向代码支持函数体、稳定赋值和项目内新分析文件；结构有效仍标记行为未验证，回滚只支持可保真保存的局部片段。
+本轮最终检查、包摘要、原生回执和审查裁决统一记录在[验收记录](research/hierarchical-workbench-validation.md)。测试区分结构解析、真实计算、浏览器操作、隔离安装和原生程序；性能记录注明夹具与测量范围。真实 Windows 桌面验收包含中文脚本、矩阵异常、配置绘图后重绘、共享 CLI 历史、内嵌多会话终端及关窗后的端口和进程释放。
 
-程序和插件具有所选解释器的文件/网络权限。数据与源码脱敏发生在证据、浏览器、报告和模型上下文边界，完整采集默认关闭。远程真实模型推理没有在本轮调用；已验证的是离线模式与实际 HTTP 结构化工具循环夹具。Windows 原生包为未签名本地候选，macOS/Linux 原生桌面包未验证，跨平台 CI 结果以 GitHub 最新运行状态为准。[扩展协议](research/adapter-api.md) · [探针协议](research/probe-api.md) · [覆盖限制](research/limitations.md)。
+[选择性能](assets/scientific-performance.json) 使用 1000 个对象、10000 条历史事件的夹具，检查选中样式实际变化并测量到下一帧的延迟；它不包含科学计算或冷导入。[解析性能](assets/scientific-parser-performance.json) 单独记录千级中文对象的静态解析。[运行开销](research/performance.md) 保留原有实验条件，不能推广成任意程序的速度保证。
+
+本轮完成单个 Python 文件的分层计算语义与常见同步控制采集。文件夹、跨文件和用户圈定支流提供协议与开发示例；异步、生成器和动态代码保留结构及覆盖标记。程序探针和扩展使用所选解释器的文件与网络权限。默认摘要采集，完整数据和外部模型调用需要明确配置；真实远程模型推理未在本轮调用，验证的是离线模式与 HTTP 工具循环夹具。
+
+Windows 包为未签名本地候选。打包程序和 NSIS 构建、安装向导、macOS/Linux 原生桌面验收分别记录，不能互相代替。跨平台 CI 以该分支最新提交的 GitHub Actions 状态为准。[扩展协议](research/adapter-api.md) · [探针协议](research/probe-api.md) · [迁移说明](research/migration.md) · [覆盖限制](research/limitations.md)。

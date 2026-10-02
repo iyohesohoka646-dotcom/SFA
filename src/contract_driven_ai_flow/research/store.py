@@ -67,6 +67,26 @@ class ExperimentStore:
         finally:
             db.close()
 
+    def archive_source(self, digest: str, text: str):
+        """Content-addressed evidence is written once, including concurrent imports."""
+        from ..storage import atomic_write_private
+        from .agent.privacy import clean_text
+
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise ValueError("Invalid source archive digest")
+        path = self.state / "sources" / (digest + ".txt")
+        content = clean_text(text, 10 * 1024 * 1024).encode("utf-8")
+        # The project database serializes writers across services and processes.
+        # Readers can retain an open archive on Windows without replacement.
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if path.exists():
+                if path.read_bytes() != content:
+                    raise ValueError("Source archive conflicts with preserved evidence")
+            else:
+                atomic_write_private(path, content)
+        return path
+
     def create_run(self, script: str, *, interpreter: str, source_digest: str, name: str = "Analysis", environment: dict | None = None) -> dict:
         run_id = uuid.uuid4().hex
         with self.connect() as db:

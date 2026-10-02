@@ -8,6 +8,7 @@ import sys
 import tempfile
 import venv
 import zipfile
+import tomllib
 import socket
 import time
 from urllib.request import Request, urlopen
@@ -15,9 +16,13 @@ from urllib.request import Request, urlopen
 
 def main():
     repository = Path(__file__).resolve().parents[1]
-    wheel = sorted((repository / "dist").glob("contract_driven_ai_flow-*.whl"))[-1]
+    version=tomllib.loads((repository/"pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+    wheel=repository/"dist"/f"contract_driven_ai_flow-{version}-py3-none-any.whl"
+    if not wheel.is_file():raise SystemExit("Build the current release wheel first: "+version)
     with zipfile.ZipFile(wheel) as archive:
         names = archive.namelist()
+        expected_assets={"contract_driven_ai_flow/static/"+str(p.relative_to(repository/"src/contract_driven_ai_flow/static")).replace("\\","/") for p in (repository/"src/contract_driven_ai_flow/static").rglob("*") if p.is_file()}
+        assert {n for n in names if n.startswith("contract_driven_ai_flow/static/") and not n.endswith("/")}==expected_assets,"Wheel static resources differ from this build"
         assert "contract_driven_ai_flow/static/index.html" in names
         assert any("static/assets/elk-worker" in name for name in names)
         assert any("static/licenses/" in name and "elkjs" in name for name in names)

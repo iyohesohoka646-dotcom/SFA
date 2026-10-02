@@ -62,3 +62,12 @@ def test_adapter_honors_requested_chart_semantics(tmp_path, tool, kind):
         else:
             spec = json.loads(path.read_text())
             assert spec['mark']['type'] == ('line' if kind == 'line' else 'bar')
+
+
+def test_environment_scan_uses_first_visible_distribution_for_duplicate_names(monkeypatch,capsys):
+    import importlib.metadata, json
+    from types import SimpleNamespace
+    from contract_driven_ai_flow.research.workbench.tools import ToolManager
+    monkeypatch.setattr(importlib.metadata,'distributions',lambda:[SimpleNamespace(metadata={'Name':'probe_pkg','Version':'2'}),SimpleNamespace(metadata={'Name':'probe-pkg','Version':'1'})])
+    exec(ToolManager.discovery_code,{})
+    assert json.loads(capsys.readouterr().out)=={'probe-pkg':'2'}

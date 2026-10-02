@@ -3,6 +3,9 @@
   "installed": false,
   "unicode": true,
   "real_python": true,
+  "real_cli": true,
+  "real_shell": true,
+  "concurrent_sessions": 3,
   "owner_exit_cleanup": true,
   "port_released": true,
   "result": "passed"
