@@ -7,6 +7,7 @@ from uuid import uuid4
 from pydantic import Field, JsonValue, field_validator
 
 from ..models import WireModel, timestamp
+from .semantic_models import SemanticGraph, TargetRef, ScopeSelector
 
 
 def uid() -> str:
@@ -22,6 +23,10 @@ class SourceObject(WireModel):
     kind: Literal['function', 'class', 'assignment', 'parameter', 'import', 'step']
     line: int
     end_line: int
+    column: int = 0
+    end_column: int = 0
+    logical_key: str = ''
+    block_id: str = ''
     source_digest: str
     code: str = ''
     inputs: list[str] = Field(default_factory=list)
@@ -38,12 +43,13 @@ class Relation(WireModel):
 
 
 class AnalysisDocument(WireModel):
-    protocol_version: Literal[2] = 2
+    protocol_version: Literal[2, 3] = 3
     id: str = Field(default_factory=uid)
     path: str
     source_digest: str
     objects: list[SourceObject] = Field(default_factory=list)
     relations: list[Relation] = Field(default_factory=list)
+    graph: SemanticGraph = Field(default_factory=SemanticGraph)
     diagnostics: list[str] = Field(default_factory=list)
     imported_at: str = Field(default_factory=timestamp)
 

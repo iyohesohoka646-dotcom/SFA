@@ -4,8 +4,11 @@
       "additionalProperties": false,
       "properties": {
         "protocol_version": {
-          "const": 2,
-          "default": 2,
+          "default": 3,
+          "enum": [
+            2,
+            3
+          ],
           "title": "Protocol Version",
           "type": "integer"
         },
@@ -35,6 +38,9 @@
           "title": "Relations",
           "type": "array"
         },
+        "graph": {
+          "$ref": "#/$defs/SemanticGraph"
+        },
         "diagnostics": {
           "items": {
             "type": "string"
@@ -54,6 +60,7 @@
         "source_digest",
         "objects",
         "relations",
+        "graph",
         "diagnostics",
         "imported_at"
       ],
@@ -315,6 +322,379 @@
         "diagnostics"
       ],
       "title": "ExecutionPlan",
+      "type": "object"
+    },
+    "GraphBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "logical_key": {
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "file",
+            "function",
+            "class",
+            "condition",
+            "loop",
+            "try",
+            "with",
+            "folder",
+            "project",
+            "stream"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Id"
+        },
+        "members": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Members",
+          "type": "array"
+        },
+        "runtime_coverage": {
+          "default": "supported",
+          "enum": [
+            "supported",
+            "partial",
+            "unsupported"
+          ],
+          "title": "Runtime Coverage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "logical_key",
+        "kind",
+        "label",
+        "parent_id",
+        "source",
+        "source_object_id",
+        "members",
+        "runtime_coverage"
+      ],
+      "title": "GraphBlock",
+      "type": "object"
+    },
+    "GraphCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "runtime": {
+          "default": "partial",
+          "enum": [
+            "supported",
+            "partial",
+            "unsupported"
+          ],
+          "title": "Runtime",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "source",
+        "runtime"
+      ],
+      "title": "GraphCoverage",
+      "type": "object"
+    },
+    "GraphEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "data",
+            "control",
+            "call",
+            "argument",
+            "return",
+            "merge",
+            "backedge",
+            "contains",
+            "block"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "source_port": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Port"
+        },
+        "target_port": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Port"
+        },
+        "branch": {
+          "anyOf": [
+            {
+              "enum": [
+                "true",
+                "false",
+                "body",
+                "exit",
+                "exception"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Branch"
+        },
+        "provenance": {
+          "default": "inferred",
+          "enum": [
+            "inferred",
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        },
+        "original_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Original Ids",
+          "type": "array"
+        },
+        "count": {
+          "default": 1,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target",
+        "kind",
+        "label",
+        "source_port",
+        "target_port",
+        "branch",
+        "provenance",
+        "original_ids",
+        "count"
+      ],
+      "title": "GraphEdge",
+      "type": "object"
+    },
+    "GraphNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "operation",
+            "data",
+            "parameter",
+            "condition",
+            "loop_header",
+            "merge",
+            "return",
+            "call",
+            "entry",
+            "exit",
+            "unknown"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "block_id": {
+          "title": "Block Id",
+          "type": "string"
+        },
+        "logical_key": {
+          "default": "",
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Id"
+        },
+        "ports": {
+          "items": {
+            "$ref": "#/$defs/GraphPort"
+          },
+          "title": "Ports",
+          "type": "array"
+        },
+        "version": {
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "block_id",
+        "logical_key",
+        "source",
+        "source_object_id",
+        "ports",
+        "version"
+      ],
+      "title": "GraphNode",
+      "type": "object"
+    },
+    "GraphPort": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "input",
+            "output"
+          ],
+          "title": "Direction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "direction"
+      ],
+      "title": "GraphPort",
       "type": "object"
     },
     "HarnessPolicy": {
@@ -829,6 +1209,123 @@
       "title": "Relation",
       "type": "object"
     },
+    "ScopeSelector": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "default": "project",
+          "enum": [
+            "selection",
+            "block",
+            "project"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "block_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Id"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "excluded_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Excluded Keys",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "block_id",
+        "targets",
+        "excluded_keys"
+      ],
+      "title": "ScopeSelector",
+      "type": "object"
+    },
+    "SemanticGraph": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 3,
+          "default": 3,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "source_digest": {
+          "default": "",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "roots": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Roots",
+          "type": "array"
+        },
+        "blocks": {
+          "items": {
+            "$ref": "#/$defs/GraphBlock"
+          },
+          "title": "Blocks",
+          "type": "array"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/GraphNode"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/GraphEdge"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "coverage": {
+          "items": {
+            "$ref": "#/$defs/GraphCoverage"
+          },
+          "title": "Coverage",
+          "type": "array"
+        },
+        "omitted_count": {
+          "default": 0,
+          "title": "Omitted Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "source_digest",
+        "roots",
+        "blocks",
+        "nodes",
+        "edges",
+        "coverage",
+        "omitted_count"
+      ],
+      "title": "SemanticGraph",
+      "type": "object"
+    },
     "SourceObject": {
       "additionalProperties": false,
       "properties": {
@@ -873,6 +1370,26 @@
           "title": "End Line",
           "type": "integer"
         },
+        "column": {
+          "default": 0,
+          "title": "Column",
+          "type": "integer"
+        },
+        "end_column": {
+          "default": 0,
+          "title": "End Column",
+          "type": "integer"
+        },
+        "logical_key": {
+          "default": "",
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "block_id": {
+          "default": "",
+          "title": "Block Id",
+          "type": "string"
+        },
         "source_digest": {
           "title": "Source Digest",
           "type": "string"
@@ -913,6 +1430,10 @@
         "kind",
         "line",
         "end_line",
+        "column",
+        "end_column",
+        "logical_key",
+        "block_id",
         "source_digest",
         "code",
         "inputs",
@@ -920,6 +1441,148 @@
         "provenance"
       ],
       "title": "SourceObject",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "qualname": {
+          "default": "",
+          "title": "Qualname",
+          "type": "string"
+        },
+        "line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Line",
+          "type": "integer"
+        },
+        "digest": {
+          "default": "",
+          "title": "Digest",
+          "type": "string"
+        },
+        "code": {
+          "default": "",
+          "title": "Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "qualname",
+        "line",
+        "end_line",
+        "digest",
+        "code"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    },
+    "TargetRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "default": "data",
+          "enum": [
+            "data",
+            "operation",
+            "function",
+            "control",
+            "file",
+            "project",
+            "folder",
+            "stream"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "logical_key": {
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Id"
+        },
+        "block_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Id"
+        },
+        "analysis_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Analysis Id"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        }
+      },
+      "required": [
+        "kind",
+        "logical_key",
+        "object_id",
+        "block_id",
+        "analysis_id",
+        "run_id",
+        "snapshot_id"
+      ],
+      "title": "TargetRef",
       "type": "object"
     },
     "TaskRecord": {
@@ -1158,6 +1821,15 @@
     "CodeProposal": {
       "$ref": "#/$defs/CodeProposal"
     },
+    "SemanticGraph": {
+      "$ref": "#/$defs/SemanticGraph"
+    },
+    "TargetRef": {
+      "$ref": "#/$defs/TargetRef"
+    },
+    "ScopeSelector": {
+      "$ref": "#/$defs/ScopeSelector"
+    },
     "HarnessRequest": {
       "$ref": "#/$defs/HarnessRequest"
     }
@@ -1174,6 +1846,9 @@
     "TaskRecord",
     "HarnessPolicy",
     "CodeProposal",
+    "SemanticGraph",
+    "TargetRef",
+    "ScopeSelector",
     "HarnessRequest"
   ],
   "title": "WorkbenchProtocol",
