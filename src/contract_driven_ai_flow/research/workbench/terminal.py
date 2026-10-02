@@ -146,7 +146,10 @@ class TerminalService:
             else:
                 argv = [shutil.which('pwsh') or shutil.which('powershell') or 'powershell.exe','-NoLogo','-NoProfile'] if os.name=='nt' else [os.environ.get('SHELL') or '/bin/bash','-i']
             try:
-                pty = (_WindowsPTY if os.name=='nt' else _PosixPTY)(argv,self.root,env,rows,cols)
+                if shutil.which(argv[0],path=env.get('PATH')) is None:
+                    raise FileNotFoundError('Terminal executable is unavailable: '+argv[0])
+                command=[sys.executable,'-X','utf8',str(Path(__file__).with_name('terminal_host.py')),*argv]
+                pty = (_WindowsPTY if os.name=='nt' else _PosixPTY)(command,self.root,env,rows,cols)
                 entry['pty'] = pty
                 session.pid = pty.pid
                 reader = threading.Thread(target=self._drain,args=(session.id,),daemon=True,name='terminal-'+session.id[:6])
