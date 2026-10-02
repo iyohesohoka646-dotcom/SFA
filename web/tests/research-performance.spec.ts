@@ -1,5 +1,6 @@
 import {session} from './session';
 import { expect, test } from '@playwright/test';
+import { writeFileSync } from 'node:fs';
 
 test.use({baseURL: 'http://127.0.0.1:8879'});
 test('research-performance: 1000 values and 10000 events stay interactive', async ({page}) => {
@@ -35,6 +36,7 @@ test('research-performance: 1000 values and 10000 events stay interactive', asyn
   const details=(measured.api as {url:string;duration:number}[]).filter(m=>m.url.includes('/snapshots/')).map(m=>m.duration).sort((a,b)=>a-b);
   expect(details[Math.ceil(details.length*.95)-1]).toBeLessThanOrEqual(250);
   await test.info().attach('paint-latency.json', {body:JSON.stringify({...measured,count: metrics.length,p50:sorted[Math.floor(sorted.length*.5)],p95:sorted[Math.ceil(sorted.length*.95)-1],detailP95:details[Math.ceil(details.length*.95)-1]}), contentType:'application/json'});
+  writeFileSync('../docs/assets/scientific-performance.json', JSON.stringify({...measured,count:metrics.length,p50:sorted[Math.floor(sorted.length*.5)],p95:sorted[Math.ceil(sorted.length*.95)-1],detailP95:details[Math.ceil(details.length*.95)-1]},null,2));
 });
 
 test('research-performance: slow details do not disable input and selection', async ({page}) => {

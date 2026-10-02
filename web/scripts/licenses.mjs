@@ -16,3 +16,8 @@ for (const [directory, entry] of Object.entries(lock.packages)) {
 }
 await writeFile(path.join(destination, 'sources.json'), JSON.stringify(inventory, null, 2));
 console.log(`Distributed license texts for ${inventory.length} production dependencies`);
+const exports = '../src/contract_driven_ai_flow/static/export';
+await mkdir(exports, { recursive: true });
+for (const [pkg, file] of [['vega', 'vega.min.js'], ['vega-lite', 'vega-lite.min.js']]) {
+  await writeFile(path.join(exports, file), await readFile(path.join('node_modules', pkg, 'build', file)));
+}

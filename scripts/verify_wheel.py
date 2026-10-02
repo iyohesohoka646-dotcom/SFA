@@ -37,7 +37,7 @@ def main():
             raise RuntimeError(f"{args[0]} exited {result.returncode}: {(result.stderr or result.stdout)[-3000:]}")
         return result.stdout
 
-    invoke([python, "-m", "pip", "install", str(wheel) + "[research,tables]"], timeout=300)
+    invoke([python, "-m", "pip", "--isolated", "install", "--no-user", str(wheel) + "[research,tables,views]"], timeout=300)
     from research_acceptance import verify_research_delivery
     research = verify_research_delivery(python, binary, directory / "research-acceptance", env)
     assert research["version"] in invoke([binary, "--version"])

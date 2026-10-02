@@ -2,6 +2,8 @@
 
 普通 `.py` 分析代码无需先变成端口图。选择项目目录、源码与科研解释器即可观察。`research.yaml` 保存可提交的配置，`.cdaf/research/` 保存运行证据。原 `flow.yaml`、源码、契约和探针保留，“旧版架构”仍可编辑端口流程。
 
+0.4 的统一工作台使用 `workbench.yaml`，观察协议 v1 的历史证据仍然可读。`cdaf research migrate-config --project PATH` 预览配置转换；加 `--apply` 创建新版配置及字节保真的 `research.yaml.v1.bak`，原文件保留，已存在的新版配置拒绝覆盖。程序检查、绘图、模型和人工结果保存为独立 v2 记录。源码推断关系保留推断标记，旧 Router 保留观察语义。
+
 ```powershell
 cdaf --json research migrate .\old-project .\research-project
 cdaf --json research migrate .\old-project .\research-project --apply

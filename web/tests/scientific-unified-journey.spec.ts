@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { session } from './session';
-import { chooseValue, researchApi } from './scientific-helpers';
+import { chooseValue, chooseExample, runCompute, researchApi } from './scientific-helpers';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -119,4 +119,31 @@ test('narrow screens focus one tool document and keep other views reachable',asy
   const box=await page.getByLabel('任务指令').boundingBox();expect(box!.width).toBeGreaterThan(240);
   await page.getByRole('button',{name:'探针台',exact:true}).click();await expect(page.getByRole('button',{name:'添加探针',exact:true})).toBeVisible();
   await page.screenshot({path:'../docs/assets/scientific-narrow.png'});
+});
+test('manual verdict appears immediately and graph camera survives tab changes', async ({page}) => {
+  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await chooseExample(page); await runCompute(page); await chooseValue(page,'X');
+  await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
+  await expect(page.getByTestId('relation-node').first()).toBeVisible();
+  await expect(page.getByTestId('graph-layout-metric')).not.toContainText('布局 0 ms');
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  const zoom = async () => Number((await page.locator('.wb-graph-canvas .react-flow__viewport').getAttribute('style'))!.match(/scale\(([^)]+)/)![1]);
+  const originalZoom = await zoom();
+  await page.getByRole('button',{name:'zoom out'}).click();
+  await expect.poll(zoom).toBeLessThan(originalZoom * .84);
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  const camera = await page.locator('.wb-graph-canvas .react-flow__viewport').getAttribute('style');
+  await page.getByRole('button',{name:'工具库',exact:true}).first().click();
+  await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
+  await expect(page.getByTestId('graph-layout-metric')).not.toContainText('布局 0 ms');
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect(page.locator('.wb-graph-canvas .react-flow__viewport')).toHaveAttribute('style',camera!);
+  await page.getByRole('button',{name:'探针台',exact:true}).first().click();
+  await page.getByRole('button',{name:'添加探针',exact:true}).click();
+  await page.getByLabel('探针类型').selectOption('check.manual');
+  await page.getByRole('button',{name:'确认添加探针',exact:true}).click();
+  await page.getByLabel('人工判断',{exact:true}).selectOption('pass');
+  await page.getByLabel('人工判断说明').fill('人工核对数值一致');
+  await page.getByRole('button',{name:'记录判断',exact:true}).click();
+  await expect(page.getByTestId('probe-output').filter({hasText:'check.manual'})).toContainText('人工核对数值一致');
 });

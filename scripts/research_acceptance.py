@@ -66,6 +66,54 @@ def verify_research_delivery(python, command, directory, environment):
     assert "Scientific Dataflow Inspector" in html and 'src="http' not in html
     profiles = json.loads(invoke([*prefix, "--json", "models", "list", "--project", project]))
     assert any(profile["id"] == "offline" for profile in profiles)
+    # V2 CLI: inert parse/configuration, frozen real computation, four plotting
+    # adapters, automatic context, saved-evidence replot and offline resources.
+    project = directory / 'workbench'
+    project.mkdir()
+    analysis_script = project / 'analysis.py'
+    counter = project / 'counter'
+    analysis_script.write_text("import numpy as np\nfrom pathlib import Path\ncounter = Path(__file__).with_name('counter')\ncounter.write_text(str(int(counter.read_text())+1) if counter.exists() else '1')\nX = np.arange(12.).reshape(3,4)\n", encoding='utf-8')
+    parsed = json.loads(invoke([*prefix, '--json', 'research', 'import', analysis_script, '--python', python, '--project', project]))
+    for tool in ('matplotlib', 'seaborn', 'plotly', 'altair'):
+        invoke([*prefix, '--json', 'research', 'probes', '--add', 'view.' + tool, '--binding', 'X', '--project', project])
+    assert not counter.exists()
+    plan = json.loads(invoke([*prefix, '--json', 'research', 'plan', parsed['id'], '--project', project]))
+    task = json.loads(invoke([*prefix, '--json', 'research', 'run', '--plan', plan['id'], '--project', project]))
+    assert task['status'] == task['calculation_status'] == 'completed'
+    outputs = json.loads(invoke([*prefix, '--json', 'research', 'probes', '--run', task['run_id'], '--project', project]))
+    assert all(any(o['definition_id'] == 'view.' + name and o['status'] == 'ready' for o in outputs) for name in ('matplotlib','seaborn','plotly','altair')), outputs
+    answer = json.loads(invoke([*prefix, '--json', 'research', 'ask', parsed['id'], 'Explain the data relationships', '--project', project]))
+    assert answer['context']['status'] == 'offline'
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    import threading
+    calls = []
+    class LocalModel(BaseHTTPRequestHandler):
+        def log_message(self, *_): pass
+        def do_POST(self):
+            request = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+            calls.append(request)
+            action = {'answer': 'Inspected registered plotting tools.', 'citations': ['tools.catalog']} if request['messages'][-1]['content'].startswith('Tool result') else {'tool': 'tools.catalog', 'arguments': {}}
+            result = json.dumps({'choices': [{'message': {'content': json.dumps(action)}}], 'usage': {'prompt_tokens': 100, 'completion_tokens': 20}}).encode()
+            self.send_response(200); self.send_header('Content-Type', 'application/json'); self.send_header('Content-Length', str(len(result))); self.end_headers(); self.wfile.write(result)
+    model_server = ThreadingHTTPServer(('127.0.0.1', 0), LocalModel)
+    model_thread = threading.Thread(target=model_server.serve_forever, daemon=True); model_thread.start()
+    try:
+        invoke([*prefix, '--json', 'models', 'configure', 'acceptance-local', '--base-url', f'http://127.0.0.1:{model_server.server_port}/v1', '--model', 'fixture', '--project', project])
+        response = json.loads(invoke([*prefix, '--json', 'research', 'ask', parsed['id'], 'Inspect the registered plotting tools', '--provider', 'acceptance-local', '--project', project]))
+        assert response['context']['status'] == 'completed' and len(calls) == 2
+        assert response['context']['tools'][0]['name'] == 'tools.catalog'
+    finally:
+        model_server.shutdown(); model_server.server_close(); model_thread.join(3)
+    invoke([*prefix, '--json', 'research', 'probes', '--run', task['run_id'], '--replot', '--project', project])
+    assert counter.read_text() == '1'
+    exported = project / 'report.html'
+    invoke([*prefix, '--json', 'research', 'export', task['run_id'], '--output', exported, '--project', project])
+    report = exported.read_text(encoding='utf-8')
+    assert 'data:image/png;base64,' in report and 'saved-vega' in report and 'Plotly' in report
+    assert 'vegaLite' in report and not '<script src="https://' in report
     return {"result": "passed", "version": installed["version"], "python": installed["python"],
             "cases": cases, "independent_interpreter": {"tool_dependencies": False, "value": value, "status": "completed"},
-            "offline_privacy": "passed", "offline_models": "passed", "template_preserved": True}
+            "offline_privacy": "passed", "offline_models": "passed", "template_preserved": True,
+            "workbench_cli": "passed", "actual_drawing_adapters": ['matplotlib','seaborn','plotly','altair'],
+            "explicit_no_rerun": True, "offline_resources": True, "automatic_offline_harness": True,
+            "harness_http_tool_loop": "local fixture passed; no remote inference claimed"}

@@ -20,6 +20,11 @@ def words(text):
 
 def parse_command(text):
     text=text.strip()
+    if text.startswith('/workbench '):
+        command, _, arguments = text[len('/workbench '):].partition(' ')
+        value = json.loads(arguments or '{}')
+        if not isinstance(value, dict): raise ValueError('Workbench arguments must be a JSON object')
+        return 'workbench.' + command, value
     if text.startswith('/model configure '):
         return 'models.configure',{'profile':json.loads(text[len('/model configure '):])}
     parts=words(text)

@@ -9,7 +9,7 @@ from typing import Literal
 
 from ..research.models import WireModel, ProbeSpec, ExperimentSpec
 
-HELP = '/open "analysis.py" [--python "python.exe"] | /run [-- arguments] | /runs | /resume ID | /vars [search] | /inspect SNAPSHOT | /probe list|add|preview | /model [ID MODEL]|search|test|configure | /explain [OPERATION] [--provider ID --model ID --sample --context] | /help | /quit'
+HELP = '/open "analysis.py" [--python "python.exe"] | /run [-- arguments] | /runs | /resume ID | /vars [search] | /inspect SNAPSHOT | /probe list|add|preview | /model [ID MODEL]|search|test|configure | /explain [OPERATION] [--provider ID --model ID --sample --context] | /workbench import|plan|execute|evaluate|replot|tools|ask|changes JSON | /help | /quit'
 
 
 class CommandResult(WireModel):

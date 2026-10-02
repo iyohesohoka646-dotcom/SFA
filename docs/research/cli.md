@@ -54,3 +54,28 @@ cdaf models list --project .\experiment
 交互分工参考 [Codex 的输入事件流](https://github.com/openai/codex/blob/6b4daafdb445340e5af66f067ad4057e6ed9fd81/codex-rs/tui/src/tui/event_stream.rs)，模型发现参考 [Kilo 模型选择器](https://github.com/Kilo-Org/kilocode/blob/dfb23a4e63e24e82a669a0eaf1e48e3c4ca21bec/packages/tui/src/component/dialog-model.tsx)，没有复制其代码。界面使用 Textual 后台工作机制，不在输入循环中执行计算。
 
 真实 Windows PowerShell ConPTY 验证覆盖打开脚本、运行、离线模型选择、帮助、运行中取消、取消后输入及退出恢复，记录见 [终端验证数据](../assets/research-terminal-validation.json)。其他平台的交互终端仍须在对应系统验证。
+# 工作台命令 0.4
+
+命令均支持 `--project PATH`，管道默认 JSON，终端默认可读格式；`--json` 固定机器输出。解析不执行，计划不执行，`run` 等待完成；Ctrl+C 取消该任务。
+
+```powershell
+cdaf --json research import analysis.py --python .\env\Scripts\python.exe --project .
+cdaf --json research plan ANALYSIS_ID --project .
+cdaf --json research run --plan PLAN_ID --project .
+cdaf research probes --project .
+cdaf research probes --add view.matplotlib --binding X --project .
+cdaf research probes --run RUN_ID --replot --project .
+cdaf research tools --scan --project .
+cdaf research tools --install plotly --project .
+cdaf research ask ANALYSIS_ID "解释所选对象的数据关系" --role explain --project .
+cdaf research changes --project .
+cdaf research changes --action accept --proposal PROPOSAL_ID --project .
+cdaf research config --project .
+cdaf research config --input config.json --project .
+cdaf research migrate-config --project .
+cdaf research export RUN_ID --output report.html --project .
+```
+
+探针增加和配置保存均不运行。配置 JSON 保留 `revision`，过期版本会拒绝保存。`ask` 使用角色的自动 harness 与共用模型设置；可用 `--provider` / `--model` 覆盖任务模型，无需配置发送文件清单。离线规则可用，远程模型需要真实服务和凭据。`changes --action propose --input proposal.json` 接收 `analysis_id`、`object_id`、`candidate` 等字段；接受和回滚均是明确操作。
+
+交互终端增加 `/workbench COMMAND JSON`，例如 `/workbench import {"path":"analysis.py"}`、`/workbench tools {}`。与 Web 命令台共用 `workbench.*` 调度，保留原有 `/open /run /probe /model /explain`。

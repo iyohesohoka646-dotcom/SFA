@@ -507,8 +507,13 @@ def research_export(run_id: str, output_path: Path = typer.Option(Path("research
     from .research.service import ResearchService
     from .storage import atomic_write
     with ResearchService(project) as service:
+        if output_path.suffix.lower() == '.html':
+            from .research.export import offline_report
+            atomic_write(output_path, offline_report(service, run_id))
+            output({"path": str(output_path.resolve()), "run_id": run_id})
+            return
         payload = {"schema_version": 1, "run": service.store.run(run_id), "snapshots": [],
-            "events": [], "source": service.source(run_id)}
+            "events": [], "source": service.source(run_id), "probe_outputs": service.workbench.outputs(run_id=run_id)}
         snapshot_cursor = None
         while snapshots := service.store.snapshots(run_id, latest=False, limit=1000, after=snapshot_cursor):
             payload["snapshots"].extend(s.model_dump(mode="json") for s in snapshots)
@@ -543,3 +548,7 @@ def research_migrate(source: Path, destination: Path, apply: bool = False):
     from dataclasses import asdict
     from .research.legacy import import_legacy
     output(asdict(import_legacy(source, destination, preview=not apply)))
+
+
+from .research.workbench.cli import register as register_workbench_cli
+register_workbench_cli(research_app, output)

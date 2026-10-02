@@ -1,57 +1,28 @@
-# Scientific Dataflow Inspector 0.3.0 candidate
+# Scientific Dataflow Inspector 0.4.0 本地候选版
 
-The scientific workbench replaces the default architecture-first screen with source, observed values, local computations, probes and recorded evidence. Web, Windows desktop, interactive terminal and batch CLI share the same research services and project model settings. `contract-driven-ai-flow`, `contract_driven_ai_flow`, `cdaf` and `sfa` remain the distribution/import/command names; the GitHub repository remains SFA. [Draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1) is the review surface. No default-branch merge, repository rename, PyPI release or online hosting is part of this candidate.
+0.4 提供统一探针工作台：独立标签与横纵分屏、视图缩小/全屏/关闭、命名与固定布局、版本并排、直接计算关系高亮、公开绘图库管理、自动智能任务 harness 和人工审查的代码提案。Web、Windows 桌面、交互终端和批处理 CLI 共用服务。发行名和旧架构入口保留，远端仓库仍为 SFA。[草稿 PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1) 承载审查，没有合并 master 或发布 PyPI。
 
-The new protocol has independent data-adapter, probe, runner and renderer registrations. NumPy and pandas are initial built-ins; an independent point-cloud adapter and Canvas renderer exercise the extension path. GPU, sparse, distributed and other-language built-ins are not implemented. See the [extension contract](research/adapter-api.md), [probe contract](research/probe-api.md), [coverage limits](research/limitations.md) and [read-only legacy migration](research/migration.md).
+## 验证
 
-## Acceptance evidence
+本轮完整 Python 检查 **558 passed**；前端单元测试 **19 passed**；完整真实浏览器检查 **39 passed**。后续修复将以最终验证记录为准。浏览器旅程包含无执行解析、配置后计算、真实绘图和只重绘、矩阵异常、复数/高维/表格/自定义点云、固定版本、布局恢复、窄屏、过期响应、慢模型取消、自动工具循环和局部代码提案接受。CLI 与 HTTP 使用同一服务。
 
-The [scientific receipt](assets/research-validation.json) aggregates successful local runs, installed wheel/source checks, exact source-manifest and installer digests. [Package receipt](assets/validation.json) lists every browser case and verifies that all packaged Python/schema/UI bytes match this checkout. These records are only regenerated from passing checks; earlier 0.2.0 review/CI receipts remain historical evidence and are not proof of 0.3.0 cross-platform acceptance.
+[本轮性能数据](assets/scientific-performance.json) 来自 1000 个变量、10000 条事件的有界夹具，最新点击到绘制 P95 **7 ms**、数据详情 P95 **24.8 ms**。这验证当前界面夹具；科研采集开销的历史实测、CPU 矩阵计算与十分钟采集在[性能说明](research/performance.md)中分别记录，不构成任意环境的速度保证。
 
-| Path | What is exercised |
-| --- | --- |
-| Python | Complete repository suite, including independent interpreter capture, mutation/version handling, bounded probes, privacy, cancellation, process failure and local authorization regressions |
-| Browser | Full Playwright suite against actual compiled assets: large history, Chinese labels, keyboard navigation, stale requests, matrices, point cloud, model settings, probes, offline export and owned-tab lifetime |
-| Own-script journey | Open an ordinary NumPy/pandas script, inspect `Z`, locate NaN at its source, preview/save a probe, inspect explanation scope, export redacted offline HTML and preserve original source |
-| Wheel | Separate environment without system packages or Node: scientific success, quality failure and dimension-error cases; an independent standard-library-only analysis environment; old no-key demos and installed Web/CLI launchers |
-| Source archive | Isolated `uv tool`/bin directories, the same scientific cases, bundled UI, workspace startup and native shortcut creation |
-| Windows desktop | Installed executable with private Python containing the same 0.3.0 core; own-script matrix/probe/context/export journey, shared CLI history, real window close and actual port release |
-| Interactive terminal | Real Windows ConPTY journey: open/run/inspect, choose offline model, cancel live analysis, exit and restore terminal state; [receipt](assets/research-terminal-validation.json) |
-| Cross-platform Python | Nine configured Windows/macOS/Linux × Python 3.11–3.13 jobs; current-head results must come from [PR checks](https://github.com/iyohesohoka646-dotcom/SFA/pull/1/checks), not older receipts |
+全新 wheel 与 source 安装检查执行真实计算、四个绘图库、离线报告与模型 HTTP 工具循环夹具。最终发行回执将核对当前 wheel 的所有 Python、Schema、前端和模板字节，并记录安装包摘要。Windows 桌面使用项目内复制的独立 Python；最终原生检查包括自己的中文脚本、矩阵异常、配置探针、只重绘、共用 CLI 历史及实际关窗/释放端口。
 
-The final independent review of `c9a745e..b258179` reported twelve important integration defects. All twelve were repaired in one regression-driven pass at `110786c`, including POSIX interpreter selection, pending-agent evidence, terminal inspect/configured probes, matrix coordinates, stale selections and abnormal disconnect grace. Local validation after repair is **508 Python cases, 10 frontend unit cases and 30 actual browser cases**, plus fresh wheel/source acceptance. The [complete review and decision record](research/release-review.md) distinguishes valid failing reproductions from fixture errors and lists every ruling and unverified boundary.
+## 使用
 
-All nine OS/Python matrix jobs and the studio job passed for product-fix commit `110786c` in [Actions run 36930328576](https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36930328576); [portable receipt](assets/research-ci.json). This identifies the tested code revision explicitly. The later acceptance-document commit has its own current-head checks in PR #1. The refreshed Windows installer also completed the own-script native journey and released its port on actual window close. Its SHA-256 is `e96b84dff0fd936f76f09f4274ee748fd7f65c9661aabe0047ef21d85faccb67`.
-
-The Windows NSIS installer is a local unsigned candidate. Its actual filename and SHA-256 are recorded in the scientific receipt. macOS/Linux native packaging and window lifetime remain unverified. External provider protocols are tested with local synthetic servers; no paid model inference or real provider credential was used. Connection/model discovery and inference remain distinct controls.
-
-## Performance
-
-[Measurement details](research/performance.md) distinguish computation overhead, input-to-paint response, selected-detail fetch, live observation-to-paint latency and heap retention. A real ten-minute 10 Hz matrix run follows the earlier run that exposed retained historical preview arrays. Historical indexes now store metadata; details are fetched for the selected version. The two-minute heap medians near the end decreased from 59.08 to 13.57 MiB on this host. This is evidence of reduced retention in the measured run, not an indefinite memory-stability guarantee.
-
-The 1000-value/10000-event fixture limits the canvas to 80 visible nodes and checks p95 input response ≤100 ms and detail fetch ≤250 ms. Live-stream acceptance separately measures observation timestamps to painted selected details at target 10 Hz. SDK and selected automatic-capture measurements use repeatable CPU-bound computations with equal output digests. None of these fixtures certifies arbitrary code, backend, graph density or hardware performance.
-
-## Reproduce
-
-```console
-python -m pip install -e ".[dev,research,tables,telemetry]"
-python -X utf8 -m pytest -q --junitxml=.work/python-tests.xml
-python scripts/export_schema.py
-npm ci --prefix web
-npm run build --prefix web
-npm run test:unit --prefix web
-python scripts/profile_research_workbench.py
-npm test --prefix web
-node scripts/measure_research_stream.cjs 60
-python -m build
-python scripts/verify_wheel.py
-python scripts/verify_source_install.py
-python scripts/record_release.py
-python scripts/record_research_release.py
+```powershell
+python -m pip install "contract-driven-ai-flow[research,views] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
+cdaf studio --project .\experiment
+cdaf terminal --project .\experiment
+cdaf research --help
 ```
 
-Browser checks use the repository `.venv`, Edge on Windows and Playwright Chromium elsewhere. The Playwright configuration creates a private per-run fixture session. Windows live-stream/RSS measurements currently use Edge and Windows APIs. For desktop building, private-runtime preparation, installation and the native journey, follow [desktop/README.md](../desktop/README.md); the installed executable must be supplied to acceptance. Node is a developer/build dependency. Python wheel users receive compiled assets, schemas and third-party license notices.
+顶部文件菜单选择脚本并“导入解析”，配置探针后“运行”。绘图库也可以在工具库安装到项目管理环境，计算环境单独选择。关闭最后一个拥有的浏览器标签后服务停止，刷新有宽限；持续服务用 `cdaf serve`。Windows 可运行 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`，或使用同目录 NSIS 安装包。[完整使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
 
-Source archives include frontend and desktop sources/lockfiles, tests, examples, documentation and build scripts. The final source archive can be rebuilt after recording documentation receipts; rerun source-install acceptance on that archive. Runtime data and private bundled environments are excluded from source/wheel releases.
+## 已知范围
 
-Local Python subprocesses and explicitly enabled plugins retain the operator's filesystem/network permissions. Capture limits and immutable evidence do not provide an OS sandbox. Replay reads saved evidence; it does not repeat side effects. Full materialization and sending redacted samples to a configured model require explicit choices. Heuristic redaction does not recognize every possible secret.
+Python 本地工作台、NumPy/pandas/标准标量及独立点云适配路径已验证；GPU、稀疏、分布式和其他语言的内置后端尚未提供。Bokeh/PyVista/HoloViews 是公开候选，当前四个实际绘图适配器是 Matplotlib、Seaborn、Plotly、Altair。关系图区分观察和推断，任意拖线编辑程序语义尚未实现。反向代码支持函数体、稳定赋值和项目内新分析文件；结构有效仍标记行为未验证，回滚只支持可保真保存的局部片段。
+
+程序和插件具有所选解释器的文件/网络权限。数据与源码脱敏发生在证据、浏览器、报告和模型上下文边界，完整采集默认关闭。远程真实模型推理没有在本轮调用；已验证的是离线模式与实际 HTTP 结构化工具循环夹具。Windows 原生包为未签名本地候选，macOS/Linux 原生桌面包未验证，跨平台 CI 结果以 GitHub 最新运行状态为准。[扩展协议](research/adapter-api.md) · [探针协议](research/probe-api.md) · [覆盖限制](research/limitations.md)。

@@ -9,13 +9,19 @@ Open existing analysis code. Observe real values. Follow transformations. Find n
 ![Real source, matrix, local dependencies and probes](docs/assets/research-workbench.png)
 
 A local research workbench for understanding what an experiment computed. Source lines, variable versions, matrix previews, transformations and probe results share one screen. Basic inspection and rule explanations work without a key. The observation protocol supports multiple data types; NumPy and pandas are the first built-in adapters.
+## Workbench 0.4
+
+Version **0.4** provides resizable document groups, minimize/maximize, pinned data versions, named and locked layouts. The **Computation Relations** graph highlights direct inputs and consumers with distinct provenance. Probes unify **view/check/interpret**, independent of builtin/program/model/Skill/manual execution. Real Matplotlib, Seaborn, Plotly and Altair adapters use saved evidence; imports and configuration never run the analysis. Explicit Run computes and renders; Replot reuses stored evidence.
+
+The automatic task harness discovers the selected environment and registered tools, reads scoped evidence, records actual messages/tool calls and proposes bounded code changes for human review. Web, desktop and `cdaf research import/plan/run/probes/tools/ask/changes` use common services. See [workbench guide](docs/research/workbench.md) and [CLI](docs/research/cli.md).
+
 
 ## Try it locally
 
 Python 3.11–3.13, from this checkout:
 
 ```console
-python -m pip install ".[research]"
+python -m pip install ".[research,views]"
 cdaf studio --project ./experiment
 ```
 
@@ -24,7 +30,7 @@ Choose an example or your own `.py` file and scientific interpreter, then **运�
 The package includes the compiled Web UI; ordinary use needs neither Node.js nor a key. Direct feature-branch installation needs no Git:
 
 ```console
-python -m pip install "contract-driven-ai-flow[research] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
+python -m pip install "contract-driven-ai-flow[research,views] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
 cdaf studio --project ./experiment
 ```
 
@@ -65,7 +71,7 @@ Plugins are explicitly enabled. The [point-cloud adapter](examples/research/cust
 
 Instrumentation has [explicit limits](docs/research/instrumentation.md); observed, inferred and declared relations are distinct. Code and plugins retain user file/network permissions. [Limitations](docs/research/limitations.md).
 
-Scientific Dataflow Inspector is the working display name. Package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, command `cdaf` and repository `SFA` stay compatible. This is a **0.3.0 local candidate**; no remote rename or PyPI publication. `sfa` remains an alias. Contract workflows remain in **旧版架构 / Legacy architecture** and [their reference](docs/workflow.md). [Migration](docs/research/migration.md) preserves originals and IDs without inventing scientific evidence.
+Scientific Dataflow Inspector is the working display name. Package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, command `cdaf` and repository `SFA` stay compatible. This is a **0.4.0 local candidate**; no remote rename or PyPI publication. `sfa` remains an alias. Contract workflows remain in **旧版架构 / Legacy architecture** and [their reference](docs/workflow.md). [Migration](docs/research/migration.md) preserves originals and IDs without inventing scientific evidence.
 
 ## Development
 

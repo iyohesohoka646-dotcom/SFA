@@ -12,11 +12,12 @@ npm start --prefix desktop -- --project .\experiment
 
 ## Installer
 
-Build the frontend and wheel first. Supply a relocatable standalone Python distribution with this wheel and `[research,tables]` installed under `.work/desktop-python`. A normal venv is not a relocatable distribution. This candidate uses a privately copied official uv-managed CPython 3.13 runtime; the original runtime is preserved.
+Build the frontend and wheel first. Supply a relocatable standalone Python distribution with this wheel and `[research,tables,views]` installed under `.work/desktop-python`. A normal venv is not a relocatable distribution. This candidate uses a privately copied official uv-managed CPython 3.13 runtime; the original runtime is preserved.
 
 ```powershell
 npm run build --prefix web
 python -m build --wheel
+python scripts/prepare_desktop_runtime.py
 npm ci --prefix desktop
 npm run package --prefix desktop
 ```

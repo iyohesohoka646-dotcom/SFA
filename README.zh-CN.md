@@ -1,8 +1,8 @@
 # Scientific Dataflow Inspector · 科研数据流观察器
 
-**即时查看矩阵、计算来源与可扩展探针的本地科研工作台。**
+**可扩展探针、计算关系与智能代码审查的本地科研工作台。**
 
-打开已有分析代码，观察真实变量，追踪运算，定位数值异常。
+导入已有分析代码，配置呈现与检查探针，再明确执行计算和绘图。
 
 [English](README.md) · [快速使用](docs/research/quickstart.md) · [交互 CLI](docs/research/cli.md) · [扩展协议](docs/research/adapter-api.md) · [发行验证](docs/release.md)
 
@@ -10,21 +10,29 @@
 
 在同一界面查看变量在哪里定义、维度与类型是什么、运算怎样改变数据、异常首先在哪里出现。基础观察与规则解释不需要密钥。核心协议支持可扩展数据类型，NumPy／pandas 是首批内置适配器。
 
+## 工作台 0.4
+
+独立源码、数据探针、计算关系图、工具库、智能助手、代码审查和命令台。标签可以拖动、固定版本；分屏可横向与纵向拉伸，视图可缩小、全屏或关闭。布局可命名保存并锁定，新视图沿用已有槽位，刷新恢复。计算关系图选择对象后用绿色标记直接输入、蓝色标记下游，其余对象略微淡化；实线表示运行观察，虚线表示源码推断。
+
+探针按 **呈现 / 检查 / 解读** 分类，执行方式独立区分内置、程序、模型、Skill、人工。矩阵热图属于呈现探针；Matplotlib、Seaborn、Plotly、Altair 已提供真实适配器。公开工具目录还列出 Bokeh、PyVista、HoloViews 的候选状态；发现安装包不会自动赋予适配能力。安装和移除仅使用项目 `.cdaf` 下的绘图环境。
+
+智能助手自动构建环境、对象、工具、任务和预算上下文。用户配置模型与任务权限，实际发送内容、工具调用和引用可查看；源码和数据样例按范围读取。AI 可以生成函数体、稳定赋值或新分析文件提案，差异验证后仍须人工接受；接受后重新解析，计算仍需显式运行。[完整工作台说明](docs/research/workbench.md)
+
 ## 本地体验
 
 Python 3.11–3.13，在项目目录安装：
 
 ```powershell
-python -m pip install ".[research]"
+python -m pip install ".[research,views]"
 cdaf studio --project .\experiment
 ```
 
-选择示例，或填写自己的 `.py` 文件和计算解释器，点击“运行分析”。选择 `X`、`Z`、`C` 查看定义、形状、预览、表达式与上游。示例加入 `--failure nan` 后正常返回，但数值探针失败，可以直接追踪来源。
+选择示例，或填写自己的 `.py` 文件和计算解释器，先“导入解析”，配置探针，再点击“运行”。选择 `X`、`Z`、`C` 查看定义、形状、预览、表达式与上游。示例加入 `--failure nan` 后正常返回，但数值探针失败，可以直接追踪来源。
 
 安装包包含构建后的 Web UI，普通使用不需要 Node.js 或密钥。也可直接安装功能分支，无需 Git：
 
 ```powershell
-python -m pip install "contract-driven-ai-flow[research] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
+python -m pip install "contract-driven-ai-flow[research,views] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
 cdaf studio --project .\experiment
 ```
 
@@ -42,7 +50,7 @@ cdaf studio --project .\experiment
 
 采集代理以标准库为基础，科研库来自所选解释器。独立 CLI 分析有自己的进程所有权，可以在查看器关闭后继续。
 
-**模型设置在顶部。** 默认离线规则。OpenAI-compatible／Anthropic 配置与 `/model`、`cdaf models` 共用项目存储，连接测试与推理测试分开。密钥保存为明确的环境变量或系统凭据库引用。解释前可查看发送内容，脱敏样例须显式加入，模型输出标注为尚未人工验证。
+**模型设置在顶部。** 默认离线规则。OpenAI-compatible／Anthropic 配置与 `/model`、`cdaf models` 共用项目存储，连接测试与推理测试分开。密钥保存为明确的环境变量或系统凭据库引用。智能任务自动读取环境和工具，可以查看实际调用记录；脱敏样例默认关闭，模型输出保留尚未人工验证的标记。
 
 ## 观察能力与扩展
 
@@ -65,7 +73,7 @@ cdaf studio --project .\experiment
 
 自动插桩有[明确覆盖边界](docs/research/instrumentation.md)，关系区分实际观察、源码推断与用户声明。代码和插件具有用户本身的文件／网络权限，见[限制](docs/research/limitations.md)。
 
-产品工作名称为 Scientific Dataflow Inspector。发行包 `contract-driven-ai-flow`、导入 `contract_driven_ai_flow`、命令 `cdaf`、仓库 `SFA` 保持兼容。当前是 **0.3.0 本地候选版本**，没有更名远端或发布 PyPI。`sfa` 保留别名。契约工作流从“旧版架构”进入，见[旧工作流](docs/workflow.md)。[迁移](docs/research/migration.md)保留原文件和历史 ID，不补造矩阵证据。
+产品工作名称为 Scientific Dataflow Inspector。发行包 `contract-driven-ai-flow`、导入 `contract_driven_ai_flow`、命令 `cdaf`、仓库 `SFA` 保持兼容。当前是 **0.4.0 本地候选版本**，没有更名远端或发布 PyPI。`sfa` 保留别名。契约工作流从“旧版架构”进入，见[旧工作流](docs/workflow.md)。[迁移](docs/research/migration.md)保留原文件和历史 ID，不补造矩阵证据。
 
 ## 设计与开发
 

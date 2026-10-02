@@ -32,7 +32,7 @@ def main():
             raise RuntimeError((result.stderr or result.stdout)[-3000:])
         return result.stdout
 
-    invoke(uv, "tool", "install", "--python", sys.executable, "--with", "numpy>=1.26", "--with", "pandas>=2.1", source, timeout=300)
+    invoke(uv, "tool", "install", "--python", sys.executable, "--with", "numpy>=1.26", "--with", "pandas>=2.1", "--with", "matplotlib>=3.8", "--with", "seaborn>=0.13", "--with", "plotly>=5.24", "--with", "altair>=5.4", source, timeout=300)
     extension = ".exe" if os.name == "nt" else ""
     binary = directory / "bin" / ("cdaf" + extension)
     installed_python = directory / "tools/contract-driven-ai-flow" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")

@@ -1,5 +1,7 @@
 # Sources and implementation choices
 
+The scientific 0.4 workbench builds on the retained architecture runtime. See [scientific workflow](research/workbench.md) and [automatic harness](architecture/scientific-harness.md). Data presentation itself is a probe; view/check/interpret remain distinct from program/model/Skill/manual execution. Parsing and configuration are inert, computation and rendering explicitly requested, code acceptance remains human controlled.
+
 The research baseline is [SFA c9a745e](https://github.com/iyohesohoka646-dotcom/SFA/tree/c9a745e851d155b4c5fdede2d6cd2758c530e3c0); the visual reference is [Archify a07fa1d](https://github.com/tt-a1i/archify/tree/a07fa1d5b2a10cbea110c5a2be2817397a301cdc). The optional adapter checks that exact Archify commit. Comparisons concern specific useful mechanisms, not interchangeable products.
 
 | Source | Useful mechanism | CDAF implementation |

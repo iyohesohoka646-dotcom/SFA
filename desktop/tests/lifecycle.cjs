@@ -31,34 +31,44 @@ const { spawnSync } = require('node:child_process');
   });
   try {
     const window = await app.firstWindow();
-    await window.getByRole('button', { name: '运行分析', exact: true }).waitFor({ timeout: 30000 });
+    await window.getByRole('button', { name: '运行', exact: true }).waitFor({ timeout: 30000 });
     await window.getByRole('button', { name: '打开终端', exact: true }).waitFor({ timeout: 5000 });
     const version = spawnSync(python, ['-c', 'import contract_driven_ai_flow; print(contract_driven_ai_flow.__version__)'],
       { cwd: root, env: environment, encoding: 'utf8', windowsHide: true, timeout: 10000 }).stdout.trim();
-    assert.equal(version, '0.3.0', 'The installed desktop must contain the same scientific Python release');
-    await window.getByLabel('分析脚本').fill(script);
-    await window.getByRole('button', { name: '打开代码', exact: true }).click();
+    assert.equal(version, '0.4.0', 'The installed desktop must contain the same scientific Python release');
+    await window.getByRole('button', { name: '打开源码配置' }).click();
+    await window.getByLabel('分析脚本', { exact: true }).fill(script);
+    await window.getByRole('button', { name: '导入解析', exact: true }).click();
     await window.getByLabel('源码第 5 行', { exact: true }).waitFor();
-    await window.getByRole('button', { name: '运行分析', exact: true }).click();
-    await window.getByTestId('run-status').filter({ hasText: 'completed' }).waitFor({ timeout: 30000 });
-    assert.equal(await window.getByTestId('quality-status').textContent(), 'fail');
+    await window.getByRole('button', { name: '打开源码配置' }).click();
+    await window.getByRole('button', { name: '运行', exact: true }).click();
+    await window.getByTestId('task-record').first().locator('strong > span').filter({ hasText: /^completed$/ }).waitFor({ timeout: 60000 });
     const runId = await window.getByLabel('运行记录').inputValue();
     await window.getByRole('searchbox', { name: '搜索变量' }).fill('Z');
     await window.getByRole('button', { name: /^Z ·/ }).first().click();
     await window.getByRole('img', { name: '矩阵热图' }).waitFor();
     assert.match(await window.getByTestId('source-selection').textContent(), /Z\[1,2\] = np.nan/);
     await window.screenshot({ path: path.resolve(__dirname, '../../docs/assets/research-desktop.png') });
+    await window.getByRole('button', { name: '探针台', exact: true }).click();
     await window.getByRole('button', { name: '添加探针', exact: true }).click();
-    await window.getByLabel('探针种类').selectOption('finite');
-    await window.getByRole('button', { name: '预演探针', exact: true }).click();
-    await window.getByTestId('probe-preview').filter({ hasText: 'fail' }).waitFor();
-    await window.getByRole('button', { name: '保存探针定义', exact: true }).click();
-    await window.getByRole('status').filter({ hasText: '探针已保存' }).waitFor();
-    await window.getByText('自然语言解释与发送范围', { exact: true }).click();
-    assert.equal(await window.getByLabel('包含脱敏样例').isChecked(), false);
-    await window.getByRole('button', { name: '查看解释发送内容', exact: true }).click();
-    const scope = await window.getByTestId('explanation-context').textContent();
-    assert(!scope.includes('lab-sensitive@example.org') && !scope.includes('"sample"'));
+    await window.getByLabel('探针类型').selectOption('view.matplotlib');
+    await window.getByLabel('探针绑定').fill('X');
+    await window.getByRole('button', { name: '确认添加探针', exact: true }).click();
+    await window.getByRole('button', { name: '保存', exact: true }).click();
+    await window.getByLabel('运行选项').click();
+    await window.getByRole('button', { name: '仅重绘', exact: true }).click();
+    await window.getByTestId('task-record').first().locator('strong > span').filter({ hasText: /^completed$/ }).waitFor({ timeout: 60000 });
+    await window.getByRole('searchbox', { name: '搜索变量' }).fill('X');
+    await window.getByRole('button', { name: /^X ·/ }).first().click();
+    await window.getByLabel('数据呈现').selectOption({ label: 'view.matplotlib' });
+    await window.getByRole('img', { name: '绘图探针产物' }).waitFor();
+    await window.getByRole('button', { name: '智能助手', exact: true }).click();
+    await window.getByLabel('任务指令').fill('Explain the calculation');
+    await window.getByRole('button', { name: '执行智能任务', exact: true }).click();
+    await window.getByTestId('task-record').first().locator('strong > span').filter({ hasText: /^completed$/ }).waitFor({ timeout: 30000 });
+    await window.getByRole('button', { name: '查看智能结果', exact: true }).first().click();
+    const scope = await window.locator('.wb-context-view').textContent();
+    assert(!scope.includes('lab-sensitive@example.org'));
     const record = JSON.parse(fs.readFileSync(path.join(root, '.cdaf/studio.json'), 'utf8'));
     const runs = invoke(['research', 'runs', '--project', root]);
     assert(runs.some(run => run.id === runId && run.status === 'completed' && run.summary.quality === 'fail'));
@@ -76,7 +86,7 @@ const { spawnSync } = require('node:child_process');
     fs.writeFileSync(path.resolve(__dirname, '../../docs/assets/research-desktop-validation.json'), JSON.stringify({
       platform: process.platform, installed: !!installed, core_version: version, window_close: true,
       port_released: true, backend_pid: record.pid, own_script: true, source_preserved: true,
-      matrix_and_anomaly: true, probe_preview_and_save: true, explanation_scope: true,
+      matrix_and_anomaly: true, configured_probe_and_replot: true, automatic_harness_scope: true,
       shared_cli_history: true, offline_models: true, offline_report_privacy: true,
       run_id: runId, result: 'passed',
     }, null, 2));

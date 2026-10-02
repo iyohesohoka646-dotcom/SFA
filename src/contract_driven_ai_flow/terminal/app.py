@@ -33,7 +33,7 @@ class ResearchTerminal(App):
         with Horizontal(id='body'):
             yield DataTable(id='variables',cursor_type='row')
             yield RichLog(id='output',max_lines=500,wrap=True,markup=False,highlight=False)
-        yield Static('/open  /run  /vars  /probe  /model  /help  /quit',id='suggestions',markup=False)
+        yield Static('/open  /run  /vars  /probe  /model  /workbench  /help  /quit',id='suggestions',markup=False)
         yield Input(placeholder='/open "已有分析.py"',id='command')
         yield Footer()
 

@@ -56,7 +56,7 @@ export default function ResearchWorkbench() {
       case 'source': return <SourceDocument key={doc.id} document={doc} analysis={c.analysis} selection={selection} onSelect={selectObject} onError={error} />;
       case 'data': return <ProbeWorkspace key={doc.id} document={doc} state={c.state} outputVersion={refreshKey} onSelectVersion={selectVersion} onEvaluate={evaluateSnapshot} />;
       case 'graph': return <RelationGraph key={doc.id} document={doc} state={c.state} analysis={c.analysis} selected={doc.reference.run_id ? c.selected : c.selectedObject} onSelect={value => c.selectSnapshot(value, 'detail')} onObject={selectObject} onError={error} />;
-      case 'probes': return c.config ? <ProbeInspector config={c.config} definitions={c.definitions} selected={c.focusSnapshot} analysis={c.analysis} outputs={c.outputs} onChange={c.editConfig} onSave={c.saveConfig} onError={error} /> : null;
+      case 'probes': return c.config ? <ProbeInspector config={c.config} definitions={c.definitions} selected={c.focusSnapshot} analysis={c.analysis} outputs={c.outputs} onChange={c.editConfig} onSave={c.saveConfig} onError={error} onRecorded={c.recordOutput} /> : null;
       case 'tools': return <ToolLibrary interpreter={c.interpreter} tasks={c.tasks} onTask={c.track} onError={error} />;
       case 'intelligence': return c.config ? <IntelligencePanel analysis={c.analysis} object={c.object} snapshot={c.focusSnapshot} config={c.config} onChange={c.editConfig} onSave={c.saveConfig} onTask={c.track} onContext={id => c.open('context', { context_id: id })} onModels={() => setModelsVisible(true)} onError={error} /> : null;
       case 'context': return <ContextView id={doc.reference.context_id!} onError={error} />;

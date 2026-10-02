@@ -4,14 +4,15 @@ import type { SnapshotRef } from '../generated';
 import { Icon } from './icons';
 import { wb } from './WorkbenchClient';
 
-export function ProbeInspector({ config, definitions, selected, analysis, outputs, onChange, onSave, onError }: {
+export function ProbeInspector({ config, definitions, selected, analysis, outputs, onChange, onSave, onError, onRecorded }: {
   config: WorkbenchConfig; definitions: ProbeDefinition[]; selected?: SnapshotRef; analysis?: AnalysisDocument; outputs: ProbeOutput[];
   onChange: (config: WorkbenchConfig) => void; onSave: () => Promise<unknown>; onError: (message: string) => void;
+  onRecorded: (output: ProbeOutput) => void;
 }) {
   const [adding, setAdding] = useState(false), [type, setType] = useState('view.matrix'), [binding, setBinding] = useState('*');
   const [editing, setEditing] = useState<string>(), [parameters, setParameters] = useState('{}'), [note, setNote] = useState(''), [verdict, setVerdict] = useState('unknown');
   const add = () => {
-    const probe: ProbeInstance = { id: crypto.randomUUID(), definition_id: type, binding, enabled: true, parameters: {}, policy: 'continue', budget_ms: 5000 };
+    const probe: ProbeInstance = { id: crypto.randomUUID(), definition_id: type, binding, enabled: true, parameters: {}, policy: 'continue', budget_ms: definitions.find(d => d.id === type)?.tool_id ? 30000 : 5000 };
     onChange({ ...config, probes: [...config.probes, probe] }); setAdding(false);
   };
   const update = (id: string, patch: Partial<ProbeInstance>) => onChange({ ...config, probes: config.probes.map(p => p.id === id ? { ...p, ...patch } : p) });
@@ -31,6 +32,6 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
     <div className="wb-inspector-results"><div className="wb-section-label">{selected ? selected.name + ' · 当前版本结果' : '运行结果'}</div>
       {(selected ? outputs.filter(o => o.snapshot_id === selected.id) : outputs).slice(0, 24).map(output => <div key={output.id} data-testid="probe-output" className={'wb-output ' + output.status}><strong>{output.definition_id}<span>{output.status}</span></strong><small title={output.message}>{output.message}</small><span className="wb-output-meta">{output.execution} · {output.fidelity}</span><details><summary>结果详情</summary><pre className="wb-json">{JSON.stringify(output.data, null, 2)}</pre></details></div>)}
     </div>
-    {config.probes.some(p => p.definition_id === 'check.manual') && analysis && <div className="wb-form compact"><label>人工判断<select aria-label="人工判断" value={verdict} onChange={e => setVerdict(e.target.value)}><option value="unknown">待复核</option><option value="pass">通过</option><option value="fail">不通过</option></select></label><textarea aria-label="人工判断说明" value={note} onChange={e => setNote(e.target.value)} /><button onClick={() => void wb.manual({ instance_id: config.probes.find(p => p.definition_id === 'check.manual')!.id, analysis_id: analysis.id, snapshot_id: selected?.id, note, verdict }).then(() => onError('人工结果已记录')).catch(error => onError(error.message))}>记录判断</button></div>}
+    {config.probes.some(p => p.definition_id === 'check.manual') && analysis && <div className="wb-form compact"><label>人工判断<select aria-label="人工判断" value={verdict} onChange={e => setVerdict(e.target.value)}><option value="unknown">待复核</option><option value="pass">通过</option><option value="fail">不通过</option></select></label><textarea aria-label="人工判断说明" value={note} onChange={e => setNote(e.target.value)} /><button onClick={() => void wb.manual({ instance_id: config.probes.find(p => p.definition_id === 'check.manual')!.id, analysis_id: analysis.id, snapshot_id: selected?.id, note, verdict }).then(value => { onRecorded(value); onError('人工结果已记录'); }).catch(error => onError(error.message))}>记录判断</button></div>}
   </div>;
 }

@@ -59,7 +59,8 @@ class ConfigurationStore:
                 raise ValueError('workbench.yaml already exists; migration will not overwrite it')
             backup = legacy.with_name(legacy.name + '.v1.bak')
             if not backup.exists():
-                atomic_write(backup, raw)
+                # Preserve exact bytes, including the original newline convention.
+                atomic_write(backup, legacy.read_bytes())
             config = self.save(config, expected_revision=0)
             result.update(config=config.model_dump(mode='json'), applied=True)
         return result

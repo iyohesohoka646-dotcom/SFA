@@ -136,5 +136,6 @@ export function useWorkbench() {
   const object = analysis?.objects.find(o => o.id === selectedObject);
   return { ...workspace, info, runs, runId, setRunId, script, setScript, interpreter, setInterpreter, config, editConfig, definitions, analysis, file,
     state, values, selected, focusSnapshot, selectedObject, setSelectedObject, object, tasks, outputs, notice, setNotice, dirty, loading, preparing,
+    recordOutput: (output: ProbeOutput) => setOutputs(current => [output, ...current.filter(o => o.id !== output.id)]),
     open, track, selectSnapshot, selectBinding, parse, saveConfig, run, imported };
 }
