@@ -255,7 +255,7 @@ function GraphInner({
           const data = n as GraphNode,
             block = n as GraphBlock,
             kind = n.plate
-              ? block.kind === "function"
+              ? block.kind === "function" || block.kind === "class"
                 ? "function"
                 : block.kind === "file"
                   ? "file"
@@ -402,7 +402,9 @@ function GraphInner({
       sourceHandle: e.source_port ?? undefined,
       targetHandle: e.target_port ?? undefined,
       type: "smoothstep",
-      selectable:false,focusable:false,interactionWidth:0,
+      selectable: false,
+      focusable: false,
+      interactionWidth: 0,
       label:
         (e.branch
           ? {

@@ -9,6 +9,7 @@ const { spawnSync } = require('node:child_process');
 (async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cdaf-desktop-'));
   const installed = process.env.CDAF_DESKTOP_TEST_EXE;
+  const scale = Number(process.env.CDAF_DESKTOP_TEST_SCALE || '1');
   const environment = { ...process.env, PYTHONUTF8: '1' };
   if (installed) delete environment.CDAF_DESKTOP_PYTHON;
   else environment.CDAF_DESKTOP_PYTHON = path.resolve(__dirname, '../../.work/desktop-python/python.exe');
@@ -26,11 +27,12 @@ const { spawnSync } = require('node:child_process');
   fs.writeFileSync(script, code, 'utf8');
   const app = await electron.launch({
     executablePath: installed || require('electron'),
-    args: installed ? ['--project', root] : [path.resolve(__dirname, '../src/main.cjs'), '--project', root],
+    args: [...(installed ? ['--project', root] : [path.resolve(__dirname, '../src/main.cjs'), '--project', root]), '--force-device-scale-factor=' + scale],
     env: environment, timeout: 30000,
   });
   try {
     const window = await app.firstWindow();
+    assert.equal(await window.evaluate(() => devicePixelRatio), scale);
     await window.getByRole('button', { name: '运行', exact: true }).waitFor({ timeout: 30000 });
     await window.getByRole('button', { name: '打开终端', exact: true }).waitFor({ timeout: 5000 });
     const version = spawnSync(python, ['-c', 'import contract_driven_ai_flow; print(contract_driven_ai_flow.__version__)'],
@@ -85,7 +87,7 @@ const { spawnSync } = require('node:child_process');
     assert.equal(fs.existsSync(path.join(root, '.cdaf/studio.json')), false);
     await assert.rejects(fetch(`http://127.0.0.1:${record.port}/api/v1/studio`));
     fs.writeFileSync(path.resolve(__dirname, '../../docs/assets/research-desktop-validation.json'), JSON.stringify({
-      platform: process.platform, installed: !!installed, core_version: version, window_close: true,
+      platform: process.platform, installed: !!installed, device_scale_factor:scale, core_version: version, window_close: true,
       port_released: true, backend_pid: record.pid, own_script: true, source_preserved: true,
       matrix_and_anomaly: true, configured_probe_and_replot: true, automatic_harness_scope: true,
       shared_cli_history: true, offline_models: true, offline_report_privacy: true,

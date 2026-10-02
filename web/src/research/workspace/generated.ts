@@ -1155,6 +1155,7 @@ export interface DerivedData {
   inputs: Inputs3;
   parameters: Parameters2;
   input_digests: InputDigests;
+  semantics: Semantics1;
   retained: Retained;
   created_at: CreatedAt4;
 }
@@ -1166,6 +1167,9 @@ export interface Parameters2 {
 }
 export interface InputDigests {
   [k: string]: string;
+}
+export interface Semantics1 {
+  [k: string]: JsonValue;
 }
 export interface DataSemantics {
   protocol_version: ProtocolVersion8;

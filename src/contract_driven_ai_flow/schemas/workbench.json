@@ -642,6 +642,13 @@
           "title": "Input Digests",
           "type": "object"
         },
+        "semantics": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Semantics",
+          "type": "object"
+        },
         "retained": {
           "default": true,
           "title": "Retained",
@@ -663,6 +670,7 @@
         "inputs",
         "parameters",
         "input_digests",
+        "semantics",
         "retained",
         "created_at"
       ],

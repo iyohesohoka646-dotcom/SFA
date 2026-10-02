@@ -217,11 +217,15 @@ class WorkbenchService:
             if ref.snapshot_id
         }
         if scope != "compute":
+            referenced.update(
+                ref.snapshot_id for ref in target_scope.targets if ref.snapshot_id
+            )
             known_snapshots = {s.id for s in snapshots}
             snapshots += [
                 self.research.store.snapshot(key)
                 for key in referenced - known_snapshots
             ]
+            snapshot_ids = list(dict.fromkeys([*snapshot_ids, *referenced]))
         foreign = {s.id for s in snapshots if s.run_id != run_id}
         if foreign and scope == "compute":
             raise ValueError("Snapshot belongs to another run")
@@ -250,6 +254,15 @@ class WorkbenchService:
                 if (value := self.semantics.get(target.logical_key)) is not None
                 and value.accepted
             }
+            if scope != "compute":
+                from .data_semantics import DataSemantics
+
+                for target in call.targets:
+                    if target.snapshot_id and target.logical_key in call.semantics:
+                        snapshot = self.research.store.snapshot(target.snapshot_id)
+                        DataSemantics.model_validate(
+                            call.semantics[target.logical_key]
+                        ).validate_shape(snapshot.descriptor.shape)
         if foreign - {t.snapshot_id for call in plan.invocations for t in call.targets}:
             raise ValueError(
                 "Cross-run input is not assigned to a reviewed joint probe"

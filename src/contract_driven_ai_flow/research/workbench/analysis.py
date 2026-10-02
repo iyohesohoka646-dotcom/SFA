@@ -181,6 +181,23 @@ def analyze_source(
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
                 for alias in node.names:
                     add(node, alias.asname or alias.name.split(".")[0], scope, "import")
+            elif isinstance(node, (ast.With, ast.AsyncWith)):
+                for item in node.items:
+                    if item.optional_vars:
+                        for name in targets(item.optional_vars):
+                            add(
+                                item.optional_vars,
+                                name,
+                                scope,
+                                "assignment",
+                                reads=[
+                                    part.id
+                                    for part in ast.walk(item.context_expr)
+                                    if isinstance(part, ast.Name)
+                                    and isinstance(part.ctx, ast.Load)
+                                ],
+                            )
+                visit(node.body, scope)
             elif isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
                 writes = node.targets if isinstance(node, ast.Assign) else [node.target]
                 reads = (

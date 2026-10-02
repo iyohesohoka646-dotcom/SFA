@@ -139,7 +139,11 @@ class GraphBuilder:
         key = identity(self.path, self.digest, node, "block:" + kind)
         block = GraphBlock(
             id=key,
-            logical_key=f'{self.path}::{scope}::{kind}@{getattr(node, "lineno", 1)}:{getattr(node, "col_offset", 0)}',
+            logical_key=(
+                obj.logical_key
+                if obj
+                else f'{self.path}::{scope}::{kind}@{getattr(node, "lineno", 1)}:{getattr(node, "col_offset", 0)}'
+            ),
             kind=kind,
             label=clean_text(label, 256),
             parent_id=parent,
@@ -166,7 +170,16 @@ class GraphBuilder:
             block_id=block,
             source=self.source(node, scope),
             source_object_id=obj.id if obj else None,
-            logical_key=obj.logical_key if obj else "",
+            logical_key=(
+                obj.logical_key
+                if obj
+                else (
+                    f"{self.path}::{scope}::{label}"
+                    if kind in ("data", "parameter")
+                    else f'{self.path}::{scope}::{kind}@{getattr(node, "lineno", 1)}:{getattr(node, "col_offset", 0)}'
+                    + (":" + suffix if suffix else "")
+                )
+            ),
         )
         if obj:
             obj.block_id = block
@@ -537,9 +550,50 @@ class GraphBuilder:
                         scope,
                     )
                 else:
+                    for item in statement.items:
+                        expression = item.context_expr
+                        call = self.node(
+                            expression, "call", ast.unparse(expression), plate, scope
+                        )
+                        for prior in previous:
+                            self.edge(prior, call, "control")
+                        self.read(expression, call, env, plate, scope)
+                        self.calls(expression, call, env, scope)
+                        entry = self.node(
+                            expression,
+                            "entry",
+                            "enter context",
+                            plate,
+                            scope,
+                            suffix="context",
+                        )
+                        self.edge(call, entry, "control")
+                        if item.optional_vars:
+                            for name in write_names(item.optional_vars):
+                                data = self.node(
+                                    item.optional_vars,
+                                    "data",
+                                    name,
+                                    plate,
+                                    scope,
+                                    suffix=name,
+                                    obj=self.object(item.optional_vars, name, scope),
+                                )
+                                self.edge(entry, data, "data", name)
+                                env[name] = data
+                        previous = [entry]
                     previous = self.statements(
                         statement.body, plate, scope, env, previous
                     )
+                    if isinstance(statement, ast.AsyncWith):
+                        self.block_index[plate].runtime_coverage = "unsupported"
+                        self.coverage(
+                            "async_control",
+                            "Async context lifecycle is structural only",
+                            statement,
+                            scope,
+                            "unsupported",
+                        )
                 continue
             if isinstance(statement, (ast.Import, ast.ImportFrom)):
                 for alias in statement.names:

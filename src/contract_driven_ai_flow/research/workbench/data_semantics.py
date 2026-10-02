@@ -92,6 +92,14 @@ class SemanticsService:
 
     def save(self, semantics, *, shape, expected_revision=None):
         semantics.validate_shape(shape)
+        semantics = semantics.model_copy(deep=True)
+        if (
+            semantics.origin == "user"
+            and semantics.accepted
+            and len(semantics.axes) == len(shape or [])
+            and all(axis.coordinates or axis.labels for axis in semantics.axes)
+        ):
+            semantics.mappings.pop("coordinate_gaps", None)
         current = self.get(semantics.logical_key)
         revision = current.revision if current else 0
         if expected_revision is not None and expected_revision != revision:

@@ -114,3 +114,30 @@ def test_folder_provider_contract_references_file_blocks_without_claiming_cross_
     assert folder.kind == 'folder' and folder.members == graph.roots
     assert folder.runtime_coverage == 'unsupported'
     assert graph.model_dump() == original
+
+
+def test_display_function_and_operation_targets_resolve_to_canonical_scope(tmp_path):
+    from contract_driven_ai_flow.research.workbench.semantic_models import TargetRef, ScopeSelector
+    from contract_driven_ai_flow.research.workbench.scopes import source_targets, resolve_scope
+    doc = analyze(tmp_path, 'def f(x):\n    a = x + 1; b = a * 2\n    return b\ny = f(1)\n')
+    available = source_targets(doc)
+    function = next(block for block in doc.graph.blocks if block.kind == 'function')
+    function_ref = TargetRef(kind='function', logical_key=function.logical_key, block_id=function.id, object_id=function.source_object_id)
+    assert resolve_scope(doc.graph, ScopeSelector(mode='selection', targets=[function_ref]), available)
+    nodes = [n for n in doc.graph.nodes if n.kind in ('operation', 'call', 'return')]
+    assert nodes and all(n.logical_key for n in nodes)
+    assert len({n.logical_key for n in nodes}) == len(nodes)
+    refs = [TargetRef(kind='operation', logical_key=n.logical_key, block_id=n.block_id) for n in nodes]
+    resolved = resolve_scope(doc.graph, ScopeSelector(mode='selection', targets=refs), available)
+    assert {t.logical_key for t in resolved} == {n.logical_key for n in nodes}
+
+
+def test_with_context_calls_and_bindings_enter_the_lexical_graph(tmp_path):
+    doc = analyze(tmp_path, 'from contextlib import nullcontext\ndef f():\n    with nullcontext(10) as x, nullcontext(x + 1) as z:\n        y = x + z\n    return y\nresult = f()\n')
+    assert not any(c.code == 'unbound_local' for c in doc.graph.coverage)
+    names = {o.name for o in doc.objects if o.scope == 'f'}
+    assert {'x', 'z', 'y'} <= names
+    contexts = [n for n in doc.graph.nodes if n.kind == 'call' and 'nullcontext' in n.label]
+    assert len(contexts) == 2
+    y = next(o for o in doc.objects if o.scope == 'f' and o.name == 'y')
+    assert {r.label for r in doc.relations if r.target == y.id} >= {'x', 'z'}

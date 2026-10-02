@@ -94,8 +94,15 @@ class _PosixPTY:
 
         self.fd, slave = pty.openpty()
         try:
+            self.resize(rows, cols)
             self.process = subprocess.Popen(
-                argv,
+                [
+                    sys.executable,
+                    "-X",
+                    "utf8",
+                    str(Path(__file__).with_name("terminal_host.py")),
+                    *argv,
+                ],
                 cwd=cwd,
                 env=env,
                 stdin=slave,
@@ -120,10 +127,13 @@ class _PosixPTY:
         return self.process.poll()
 
     def read(self):
-        data = os.read(self.fd, 8192)
-        if not data:
-            raise EOFError()
-        return self.decoder.decode(data)
+        while True:
+            data = os.read(self.fd, 8192)
+            if not data:
+                raise EOFError()
+            decoded = self.decoder.decode(data)
+            if decoded:
+                return decoded
 
     def write(self, data):
         view = memoryview(data.encode("utf-8"))
@@ -136,19 +146,52 @@ class _PosixPTY:
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
 
     def close(self):
+        if self.fd < 0:
+            return
+        import signal
+        import time
+
+        def owned_session():
+            # Session identity survives a shell leader's exit and includes jobs
+            # in separate foreground/background groups. Never target other sessions.
+            rows = subprocess.run(
+                ["ps", "-axo", "pid="],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=2,
+            ).stdout.split()
+            owned = []
+            for row in rows:
+                try:
+                    pid = int(row)
+                    if os.getsid(pid) == self.pid:
+                        owned.append(pid)
+                except (ProcessLookupError, PermissionError):
+                    pass
+            return owned
+
+        def send(pids, sig):
+            for pid in pids:
+                try:
+                    if os.getsid(pid) == self.pid:
+                        os.kill(pid, sig)
+                except (ProcessLookupError, PermissionError):
+                    pass
+
+        send(owned_session(), signal.SIGTERM)
         self.tree.terminate()
         try:
-            self.process.wait(timeout=2)
+            self.process.wait(timeout=0.3)
         except subprocess.TimeoutExpired:
-            import signal
-
-            try:
-                os.killpg(self.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            self.process.wait(timeout=2)
+            pass
+        # Escalate independently of leader state; descendants may ignore TERM.
+        time.sleep(0.05)
+        send(owned_session(), signal.SIGKILL)
+        self.process.wait(timeout=2)
         self.tree.close()
         os.close(self.fd)
+        self.fd = -1
 
 
 class TerminalService:
@@ -251,8 +294,10 @@ class TerminalService:
                     str(Path(__file__).with_name("terminal_host.py")),
                     *argv,
                 ]
-                pty = (_WindowsPTY if os.name == "nt" else _PosixPTY)(
-                    command, self.root, env, rows, cols
+                pty = (
+                    _WindowsPTY(command, self.root, env, rows, cols)
+                    if os.name == "nt"
+                    else _PosixPTY(argv, self.root, env, rows, cols)
                 )
                 entry["pty"] = pty
                 session.pid = pty.pid

@@ -462,6 +462,14 @@ export default function ResearchWorkbench() {
   };
   useEffect(() => {
     const shortcut = (e: KeyboardEvent) => {
+      if (
+        e.defaultPrevented ||
+        (e.target instanceof Element &&
+          e.target.closest(
+            'input, textarea, select, [contenteditable="true"], [role="textbox"], .xterm',
+          ))
+      )
+        return;
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
         void c.run();
@@ -594,10 +602,7 @@ export default function ResearchWorkbench() {
                         c.editConfig({
                           ...c.config!,
                           capture: e.target.value as
-                            | "metadata"
-                            | "summary"
-                            | "sample"
-                            | "full",
+                            "metadata" | "summary" | "sample" | "full",
                         })
                       }
                     >

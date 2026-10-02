@@ -258,3 +258,99 @@ def test_artifact_receipt_failure_removes_new_data_file(tmp_path):
     ref, error=writer.save(None, BrokenMetadata(), {'capabilities':['materialize'], 'nbytes':4})
     assert ref is None and error
     assert not list((tmp_path/'artifacts').iterdir())
+
+
+def define_axes(wb, snapshot, coordinates):
+    from contract_driven_ai_flow.research.workbench.data_semantics import DataSemantics, AxisSemantics
+    wb.semantics.save(DataSemantics(logical_key=snapshot['logical_key'], kind='matrix', axes=[AxisSemantics(label='subjects' if i == 0 else 'features', coordinates=axis) for i, axis in enumerate(coordinates)]), shape=snapshot['descriptor']['shape'])
+
+
+def test_two_level_derivation_preserves_coordinates_and_rejects_reversed_subjects(tmp_path):
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        analysis, run_id, snapshots = inputs(research, {'A': np.array([1., 2.]), 'B': np.array([10., 20.]), 'C': np.array([200., 100.]), 'D': np.array([2000., 1000.])})
+        for snapshot, coords in zip(snapshots, [['s1', 's2'], ['s1', 's2'], ['s2', 's1'], ['s2', 's1']]):
+            define_axes(wb, snapshot, [coords])
+        results = [joint(research, analysis, run_id, pair, 'derive.elementwise', {'operation':'add'}) for pair in [snapshots[:2], snapshots[2:]]]
+        derived = [research.store.snapshot(output['data']['derived_snapshot_id']) for output in results]
+        assert [wb.semantics.get(s.logical_key).axes[0].coordinates for s in derived] == [['s1', 's2'], ['s2', 's1']]
+        combined = joint(research, analysis, run_id, [s.model_dump(mode='json') for s in derived], 'derive.elementwise', {'operation':'add'})
+        assert combined['status'] == 'error' and combined['data']['diagnostic_code'] == 'coordinate_mismatch'
+        assert 'derived_snapshot_id' not in combined['data']
+
+
+def test_matmul_and_aggregate_propagate_only_the_surviving_axes(tmp_path):
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        analysis, run_id, snapshots = inputs(research, {'A': np.ones((2,3)), 'B': np.ones((3,4))})
+        define_axes(wb, snapshots[0], [['s1','s2'], ['a','b','c']])
+        define_axes(wb, snapshots[1], [['a','b','c'], ['m','n','o','p']])
+        output = joint(research, analysis, run_id, snapshots, 'derive.matmul')
+        derived = research.store.snapshot(output['data']['derived_snapshot_id'])
+        assert [a.coordinates for a in wb.semantics.get(derived.logical_key).axes] == [['s1','s2'], ['m','n','o','p']]
+        reduced = joint(research, analysis, run_id, [derived.model_dump(mode='json')], 'derive.aggregate', {'axis': 1})
+        final = research.store.snapshot(reduced['data']['derived_snapshot_id'])
+        assert [a.coordinates for a in wb.semantics.get(final.logical_key).axes] == [['s1','s2']]
+        records = wb.store.list('derived')
+        assert all(record['semantics']['origin'] == 'program' for record in records)
+
+
+@pytest.mark.parametrize('compute', [False, True])
+def test_logical_coordinate_metadata_is_revalidated_for_new_shape(tmp_path, compute):
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        analysis, run_id, old = inputs(research, {'A': np.ones(2), 'B': np.ones(2)})
+        for snapshot in old:
+            define_axes(wb, snapshot, [['s1','s2']])
+        if not compute:
+            analysis, run_id, newer = inputs(research, {'A': np.ones(3), 'B': np.ones(3)})
+            with pytest.raises(ValueError, match='axis|coordinate'):
+                joint(research, analysis, run_id, newer, 'derive.elementwise')
+        else:
+            from contract_driven_ai_flow.research.workbench.scopes import source_targets
+            source = research.root / 'input.py'
+            source.write_text('import numpy as np\nA = np.ones(3)\nB = np.ones(3)\n')
+            analysis = wb.import_source(source)
+            refs = {t.logical_key.rsplit('::',1)[-1]:t for t in source_targets(analysis) if t.kind == 'data'}
+            cfg = wb.configurations.load()
+            wb.configure(cfg.model_copy(update={'probes':[ProbeInstance(id='derive', definition_id='derive.elementwise', inputs={'left':refs['A'],'right':refs['B']})]}), expected_revision=cfg.revision)
+            task = wb.execute(wb.plan(analysis.id).id)
+            assert wb.jobs.wait(task.id, 20).status == 'completed'
+            output = wb.outputs(task_id=task.id)[0]
+            assert output['status'] in ('error','unknown') and output['data']['diagnostic_code'] == 'coordinate_shape_mismatch'
+            assert 'derived_snapshot_id' not in output['data']
+
+
+def test_explicit_broadcast_preserves_nonbroadcast_coordinates(tmp_path):
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        analysis, run_id, snapshots = inputs(research, {'A':np.ones((2,3)), 'B':np.ones(3)})
+        define_axes(wb, snapshots[0], [['s1','s2'], ['a','b','c']])
+        define_axes(wb, snapshots[1], [['a','b','c']])
+        output = joint(research, analysis, run_id, snapshots, 'derive.elementwise', {'broadcast':True, 'operation':'add'})
+        assert output['status'] == 'ready', output
+        derived = research.store.snapshot(output['data']['derived_snapshot_id'])
+        assert [a.coordinates for a in wb.semantics.get(derived.logical_key).axes] == [['s1','s2'], ['a','b','c']]
+
+
+def test_coordinate_gap_requires_an_explicit_definition_or_positional_choice(tmp_path):
+    from contract_driven_ai_flow.research.workbench.data_semantics import DataSemantics, AxisSemantics
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        analysis, run_id, snapshots = inputs(research, {'A':np.ones((2,2)), 'B':np.ones((2,2))})
+        output = joint(research, analysis, run_id, snapshots, 'derive.elementwise')
+        derived = research.store.snapshot(output['data']['derived_snapshot_id'])
+        value = wb.semantics.get(derived.logical_key)
+        value.mappings['coordinate_gaps'] = [0]
+        wb.semantics.save(value, shape=[2,2])
+        refs = [derived.model_dump(mode='json'), derived.model_dump(mode='json')]
+        blocked = joint(research, analysis, run_id, refs, 'derive.elementwise')
+        assert blocked['status'] == 'error' and blocked['data']['diagnostic_code'] == 'coordinate_metadata_missing'
+        explicit = joint(research, analysis, run_id, refs, 'derive.elementwise', {'alignment':'positional'})
+        assert explicit['status'] == 'ready'
+        value.origin = 'user'
+        value.axes = [AxisSemantics(coordinates=['a','b']), AxisSemantics(coordinates=[1,2])]
+        accepted = wb.semantics.save(value, shape=[2,2])
+        assert not accepted.mappings.get('coordinate_gaps')
+        defined = joint(research, analysis, run_id, refs, 'derive.elementwise')
+        assert defined['status'] == 'ready'

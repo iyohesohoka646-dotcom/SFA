@@ -88,6 +88,27 @@ def output_budget(shape, dtype, maximum):
 
 
 def check_coordinates(operator, inputs, parameters):
+    for spec in inputs.values():
+        axes = spec.get("semantics", {}).get("axes", [])
+        shape = spec.get("shape") or []
+        if len(axes) > len(shape) or any(
+            (axis.get("coordinates") and len(axis["coordinates"]) != shape[i])
+            or (axis.get("labels") and len(axis["labels"]) != shape[i])
+            for i, axis in enumerate(axes)
+        ):
+            raise Diagnostic(
+                "coordinate_shape_mismatch",
+                "坐标或标签长度与此数据版本的形状不符；请重新定义",
+            )
+        if (
+            operator != "join"
+            and spec.get("semantics", {}).get("mappings", {}).get("coordinate_gaps")
+            and parameters.get("alignment") != "positional"
+        ):
+            raise Diagnostic(
+                "coordinate_metadata_missing",
+                "派生输入的坐标来源不完整；请补充定义或明确选择按位置计算",
+            )
     if (
         operator == "join"
         or len(inputs) < 2
@@ -102,16 +123,31 @@ def check_coordinates(operator, inputs, parameters):
     def coordinates(axes, index):
         return (
             (axes[index].get("coordinates") or axes[index].get("labels"))
-            if index < len(axes)
+            if 0 <= index < len(axes)
             else None
         )
 
+    shape_a, shape_b = left.get("shape") or [], right.get("shape") or []
+    ndim = max(len(shape_a), len(shape_b))
     pairs = (
         [(1, 0)]
         if operator == "matmul"
-        else [(i, i) for i in range(max(len(axes_a), len(axes_b)))]
+        else [
+            (i - (ndim - len(shape_a)), i - (ndim - len(shape_b))) for i in range(ndim)
+        ]
     )
     for a, b in pairs:
+        if (
+            operator == "elementwise"
+            and parameters.get("broadcast")
+            and (
+                a < 0
+                or b < 0
+                or shape_a[a] != shape_b[b]
+                and (shape_a[a] == 1 or shape_b[b] == 1)
+            )
+        ):
+            continue
         ca, cb = coordinates(axes_a, a), coordinates(axes_b, b)
         if bool(ca) != bool(cb):
             raise Diagnostic(
@@ -123,6 +159,110 @@ def check_coordinates(operator, inputs, parameters):
                 "coordinate_mismatch",
                 "输入坐标顺序不同；请对齐坐标或明确选择按位置计算",
             )
+
+
+def result_semantics(operator, inputs, parameters, result):
+    """Propagate surviving axes, retaining explicit gaps and parent provenance."""
+    import copy
+
+    axes_by_role = {
+        role: spec.get("semantics", {}).get("axes", []) for role, spec in inputs.items()
+    }
+    shape = list(result.shape)
+    axes, sources, gaps = [], {}, []
+    had_coordinates = any(
+        axis.get("coordinates") or axis.get("labels")
+        for group in axes_by_role.values()
+        for axis in group
+    )
+
+    def append_axis(role, index, output_index):
+        group = axes_by_role[role]
+        axis = copy.deepcopy(group[index]) if index < len(group) else {}
+        axis["origin"] = "program"
+        axes.append(axis)
+        sources[str(output_index)] = {"input_role": role, "axis": index}
+        if had_coordinates and not axis.get("coordinates") and not axis.get("labels"):
+            gaps.append(output_index)
+
+    if operator == "elementwise":
+        for i, length in enumerate(shape):
+            candidates = [
+                (role, i - (len(shape) - len(spec.get("shape") or [])))
+                for role, spec in inputs.items()
+            ]
+            candidates = [
+                (role, index)
+                for role, index in candidates
+                if index >= 0 and inputs[role]["shape"][index] == length
+            ]
+            role, index = next(
+                (
+                    (role, index)
+                    for role, index in candidates
+                    if index < len(axes_by_role[role])
+                    and (
+                        axes_by_role[role][index].get("coordinates")
+                        or axes_by_role[role][index].get("labels")
+                    )
+                ),
+                candidates[0],
+            )
+            append_axis(role, index, i)
+    elif operator == "matmul":
+        append_axis("left", 0, 0)
+        append_axis("right", 1, 1)
+    elif operator == "aggregate":
+        ndim = len(inputs["input"].get("shape") or [])
+        axis = parameters.get("axis")
+        if axis is not None:
+            reduced = axis % ndim
+            for index in range(ndim):
+                if index != reduced:
+                    append_axis("input", index, len(axes))
+    elif operator == "join":
+        from contract_driven_ai_flow.research.agent.privacy import cell
+
+        axes = [
+            {
+                "coordinates": [cell(v) for v in result.index.tolist()],
+                "origin": "program",
+            },
+            {
+                "coordinates": [cell(v) for v in result.columns.tolist()],
+                "origin": "program",
+            },
+        ]
+    inherited_gaps = any(
+        spec.get("semantics", {}).get("mappings", {}).get("coordinate_gaps")
+        for spec in inputs.values()
+    )
+    if inherited_gaps and shape and parameters.get("alignment") == "positional":
+        gaps = sorted(
+            set(gaps)
+            | {
+                i
+                for i, axis in enumerate(axes)
+                if not axis.get("coordinates") and not axis.get("labels")
+            }
+        )
+    return {
+        "protocol_version": 3,
+        "logical_key": "",
+        "kind": (
+            "table"
+            if operator == "join"
+            else "matrix" if len(shape) >= 2 else "series" if shape else "generic"
+        ),
+        "axes": axes,
+        "origin": "program",
+        "accepted": True,
+        "mappings": {
+            "coordinate_sources": sources,
+            "coordinate_gaps": gaps,
+            "alignment": parameters.get("alignment", "coordinates"),
+        },
+    }
 
 
 def calculate(key, values, parameters, maximum):
@@ -267,6 +407,7 @@ def main():
             spec.loader.exec_module(module)
         from contract_driven_ai_flow.research.agent.sdk import TraceSession
         from contract_driven_ai_flow.research.agent.budget import CapturePolicy
+        from contract_driven_ai_flow.research.agent.privacy import sanitize_json
 
         trace = TraceSession(
             "derived",
@@ -287,6 +428,11 @@ def main():
                     "dependency": "declared",
                 },
             )
+        meaning = result_semantics(
+            request["operator"], request["inputs"], request["parameters"], result
+        )
+        meaning["logical_key"] = snapshot["logical_key"]
+        snapshot["descriptor"]["metadata"]["semantics"] = sanitize_json(meaning)
         if not snapshot.get("artifact_ref"):
             raise Diagnostic(
                 "result_budget_exceeded",

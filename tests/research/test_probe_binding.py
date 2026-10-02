@@ -11,6 +11,44 @@ from contract_driven_ai_flow.research.workbench.planning import compile_plan
 from contract_driven_ai_flow.research.workbench.rendering import DrawingService
 
 
+def test_selected_historical_evidence_is_loaded_and_frozen_without_snapshot_list(tmp_path):
+    from contract_driven_ai_flow.research.service import ResearchService
+    from contract_driven_ai_flow.research.workbench.bindings import snapshot_target
+    from contract_driven_ai_flow.research.workbench.semantic_models import ScopeSelector
+    script = tmp_path / 'versions.py'
+    script.write_text('X = 1\nX = 2\n', encoding='utf-8')
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        analysis = wb.import_source(script)
+        run = research.wait(research.start_analysis(script).run_id, 15)
+        old, current = [s for s in research.store.snapshots(run['id'], latest=False) if s.name == 'X']
+        ref = snapshot_target(old, analysis).model_copy(update={'exact_evidence': True})
+        cfg = wb.configurations.load()
+        wb.configure(cfg.model_copy(update={'probes': [ProbeInstance(id='scalar', definition_id='view.scalar')]}), expected_revision=cfg.revision)
+        plan = wb.plan(analysis.id, scope='replot', run_id=run['id'], target_scope=ScopeSelector(mode='selection', targets=[ref]))
+        assert [t.snapshot_id for t in plan.resolved_targets] == [old.id]
+        assert [call.targets[0].snapshot_id for call in plan.invocations] == [old.id]
+        task = wb.execute(plan.id)
+        assert wb.jobs.wait(task.id, 15).status == 'completed'
+        outputs = wb.outputs(task_id=task.id)
+        assert len(outputs) == 1 and outputs[0]['snapshot_id'] == old.id
+        assert outputs[0]['snapshot_id'] != current.id
+        missing = ref.model_copy(update={'snapshot_id': 'missing-snapshot'})
+        with pytest.raises((ValueError, LookupError), match='snapshot|evidence|available'):
+            wb.plan(analysis.id, scope='replot', run_id=run['id'], target_scope=ScopeSelector(mode='selection', targets=[missing]))
+
+
+def test_stale_exact_selection_is_never_a_silent_empty_scope(tmp_path):
+    from contract_driven_ai_flow.research.workbench.bindings import snapshot_target
+    from contract_driven_ai_flow.research.workbench.semantic_models import ScopeSelector
+    from contract_driven_ai_flow.research.workbench.scopes import resolve_scope
+    analysis, value = fixture(tmp_path)
+    old = snapshot_target(value('X', 1), analysis).model_copy(update={'exact_evidence': True})
+    latest = snapshot_target(value('X', 2), analysis)
+    with pytest.raises(ValueError, match='evidence|available'):
+        resolve_scope(analysis.graph, ScopeSelector(mode='selection', targets=[old]), [latest])
+
+
 def fixture(tmp_path):
     script = tmp_path / 'analysis.py'
     script.write_text('X = 1\nY = X + 1\n', encoding='utf-8')

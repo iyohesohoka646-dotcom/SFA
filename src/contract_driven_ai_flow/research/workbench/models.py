@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Literal
 from uuid import uuid4
 
-from pydantic import Field, JsonValue, field_validator
+from pydantic import Field, JsonValue, field_validator, model_validator
 from .semantic_models import TargetKind
 
 from ..models import WireModel, timestamp
@@ -54,6 +54,23 @@ class AnalysisDocument(WireModel):
     graph: SemanticGraph = Field(default_factory=SemanticGraph)
     diagnostics: list[str] = Field(default_factory=list)
     imported_at: str = Field(default_factory=timestamp)
+
+    @model_validator(mode="after")
+    def upgrade_display_identities(self):
+        objects = {obj.id: obj for obj in self.objects}
+        for block in self.graph.blocks:
+            obj = objects.get(block.source_object_id)
+            if obj and block.kind in ("function", "class"):
+                block.logical_key = obj.logical_key
+        for node in self.graph.nodes:
+            if not node.logical_key and node.source:
+                scope = node.source.qualname or "<module>"
+                node.logical_key = (
+                    f"{self.path}::{scope}::{node.label}"
+                    if node.kind in ("data", "parameter")
+                    else f"{self.path}::{scope}::{node.kind}@{node.source.line}:{node.source.column}:{node.id}"
+                )
+        return self
 
 
 class InputRole(WireModel):
@@ -145,6 +162,7 @@ class DerivedData(WireModel):
     inputs: dict[str, TargetRef]
     parameters: dict[str, JsonValue]
     input_digests: dict[str, str]
+    semantics: dict[str, JsonValue] = Field(default_factory=dict)
     retained: bool = True
     created_at: str = Field(default_factory=timestamp)
 

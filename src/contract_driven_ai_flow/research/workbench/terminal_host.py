@@ -11,8 +11,17 @@ def main():
     if not argv:
         raise SystemExit("A terminal command is required")
     if os.name != "nt":
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+        import fcntl
+        import termios
+
+        # This wrapper is already a new session leader; inheriting an open
+        # slave alone does not acquire a controlling terminal. No preexec_fn
+        # runs in the multithreaded service process.
+        fcntl.ioctl(0, termios.TIOCSCTTY, 0)
+        signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+        os.tcsetpgrp(0, os.getpgrp())
+        for name in ("SIGINT", "SIGQUIT", "SIGTSTP", "SIGTTIN", "SIGTTOU"):
+            signal.signal(getattr(signal, name), signal.SIG_DFL)
         os.execvpe(argv[0], argv, os.environ)
     # Windows inherits the console's Ctrl+C ignore flag even when a new
     # pseudoconsole is attached. Git Bash and noninteractive launchers set it.

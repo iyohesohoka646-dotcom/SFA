@@ -163,3 +163,60 @@ def test_observer_failure_does_not_replace_original_exception(monkeypatch):
     assert error == ('ValueError', 'user')
     receipt = next(event for event in events if event['kind'] == 'control.finished')
     assert receipt['payload']['complete'] is False
+
+
+def test_function_controls_are_redacted_before_transport_and_storage(tmp_path):
+    import json
+    source = 'def f():\n    api_key = "synthetic-control-credential"\n    return 42\nresult = f()\n'
+    compiled = instrument(source, 'private.py')
+    assert 'synthetic-control-credential' not in json.dumps(compiled.references)
+    store = ExperimentStore(tmp_path)
+    run = store.create_run('private.py', interpreter='python', source_digest='test')
+    trace = TraceSession('private', run_id=run['id'])
+    result = compiled.execute(trace)
+    assert result['result'] == 42
+    events = trace.transport.drain()
+    assert 'synthetic-control-credential' not in json.dumps(events)
+    store.append([ObservationEvent.model_validate(event) for event in events])
+    assert 'synthetic-control-credential' not in json.dumps(store.bootstrap(run['id']))
+    assert 'synthetic-control-credential' not in json.dumps([e.model_dump() for e in store.events(run['id'])])
+
+
+def test_old_control_source_records_are_scrubbed_on_reopen(tmp_path):
+    import json
+    store = ExperimentStore(tmp_path)
+    run = store.create_run('old.py', interpreter='python', source_digest='old')
+    summary = {'node_id': 'f', 'kind': 'function', 'revision': 1, 'source': {'code': 'api_key = "synthetic-legacy-control"'}}
+    event = ObservationEvent(run_id=run['id'], kind='control.summary', payload={'summaries': [summary]})
+    with store.connect() as db:
+        db.execute('INSERT INTO control_summaries VALUES (?,?,?,?)', (run['id'], 'f', 1, json.dumps(summary)))
+        db.execute('INSERT INTO events(run_id,body) VALUES (?,?)', (run['id'], event.model_dump_json()))
+        # Simulate a pre-migration store without the current privacy marker.
+        if db.execute("SELECT name FROM sqlite_master WHERE name='research_migrations'").fetchone():
+            db.execute("DELETE FROM research_migrations WHERE name='control-source-privacy-v1'")
+    reopened = ExperimentStore(tmp_path)
+    assert 'synthetic-legacy-control' not in json.dumps(reopened.bootstrap(run['id']))
+    with reopened.connect() as db:
+        assert all('synthetic-legacy-control' not in row[0] for row in db.execute('SELECT body FROM control_summaries'))
+        assert all('synthetic-legacy-control' not in row[0] for row in db.execute('SELECT body FROM events'))
+
+
+def test_function_control_probe_and_offline_export_never_expose_credentials(tmp_path):
+    from contract_driven_ai_flow.research.service import ResearchService
+    from contract_driven_ai_flow.research.export import offline_report
+    from contract_driven_ai_flow.research.workbench.models import ProbeInstance
+    script = tmp_path / 'credentials.py'
+    original = 'def calculate():\n    api_key = "synthetic-export-control"\n    return 42\nresult = calculate()\n'
+    script.write_text(original, encoding='utf-8')
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        analysis = wb.import_source(script)
+        run = research.wait(research.start_analysis(script).run_id, 15)
+        config = wb.configurations.load()
+        wb.configure(config.model_copy(update={'probes':[ProbeInstance(id='controls',definition_id='view.controls')]}), expected_revision=config.revision)
+        task = wb.execute(wb.plan(analysis.id, scope='probes', run_id=run['id']).id)
+        assert wb.jobs.wait(task.id, 15).status == 'completed'
+        assert wb.outputs(task_id=task.id)
+        report = offline_report(research, run['id'])
+        assert 'synthetic-export-control' not in report and '[REDACTED]' in report
+        assert script.read_text(encoding='utf-8') == original

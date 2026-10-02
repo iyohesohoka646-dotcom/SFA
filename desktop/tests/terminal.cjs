@@ -4,11 +4,13 @@ const fs=require('node:fs');const path=require('node:path');const os=require('no
 (async()=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'cdaf-terminal-native-'));
  const installed=process.env.CDAF_DESKTOP_TEST_EXE;
+ const scale=Number(process.env.CDAF_DESKTOP_TEST_SCALE||'1');
  const env={...process.env,PYTHONUTF8:'1'};
  if(installed)delete env.CDAF_DESKTOP_PYTHON;else env.CDAF_DESKTOP_PYTHON=path.resolve(__dirname,'../../.work/desktop-python/python.exe');
- const app=await electron.launch({executablePath:installed||require('electron'),args:installed?['--project',root]:[path.resolve(__dirname,'../src/main.cjs'),'--project',root],env,timeout:30000});
+ const app=await electron.launch({executablePath:installed||require('electron'),args:[...(installed?['--project',root]:[path.resolve(__dirname,'../src/main.cjs'),'--project',root]),'--force-device-scale-factor='+scale],env,timeout:30000});
  try{
   const window=await app.firstWindow();try{await window.getByRole('button',{name:'运行',exact:true}).waitFor({timeout:30000});}catch(e){console.error(await window.locator('body').innerText());throw e;}
+  assert.equal(await window.evaluate(()=>devicePixelRatio),scale);
   await window.getByRole('button',{name:'打开终端',exact:true}).click();
   await window.getByLabel('终端配置').selectOption('python');await window.getByRole('button',{name:'新建终端',exact:true}).click();
   await window.getByLabel('终端输入',{exact:true}).waitFor();await window.getByLabel('终端输入',{exact:true}).focus();await window.keyboard.insertText("print('NATIVE-'+str(6*7)+' 中文')");await window.keyboard.press('Enter');await window.getByLabel('无障碍输出',{exact:true}).check();
@@ -27,6 +29,6 @@ const fs=require('node:fs');const path=require('node:path');const os=require('no
   const closed=app.waitForEvent('close');await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].close());await closed;
   await assert.rejects(fetch(`http://127.0.0.1:${record.port}/api/v1/studio`));
   const {spawnSync}=require('node:child_process');const check=spawnSync('powershell.exe',['-NoProfile','-Command',`if(Get-Process -Id ${children.join(',')} -ErrorAction SilentlyContinue){exit 1}`],{windowsHide:true,timeout:10000});assert.equal(check.status,0,'Terminal child survived its owning window');
-  fs.writeFileSync(path.resolve(__dirname,'../../docs/assets/research-embedded-terminal-validation.json'),JSON.stringify({platform:process.platform,installed:!!installed,unicode:true,real_python:true,real_cli:true,real_shell:true,concurrent_sessions:3,owner_exit_cleanup:true,port_released:true,result:'passed'},null,2));
+  fs.writeFileSync(path.resolve(__dirname,'../../docs/assets/research-embedded-terminal-validation.json'),JSON.stringify({platform:process.platform,installed:!!installed,device_scale_factor:scale,unicode:true,real_python:true,real_cli:true,real_shell:true,concurrent_sessions:3,owner_exit_cleanup:true,port_released:true,result:'passed'},null,2));
  }finally{await app.close().catch(()=>{});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

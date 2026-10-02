@@ -25,7 +25,7 @@ def source_targets(analysis):
                 )
             )
     for node in analysis.graph.nodes:
-        if node.kind in ("operation", "call", "return") and node.source:
+        if node.kind not in ("data", "parameter") and node.source:
             matches = [
                 obj
                 for obj in analysis.objects
@@ -36,7 +36,7 @@ def source_targets(analysis):
             targets.append(
                 TargetRef(
                     kind="operation",
-                    logical_key=f'{analysis.path}::{node.source.qualname or "<module>"}::operation@{node.source.line}:{node.source.column}',
+                    logical_key=node.logical_key,
                     object_id=matches[0].id if len(matches) == 1 else None,
                     block_id=node.block_id,
                     analysis_id=analysis.id,
@@ -61,9 +61,17 @@ def resolve_scope(
     if selector.mode == "block" and selector.block_id not in known_blocks:
         raise ValueError("Scope block does not belong to this analysis")
     selected = selector.targets
-    available_keys = {target.logical_key for target in available}
+    available_keys = {(target.kind, target.logical_key) for target in available}
     if selector.mode == "selection" and any(
-        target.logical_key not in available_keys for target in selected
+        (target.kind, target.logical_key) not in available_keys
+        or target.snapshot_id is not None
+        and not any(
+            item.kind == target.kind
+            and item.logical_key == target.logical_key
+            and item.snapshot_id == target.snapshot_id
+            for item in available
+        )
+        for target in selected
     ):
         raise ValueError("Selected target is unavailable in this analysis or run")
     resolved, seen = [], set()

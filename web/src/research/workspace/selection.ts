@@ -135,7 +135,7 @@ export function objectRows(
     if (!inScope(block.id) && scope !== block.id) return;
     const target = {
       kind:
-        block.kind === "function"
+        block.kind === "function" || block.kind === "class"
           ? "function"
           : block.kind === "file"
             ? "file"
@@ -413,11 +413,38 @@ export function initialCollapsed(graph: SemanticGraph, closed: Set<string>) {
   return result;
 }
 
-export function selectionBlocks(blocks:Pick<GraphBlock,'id'|'parent_id'>[],targets:TargetRef[]){
- const parents=new Map(blocks.map(b=>[b.id,b.parent_id]));
- const partial=new Set<string>(),covered=new Set<string>();
- const roots=new Set(targets.filter(t=>['function','file','control'].includes(t.kind)).flatMap(t=>t.block_id?[t.block_id]:[]));
- for(const t of targets){let id:string|undefined=t.block_id??undefined;const seen=new Set<string>();while(id&&!seen.has(id)){seen.add(id);partial.add(id);id=parents.get(id)??undefined;}}
- for(const b of blocks){let id:string|undefined=b.id;const seen=new Set<string>();while(id&&!seen.has(id)){if(roots.has(id)){covered.add(b.id);break;}seen.add(id);id=parents.get(id)??undefined;}}
- return {partial,covered};
+export function selectionBlocks(
+  blocks: Pick<GraphBlock, "id" | "parent_id">[],
+  targets: TargetRef[],
+) {
+  const parents = new Map(blocks.map((b) => [b.id, b.parent_id]));
+  const partial = new Set<string>(),
+    covered = new Set<string>();
+  const roots = new Set(
+    targets
+      .filter((t) => ["function", "file", "control"].includes(t.kind))
+      .flatMap((t) => (t.block_id ? [t.block_id] : [])),
+  );
+  for (const t of targets) {
+    let id: string | undefined = t.block_id ?? undefined;
+    const seen = new Set<string>();
+    while (id && !seen.has(id)) {
+      seen.add(id);
+      partial.add(id);
+      id = parents.get(id) ?? undefined;
+    }
+  }
+  for (const b of blocks) {
+    let id: string | undefined = b.id;
+    const seen = new Set<string>();
+    while (id && !seen.has(id)) {
+      if (roots.has(id)) {
+        covered.add(b.id);
+        break;
+      }
+      seen.add(id);
+      id = parents.get(id) ?? undefined;
+    }
+  }
+  return { partial, covered };
 }

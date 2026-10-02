@@ -142,6 +142,22 @@ class DerivationService:
                 specs[role]["semantics"] = invocation.semantics.get(
                     target.logical_key, {}
                 )
+                snapshot = next(s for s in parents if s.id == target.snapshot_id)
+                if snapshot.scope_id == "derived":
+                    frozen = snapshot.descriptor.metadata.get("semantics")
+                    if not specs[role]["semantics"]:
+                        specs[role]["semantics"] = frozen or {
+                            "mappings": {"coordinate_gaps": ["legacy-derived-metadata"]}
+                        }
+                    elif not frozen:
+                        axes = specs[role]["semantics"].get("axes", [])
+                        if len(axes) != len(snapshot.descriptor.shape or []) or any(
+                            not axis.get("coordinates") and not axis.get("labels")
+                            for axis in axes
+                        ):
+                            specs[role]["semantics"].setdefault("mappings", {})[
+                                "coordinate_gaps"
+                            ] = ["legacy-derived-metadata"]
             if sum(spec["bytes"] for spec in specs.values()) > 256 * 1024 * 1024:
                 raise InputDiagnostic("input_budget_exceeded", "联合输入超过总预算")
             self.store.retain_artifacts(
@@ -211,6 +227,15 @@ class DerivationService:
                 provenance="declared",
             )
             snapshot.operation_id = operation.id
+            from .data_semantics import DataSemantics
+
+            meaning = DataSemantics.model_validate(
+                snapshot.descriptor.metadata["semantics"]
+            )
+            meaning.validate_shape(snapshot.descriptor.shape)
+            meaning = self.workbench.semantics.save(
+                meaning, shape=snapshot.descriptor.shape
+            )
             self.store.append(
                 [
                     ObservationEvent(
@@ -238,6 +263,7 @@ class DerivationService:
                 inputs=invocation.inputs,
                 parameters=instance.parameters,
                 input_digests={role: spec["sha256"] for role, spec in specs.items()},
+                semantics=meaning.model_dump(mode="json"),
             )
             self.store.retain_artifacts([snapshot.id], "derived:" + derived.id)
             self.workbench.store.put("derived", derived.id, derived)
