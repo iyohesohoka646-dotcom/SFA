@@ -13,6 +13,7 @@ class CapturePolicy:
     max_artifact_bytes: int = 64 * 1024 * 1024
     max_run_bytes: int = 256 * 1024 * 1024
     sensitive_fields: tuple[str, ...] = ("email", "password", "secret", "api_key", "access_token", "authorization")
+    full_targets: tuple[str, ...] = ()
 
     def __post_init__(self):
         if self.level not in ("metadata", "sample", "summary", "full"):
@@ -27,3 +28,5 @@ class CapturePolicy:
                 raise ValueError(f"{key} must be between 1 and {maximum}")
         if len(self.sensitive_fields) > 128 or any(type(f) is not str or len(f) > 256 for f in self.sensitive_fields):
             raise ValueError("Sensitive field configuration is too large")
+        if len(self.full_targets) > 4096 or any(type(key) is not str or len(key) > 4096 for key in self.full_targets):
+            raise ValueError('Targeted full-capture selectors exceed budget')

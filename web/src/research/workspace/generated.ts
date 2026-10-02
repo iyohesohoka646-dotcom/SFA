@@ -704,12 +704,63 @@ export type Definitions1 = ProbeDefinition[];
 export type Dependencies1 = string[];
 export type Url = string | null;
 export type Diagnostics3 = string[];
+export type ProtocolVersion7 = 3;
+export type Id14 = string;
+export type SnapshotId2 = string;
+export type RunId4 = string;
+export type InvocationId1 = string;
+export type Operator = string;
+export type Parents = TargetRef[];
+export type Retained = boolean;
+export type CreatedAt4 = string;
+export type ProtocolVersion8 = 3;
+export type LogicalKey4 = string;
+export type Kind8 = "matrix" | "table" | "series" | "scatter" | "points" | "graph" | "generic";
+export type Label6 = string;
+export type Meaning = string;
+export type Unit = string;
+/**
+ * @maxItems 100000
+ */
+export type Coordinates = JsonValue[];
+/**
+ * @maxItems 100000
+ */
+export type Labels = string[];
+export type Origin1 = "program" | "user" | "model";
+/**
+ * @maxItems 32
+ */
+export type Axes = AxisSemantics[];
+export type Key = string;
+export type Label7 = string;
+export type Meaning1 = string;
+export type Unit1 = string;
+export type Format = string;
+export type Missing = string;
+export type Origin2 = "program" | "user" | "model";
+/**
+ * @maxItems 4096
+ */
+export type Columns = ColumnSemantics[];
+export type ElementMeaning = string;
+export type Unit2 = string;
+export type Origin3 = "program" | "user" | "model";
+export type Revision2 = number;
+export type Accepted = boolean;
+export type Precision = number;
+export type ShowValues = boolean;
+export type ShowCoordinates = boolean;
+export type Palette = "diverging" | "sequential" | "gray";
+export type Scale = "linear" | "log" | "symmetric";
+export type RowLabels = string[];
+export type ColumnLabels = string[];
 export type Question = string;
 export type AnalysisId4 = string;
 export type ObjectId2 = string | null;
 export type SourceObjectIds = string[] | null;
-export type RunId4 = string | null;
-export type SnapshotId2 = string | null;
+export type RunId5 = string | null;
+export type SnapshotId3 = string | null;
 export type SkillId = string | null;
 
 export interface WorkbenchProtocol {
@@ -730,6 +781,9 @@ export interface WorkbenchProtocol {
   ControlSummary: ControlSummary;
   ProbeResource: ProbeResource;
   ResolvedProbeCall: ResolvedProbeCall;
+  DerivedData: DerivedData;
+  DataSemantics: DataSemantics;
+  PresentationSpec: PresentationSpec;
   HarnessRequest: HarnessRequest;
 }
 export interface AnalysisDocument {
@@ -977,6 +1031,7 @@ export interface ExecutionPlan {
   invocations: Invocations;
 }
 export interface ResolvedProbeCall {
+  semantics: Semantics;
   id: Id10;
   definition: ProbeDefinition;
   instance: ProbeInstance;
@@ -984,6 +1039,9 @@ export interface ResolvedProbeCall {
   inputs: Inputs2;
   resource_versions: ResourceVersions;
   input_digest: InputDigest;
+}
+export interface Semantics {
+  [k: string]: JsonValue;
 }
 export interface Inputs2 {
   [k: string]: TargetRef;
@@ -1057,13 +1115,79 @@ export interface ProbeResource {
   url: Url;
   diagnostics: Diagnostics3;
 }
+export interface DerivedData {
+  protocol_version: ProtocolVersion7;
+  id: Id14;
+  snapshot_id: SnapshotId2;
+  run_id: RunId4;
+  invocation_id: InvocationId1;
+  operator: Operator;
+  parents: Parents;
+  inputs: Inputs3;
+  parameters: Parameters2;
+  input_digests: InputDigests;
+  retained: Retained;
+  created_at: CreatedAt4;
+}
+export interface Inputs3 {
+  [k: string]: TargetRef;
+}
+export interface Parameters2 {
+  [k: string]: JsonValue;
+}
+export interface InputDigests {
+  [k: string]: string;
+}
+export interface DataSemantics {
+  protocol_version: ProtocolVersion8;
+  logical_key: LogicalKey4;
+  kind: Kind8;
+  axes: Axes;
+  columns: Columns;
+  element_meaning: ElementMeaning;
+  unit: Unit2;
+  mappings: Mappings;
+  origin: Origin3;
+  revision: Revision2;
+  accepted: Accepted;
+}
+export interface AxisSemantics {
+  label: Label6;
+  meaning: Meaning;
+  unit: Unit;
+  coordinates: Coordinates;
+  labels: Labels;
+  origin: Origin1;
+}
+export interface ColumnSemantics {
+  key: Key;
+  label: Label7;
+  meaning: Meaning1;
+  unit: Unit1;
+  format: Format;
+  missing: Missing;
+  origin: Origin2;
+}
+export interface Mappings {
+  [k: string]: JsonValue;
+}
+export interface PresentationSpec {
+  precision: Precision;
+  show_values: ShowValues;
+  show_coordinates: ShowCoordinates;
+  palette: Palette;
+  scale: Scale;
+  row_labels: RowLabels;
+  column_labels: ColumnLabels;
+  semantics: DataSemantics | null;
+}
 export interface HarnessRequest {
   question: Question;
   analysis_id: AnalysisId4;
   object_id: ObjectId2;
   source_object_ids: SourceObjectIds;
-  run_id: RunId4;
-  snapshot_id: SnapshotId2;
+  run_id: RunId5;
+  snapshot_id: SnapshotId3;
   skill_id: SkillId;
   policy: HarnessPolicy;
 }

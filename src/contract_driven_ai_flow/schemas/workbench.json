@@ -67,6 +67,62 @@
       "title": "AnalysisDocument",
       "type": "object"
     },
+    "AxisSemantics": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "meaning": {
+          "default": "",
+          "title": "Meaning",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "coordinates": {
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxItems": 100000,
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "labels": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100000,
+          "title": "Labels",
+          "type": "array"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "program",
+            "user",
+            "model"
+          ],
+          "title": "Origin",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "meaning",
+        "unit",
+        "coordinates",
+        "labels",
+        "origin"
+      ],
+      "title": "AxisSemantics",
+      "type": "object"
+    },
     "CodeProposal": {
       "additionalProperties": false,
       "properties": {
@@ -225,6 +281,61 @@
       "title": "CodeProposal",
       "type": "object"
     },
+    "ColumnSemantics": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "meaning": {
+          "default": "",
+          "title": "Meaning",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "format": {
+          "default": "",
+          "title": "Format",
+          "type": "string"
+        },
+        "missing": {
+          "default": "—",
+          "title": "Missing",
+          "type": "string"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "program",
+            "user",
+            "model"
+          ],
+          "title": "Origin",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "meaning",
+        "unit",
+        "format",
+        "missing",
+        "origin"
+      ],
+      "title": "ColumnSemantics",
+      "type": "object"
+    },
     "ControlSummary": {
       "additionalProperties": false,
       "properties": {
@@ -346,6 +457,188 @@
         "omitted_activations"
       ],
       "title": "ControlSummary",
+      "type": "object"
+    },
+    "DataSemantics": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 3,
+          "default": 3,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "logical_key": {
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "kind": {
+          "default": "generic",
+          "enum": [
+            "matrix",
+            "table",
+            "series",
+            "scatter",
+            "points",
+            "graph",
+            "generic"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "axes": {
+          "items": {
+            "$ref": "#/$defs/AxisSemantics"
+          },
+          "maxItems": 32,
+          "title": "Axes",
+          "type": "array"
+        },
+        "columns": {
+          "items": {
+            "$ref": "#/$defs/ColumnSemantics"
+          },
+          "maxItems": 4096,
+          "title": "Columns",
+          "type": "array"
+        },
+        "element_meaning": {
+          "default": "",
+          "title": "Element Meaning",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "mappings": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Mappings",
+          "type": "object"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "program",
+            "user",
+            "model"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "accepted": {
+          "default": true,
+          "title": "Accepted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "logical_key",
+        "kind",
+        "axes",
+        "columns",
+        "element_meaning",
+        "unit",
+        "mappings",
+        "origin",
+        "revision",
+        "accepted"
+      ],
+      "title": "DataSemantics",
+      "type": "object"
+    },
+    "DerivedData": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 3,
+          "default": 3,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "invocation_id": {
+          "title": "Invocation Id",
+          "type": "string"
+        },
+        "operator": {
+          "title": "Operator",
+          "type": "string"
+        },
+        "parents": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Parents",
+          "type": "array"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Inputs",
+          "type": "object"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "input_digests": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Input Digests",
+          "type": "object"
+        },
+        "retained": {
+          "default": true,
+          "title": "Retained",
+          "type": "boolean"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "snapshot_id",
+        "run_id",
+        "invocation_id",
+        "operator",
+        "parents",
+        "inputs",
+        "parameters",
+        "input_digests",
+        "retained",
+        "created_at"
+      ],
+      "title": "DerivedData",
       "type": "object"
     },
     "ExecutionPlan": {
@@ -1068,6 +1361,85 @@
       "type": "object"
     },
     "JsonValue": {},
+    "PresentationSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "precision": {
+          "default": 3,
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Precision",
+          "type": "integer"
+        },
+        "show_values": {
+          "default": false,
+          "title": "Show Values",
+          "type": "boolean"
+        },
+        "show_coordinates": {
+          "default": true,
+          "title": "Show Coordinates",
+          "type": "boolean"
+        },
+        "palette": {
+          "default": "diverging",
+          "enum": [
+            "diverging",
+            "sequential",
+            "gray"
+          ],
+          "title": "Palette",
+          "type": "string"
+        },
+        "scale": {
+          "default": "linear",
+          "enum": [
+            "linear",
+            "log",
+            "symmetric"
+          ],
+          "title": "Scale",
+          "type": "string"
+        },
+        "row_labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Row Labels",
+          "type": "array"
+        },
+        "column_labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Column Labels",
+          "type": "array"
+        },
+        "semantics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataSemantics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "precision",
+        "show_values",
+        "show_coordinates",
+        "palette",
+        "scale",
+        "row_labels",
+        "column_labels",
+        "semantics"
+      ],
+      "title": "PresentationSpec",
+      "type": "object"
+    },
     "ProbeDefinition": {
       "additionalProperties": false,
       "properties": {
@@ -1734,6 +2106,13 @@
     "ResolvedProbeCall": {
       "additionalProperties": false,
       "properties": {
+        "semantics": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Semantics",
+          "type": "object"
+        },
         "id": {
           "title": "Id",
           "type": "string"
@@ -1772,6 +2151,7 @@
         }
       },
       "required": [
+        "semantics",
         "id",
         "definition",
         "instance",
@@ -2460,6 +2840,15 @@
     "ResolvedProbeCall": {
       "$ref": "#/$defs/ResolvedProbeCall"
     },
+    "DerivedData": {
+      "$ref": "#/$defs/DerivedData"
+    },
+    "DataSemantics": {
+      "$ref": "#/$defs/DataSemantics"
+    },
+    "PresentationSpec": {
+      "$ref": "#/$defs/PresentationSpec"
+    },
     "HarnessRequest": {
       "$ref": "#/$defs/HarnessRequest"
     }
@@ -2482,6 +2871,9 @@
     "ControlSummary",
     "ProbeResource",
     "ResolvedProbeCall",
+    "DerivedData",
+    "DataSemantics",
+    "PresentationSpec",
     "HarnessRequest"
   ],
   "title": "WorkbenchProtocol",

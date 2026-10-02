@@ -37,8 +37,17 @@ class ProbeCatalog:
             input_roles=[InputRole(name='left'), InputRole(name='right')], parameter_schema={**VIEW_SCHEMA, 'properties': {**VIEW_SCHEMA['properties'], 'shared_scale': {'type': 'boolean'}, 'linked_zoom': {'type': 'boolean'}}}))
         for key, label in [('elementwise', '逐元素运算'), ('matmul', '矩阵乘法'), ('correlation', '数值相关'), ('join', '按键表格连接'), ('aggregate', '聚合')]:
             roles = [InputRole(name='input')] if key == 'aggregate' else [InputRole(name='left'), InputRole(name='right')]
+            properties = {'missing': {'type': 'string', 'enum': ['error', 'propagate'] + (['pairwise'] if key == 'correlation' else [])},
+                'alignment': {'type': 'string', 'enum': ['coordinates', 'positional']}, 'allow_cross_run': {'type': 'boolean'}}
+            properties.update({
+                'elementwise': {'operation': {'type': 'string', 'enum': ['subtract', 'add', 'multiply', 'divide']}, 'broadcast': {'type': 'boolean'}},
+                'matmul': {}, 'correlation': {'flatten': {'type': 'boolean'}},
+                'aggregate': {'method': {'type': 'string', 'enum': ['mean', 'sum', 'min', 'max', 'std', 'median']}, 'axis': {'type': ['integer', 'null']}},
+                'join': {'keys': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 1}, 'how': {'type': 'string', 'enum': ['inner', 'left', 'right', 'outer']},
+                    'cardinality': {'type': 'string', 'enum': ['one_to_one', 'one_to_many', 'many_to_one', 'many_to_many']}}
+            }[key])
             self.register(ProbeDefinition(id='derive.' + key, label=label, capability='derive', execution='builtin', input_mode='joint',
-                input_roles=roles, evidence='full_coordinates' if key == 'join' else 'full', output_kinds=['data'], parameter_schema={'type': 'object'}))
+                input_roles=roles, evidence='full_coordinates' if key == 'join' else 'full', output_kinds=['data'], parameter_schema={'type': 'object', 'properties': properties}))
 
     def register(self, definition: ProbeDefinition):
         from jsonschema import Draft202012Validator, SchemaError

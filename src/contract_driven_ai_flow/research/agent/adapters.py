@@ -227,6 +227,7 @@ class PandasAdapter:
         # arbitrary object columns cannot invoke repr/Arrow conversion hooks.
         columns = []
         estimated = 0
+        redacted = False
         for c in range(frame.shape[1]):
             name = frame.columns[c]
             private = type(name) is str and sensitive(name, policy.sensitive_fields)
@@ -234,6 +235,7 @@ class PandasAdapter:
             for v in frame.iloc[:, c]:
                 if private:
                     item = "[REDACTED]"
+                    redacted = True
                 elif type(v) is str:
                     # Size check precedes copying/JSON encoding, including
                     # object-column strings absent from shallow memory_usage.
@@ -242,6 +244,7 @@ class PandasAdapter:
                         raise ValueError("artifact_byte_limit")
                     from .privacy import clean_text
                     item = clean_text(v, policy.max_artifact_bytes)
+                    redacted = redacted or item != v
                 else:
                     item = cell(v)
                 estimated += 32
@@ -255,9 +258,16 @@ class PandasAdapter:
             import json
             columns.append(pa.array([json.dumps(v, allow_nan=False, ensure_ascii=False) for v in items]))
         table = pa.Table.from_arrays(columns, names=["column_" + str(i) for i in range(len(columns))])
-        table = table.replace_schema_metadata({b"cdaf.cell_encoding": b"json-v1"})
+        coordinates = {'columns': [cell(name) for name in frame.columns], 'index': [cell(value) for value in frame.index],
+            'index_names': [cell(name) for name in frame.index.names], 'column_names': [cell(name) for name in frame.columns.names]}
+        encoded_coordinates = json.dumps(coordinates, ensure_ascii=False, allow_nan=False).encode('utf-8')
+        if len(encoded_coordinates) + estimated > policy.max_artifact_bytes:
+            raise ValueError('artifact_byte_limit')
+        redacted = redacted or b'[REDACTED' in encoded_coordinates
+        table = table.replace_schema_metadata({b"cdaf.cell_encoding": b"json-v1", b'cdaf.coordinates': encoded_coordinates, b'cdaf.coordinate_encoding': b'json-v2'})
         with ipc.new_file(target, table.schema) as writer:
             writer.write_table(table)
+        return {'coordinates_complete': True, 'coordinate_encoding': 'json-v2', 'redacted': redacted}
 
 
 def describe(value: object) -> dict:

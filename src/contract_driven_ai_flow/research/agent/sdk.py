@@ -7,7 +7,7 @@ import threading
 import time
 import uuid
 from contextlib import contextmanager
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -69,12 +69,13 @@ class TraceSession:
         binding = scope_id + ":" + name
         from .source import logical_binding
         logical_key = logical_binding(source, scope_id, name)
+        capture_policy = replace(self.policy, level='full') if logical_key in self.policy.full_targets else self.policy
         operation = self._current.get()
         private = sensitive(name, self.policy.sensitive_fields)
         adapter = self.registry._unknown
         try:
             adapter = self.registry.resolve(value)
-            result = adapter.capture(value, CapturePolicy(level="metadata") if private else self.policy)
+            result = adapter.capture(value, CapturePolicy(level="metadata") if private else capture_policy)
             # Validate BEFORE sanitising: invalid adapter data cannot masquerade
             # as a successful, partially hidden capture.
             json.dumps(asdict(result), allow_nan=False)
@@ -113,7 +114,7 @@ class TraceSession:
         artifact = None
         if private:
             redacted.append("binding:" + name)
-        elif self.policy.level == "full":
+        elif capture_policy.level == "full":
             if self.writer is None:
                 truncation.append("artifact_storage_unconfigured")
             else:

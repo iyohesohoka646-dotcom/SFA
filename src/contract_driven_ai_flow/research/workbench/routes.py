@@ -5,6 +5,7 @@ from pydantic import Field
 from ..models import WireModel
 from .models import WorkbenchConfig
 from .semantic_models import ScopeSelector
+from .data_semantics import DataSemantics
 from .intelligence.harness import HarnessRequest
 
 
@@ -15,6 +16,11 @@ class ImportRequest(WireModel):
 class SaveConfig(WireModel):
     config: WorkbenchConfig
     expected_revision: int = Field(ge=0)
+
+
+class SaveSemantics(WireModel):
+    semantics: DataSemantics
+    expected_revision: int | None = None
 
 
 class PlanRequest(WireModel):
@@ -118,6 +124,27 @@ def attach_workbench_routes(app, research):
     @router.get('/snapshots/{key}/presenters')
     def presenters(key: str, analysis_id: str | None = None):
         return service.presenters(key, analysis_id)
+
+    @router.get('/snapshots/{key}/semantics')
+    def semantics(key: str):
+        snapshot = research.store.snapshot(key)
+        return service.semantics.get(snapshot.logical_key)
+
+    @router.put('/snapshots/{key}/semantics')
+    def save_semantics(key: str, body: SaveSemantics):
+        snapshot = research.store.snapshot(key)
+        if snapshot.logical_key != body.semantics.logical_key:
+            raise ValueError('Data semantics belongs to another logical object')
+        return service.semantics.save(body.semantics, shape=snapshot.descriptor.shape, expected_revision=body.expected_revision)
+
+    @router.get('/templates')
+    def templates():
+        return service.semantics.templates()
+
+    @router.post('/templates')
+    def save_template(body: dict):
+        return service.semantics.save_template(body['id'], body['label'], body['definition_id'], body['parameters'],
+            DataSemantics.model_validate(body['semantics']) if body.get('semantics') else None)
 
     @router.post('/plans')
     def plan(body: PlanRequest):

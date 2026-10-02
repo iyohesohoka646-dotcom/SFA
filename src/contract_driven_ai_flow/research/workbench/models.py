@@ -117,6 +117,7 @@ class ProbeInstance(WireModel):
 
 
 class ResolvedProbeCall(WireModel):
+    semantics: dict[str, JsonValue] = Field(default_factory=dict)
     id: str = Field(default_factory=uid)
     definition: ProbeDefinition
     instance: ProbeInstance
@@ -124,6 +125,21 @@ class ResolvedProbeCall(WireModel):
     inputs: dict[str, TargetRef] = Field(default_factory=dict)
     resource_versions: dict[str, str] = Field(default_factory=dict)
     input_digest: str = ''
+
+
+class DerivedData(WireModel):
+    protocol_version: Literal[3] = 3
+    id: str
+    snapshot_id: str
+    run_id: str
+    invocation_id: str
+    operator: str
+    parents: list[TargetRef]
+    inputs: dict[str, TargetRef]
+    parameters: dict[str, JsonValue]
+    input_digests: dict[str, str]
+    retained: bool = True
+    created_at: str = Field(default_factory=timestamp)
 
 
 class ProbeOutput(WireModel):

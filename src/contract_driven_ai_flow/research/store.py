@@ -50,6 +50,9 @@ class ExperimentStore:
                     PRIMARY KEY(run_id,ordinal));
                 CREATE TABLE IF NOT EXISTS control_receipts (
                     run_id TEXT PRIMARY KEY, body TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS artifact_leases (
+                    reference TEXT NOT NULL, owner TEXT NOT NULL, until TEXT,
+                    PRIMARY KEY(reference,owner));
             """)
 
     @contextmanager
@@ -283,7 +286,9 @@ class ExperimentStore:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
         with self.connect() as db:
             rows = db.execute("SELECT s.body,r.finished FROM snapshots s JOIN runs r ON r.id=s.run_id").fetchall()
+            leases = db.execute('SELECT reference FROM artifact_leases WHERE until IS NULL OR until>?', (timestamp(),)).fetchall()
         expired, protected = set(), set()
+        protected.update(row['reference'] for row in leases)
         for row in rows:
             reference = json.loads(row["body"]).get("artifact_ref")
             if reference:
@@ -296,8 +301,29 @@ class ExperimentStore:
             path = self.state / reference
             if path.is_file() and not path.is_symlink() and path.resolve().parent == directory:
                 path.unlink()
+                path.with_suffix(path.suffix+'.meta.json').unlink(missing_ok=True)
                 count += 1
         return {"artifacts_deleted": count, "history_preserved": True, "definitions_preserved": True}
+
+    def retain_artifacts(self, snapshot_ids, owner, minutes=None):
+        until = (datetime.now(timezone.utc)+timedelta(minutes=minutes)).isoformat() if minutes else None
+        pending, seen, references = list(snapshot_ids), set(), set()
+        while pending:
+            key = pending.pop()
+            if key in seen:
+                continue
+            seen.add(key)
+            snapshot = self.snapshot(key)
+            if snapshot.artifact_ref:
+                references.add(snapshot.artifact_ref)
+            pending.extend(snapshot.parents)
+        with self.connect() as db:
+            for reference in references:
+                db.execute('INSERT INTO artifact_leases VALUES (?,?,?) ON CONFLICT(reference,owner) DO UPDATE SET until=excluded.until', (reference, owner, until))
+
+    def release_artifacts(self, owner):
+        with self.connect() as db:
+            db.execute('DELETE FROM artifact_leases WHERE owner=?', (owner,))
 
     def slice(self, snapshot_id: str, selectors: Sequence[dict]) -> dict:
         snapshot = self.snapshot(snapshot_id)

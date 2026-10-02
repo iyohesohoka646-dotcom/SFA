@@ -87,9 +87,17 @@ def resolve_calls(analysis, config, definitions, targets, snapshots=(), resource
                 if len(eligible) != len(roles):
                     raise ValueError(f'{definition.label} requires roles: {", ".join(roles)}')
                 inputs = dict(zip(roles, eligible))
-            available = {target.snapshot_id or target.object_id or target.block_id: target for target in targets}
-            if any((ref.snapshot_id or ref.object_id or ref.block_id) not in available for ref in inputs.values()):
-                raise ValueError('Joint input is not in the frozen scope')
+            resolved_inputs = {}
+            for role, ref in inputs.items():
+                matches = [target for target in targets if (target.snapshot_id == ref.snapshot_id if ref.snapshot_id else target.logical_key == ref.logical_key)]
+                if not matches:
+                    raise ValueError('Joint input is not in the frozen scope')
+                if len(matches) > 1:
+                    raise ValueError('Joint input has multiple evidence versions; select one explicitly')
+                resolved_inputs[role] = matches[0].model_copy(deep=True)
+            inputs = resolved_inputs
+            if set(inputs) - {role.name for role in definition.input_roles}:
+                raise ValueError('Unknown joint input role')
             if any(role.required and role.name not in inputs for role in definition.input_roles):
                 raise ValueError('Joint input roles are incomplete')
             groups = [(list(inputs.values()), inputs)]

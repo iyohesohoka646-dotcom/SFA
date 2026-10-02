@@ -33,6 +33,8 @@ class WorkbenchService:
         self.tools = ToolManager(self.root)
         from .resources import ResourceManager
         self.resources = ResourceManager(self.root, self.catalog, self.tools)
+        from .data_semantics import SemanticsService
+        self.semantics = SemanticsService(self.root)
         self.drawing = DrawingService(self.root, self.catalog, pool=research.pool, tools=self.tools)
         self.jobs = JobManager(self.store)
         self.models = None
@@ -115,6 +117,9 @@ class WorkbenchService:
             raise ValueError('Snapshot belongs to another run')
         plan = compile_plan(analysis, config, self.catalog.definitions(), scope=scope,
             run_id=run_id, snapshot_ids=snapshot_ids, environment=environment, snapshots=snapshots, target_scope=target_scope)
+        for call in plan.invocations:
+            call.semantics = {target.logical_key: value.model_dump(mode='json') for target in call.targets
+                if (value := self.semantics.get(target.logical_key)) is not None and value.accepted}
         self.store.put('plans', plan.id, plan)
         return plan
 
@@ -150,8 +155,11 @@ class WorkbenchService:
             checks = [spec.model_dump(mode='json') for spec in grouped.values()]
             if cancel.is_set():
                 raise InterruptedError()
+            full_targets = list(dict.fromkeys(target.logical_key for call in plan.invocations
+                if call.definition.evidence in ('full', 'full_coordinates') for target in call.targets if target.kind == 'data'))
             handle = self.research.start_analysis(Path(self.analysis(plan.analysis_id).path), interpreter=config.interpreter or None,
-                arguments=config.arguments, mode=config.capture, probes=checks, adapters=config.adapters, expected_digest=plan.source_digest)
+                arguments=config.arguments, mode=config.capture, probes=checks, adapters=config.adapters,
+                capture={'full_targets': full_targets}, expected_digest=plan.source_digest)
             run_id = handle.run_id
             self.jobs.update(task.id, run_id=run_id, calculation_status='running')
             while True:
@@ -185,6 +193,9 @@ class WorkbenchService:
             targets = resolve_scope(analysis.graph, plan.target_scope, available)
             calls = resolve_calls(analysis, plan.config, plan.definitions, targets, snapshots,
                 resource_versions=plan.invocations[0].resource_versions if plan.invocations else {}, scope=plan.scope)
+            frozen_meaning = {key: value for call in plan.invocations for key, value in call.semantics.items()}
+            for call in calls:
+                call.semantics = {target.logical_key: frozen_meaning[target.logical_key] for target in call.targets if target.logical_key in frozen_meaning}
         else:
             calls = plan.invocations
         outputs = []
@@ -247,9 +258,8 @@ class WorkbenchService:
         return self.drawing.render(instance, snapshot, cancel=cancel, definition=definition, resource_versions=invocation.resource_versions)
 
     def _joint_output(self, invocation, run_id, plan, cancel):
-        return ProbeOutput(instance_id=invocation.instance.id, definition_id=invocation.definition.id,
-            capability=invocation.definition.capability, execution=invocation.definition.execution,
-            status='unknown', run_id=run_id, analysis_id=plan.analysis_id, message='联合输入执行服务正在接入')
+        from .derivation import DerivationService
+        return DerivationService(self).execute(invocation, run_id, plan, cancel)
 
     def _block_output(self, invocation, run_id, plan):
         target, definition = invocation.targets[0], invocation.definition
