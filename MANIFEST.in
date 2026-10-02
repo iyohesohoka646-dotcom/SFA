@@ -15,6 +15,9 @@ recursive-include scripts *.py
 recursive-include scripts *.ps1
 recursive-include scripts *.cjs
 recursive-include docs *.md *.html *.json *.svg *.png
+# Artifact digests are recorded alongside the archives in the repository.
+# Embedding the archive's own digest would make the receipt self-referential.
+exclude docs/assets/scientific-release-validation.json
 recursive-include tests *.py
 recursive-include examples *.py *.json *.yaml *.yml *.md
 prune examples/*/.cdaf

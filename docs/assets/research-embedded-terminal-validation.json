@@ -1,6 +1,7 @@
 {
   "platform": "win32",
-  "installed": false,
+  "installed": true,
+  "device_scale_factor": 1.5,
   "unicode": true,
   "real_python": true,
   "real_cli": true,

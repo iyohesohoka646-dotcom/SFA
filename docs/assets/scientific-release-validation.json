@@ -1,28 +1,61 @@
 {
-  "version": "0.4.0",
-  "verified_at": "2026-10-02T14:28:11.603922+00:00",
-  "python_tests": 573,
-  "frontend_unit_tests": 20,
-  "browser_tests": 45,
+  "version": "0.5.0",
+  "verified_at": "2026-10-02T23:49:22.508070+00:00",
+  "code_commit": "95187f2698bbd0ad58476dc72c669de105c85733",
+  "python_tests": 686,
+  "python_skipped_on_windows": 7,
+  "real_wsl_posix_tests": 7,
+  "frontend_unit_tests": 29,
+  "browser_tests": 65,
+  "browser_failures": 0,
   "desktop_unit_tests": 2,
   "fresh_wheel_install": "passed",
   "fresh_source_install": "passed",
   "package_bytes": {
     "result": "passed",
-    "wheel_source_files": 221,
-    "desktop_files": 221,
-    "packaged_desktop_files": 221,
-    "source_archive_files": 221,
-    "wheel_sha256": "b07db6e003c568cdc8ce21c81243856397283ea2a02a5acdb1a0f3bd8bf71330",
-    "source_sha256": "8a44cc8b47f0c150df5b462a938ac0ca914cda6138c0ae7dcc8249c2fac4112d"
+    "matched_files_per_target": 261,
+    "targets": [
+      "checkout",
+      "wheel",
+      "source_archive",
+      "private_runtime",
+      "packaged_win_unpacked"
+    ],
+    "exact_static_file_set": 124,
+    "wheel_sha256": "0658211b904cae62819369686a606b248184c239a2e65128103c46771a193480",
+    "source_sha256": "3f4690edbd33f651826e47daea1a8c4c9af132c2619aa963dfeae8f4ce2f03fc"
+  },
+  "selection_performance": {
+    "visible_p95_ms": 2.4000000059604645,
+    "hidden_mounted_p95_ms": 3.899999976158142,
+    "samples_each": 20,
+    "fixture": {
+      "logical_objects": 1000,
+      "versions": 10,
+      "events": 10000
+    },
+    "scope": "Synthetic saved-history fixture; selection event to next animation frame, with DOM effects checked. Excludes scientific computation and cold import."
+  },
+  "layout_effects": {
+    "widths": [
+      900,
+      1100,
+      1280,
+      1600
+    ],
+    "browser_device_scale_factors": [
+      1.25,
+      1.5
+    ]
   },
   "windows_native": {
     "platform": "win32",
     "installed": true,
-    "core_version": "0.4.0",
+    "device_scale_factor": 1.25,
+    "core_version": "0.5.0",
     "window_close": true,
     "port_released": true,
-    "backend_pid": 58084,
+    "backend_pid": 48576,
     "own_script": true,
     "source_preserved": true,
     "matrix_and_anomaly": true,
@@ -31,17 +64,45 @@
     "shared_cli_history": true,
     "offline_models": true,
     "offline_report_privacy": true,
-    "run_id": "1c1c19f2cc47427aa1a8b65c2f9d52e6",
-    "result": "passed"
+    "run_id": "b7cd2fe7d8ff4f3785f0953afeac6a98",
+    "result": "passed",
+    "mode": "packaged_win_unpacked",
+    "nsis_wizard_executed": false
+  },
+  "windows_native_terminal": {
+    "platform": "win32",
+    "installed": true,
+    "device_scale_factor": 1.5,
+    "unicode": true,
+    "real_python": true,
+    "real_cli": true,
+    "real_shell": true,
+    "concurrent_sessions": 3,
+    "owner_exit_cleanup": true,
+    "port_released": true,
+    "result": "passed",
+    "mode": "packaged_win_unpacked"
   },
   "installer": {
-    "filename": "Scientific Dataflow Inspector Setup 0.4.0.exe",
-    "bytes": 220475557,
-    "sha256": "e77069d96648eb1dab03f131482a0a50e23e59d6a65f5aa9e9cc70f2d32f2f44",
+    "filename": "Scientific Dataflow Inspector Setup 0.5.0.exe",
+    "bytes": 240274986,
+    "sha256": "bee8c58478fac2c610ffa8ffc6682455eab16b46e6a9996b2d66e4aec198d634",
     "wizard_executed": false,
     "signed": false
   },
-  "remote_model_inference": "unverified",
-  "macos_linux_native": "unverified",
-  "result": "passed"
+  "remote_model_inference": "unverified; offline and HTTP protocol fixture passed",
+  "macos_linux_native_desktop": "unverified; Python CI and real WSL terminal checks are separate",
+  "cross_platform_ci": {
+    "status_at_archive": "awaiting_authorized_push",
+    "latest_branch_required": true,
+    "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions?query=branch%3Afeat%2Fcontract-driven-ai-flow"
+  },
+  "review": {
+    "fresh_reviews": 1,
+    "material_findings_fixed": 10,
+    "minor_findings": 0,
+    "report": "docs/research/hierarchical-review-report.md",
+    "ledger": "docs/research/hierarchical-workbench-ledger.md"
+  },
+  "result": "passed_local_acceptance"
 }
