@@ -47,6 +47,18 @@ class ManualRequest(WireModel):
     verdict: str = 'unknown'
 
 
+class ProposalRequest(WireModel):
+    analysis_id: str
+    object_id: str | None = None
+    relative_path: str | None = None
+    candidate: str = Field(max_length=16384)
+
+
+class ValidationRequest(WireModel):
+    run_id: str
+    output_ids: list[str] = Field(min_length=1, max_length=512)
+
+
 def attach_workbench_routes(app, research):
     service = research.workbench
     service.models = app.state.models
@@ -169,5 +181,35 @@ def attach_workbench_routes(app, research):
     @router.post('/manual-results')
     def manual_result(body: ManualRequest):
         return service.harness.manual(**body.model_dump())
+
+    @router.get('/changes')
+    def changes():
+        return service.store.list('proposals')
+
+    @router.post('/changes')
+    def propose(body: ProposalRequest):
+        if body.object_id:
+            return service.changes.propose(body.analysis_id, body.object_id, body.candidate)
+        return service.changes.propose_new(body.analysis_id, body.relative_path or 'derived_analysis.py', body.candidate)
+
+    @router.post('/changes/{key}/validate')
+    def validate(key: str):
+        return service.changes.validate(key)
+
+    @router.post('/changes/{key}/accept')
+    def accept(key: str):
+        return service.changes.accept(key)
+
+    @router.post('/changes/{key}/reject')
+    def reject(key: str):
+        return service.changes.reject(key)
+
+    @router.post('/changes/{key}/rollback')
+    def rollback(key: str):
+        return service.changes.rollback(key)
+
+    @router.post('/changes/{key}/validation')
+    def record_validation(key: str, body: ValidationRequest):
+        return service.changes.record_validation(key, body.run_id, body.output_ids)
 
     app.include_router(router)

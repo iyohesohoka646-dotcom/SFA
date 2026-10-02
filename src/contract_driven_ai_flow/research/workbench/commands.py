@@ -38,5 +38,11 @@ async def execute_command(command, arguments, service, settings):
             return service.ask(HarnessRequest.model_validate(arguments)).model_dump(mode='json')
         if command == 'context':
             return service.store.get('contexts', arguments['context_id'])
+        if command == 'changes':
+            return service.store.list('proposals')
+        if command == 'propose':
+            return service.changes.propose(**arguments).model_dump(mode='json')
+        if command in ('accept', 'reject', 'rollback', 'validate'):
+            return getattr(service.changes, command)(arguments['proposal_id']).model_dump(mode='json')
         raise ValueError('Unknown workbench command')
     return await asyncio.to_thread(invoke)

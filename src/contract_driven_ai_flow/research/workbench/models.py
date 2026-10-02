@@ -87,7 +87,7 @@ class ProbeOutput(WireModel):
     artifact_id: str | None = None
     cache_key: str = ''
     duration_ms: float = 0
-    provenance: Literal['observed', 'inferred', 'declared', 'manual', 'model', 'unknown'] = 'observed'
+    provenance: Literal['observed', 'inferred', 'declared', 'manual', 'model', 'skill', 'unknown'] = 'observed'
 
 
 class HarnessPolicy(WireModel):
@@ -157,11 +157,14 @@ class CodeProposal(WireModel):
     object_id: str | None = None
     path: str
     source_digest: str
-    candidate: str
+    candidate: str = Field(max_length=16384)
+    original_fragment: str | None = None
     diff: str = ''
     diagnostics: list[str] = Field(default_factory=list)
     status: Literal['proposed', 'valid', 'invalid', 'accepted', 'rejected', 'conflict'] = 'proposed'
     behavior: Literal['unverified', 'verified'] = 'unverified'
     accepted_digest: str | None = None
+    validation_run_id: str | None = None
+    validation_output_ids: list[str] = Field(default_factory=list)
     rollback_of: str | None = None
     created_at: str = Field(default_factory=timestamp)

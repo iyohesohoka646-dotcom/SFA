@@ -31,8 +31,16 @@ class WorkbenchService:
         self.jobs = JobManager(self.store)
         self.models = None
         self._harness = None
+        self._changes = None
         self._owns_models = False
         self._closed = False
+
+    @property
+    def changes(self):
+        from .changes import ScientificChangeService
+        if self._changes is None:
+            self._changes = ScientificChangeService(self)
+        return self._changes
 
     @property
     def harness(self):
@@ -175,7 +183,7 @@ class WorkbenchService:
                     output = ProbeOutput(instance_id=instance.id, definition_id=definition.id, capability=definition.capability, execution=definition.execution,
                         status='ready' if result['status'] == 'completed' else 'cancelled' if result['status'] == 'cancelled' else 'unknown' if result['status'] == 'offline' else 'error',
                         run_id=run_id, snapshot_id=snapshot.id, analysis_id=plan.analysis_id, fidelity=snapshot.fidelity,
-                        provenance='model', message=result['answer'] or result['message'], data={'context_id': result['context_id'], 'citations': result['citations'], 'automatic_check': False})
+                        provenance='skill' if definition.execution == 'skill' else 'model', message=result['answer'] or result['message'], data={'context_id': result['context_id'], 'citations': result['citations'], 'automatic_check': False})
                 else:
                     output = self.drawing.render(instance, snapshot, cancel=cancel)
                 self.store.put('outputs', output.id, output)
