@@ -5,11 +5,13 @@ import time
 
 from ..models import timestamp
 from .models import TaskRecord
+from .ownership import current_owner
 
 
 class JobManager:
     def __init__(self, store, *, max_workers=3):
         self.store = store
+        self.owner = current_owner()
         self.store.recover()
         self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix='cdaf-workbench')
         self._active = {}
@@ -26,7 +28,7 @@ class JobManager:
         with self._lock:
             if self._closed or len(self._active) >= 16:
                 raise ValueError('Task queue is full or closed')
-            task = TaskRecord(kind=kind, plan_id=plan_id, receipt=receipt or {})
+            task = TaskRecord(kind=kind, plan_id=plan_id, receipt={**(receipt or {}), '_owner': self.owner})
             self.store.put('tasks', task.id, task)
             cancel = threading.Event()
             self._active[task.id] = (cancel, None)

@@ -38,13 +38,11 @@ class HarnessToolRegistry:
         if name not in definitions:
             raise ValueError('Tool is not registered for this task role')
         jsonschema.validate(arguments, definitions[name]['arguments'])
-        analysis = self.workbench.analysis(request.analysis_id)
-        if analyze_source(Path(analysis.path)).source_digest != analysis.source_digest:
-            raise ValueError('Source changed during model work')
+        analysis = self.context.validate_source(request.analysis_id)
         reference = name
         if name == 'source.read':
             key = arguments['object_id']
-            if key not in self.context.allowed_objects(analysis, request.object_id):
+            if key not in self.context.authorized_objects(analysis, request):
                 raise ValueError('Object is outside this task’s source scope')
             obj = next((obj for obj in analysis.objects if obj.id == key and obj.kind != 'class'), None)
             if obj is None:
@@ -89,7 +87,7 @@ class HarnessToolRegistry:
             data = self.workbench.execute(arguments['plan_id']).model_dump(mode='json')
             reference = 'task:' + data['id']
         elif name == 'code.propose':
-            if arguments['object_id'] not in self.context.allowed_objects(analysis, request.object_id):
+            if arguments['object_id'] not in self.context.authorized_objects(analysis, request):
                 raise ValueError('Proposal target is outside task scope')
             data = self.workbench.changes.propose(analysis.id, arguments['object_id'], arguments['candidate']).model_dump(mode='json')
             reference = 'proposal:' + data['id']

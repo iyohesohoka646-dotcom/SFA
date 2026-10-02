@@ -252,28 +252,39 @@ class ProbeWorker:
         if self.messages.get(timeout=3).get("type") != "ready":
             raise ValueError("Probe worker did not become ready")
 
-    def request(self, value, timeout):
+    def request(self, value, timeout, cancel=None):
         encoded = json.dumps(value, allow_nan=False, ensure_ascii=False).encode("utf-8")
         if len(encoded) > 512 * 1024:
             raise ValueError("Probe frame exceeds byte budget")
         self.process.stdin.write(encoded + b"\n")
         self.process.stdin.flush()
-        response = self.messages.get(timeout=timeout)
+        deadline = time.monotonic() + timeout
+        while True:
+            if cancel is not None and cancel.is_set():
+                raise InterruptedError('Probe task was cancelled')
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise queue.Empty()
+            try:
+                response = self.messages.get(timeout=min(.05, remaining))
+                break
+            except queue.Empty:
+                continue
         if not isinstance(response, dict) or response.get("request_id") != value["request_id"]:
             raise ValueError("Probe protocol response is invalid")
         return response
 
-    def evaluate(self, spec, snapshot, plugin):
+    def evaluate(self, spec, snapshot, plugin, cancel=None):
         self.start()
         entrypoint = plugin["entrypoint"]
         if entrypoint not in self.prepared:
-            prepared = self.request({"type": "prepare", "request_id": uuid.uuid4().hex, "entrypoint": entrypoint}, 3)
+            prepared = self.request({"type": "prepare", "request_id": uuid.uuid4().hex, "entrypoint": entrypoint}, 3, cancel)
             if prepared.get("type") != "prepared":
                 raise ValueError("Probe plugin failed to load")
             self.prepared.add(entrypoint)
         response = self.request({"type": "evaluate", "request_id": uuid.uuid4().hex, "entrypoint": entrypoint,
             "spec": spec.model_dump(mode="json"), "snapshot": snapshot.model_dump(mode="json"),
-            "artifact_path": plugin.get("artifact_path")}, spec.budget_ms / 1000)
+            "artifact_path": plugin.get("artifact_path")}, spec.budget_ms / 1000, cancel)
         evaluated = ProbeResult.model_validate(response["result"])
         if evaluated.probe_id != spec.id or evaluated.snapshot_id != snapshot.id:
             raise ValueError("Probe result identity does not match its request")
@@ -316,9 +327,9 @@ class ProbePool:
         self._worker_runs = {}
         self._cancelled = set()
 
-    def _evaluate(self, spec, snapshot):
+    def _evaluate(self, spec, snapshot, cancel=None):
         with self._jobs_lock:
-            if self._closed or snapshot.run_id in self._cancelled:
+            if self._closed or snapshot.run_id in self._cancelled or cancel is not None and cancel.is_set():
                 return result(spec, snapshot, "skipped", "Probe was cancelled", evidence={"reason": "cancelled"})
         plugin = self.registry.plugin(spec.kind)
         if spec.kind in EXPENSIVE and spec.enabled and spec.parameters.get("enable_expensive") is True:
@@ -334,16 +345,26 @@ class ProbePool:
             plugin = {"entrypoint": "__builtin_numpy__", "artifact_path": str(path)}
         if plugin is None or not spec.enabled:
             return evaluate_probe(spec, snapshot)
-        worker = self._workers.get()
+        while True:
+            if cancel is not None and cancel.is_set():
+                return result(spec, snapshot, 'skipped', 'Probe task was cancelled', evidence={'reason': 'cancelled'})
+            try:
+                worker = self._workers.get(timeout=.05)
+                break
+            except queue.Empty:
+                continue
         with self._jobs_lock:
-            if self._closed or snapshot.run_id in self._cancelled:
+            if self._closed or snapshot.run_id in self._cancelled or cancel is not None and cancel.is_set():
                 self._workers.put(worker)
                 return result(spec, snapshot, "skipped", "Probe was cancelled", evidence={"reason": "cancelled"})
             worker.abort.clear()
             self._worker_runs[worker] = snapshot.run_id
         started = time.perf_counter()
         try:
-            return worker.evaluate(spec, snapshot, plugin)
+            return worker.evaluate(spec, snapshot, plugin, cancel)
+        except InterruptedError:
+            worker.stop()
+            return result(spec, snapshot, 'skipped', 'Probe task was cancelled', evidence={'reason': 'cancelled'})
         except queue.Empty:
             worker.stop()
             return result(spec, snapshot, "error", "Isolated probe exceeded startup/evaluation budget", evidence={"reason": "timeout"}, duration=(time.perf_counter() - started) * 1000)
@@ -355,21 +376,21 @@ class ProbePool:
                 self._worker_runs.pop(worker, None)
             self._workers.put(worker)
 
-    def submit(self, spec, snapshot):
+    def submit(self, spec, snapshot, *, cancel=None):
         if self._closed or not self._capacity.acquire(blocking=False):
             future = Future()
             future.set_result(result(spec, snapshot, "skipped", "Probe queue is full or closed", evidence={"reason": "queue_full"}))
             return future
         try:
-            future = self._executor.submit(self._evaluate, spec, snapshot)
+            future = self._executor.submit(self._evaluate, spec, snapshot, cancel)
         except Exception:
             self._capacity.release()
             raise
         future.add_done_callback(lambda _: self._capacity.release())
         return future
 
-    def evaluate(self, spec, snapshot):
-        return self.submit(spec, snapshot).result()
+    def evaluate(self, spec, snapshot, *, cancel=None):
+        return self.submit(spec, snapshot, cancel=cancel).result()
 
     def cancel_run(self, run_id):
         with self._jobs_lock:

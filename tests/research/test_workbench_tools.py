@@ -40,3 +40,25 @@ def test_optional_adapters_produce_actual_outputs(tmp_path, tool, magic):
         path, receipt = drawing.artifact(output.artifact_id)
         assert path.read_bytes().startswith(magic)
         assert receipt['tool_id'] == tool and receipt['bytes'] > 20
+
+
+@pytest.mark.parametrize('tool,kind', [('plotly', 'line'), ('altair', 'line'), ('altair', 'histogram')])
+def test_adapter_honors_requested_chart_semantics(tmp_path, tool, kind):
+    import json
+    from contract_driven_ai_flow.research.workbench.catalog import ProbeCatalog
+    from contract_driven_ai_flow.research.workbench.rendering import DrawingService
+    from contract_driven_ai_flow.research.workbench.models import ProbeInstance
+    from test_workbench_probes import snapshot
+    with DrawingService(tmp_path, ProbeCatalog()) as drawing:
+        output = drawing.render(ProbeInstance(definition_id='view.' + tool, parameters={'kind': kind}, budget_ms=30000), snapshot())
+        assert output.status == 'ready', output.message
+        path, _ = drawing.artifact(output.artifact_id)
+        if tool == 'plotly':
+            import re
+            html = path.read_text(encoding='utf-8')
+            offset = list(re.finditer(r'Plotly\.newPlot\(\s*"[a-f0-9-]+"\s*,\s*', html))[-1].end()
+            traces, _ = json.JSONDecoder().raw_decode(html[offset:])
+            assert len(traces) == 1 and traces[0]['mode'] == 'lines' and traces[0]['type'] == 'scatter'
+        else:
+            spec = json.loads(path.read_text())
+            assert spec['mark']['type'] == ('line' if kind == 'line' else 'bar')

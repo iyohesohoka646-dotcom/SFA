@@ -1,18 +1,18 @@
 {
   "platform": "win32",
   "installed": true,
-  "core_version": "0.3.0",
+  "core_version": "0.4.0",
   "window_close": true,
   "port_released": true,
-  "backend_pid": 6000,
+  "backend_pid": 58084,
   "own_script": true,
   "source_preserved": true,
   "matrix_and_anomaly": true,
-  "probe_preview_and_save": true,
-  "explanation_scope": true,
+  "configured_probe_and_replot": true,
+  "automatic_harness_scope": true,
   "shared_cli_history": true,
   "offline_models": true,
   "offline_report_privacy": true,
-  "run_id": "d05e7bbb9e9b47a7beaa77126ee7e47b",
+  "run_id": "1c1c19f2cc47427aa1a8b65c2f9d52e6",
   "result": "passed"
 }

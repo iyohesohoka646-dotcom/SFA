@@ -169,17 +169,34 @@ def stop(root: Path) -> dict:
         return _stop(root)
 
 
+def clear_state(root: Path, expected: dict | None):
+    """Retry transient Windows readers while preserving a newer owner's state."""
+    path = root / '.cdaf/studio.json'
+    deadline = time.monotonic() + 2
+    while read_state(root) == expected:
+        try:
+            path.unlink(missing_ok=True)
+            return
+        except PermissionError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(.05)
+
+
 def _stop(root: Path) -> dict:
     root = root.resolve()
     state = read_state(root)
     path = root / ".cdaf/studio.json"
     if not active(root, state):
-        path.unlink(missing_ok=True)
+        clear_state(root, state)
         return {"stopped": False, "detail": "No managed Studio is running for this project"}
     request(state, "POST")
     deadline = time.monotonic() + 15
     while time.monotonic() < deadline:
         if read_state(root) != state:
+            return {"stopped": True, "port": state["port"]}
+        if not active(root, state):
+            clear_state(root, state)
             return {"stopped": True, "port": state["port"]}
         time.sleep(.1)
     raise FlowError(f"Studio is still shutting down; inspect {root / '.cdaf/studio.log'}")
@@ -230,7 +247,7 @@ def serve(root: Path, port: int = 8765, *, token: str | None = None, managed: bo
         server.run()
     finally:
         if managed and read_state(root) == state:
-            path.unlink(missing_ok=True)
+            clear_state(root, state)
 
 
 if __name__ == "__main__":

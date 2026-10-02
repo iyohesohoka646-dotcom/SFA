@@ -48,7 +48,7 @@ export default function ResearchWorkbench() {
   }, [c.selectSnapshot, c.open, c.layout]);
   const selectObject = (id: string) => { c.setSelectedObject(id); if (c.analysis) c.open('source', { analysis_id: c.analysis.id }, c.analysis.path.split(/[\\/]/).at(-1), false, 'source'); };
   const selection: SourceRef | null = c.object ? { path: c.object.path, qualname: c.object.qualname, line: c.object.line, end_line: c.object.end_line, digest: c.object.source_digest, code: c.object.code } : c.focusSnapshot?.source ?? null;
-  const evaluateSnapshot = (id: string) => { if (!c.config || !c.analysis) return; void c.saveConfig().then(() => wb.evaluate(c.focusSnapshot?.run_id ?? c.runId, [id])).then(c.track).catch(e => error(e.message)); };
+  const evaluateSnapshot = (snapshot: SnapshotRef) => { if (!c.config) return; void c.saveConfig().then(() => wb.evaluate(snapshot.run_id, [snapshot.id])).then(c.track).catch(e => error(e.message)); };
   const output = (value: ProbeOutput) => { if (value.snapshot_id) void client.snapshot(value.snapshot_id).then(c.selectSnapshot).catch(e => error(e.message)); else if (typeof value.data.context_id === 'string') c.open('context', { context_id: value.data.context_id }); };
   const accepted = (path: string) => { c.setScript(path); void c.imported(path).catch(e => error(e.message)); };
   const render = (doc: WorkspaceDocument) => {

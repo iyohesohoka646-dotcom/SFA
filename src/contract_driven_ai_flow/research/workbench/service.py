@@ -5,6 +5,7 @@ from pathlib import Path
 import asyncio
 import sys
 import threading
+from fnmatch import fnmatchcase
 
 from ..models import ProbeSpec
 from ..agent.source import read_source
@@ -93,7 +94,7 @@ class WorkbenchService:
         script = Path(config.script or analysis.path)
         if not script.is_absolute():
             script = self.root / script
-        if script.resolve() != Path(analysis.path).resolve():
+        if scope == 'compute' and script.resolve() != Path(analysis.path).resolve():
             raise ValueError('Configuration belongs to another source; import the configured script')
         if scope == 'compute' and analyze_source(script).source_digest != analysis.source_digest:
             raise ValueError('Source changed; import it again before planning')
@@ -151,7 +152,10 @@ class WorkbenchService:
                     run = self.research.wait(run_id, timeout=.1)
                     break
                 except TimeoutError:
-                    pass
+                    status = self.research.calculation_status(run_id)
+                    if status != self.jobs.get(task.id).calculation_status:
+                        self.jobs.update(task.id, calculation_status=status,
+                            message='Probe gate paused; inspect its result before continuing' if status == 'paused' else '')
             self.jobs.update(task.id, calculation_status=run['status'], progress=.6)
         else:
             run = self.research.store.run(run_id)
@@ -171,7 +175,7 @@ class WorkbenchService:
         counts = {'drawing_errors': 0, 'check_failures': 0, 'unknown': 0}
         for snapshot in snapshots:
             for instance in plan.config.probes:
-                if not instance.enabled or instance.binding not in ('*', snapshot.name, snapshot.binding_id, snapshot.id):
+                if not instance.enabled or not (instance.binding == snapshot.id or fnmatchcase(snapshot.name, instance.binding) or fnmatchcase(snapshot.binding_id, instance.binding)):
                     continue
                 definition = self.catalog.resolve(instance.definition_id)
                 if plan.scope == 'replot' and definition.capability != 'view':
@@ -180,7 +184,6 @@ class WorkbenchService:
                     truncated = True
                     break
                 if cancel.is_set():
-                    self.research.pool.cancel_run(run_id)
                     raise InterruptedError()
                 if definition.id == 'view.relationships':
                     output = relationship_output(self.research, snapshot.id).model_copy(update={'instance_id': instance.id})

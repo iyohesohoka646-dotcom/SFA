@@ -144,3 +144,25 @@ def test_explicit_cancel_interrupts_long_budget_probe_and_pool_recovers(tmp_path
         assert time.perf_counter() - started < 1
         healthy = pool.evaluate(ProbeSpec(id="ok", kind="test.ok", budget_ms=200), snapshot(np.ones(3)))
     assert cancelled.status in ("error", "skipped") and healthy.status == "pass"
+
+
+def test_task_cancel_leaves_concurrent_and_future_same_run_probes_healthy(tmp_path):
+    import threading
+    from contract_driven_ai_flow.research.probe_registry import ProbeRegistry
+    from contract_driven_ai_flow.research.models import ProbeSpec
+    from contract_driven_ai_flow.research.probes import ProbePool
+    registry = ProbeRegistry()
+    registry.register('test.slow', str(PLUGIN) + ':SlowProbe')
+    registry.register('test.ok', str(PLUGIN) + ':SafeProbe')
+    marker, cancel = tmp_path / 'started', threading.Event()
+    value = snapshot(np.ones(3))
+    with ProbePool(registry, max_workers=2) as pool:
+        slow = pool.submit(ProbeSpec(id='slow', kind='test.slow', budget_ms=30000, parameters={'marker': str(marker)}), value, cancel=cancel)
+        deadline = time.monotonic() + 5
+        while not marker.exists() and time.monotonic() < deadline: time.sleep(.01)
+        assert marker.exists()
+        healthy = pool.submit(ProbeSpec(id='ok', kind='test.ok', budget_ms=1000), value)
+        cancel.set()
+        assert slow.result(timeout=2).status == 'skipped'
+        assert healthy.result(timeout=4).status == 'pass'
+        assert pool.evaluate(ProbeSpec(id='retry', kind='test.ok', budget_ms=1000), value).status == 'pass'

@@ -53,10 +53,11 @@ class WorkbenchStore:
         return [json.loads(row['payload']) for row in rows]
 
     def recover(self):
+        from .ownership import owner_alive
         with self.connect() as conn:
             rows = conn.execute("SELECT id,payload FROM records WHERE kind='tasks'").fetchall()
             for row in rows:
                 task = json.loads(row['payload'])
-                if task['status'] in ('queued', 'running'):
+                if task['status'] in ('queued', 'running') and not owner_alive(task.get('receipt', {}).get('_owner')):
                     task.update(status='interrupted', message='Service restarted before completion')
                     conn.execute("UPDATE records SET payload=? WHERE kind='tasks' AND id=?", (json.dumps(task), row['id']))

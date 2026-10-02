@@ -91,6 +91,15 @@ class ResearchService:
                 self._workbench = WorkbenchService(self)
             return self._workbench
 
+    def calculation_status(self, run_id):
+        with self._lock:
+            active = self._active.get(run_id)
+        if active is not None:
+            with active.lock:
+                if active.paused_snapshot is not None:
+                    return 'paused'
+        return self.store.run(run_id)['status']
+
     def start_analysis(self, script: Path, *, interpreter=None, arguments=(), mode="summary", probes=None,
                        adapters=(), watched_names=(), watched_lines=(), instrument="auto", capture=None, runner="python", expected_digest=None):
         if self._closed:

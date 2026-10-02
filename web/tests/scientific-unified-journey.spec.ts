@@ -147,3 +147,103 @@ test('manual verdict appears immediately and graph camera survives tab changes',
   await page.getByRole('button',{name:'记录判断',exact:true}).click();
   await expect(page.getByTestId('probe-output').filter({hasText:'check.manual'})).toContainText('人工核对数值一致');
 });
+
+test('a pinned data probe executes its own historical run', async ({page}) => {
+  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await chooseExample(page); await runCompute(page); await chooseValue(page,'X');
+  const runA = await page.getByLabel('运行记录').inputValue();
+  await page.getByRole('tab',{name:'X · v1',exact:true}).dblclick();
+  await runCompute(page); await chooseValue(page,'Z');
+  const runB = await page.getByLabel('运行记录').inputValue();
+  expect(runB).not.toBe(runA);
+  await page.getByRole('tab',{name:'X · v1',exact:true}).click();
+  const request = page.waitForRequest(r => r.url().endsWith('/workbench/evaluate'));
+  await page.locator('.wb-data-pane').filter({has:page.getByTestId('current-variable').filter({hasText:/^X$/})}).getByRole('button',{name:'执行探针',exact:true}).click();
+  expect((await request).postDataJSON().run_id).toBe(runA);
+  await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed');
+  await expect(page.getByLabel('运行记录')).toHaveValue(runB);
+});
+
+test('pinned relation graph keeps its nodes and camera after switching global run', async ({page}) => {
+  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await chooseExample(page); await runCompute(page);
+  const runA = await page.getByLabel('运行记录').inputValue();
+  const all = await researchApi(page,'research/runs'), other = all.find((r:{id:string}) => r.id !== runA);
+  await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
+  await page.getByRole('tab',{name:'计算关系图',exact:true}).dblclick();
+  await expect(page.getByTestId('relation-node').first()).toBeVisible();
+  const count = await page.getByTestId('relation-node').count();
+  await page.getByLabel('运行记录').selectOption(other.id);
+  await expect(page.getByTestId('relation-node')).toHaveCount(count);
+  await expect(page.getByTestId('relation-node').filter({has:page.locator('strong',{hasText:/^X$/})})).toBeVisible();
+  await page.getByTestId('relation-node').filter({has:page.locator('strong',{hasText:/^X$/})}).click();
+  await expect(page.locator('.wb-data-pane .wb-evidence-bar')).toContainText(runA.slice(0,8));
+});
+
+test('pause gate shows a continuation control and resumes once', async ({page}) => {
+  await page.goto('http://127.0.0.1:8879/#session='+session);
+  const info = await researchApi(page,'research/info'), path = join(info.root,'pause-review.py'), counter = join(info.root,'pause-counter');
+  writeFileSync(path,"import numpy as np\nfrom pathlib import Path\nX = np.array([float('nan')])\np = Path(__file__).with_name('pause-counter')\np.write_text('continued')\n",'utf8');
+  await page.getByRole('button',{name:'打开源码配置'}).click(); await page.getByLabel('分析脚本').fill(path);
+  await page.getByRole('button',{name:'导入解析',exact:true}).click(); await expect(page.getByRole('button',{name:'导入解析',exact:true})).toBeEnabled();
+  await page.getByRole('button',{name:'打开源码配置'}).click(); await page.getByRole('button',{name:'探针台',exact:true}).first().click();
+  await page.getByRole('button',{name:'添加探针',exact:true}).click(); await page.getByLabel('探针类型').selectOption('check.finite');
+  await page.getByLabel('探针绑定').fill('X'); await page.getByRole('button',{name:'确认添加探针',exact:true}).click();
+  const cfg = await researchApi(page,'research/workbench/configuration');
+  cfg.script=path; cfg.probes=[{id:'pause-finite',definition_id:'check.finite',binding:'X',parameters:{},policy:'pause',budget_ms:5000,enabled:true}];
+  await researchApi(page,'research/workbench/configuration',{config:cfg,expected_revision:cfg.revision},'PUT');
+  await page.reload(); await expect(page.getByRole('button',{name:'运行',exact:true})).toBeEnabled();
+  await page.getByRole('button',{name:'运行',exact:true}).click();
+  await expect(page.getByTestId('run-status')).toHaveText('paused',{timeout:30000});
+  await expect(page.getByRole('button',{name:'继续计算',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'继续计算',exact:true}).click();
+  await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed',{timeout:30000});
+  expect(readFileSync(counter,'utf8')).toBe('continued');
+});
+
+test('heatmap explains its color scale and captured sample without an essay', async ({page}) => {
+  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await chooseExample(page); await runCompute(page); await chooseValue(page,'X');
+  await expect(page.getByTestId('matrix-color-legend')).toBeVisible();
+  await expect(page.getByTestId('matrix-color-legend')).toContainText('线性');
+  await expect(page.getByTestId('matrix-axis-labels')).toContainText('行');
+  await expect(page.getByTestId('matrix-cell-value')).toBeVisible();
+  await expect(page.getByText('统计与采集', {exact:true})).toBeVisible();
+  await page.screenshot({path:'../docs/assets/scientific-matrix.png'});
+});
+
+test('toolbar replot applies configured probes beyond the selected value', async ({page}) => {
+  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await chooseExample(page); await runCompute(page); await chooseValue(page,'Z');
+  await page.getByRole('button',{name:'探针台',exact:true}).first().click();
+  await page.getByRole('button',{name:'添加探针',exact:true}).click();
+  await page.getByLabel('探针类型').selectOption('view.matplotlib'); await page.getByLabel('探针绑定').fill('C');
+  await page.getByRole('button',{name:'确认添加探针',exact:true}).click();
+  const response=page.waitForResponse(r=>r.url().endsWith('/workbench/replot'));
+  await page.getByLabel('运行选项').click(); await page.getByRole('button',{name:'仅重绘',exact:true}).click();
+  const reply=await response;
+  expect(reply.request().postDataJSON().snapshot_ids).toEqual([]);
+  const task=await reply.json();
+  await expect.poll(async()=> (await researchApi(page,'research/workbench/tasks/'+task.id)).status).toBe('completed');
+  const outputs=await researchApi(page,'research/workbench/outputs?task_id='+task.id);
+  expect(outputs.some((o:{definition_id:string;status:string})=>o.definition_id==='view.matplotlib'&&o.status==='ready')).toBe(true);
+});
+
+test('completed task reconciles a stale bootstrap status at its final event cursor', async ({page}) => {
+  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await chooseExample(page);
+  await page.route('**/research/runs/*/bootstrap', async route=>{
+    const run=route.request().url().split('/').at(-2)!;
+    for(let tries=0;tries<120;tries++){
+      const response=await page.request.get('http://127.0.0.1:8879/api/v1/research/runs/'+run,{headers:{Authorization:'Bearer '+session}});
+      if((await response.json()).status==='completed') break;
+      await new Promise(resolve=>setTimeout(resolve,50));
+    }
+    const response=await route.fetch(), data=await response.json();
+    data.run.status='running';
+    await route.fulfill({json:data});
+  });
+  await page.getByRole('button',{name:'运行',exact:true}).click();
+  await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed',{timeout:30000});
+  await expect(page.getByTestId('run-status')).toHaveText('completed');
+});

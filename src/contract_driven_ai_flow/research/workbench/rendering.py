@@ -41,7 +41,7 @@ class DrawingService:
             if definition.capability == 'check' and definition.execution == 'program':
                 spec = ProbeSpec(id=instance.id, kind=definition.id.removeprefix('check.'), parameters=instance.parameters,
                     policy=instance.policy, budget_ms=min(instance.budget_ms, 30000))
-                result = self.pool.evaluate(spec, snapshot)
+                result = self.pool.evaluate(spec, snapshot, cancel=cancel)
                 output = output.model_copy(update={'status': result.status, 'message': result.message, 'fidelity': result.fidelity, 'data': result.evidence})
             elif definition.execution == 'builtin':
                 kind = definition.id.removeprefix('view.')
@@ -82,7 +82,10 @@ class DrawingService:
         except KeyError:
             pass
         temp = path.with_name(key + '.' + output.id + '.tmp')
-        request = {'tool': tool, 'values': values, 'output': str(temp), 'kind': instance.parameters.get('kind', 'heatmap'), 'title': clean_text(snapshot.name) + (' (sample)' if snapshot.fidelity != 'exact' else '')}
+        kind = instance.parameters.get('kind', 'heatmap')
+        if kind not in ('heatmap', 'line', 'histogram'):
+            raise ValueError('Drawing kind must be heatmap, line or histogram')
+        request = {'tool': tool, 'values': values, 'output': str(temp), 'kind': kind, 'title': clean_text(snapshot.name) + (' (sample)' if snapshot.fidelity != 'exact' else '')}
         try:
             code, stdout, _ = run_process([interpreter, '-E', '-P', '-X', 'utf8', str(Path(__file__).with_name('tool_worker.py'))],
                 timeout=instance.budget_ms / 1000, cancel=cancel, input=json.dumps(request, allow_nan=False).encode())

@@ -140,3 +140,41 @@ def test_cancellation_during_inference_reaches_the_provider_call(tmp_path):
         assert result['requests'] == 1
     finally:
         research.close()
+
+
+def test_source_change_during_final_model_response_invalidates_answer(tmp_path):
+    def respond(*_):
+        (tmp_path / 'analysis.py').write_text('X = 9\n')
+        return {'answer': 'stale completed answer', 'citations': []}
+    research, harness, request, calls, obj = setup(tmp_path, respond)
+    try:
+        result = asyncio.run(harness.execute(request))
+        assert result['status'] == 'error' and result['answer'] == ''
+        assert 'changed' in result['message'].lower()
+    finally:
+        research.close()
+
+
+def test_automatic_snapshot_harness_cannot_read_sibling_body(tmp_path):
+    from contract_driven_ai_flow.research.models import SnapshotRef, SourceRef, ValueDescriptor, ObservationEvent
+    def respond(body, call, obj):
+        manifest = json.loads(body['messages'][0]['content'].split('\n', 1)[1])
+        sibling = next(o for o in manifest['objects'] if o['name'] == 'sibling')
+        return {'tool': 'source.read', 'arguments': {'object_id': sibling['id']}}
+    research, harness, request, calls, obj = setup(tmp_path, respond)
+    try:
+        analysis = harness.workbench.analysis(request.analysis_id)
+        run = research.store.create_run(analysis.path, interpreter='python', source_digest=analysis.source_digest)
+        value = SnapshotRef(id='focus-value', run_id=run['id'], binding_id='analyze:Z', scope_id='analyze', name='Z', version=1,
+            source=SourceRef(path=analysis.path, qualname='analyze', line=3, end_line=3, digest=analysis.source_digest),
+            descriptor=ValueDescriptor(kind='scalar', backend='python', type_name='int'))
+        research.store.append([ObservationEvent(run_id=run['id'], kind='value.observed', snapshot_id=value.id, payload={'snapshot': value.model_dump(mode='json')})])
+        request = request.model_copy(update={'object_id': None, 'snapshot_id': value.id, 'run_id': run['id']})
+        result = asyncio.run(harness.execute(request))
+        assert result['status'] == 'error'
+        context = harness.workbench.store.get('contexts', result['context_id'])
+        assert 'SIBLING_PRIVATE_BODY' not in json.dumps(context)
+        manifest = json.loads(calls[0]['messages'][0]['content'].split('\n', 1)[1])
+        assert next(o for o in manifest['objects'] if o['name'] == 'sibling')['readable'] is False
+    finally:
+        research.close()

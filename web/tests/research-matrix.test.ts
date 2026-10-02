@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {numericCell,displayCell,planeAxes} from '../src/research/matrix-renderer';
+import {numericCell,displayCell,planeAxes,cellColor} from '../src/research/matrix-renderer';
 import {explainOperation} from '../src/research/explanation-templates';
 import {RendererRegistry} from '../src/research/renderer-registry';
 
@@ -14,6 +14,13 @@ test('complex and nonfinite cells preserve their scientific meaning',()=>{
   expect(displayCell(complex)).toBe('3 + 4i');
   expect(planeAxes([2,3,4,5])).toEqual({fixed:[0,1],plane:[2,3]});
   expect(planeAxes([])).toEqual({fixed:[],plane:[]});
+});
+
+test('heatmap separates close large values and labels constant and missing data distinctly',()=>{
+  expect(cellColor(1000,1000,1001)).not.toBe(cellColor(1001,1000,1001));
+  expect(cellColor(1000,1000,1001)).toBe(cellColor(0,0,1));
+  expect(cellColor(5,5,5)).toBe(cellColor(0,0,0));
+  expect(cellColor(null,0,1)).not.toBe(cellColor(NaN,0,1));
 });
 
 test('rules explain mathematical facts without inventing domain or units',()=>{

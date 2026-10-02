@@ -3,6 +3,7 @@ from pathlib import Path
 import platform
 
 from ...agent.privacy import clean_text, sanitize_json
+from ...agent.source import read_source
 from ..analysis import analyze_source
 
 
@@ -33,11 +34,29 @@ class HarnessContextBuilder:
             raise ValueError('Focus object is not in this analysis')
         return {object_id, *(r.source for r in analysis.relations if r.target == object_id)}
 
+    def validate_source(self, analysis_id):
+        analysis = self.workbench.analysis(analysis_id)
+        if read_source(Path(analysis.path)).digest != analysis.source_digest:
+            raise ValueError('Source changed during model work; import it again')
+        return analysis
+
+    def authorized_objects(self, analysis, request):
+        if request.object_id is not None or not request.snapshot_id:
+            return self.allowed_objects(analysis, request.object_id)
+        snapshot = self.workbench.research.store.snapshot(request.snapshot_id)
+        source = snapshot.source
+        if source is None or source.digest != analysis.source_digest or Path(source.path).resolve() != Path(analysis.path).resolve():
+            return set()
+        matches = [o for o in analysis.objects if o.kind == 'assignment' and o.name == snapshot.name and o.line <= source.line <= o.end_line]
+        if len(matches) != 1:
+            matches = [o for o in analysis.objects if o.kind == 'function' and o.qualname == source.qualname and o.line <= source.line <= o.end_line]
+        # An unmapped runtime value can still be interpreted through evidence tools;
+        # it does not grant reads of every body in its source file.
+        return self.allowed_objects(analysis, matches[0].id) if len(matches) == 1 else set()
+
     def assemble(self, request, tools, skills):
-        analysis = self.workbench.analysis(request.analysis_id)
-        if analyze_source(Path(analysis.path)).source_digest != analysis.source_digest:
-            raise ValueError('Source changed; import it again before model work')
-        allowed = self.allowed_objects(analysis, request.object_id)
+        analysis = self.validate_source(request.analysis_id)
+        allowed = self.authorized_objects(analysis, request)
         inventory = [{'id': o.id, 'name': o.qualname, 'kind': o.kind, 'line': o.line, 'end_line': o.end_line,
             'readable': o.id in allowed and o.kind != 'class'} for o in analysis.objects[:256]]
         snapshot = None
@@ -60,7 +79,7 @@ class HarnessContextBuilder:
             if path.is_file() and path.resolve().is_relative_to(root):
                 instructions.append({'path': str(path), 'text': clean_text(path.read_text(encoding='utf-8')[:4096], 4096)})
         manifest = sanitize_json({'environment': self.environment(analysis), 'tools': tools.describe(request),
-            'focus': {'object_id': request.object_id, 'snapshot': snapshot}, 'objects': inventory,
+            'focus': {'object_id': request.object_id, 'snapshot': snapshot, 'readable_source_ids': sorted(allowed), 'source_scope': 'mapped evidence and direct dependencies' if request.snapshot_id and request.object_id is None else 'selected source and direct dependencies' if request.object_id else 'project inventory'}, 'objects': inventory,
             'inventory_partial': len(analysis.objects) > 256, 'project_guidance': instructions,
             'skills': skills.list(), 'role': request.policy.role, 'samples_allowed': request.policy.include_samples})
         system = ('You are a scientific workbench assistant. Use registered tools to inspect real evidence. '

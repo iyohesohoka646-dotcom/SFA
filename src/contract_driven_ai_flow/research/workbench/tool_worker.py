@@ -16,6 +16,8 @@ def main():
     path = Path(request['output'])
     tool = request['tool']
     chart = request['kind']
+    if chart not in ('heatmap', 'line', 'histogram'):
+        raise ValueError('Unsupported chart kind')
     if tool in ('matplotlib', 'seaborn'):
         import matplotlib
         matplotlib.use('Agg')
@@ -38,14 +40,19 @@ def main():
         mime = 'image/png'
     elif tool == 'plotly':
         import plotly.graph_objects as go
-        fig = go.Figure(go.Histogram(x=[v for row in values for v in row if v is not None]) if chart == 'histogram' else go.Heatmap(z=values, colorscale='Viridis'))
+        flat = [v for row in values for v in row]
+        trace = go.Histogram(x=[v for v in flat if v is not None]) if chart == 'histogram' else go.Scatter(x=list(range(len(flat))), y=flat, mode='lines', connectgaps=False) if chart == 'line' else go.Heatmap(z=values, colorscale='Viridis')
+        fig = go.Figure(trace)
         fig.update_layout(title=request['title'], template='plotly_white')
         path.write_text('<!doctype html>\n' + fig.to_html(include_plotlyjs=True, full_html=True, config={'responsive': True, 'displaylogo': False}), encoding='utf-8')
         mime = 'text/html'
     elif tool == 'altair':
         import altair as alt
         rows = [{'row': i, 'column': j, 'value': value} for i, row in enumerate(values) for j, value in enumerate(row)]
-        chart_spec = alt.Chart(alt.Data(values=rows)).mark_rect().encode(x='column:O', y='row:O', color='value:Q').properties(title=request['title'], width='container', height=360)
+        for index, row in enumerate(rows): row['index'] = index
+        base = alt.Chart(alt.Data(values=rows))
+        chart_spec = base.mark_line().encode(x=alt.X('index:Q', title='Captured cell index'), y='value:Q') if chart == 'line' else base.mark_bar().encode(x=alt.X('value:Q', bin=alt.Bin(maxbins=32)), y='count()') if chart == 'histogram' else base.mark_rect().encode(x='column:O', y='row:O', color='value:Q')
+        chart_spec = chart_spec.properties(title=request['title'], width='container', height=360)
         path.write_text(chart_spec.to_json(), encoding='utf-8')
         mime = 'application/vnd.vegalite.v5+json'
     else:

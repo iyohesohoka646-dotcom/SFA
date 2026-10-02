@@ -14,7 +14,7 @@ import { OperationView } from '../OperationView';
 import type { ResearchState } from '../state';
 
 export const ProbeWorkspace = memo(function ProbeWorkspace({ document, state, outputVersion, onSelectVersion, onEvaluate }: {
-  document: WorkspaceDocument; state: ResearchState; outputVersion: string; onSelectVersion: (snapshot: SnapshotRef, pinned?: boolean) => void; onEvaluate: (id: string) => void;
+  document: WorkspaceDocument; state: ResearchState; outputVersion: string; onSelectVersion: (snapshot: SnapshotRef, pinned?: boolean) => void; onEvaluate: (snapshot: SnapshotRef) => void;
 }) {
   const { snapshot, error } = useSnapshot(document.reference.snapshot_id);
   const [mode, setMode] = useState('auto'), [history, setHistory] = useState<SnapshotRef[]>([]), [outputs, setOutputs] = useState<ProbeOutput[]>([]);
@@ -36,7 +36,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({ document, state, ou
     <div className="wb-view-toolbar"><strong data-testid="matrix-definition"><span data-testid="current-variable">{snapshot.name}</span> <small>v{snapshot.version} · {snapshot.descriptor.shape?.join(' × ') ?? snapshot.descriptor.kind}</small></strong>
       <select aria-label="数据呈现" value={mode} onChange={e => setMode(e.target.value)}><option value="auto">自动</option><option value="matrix">热图</option><option value="table">数据表</option><option value="raw">纯数据</option>{plugin && <option value="plugin">{plugin.id}</option>}{artifacts.map(o => <option key={o.id} value={o.id}>{o.definition_id}</option>)}</select>
       <button aria-label="查看变量历史" aria-expanded={historyOpen} onClick={() => setHistoryOpen(!historyOpen)}>版本</button>
-      <button onClick={() => { onEvaluate(snapshot.id); setRefresh(refresh + 1); }}>执行探针</button>
+      <button onClick={() => { onEvaluate(snapshot); setRefresh(refresh + 1); }}>执行探针</button>
     </div>
     {historyOpen && <div className="wb-version-strip">{history.map(value => <button key={value.id} aria-label={'版本 ' + value.version} aria-pressed={value.id === snapshot.id} onClick={() => onSelectVersion(value)}>v{value.version}</button>)}<button onClick={() => onSelectVersion(snapshot, true)}>并排固定此版本</button></div>}
     <div className="wb-data-content">{artifacts.find(o => o.id === mode)?.artifact_id ? <ArtifactView id={artifacts.find(o => o.id === mode)!.artifact_id!} /> : renderer === 'plugin' && plugin ? <plugin.Component snapshot={snapshot} /> : renderer === 'matrix' && snapshot.descriptor.shape ? <MatrixView snapshot={snapshot} /> : renderer === 'table' && snapshot.sample.values ? <TableView snapshot={snapshot} /> : <pre className="wb-json" data-testid="raw-data">{snapshot.descriptor.kind === 'scalar' && Array.isArray(snapshot.sample.values) ? displayCell((snapshot.sample.values as unknown[][])[0]?.[0]) : JSON.stringify({ descriptor: snapshot.descriptor, sample: snapshot.sample, coverage: snapshot.coverage, fidelity: snapshot.fidelity }, null, 2)}</pre>}</div>

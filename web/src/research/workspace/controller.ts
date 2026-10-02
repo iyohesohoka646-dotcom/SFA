@@ -102,6 +102,11 @@ export function useWorkbench() {
     void poll(); return () => { abort.abort(); clearTimeout(timer); };
   }, [activeKey]);
 
+  useEffect(() => {
+    const finished = tasks.find(t => t.run_id === runId && !['queued','running'].includes(t.status) && ['completed','failed','cancelled','timeout','interrupted'].includes(t.calculation_status));
+    if (finished) setState(current => current.runId === runId && current.status !== finished.calculation_status ? { ...current, status: finished.calculation_status } : current);
+  }, [tasks, runId, state.status]);
+
   const selectSnapshot = useCallback((value: SnapshotRef, group = 'main') => {
     setSelected(value.binding_id); setFocusSnapshot(value);
     if (analysis && value.source?.digest === analysis.source_digest) {
@@ -127,7 +132,7 @@ export function useWorkbench() {
     if (!analysis || script !== analysis.path && script !== config?.script) throw new Error('先导入当前源码');
     await saveConfig(signal);
     const task = scope === 'compute' ? await wb.execute((await wb.plan(analysis.id, signal)).id, signal) :
-      scope === 'probes' ? await wb.evaluate(runId, focusSnapshot ? [focusSnapshot.id] : []) : await wb.replot(runId, focusSnapshot ? [focusSnapshot.id] : []);
+      scope === 'probes' ? await wb.evaluate(runId, []) : await wb.replot(runId, []);
     if (!signal.aborted) track(task);
     return task;
   });

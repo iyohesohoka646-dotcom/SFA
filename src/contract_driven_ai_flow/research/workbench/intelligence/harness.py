@@ -91,6 +91,7 @@ class HarnessService:
                     return finish('cancelled', 'Task cancelled')
                 if reply.status != 'connected':
                     return finish('error', reply.message)
+                self.context.validate_source(request.analysis_id)
                 text = reply.text.strip()
                 if text.startswith('```') and text.endswith('```'):
                     text = text.split('\n', 1)[1].rsplit('```', 1)[0]

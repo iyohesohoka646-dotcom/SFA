@@ -6,6 +6,40 @@ import time
 import pytest
 
 
+def test_shutdown_state_cleanup_survives_transient_windows_sharing(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    from contract_driven_ai_flow import studio
+    path = tmp_path / '.cdaf/studio.json'; path.parent.mkdir()
+    state = {'pid': 123, 'port': 8765, 'token': 'fixture'}
+    path.write_text(json.dumps(state))
+    original = Path.unlink
+    failures = []
+    def sharing(self, *args, **kwargs):
+        if self == path and len(failures) < 3:
+            failures.append(True); raise PermissionError('Windows sharing violation')
+        return original(self, *args, **kwargs)
+    monkeypatch.setattr(Path, 'unlink', sharing)
+    studio.clear_state(tmp_path, state)
+    assert len(failures) == 3 and not path.exists()
+
+
+def test_shutdown_cleanup_preserves_a_new_owner(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    from contract_driven_ai_flow import studio
+    path = tmp_path / '.cdaf/studio.json'; path.parent.mkdir()
+    state = {'pid': 123, 'port': 8765, 'token': 'fixture'}
+    newer = {**state, 'pid': 124}
+    path.write_text(json.dumps(state))
+    def sharing(self, *args, **kwargs):
+        path.write_text(json.dumps(newer))
+        raise PermissionError('Windows sharing violation')
+    monkeypatch.setattr(Path, 'unlink', sharing)
+    studio.clear_state(tmp_path, state)
+    assert json.loads(path.read_text()) == newer
+
+
 def test_connected_leases_survive_background_and_refresh_then_close():
     from contract_driven_ai_flow.application.lifecycle import ClientLease
     now=[0.0];closed=[]

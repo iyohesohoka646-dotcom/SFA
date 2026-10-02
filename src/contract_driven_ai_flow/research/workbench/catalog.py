@@ -10,7 +10,8 @@ class ProbeCatalog:
         for kind, label in [('auto', '自动数据视图'), ('matrix', '矩阵 / 热图'), ('table', '数据表'), ('scalar', '数值'), ('relationships', '直接关系')]:
             self.register(ProbeDefinition(id='view.' + kind, label=label, capability='view', execution='builtin'))
         for tool, label in [('matplotlib', 'Matplotlib'), ('seaborn', 'Seaborn'), ('plotly', 'Plotly'), ('altair', 'Altair')]:
-            self.register(ProbeDefinition(id='view.' + tool, label=label, capability='view', execution='program', tool_id=tool))
+            self.register(ProbeDefinition(id='view.' + tool, label=label, capability='view', execution='program', tool_id=tool,
+                parameter_schema={'type': 'object', 'properties': {'kind': {'type': 'string', 'enum': ['heatmap', 'line', 'histogram']}}}))
         for kind, label in BUILTINS.items():
             self.register(ProbeDefinition(id='check.' + kind, label=label, capability='check', execution='program'))
         for kind, execution, capability, label in [('model', 'model', 'interpret', '智能解读'), ('skill', 'skill', 'interpret', 'Skill 解读'), ('manual', 'manual', 'check', '人工判断')]:

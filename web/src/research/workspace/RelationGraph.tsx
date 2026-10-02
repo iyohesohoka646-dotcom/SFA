@@ -30,15 +30,17 @@ function GraphInner({ document, state, analysis, selected, onSelect, onObject, o
   }, [storageKey]);
   useEffect(() => {
     const abort = new AbortController(), run = document.reference.run_id;
-    if (run && run !== state.runId) void client.bootstrap(run, abort.signal).then(data => {
+    if (run === state.runId) setHistorical(state);
+    else if (run && historical?.runId !== run) void client.bootstrap(run, abort.signal).then(data => {
+      if (abort.signal.aborted) return;
       const next = createState(run); const parents = new Map(Object.entries(data.parent_bindings));
       for (const value of data.snapshots) indexSnapshot(next, value, parents);
       next.status = data.run.status; setHistorical(next);
     }).catch(error => { if (!abort.signal.aborted) onError(error.message); });
     if (!run && document.reference.analysis_id && analysis?.id !== document.reference.analysis_id) void wb.analysis(document.reference.analysis_id, abort.signal).then(setOldAnalysis).catch(error => { if (!abort.signal.aborted) onError(error.message); });
     return () => abort.abort();
-  }, [document.id]);
-  const current = document.reference.run_id === state.runId ? state : historical;
+  }, [document.id, document.reference.run_id, state.runId, state.topologyVersion, state.lastSequence, document.reference.analysis_id, analysis?.id]);
+  const current = document.reference.run_id === state.runId ? state : historical?.runId === document.reference.run_id ? historical : undefined;
   const source = analysis?.id === document.reference.analysis_id ? analysis : oldAnalysis;
   const topology = current?.topologyVersion ?? 0;
   const model = useMemo(() => {
@@ -47,7 +49,7 @@ function GraphInner({ document, state, analysis, selected, onSelect, onObject, o
       (source?.objects ?? []).filter(o => o.kind !== 'parameter').map(o => ({ id: o.id, name: o.qualname, scope: o.scope, detail: `${o.kind} · L${o.line}`, objectId: o.id }));
     const relations = document.reference.run_id ? items.flatMap(item => (current?.dependencies.get(item.id) ?? []).map(parent => ({ source: parent, target: item.id, provenance: item.snapshot?.provenance ?? 'unknown' }))) : (source?.relations ?? []);
     return { items, relations };
-  }, [current?.runId, topology, source?.id]);
+  }, [current?.runId, topology, current?.lastSequence, source?.id]);
   useEffect(() => setFocus(null), [selected]);
   const chosen = focus ?? selected;
   const direct = useMemo(() => ({ incoming: new Set(model.relations.filter(r => r.target === chosen).map(r => r.source)), outgoing: new Set(model.relations.filter(r => r.source === chosen).map(r => r.target)) }), [model, chosen]);
@@ -88,9 +90,10 @@ function GraphInner({ document, state, analysis, selected, onSelect, onObject, o
     return () => { live = false; };
   }, [key]);
   useEffect(() => {
-    setNodes(current => current.map(node => ({ ...node, data: { ...node.data, emphasis: !chosen ? '' : node.id === chosen ? 'relation-focus' : direct.incoming.has(node.id) ? 'relation-parent' : direct.outgoing.has(node.id) ? 'relation-consumer' : 'relation-muted' } })));
+    const items = new Map(model.items.map(item => [item.id,item]));
+    setNodes(current => current.map(node => ({ ...node, data: { ...node.data, detail: items.get(node.id)?.detail ?? node.data.detail, emphasis: !chosen ? '' : node.id === chosen ? 'relation-focus' : direct.incoming.has(node.id) ? 'relation-parent' : direct.outgoing.has(node.id) ? 'relation-consumer' : 'relation-muted' } })));
     setEdges(current => current.map(edge => ({ ...edge, style: { ...edge.style, stroke: edge.target === chosen ? '#167760' : edge.source === chosen ? '#356caa' : '#78969c', strokeWidth: edge.source === chosen || edge.target === chosen ? 2.2 : 1.2, opacity: chosen && edge.source !== chosen && edge.target !== chosen ? .45 : 1 } })));
-  }, [chosen, key]);
+  }, [chosen, key, model]);
   return <div className="wb-graph-pane"><div className="wb-view-toolbar"><strong>计算关系图</strong><input type="search" aria-label="搜索计算对象" placeholder="搜索对象" value={query} onChange={e => setQuery(e.target.value)} /><button onClick={() => { setFocus(''); setExpanded(new Set()); setQuery(''); }}>总览</button><button onClick={() => void flow.fitView({ padding: .2, duration: 0 })}>适应画布</button></div>
     <div className="wb-graph-canvas"><ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodesChange={onNodesChange} nodesConnectable={false} minZoom={.02} maxZoom={2} proOptions={{ hideAttribution: true }} onNodeClick={(_, node) => { if (node.id.startsWith('group:')) return; setFocus(node.id); const item = model.items.find(i => i.id === node.id); if (item?.snapshot) onSelect(item.snapshot); if (item?.objectId) onObject(item.objectId); }}
       onNodeDragStop={(_, node) => { positions.current.set(node.id, node.position); try { localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(positions.current))); } catch { /* in-memory position */ } }}><Background color="#dfe7e9" gap={22} /><Controls showInteractive={false} /></ReactFlow></div>

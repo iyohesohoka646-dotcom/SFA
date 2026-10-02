@@ -128,7 +128,8 @@ class ScientificChangeService:
             original = symbol_text(source.text, obj.qualname)
             patched = replace_body(source.text, obj.qualname, proposal.candidate, self._allowed_imports(source.text, obj))
         else:
-            original = textwrap.dedent(obj.code)
+            # A sanitized display excerpt must never become a rollback source.
+            original = textwrap.dedent(''.join(source.text.splitlines(keepends=True)[obj.line - 1:obj.end_line]))
             patched = self._assignment(source.text, obj, proposal.candidate)
         compile(patched, proposal.path, 'exec')
         raw = Path(proposal.path).read_bytes()

@@ -26,9 +26,11 @@ export function displayCell(value:unknown):string{
 }
 export function planeAxes(shape:number[]){return {fixed:Array.from({length:Math.max(0,shape.length-2)},(_,i)=>i),plane:Array.from({length:Math.min(2,shape.length)},(_,i)=>Math.max(0,shape.length-2)+i)};}
 export function cellColor(value:number|null,min:number,max:number):string{
-  if(value===null)return '#687f8c';
-  if(!Number.isFinite(value))return '#f3a392';
-  const scale=Math.max(Math.abs(min),Math.abs(max),Number.MIN_VALUE),position=Math.min(1,Math.abs(value/scale));
-  const base=value<0?[109,164,210]:[122,222,193],background=[23,43,57];
-  return `rgb(${base.map((n,i)=>Math.round(background[i]+(n-background[i])*position)).join(',')})`;
+  if(value===null)return '#5d6873';
+  if(!Number.isFinite(value))return '#bb514c';
+  if(min===max)return '#97a4ab';
+  const extent=Math.max(Math.abs(min),Math.abs(max),Number.MIN_VALUE);
+  const position=Math.max(0,Math.min(1,(value/extent-min/extent)/(max/extent-min/extent)));
+  const colors=[[39,69,113],[52,150,153],[250,209,98]],index=position<.5?0:1,t=position<.5?position*2:(position-.5)*2;
+  return `rgb(${colors[index].map((v,i)=>Math.round(v+(colors[index+1][i]-v)*t)).join(',')})`;
 }
