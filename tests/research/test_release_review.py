@@ -104,12 +104,14 @@ def test_bootstrap_preserves_parents_that_are_no_longer_latest(tmp_path):
     assert restored['parent_bindings'][b['parents'][0]] == a['binding_id']
 
 
-def test_abrupt_browser_disconnect_retains_service_for_120_seconds():
+def test_abrupt_browser_disconnect_allows_refresh_then_stops_owned_service():
     from contract_driven_ai_flow.application.lifecycle import ClientLease
     now = [0.0]; closed = []
     leases = ClientLease(lambda: closed.append(True), clock=lambda: now[0])
     lease = leases.acquire('browser'); leases.connected(lease.id, True)
     now[0] = 300; leases.connected(lease.id, False)
-    now[0] = 303.1; leases.sweep(); assert not closed
-    now[0] = 419.9; leases.sweep(); assert not closed
-    now[0] = 420.1; leases.sweep(); leases.sweep(); assert closed == [True]
+    now[0] = 302.9; leases.sweep(); assert not closed
+    leases.connected(lease.id, True)
+    now[0] = 420.1; leases.sweep(); assert not closed
+    leases.connected(lease.id, False)
+    now[0] = 423.2; leases.sweep(); leases.sweep(); assert closed == [True]
