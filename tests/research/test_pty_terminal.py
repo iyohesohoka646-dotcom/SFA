@@ -24,12 +24,12 @@ def test_real_python_unicode_tty_resize_interrupt_reconnect_and_cleanup(tmp_path
         assert str(tmp_path) in result['data']
         service.resize(key,41,101)
         assert service.get(key)['rows']==41 and service.get(key)['cols']==101
-        service.write(key,"import time; time.sleep(30)\r")
-        time.sleep(.15);service.write(key,'\x03')
+        service.write(key,"import time; print('sleep-'+str(40+2), flush=True); time.sleep(30)\r")
+        wait_text(service,key,'sleep-42');service.write(key,'\x03')
         wait_text(service,key,'KeyboardInterrupt')
-        cursor=service.read(key,0)['cursor'];service.write(key,"print('RESUMED')\r")
-        wait_text(service,key,'RESUMED')
-        assert 'RESUMED' in service.read(key,cursor)['data']
+        cursor=service.read(key,0)['cursor'];service.write(key,"print('RESUME-'+str(6*7))\r")
+        wait_text(service,key,'RESUME-42')
+        assert 'RESUME-42' in service.read(key,cursor)['data']
         service.end(key);assert service.get(key)['status']=='ended'
         assert not service.alive(key)
     finally:service.close()
