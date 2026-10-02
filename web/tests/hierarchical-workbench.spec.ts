@@ -13,7 +13,7 @@ test('selection is pure, multi selection shares graph, explicit menu navigates',
  expect(await page.locator('.workspace-tab').count()).toBe(before);
  await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
  await expect(page.getByLabel('关系图视图')).toBeVisible();
- await expect(page.getByTestId('graph-layout-metric')).not.toContainText('0 ms');
+ await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
  await page.getByText('布局与关系',{exact:true}).click();
  await expect(page.getByLabel('淡化无关对象')).not.toBeChecked();
  await page.getByLabel('淡化无关对象').check();

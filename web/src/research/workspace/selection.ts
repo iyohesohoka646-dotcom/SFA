@@ -38,7 +38,7 @@ export function objectRows(analysis:AnalysisDocument|undefined,values:SnapshotRe
   }
  }
  for(const block of blocks.filter(b=>b.id===scope||!scope&&!b.parent_id))visit(block,0);
- if(!scope)for(const s of values.filter(s=>!known.has(s.logical_key))){if(pass(s.name,s.descriptor.kind))rows.push({id:s.id,depth:1,label:s.name,detail:s.descriptor.kind+' · 派生',snapshot:s,target:{kind:'data',logical_key:s.logical_key??s.binding_id,snapshot_id:s.id,run_id:s.run_id} as TargetRef});}
+ if(!scope)for(const s of values.filter(s=>!known.has(s.logical_key))){if(pass(s.name,s.descriptor.kind))rows.push({id:s.id,depth:1,label:s.name,detail:s.descriptor.kind+' · v'+s.version+(s.scope_id==='derived'?' · 派生':''),snapshot:s,target:{kind:'data',logical_key:s.logical_key||s.binding_id,snapshot_id:s.id,run_id:s.run_id} as TargetRef});}
  return rows;
 }
 export type ProjectionNode=(GraphNode|GraphBlock)&{parent_id?:string|null;plate?:boolean};

@@ -13,20 +13,21 @@ import { Icon } from './workspace/icons';
 import { wb } from './workspace/WorkbenchClient';
 import { SourceDocument } from './workspace/SourceDocument';
 import { ProbeWorkspace } from './workspace/ProbeWorkspace';
+import {ComparisonView} from './workspace/ComparisonView';
 import { ProbeInspector } from './workspace/ProbeInspector';
 import { TaskPanel } from './workspace/TaskPanel';
 import './research.css';
 import './workspace/workbench.css';
 const RelationGraph = lazy(() => import('./workspace/RelationGraph').then(m => ({ default: m.RelationGraph })));
-const ToolLibrary = lazy(() => import('./workspace/ToolLibrary').then(m => ({ default: m.ToolLibrary })));
+const ProbeLibrary = lazy(() => import('./workspace/ProbeLibrary').then(m => ({default:m.ProbeLibrary})));
 const IntelligencePanel = lazy(() => import('./workspace/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })));
 const ContextView = lazy(() => import('./workspace/IntelligencePanel').then(m => ({ default: m.ContextView })));
 const ChangeReview = lazy(() => import('./workspace/ChangeReview').then(m => ({ default: m.ChangeReview })));
 const CommandPane = lazy(() => import('./workspace/CommandPane').then(m => ({ default: m.CommandPane })));
-const views: { kind: DocumentKind; label: string }[] = [{ kind: 'graph', label: '计算关系图' }, { kind: 'probes', label: '探针台' }, { kind: 'tools', label: '工具库' }, { kind: 'intelligence', label: '智能助手' }, { kind: 'changes', label: '代码审查' }, { kind: 'terminal', label: '命令台' }];
+const views: { kind: DocumentKind; label: string }[] = [{ kind: 'graph', label: '计算关系图' }, { kind: 'probes', label: '探针台' }, { kind: 'tools', label: '探针库' }, { kind: 'intelligence', label: '智能助手' }, { kind: 'changes', label: '代码审查' }, { kind: 'terminal', label: '终端' }];
 
 export default function ResearchWorkbench() {
-  const c = useWorkbench(), [modelsVisible, setModelsVisible] = useState(false), [sourceOptions, setSourceOptions] = useState(false);
+  const c = useWorkbench(), [modelsVisible, setModelsVisible] = useState(false), [sourceOptions, setSourceOptions] = useState(false), [requestedProbe,setRequestedProbe]=useState('');
   const [viewMenu, setViewMenu] = useState(false), [explorer, setExplorer] = useState(true);
   const width = c.layout.explorerWidth;
   const setWidth = (value: number) => c.dispatch({ type: 'explorer-width', width: value });
@@ -52,15 +53,16 @@ export default function ResearchWorkbench() {
   const sourceTarget=(t:TargetRef)=>{c.setSelectedObject(t.object_id??'');if(c.analysis)c.open('source',{analysis_id:c.analysis.id},undefined,false,'source');};
   const selection: SourceRef | null = c.object ? { path: c.object.path, qualname: c.object.qualname, line: c.object.line, end_line: c.object.end_line, column:c.object.column, end_column:c.object.end_column, digest: c.object.source_digest, code: c.object.code } : c.focusSnapshot?.source ?? null;
   const evaluateSnapshot = (snapshot: SnapshotRef) => { if (!c.config) return; void c.saveConfig().then(() => wb.evaluate(snapshot.run_id, [snapshot.id])).then(c.track).catch(e => error(e.message)); };
-  const output = (value: ProbeOutput) => { if (value.snapshot_id) void client.snapshot(value.snapshot_id).then(c.selectSnapshot).catch(e => error(e.message)); else if (typeof value.data.context_id === 'string') c.open('context', { context_id: value.data.context_id }); };
+  const output = (value: ProbeOutput) => { if(value.definition_id==='view.compare'){c.open('comparison',{output_id:value.id},'并排比较',true);return;}if (value.snapshot_id) void client.snapshot(value.snapshot_id).then(c.selectSnapshot).catch(e => error(e.message)); else if (typeof value.data.context_id === 'string') c.open('context', { context_id: value.data.context_id }); };
   const accepted = (path: string) => { c.setScript(path); void c.imported(path).catch(e => error(e.message)); };
   const render = (doc: WorkspaceDocument) => {
     switch (doc.kind) {
       case 'source': return <SourceDocument key={doc.id} document={doc} analysis={c.analysis} selection={selection} onSelect={selectObject} onError={error} />;
-      case 'data': return <ProbeWorkspace key={doc.id} document={doc} state={c.state} outputVersion={refreshKey} onSelectVersion={selectVersion} onEvaluate={evaluateSnapshot} />;
+      case 'data': return <ProbeWorkspace key={doc.id} document={doc} state={c.state} outputVersion={refreshKey} onSelectVersion={selectVersion} onEvaluate={evaluateSnapshot} config={c.config} definitions={c.definitions} onConfig={c.editConfig} onSave={c.saveConfig} onOpenPresenter={(s,id)=>c.open('data',{snapshot_id:s.id,run_id:s.run_id,instance_id:id},s.name+' · '+(c.definitions.find(d=>d.id===c.config?.probes.find(p=>p.id===id)?.definition_id)?.label??id),true)} />;
       case 'graph': return <RelationGraph key={doc.id} document={doc} state={c.state} analysis={c.analysis} selection={c.selection} onSelection={c.chooseTargets} scope={c.blockScope} onEnter={c.enterScope} onOpen={openTarget} onSource={sourceTarget} onBind={()=>showView('probes')} onError={error} />;
-      case 'probes': return c.config ? <ProbeInspector config={c.config} definitions={c.definitions} selected={c.focusSnapshot} analysis={c.analysis} outputs={c.outputs} onChange={c.editConfig} onSave={c.saveConfig} onError={error} onRecorded={c.recordOutput} /> : null;
-      case 'tools': return <ToolLibrary interpreter={c.interpreter} tasks={c.tasks} onTask={c.track} onError={error} />;
+      case 'comparison': return <ComparisonView id={doc.reference.output_id!} config={c.config}/>;
+      case 'probes': return c.config ? <ProbeInspector selection={c.selection} blockScope={c.blockScope} requested={requestedProbe} config={c.config} definitions={c.definitions} selected={c.focusSnapshot} analysis={c.analysis} outputs={c.outputs} onChange={c.editConfig} onSave={c.saveConfig} onError={error} onRecorded={c.recordOutput} /> : null;
+      case 'tools': return <ProbeLibrary definitions={c.definitions} interpreter={c.interpreter} tasks={c.tasks} onTask={c.track} onError={error} onRefresh={c.refreshDefinitions} onBind={id=>{setRequestedProbe(id);showView('probes');}} />;
       case 'intelligence': return c.config ? <IntelligencePanel analysis={c.analysis} object={c.object} snapshot={c.focusSnapshot} config={c.config} onChange={c.editConfig} onSave={c.saveConfig} onTask={c.track} onContext={id => c.open('context', { context_id: id })} onModels={() => setModelsVisible(true)} onError={error} /> : null;
       case 'context': return <ContextView id={doc.reference.context_id!} onError={error} />;
       case 'changes': return <ChangeReview analysis={c.analysis} object={c.object} proposalId={doc.reference.proposal_id} tasks={c.tasks} outputs={c.outputs} onAccepted={accepted} onError={error} />;

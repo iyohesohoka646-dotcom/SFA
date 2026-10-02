@@ -1,6 +1,6 @@
 import { headers } from '../../api';
 import { request } from '../client';
-import type { AnalysisDocument, CodeProposal, ExecutionPlan, HarnessRequest, ProbeDefinition, ProbeOutput, TaskRecord, WorkbenchConfig, ScopeSelector } from './generated';
+import type { AnalysisDocument, CodeProposal, ExecutionPlan, HarnessRequest, ProbeDefinition, ProbeOutput, TaskRecord, WorkbenchConfig, ScopeSelector, ProbeInstance, ProbeResource, DataSemantics } from './generated';
 
 const call = <T,>(path: string, body?: unknown, signal?: AbortSignal, method = body === undefined ? 'GET' : 'POST') => request<T>('/workbench' + path, { method, body, signal });
 export interface PublicTool { id: string; label: string; package: string; url: string; adapter_status: string; format: string; available: boolean; version: string | null; interpreter: string | null; enabled: boolean; managed: boolean }
@@ -15,6 +15,14 @@ export const wb = {
   importSource: (path: string, signal?: AbortSignal) => call<AnalysisDocument>('/analyses', { path }, signal),
   configuration: (signal?: AbortSignal) => call<WorkbenchConfig>('/configuration', undefined, signal),
   configure: (config: WorkbenchConfig, signal?: AbortSignal) => call<WorkbenchConfig>('/configuration', { config, expected_revision: config.revision }, signal, 'PUT'),
+  presenters: (id:string,signal?:AbortSignal)=>call<ProbeInstance[]>('/snapshots/'+encodeURIComponent(id)+'/presenters',undefined,signal),
+  semantics: (id:string,signal?:AbortSignal)=>call<DataSemantics|null>('/snapshots/'+encodeURIComponent(id)+'/semantics',undefined,signal),
+  saveSemantics: (id:string,semantics:DataSemantics)=>call<DataSemantics>('/snapshots/'+encodeURIComponent(id)+'/semantics',{semantics,expected_revision:semantics.revision},undefined,'PUT'),
+  templates:()=>call<{id:string;label:string;definition_id:string;parameters:Record<string,unknown>}[]>('/templates'),
+  saveTemplate:(id:string,label:string,definition_id:string,parameters:Record<string,unknown>)=>call('/templates',{id,label,definition_id,parameters}),
+  resources: ()=>call<ProbeResource[]>('/resources'),
+  importResource: (body:unknown)=>call<ProbeResource>('/resources',body),
+  resourceAction: (id:string,action:'enable'|'disable')=>call<ProbeResource>('/resources/'+encodeURIComponent(id)+'/'+action,{}),
   definitions: (signal?: AbortSignal) => call<ProbeDefinition[]>('/probe-definitions', undefined, signal),
   plan: (analysis_id: string, signal?: AbortSignal, target_scope?:ScopeSelector) => call<ExecutionPlan>('/plans', { analysis_id, target_scope }, signal),
   execute: (plan_id: string, signal?: AbortSignal) => call<TaskRecord>('/execute', { plan_id }, signal),
@@ -23,6 +31,7 @@ export const wb = {
   tasks: (signal?: AbortSignal) => call<TaskRecord[]>('/tasks', undefined, signal),
   task: (id: string, signal?: AbortSignal) => call<TaskRecord>('/tasks/' + encodeURIComponent(id), undefined, signal),
   cancel: (id: string) => call<TaskRecord>('/tasks/' + encodeURIComponent(id) + '/cancel', {}),
+  output:(id:string)=>call<ProbeOutput>('/outputs/'+encodeURIComponent(id)),
   outputs: (query: { task_id?: string; run_id?: string; snapshot_id?: string }, signal?: AbortSignal) => call<ProbeOutput[]>('/outputs?' + new URLSearchParams(query).toString(), undefined, signal),
   relationships: (snapshotId: string, signal?: AbortSignal) => call<ProbeOutput>('/relationships/' + encodeURIComponent(snapshotId), undefined, signal),
   tools: (signal?: AbortSignal) => call<PublicTool[]>('/tools', undefined, signal),

@@ -183,6 +183,10 @@ def attach_workbench_routes(app, research):
     def outputs(task_id: str | None = None, run_id: str | None = None, snapshot_id: str | None = None):
         return service.outputs(task_id=task_id, run_id=run_id, snapshot_id=snapshot_id)
 
+    @router.get('/outputs/{key}')
+    def output(key: str):
+        return service.store.get('outputs', key)
+
     @router.get('/artifacts/{key}')
     def artifact(key: str):
         path, receipt = service.drawing.artifact(key)

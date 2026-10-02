@@ -1,7 +1,7 @@
-export type DocumentKind = 'source' | 'data' | 'graph' | 'probes' | 'tools' | 'intelligence' | 'changes' | 'context' | 'tasks' | 'terminal';
+export type DocumentKind = 'source' | 'data' | 'graph' | 'probes' | 'tools' | 'intelligence' | 'changes' | 'context' | 'tasks' | 'terminal' | 'comparison';
 export interface WorkspaceDocument {
   id: string; kind: DocumentKind; title: string; pinned: boolean;
-  reference: { analysis_id?: string; run_id?: string; snapshot_id?: string; instance_id?: string; context_id?: string; proposal_id?: string };
+  reference: { analysis_id?: string; run_id?: string; snapshot_id?: string; instance_id?: string; context_id?: string; proposal_id?: string; output_id?:string };
 }
 export interface Group { type: 'group'; id: string; tabs: string[]; active: string | null; minimized: boolean }
 export interface Split { type: 'split'; id: string; axis: 'horizontal' | 'vertical'; ratio: number; first: LayoutNode; second: LayoutNode }
@@ -132,7 +132,7 @@ export function restoreLayout(raw: string | null): WorkspaceLayout {
       if (node.type === 'split') return ['horizontal', 'vertical'].includes(node.axis) && Number.isFinite(node.ratio) && node.ratio >= .15 && node.ratio <= .85 && valid(node.first, depth + 1) && valid(node.second, depth + 1);
       return node.type === 'group' && typeof node.minimized === 'boolean' && Array.isArray(node.tabs) && node.tabs.length <= 64 && node.tabs.every(id => !!state.documents[id]) && (node.active === null || node.tabs.includes(node.active));
     }
-    const kinds = ['source', 'data', 'graph', 'probes', 'tools', 'intelligence', 'changes', 'context', 'tasks', 'terminal'];
+    const kinds = ['source', 'data', 'graph', 'probes', 'tools', 'intelligence', 'changes', 'context', 'tasks', 'terminal','comparison'];
     if (!valid(state.tree) || groups(state.tree).length > 12 || !groups(state.tree).some(g => g.id === state.activeGroup)) return createLayout();
     for (const [id, doc] of Object.entries(state.documents)) if (doc.id !== id || !kinds.includes(doc.kind) || typeof doc.title !== 'string' || typeof doc.pinned !== 'boolean' || typeof doc.reference !== 'object' || !doc.reference) return createLayout();
     // Validate each saved preset independently, including its own document map.

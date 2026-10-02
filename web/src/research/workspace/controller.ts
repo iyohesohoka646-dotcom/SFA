@@ -25,8 +25,8 @@ export function useWorkbench() {
   const setScript = (value: string) => { changed.current.add('script'); setScriptRaw(value); };
   const setInterpreter = (value: string) => { changed.current.add('interpreter'); setInterpreterRaw(value); setDirty(true); };
   const open = useCallback((kind: DocumentKind, reference: WorkspaceDocument['reference'] = {}, title?: string, pinned = false, group?: string, background = false) => {
-    const id = kind + ':' + ((reference.snapshot_id ? reference.snapshot_id + (reference.instance_id ? ':'+reference.instance_id : '') : undefined) ?? reference.context_id ?? reference.proposal_id ?? reference.analysis_id ?? reference.run_id ?? 'workspace');
-    workspace.dispatch({ type: 'open', background, document: { id, kind, reference, title: title ?? ({ source: '源码', data: '数据探针', graph: '计算关系图', probes: '探针台', tools: '工具库', intelligence: '智能助手', changes: '代码审查', context: '上下文记录', tasks: '任务与结果', terminal: '命令台' }[kind]), pinned }, group: group ?? (kind === 'source' ? 'source' : kind === 'tasks' ? 'bottom' : 'main') });
+    const id = kind + ':' + ((reference.snapshot_id ? reference.snapshot_id + (reference.instance_id ? ':'+reference.instance_id : '') : undefined) ?? reference.context_id ?? reference.proposal_id ?? reference.output_id ?? reference.analysis_id ?? reference.run_id ?? 'workspace');
+    workspace.dispatch({ type: 'open', background, document: { id, kind, reference, title: title ?? ({ source: '源码', data: '数据探针', graph: '计算关系图', probes: '探针台', tools: '工具库', intelligence: '智能助手', changes: '代码审查', context: '上下文记录', tasks: '任务与结果', terminal: '终端',comparison:'并排比较' }[kind]), pinned }, group: group ?? (kind === 'source' ? 'source' : kind === 'tasks' ? 'bottom' : 'main') });
   }, [workspace.dispatch]);
   const track = useCallback((task: TaskRecord) => { if (task.kind === 'compute') followedTask.current = task.id; setTasks(current => [task, ...current.filter(t => t.id !== task.id)].slice(0, 64)); open('tasks', {}, '任务与结果', true, 'bottom'); }, [open]);
   const editConfig = (next: WorkbenchConfig) => { changed.current.add('config'); setConfig(next); setDirty(true); };
@@ -147,5 +147,5 @@ export function useWorkbench() {
   return { ...workspace, info, runs, runId, setRunId, script, setScript, interpreter, setInterpreter, config, editConfig, definitions, analysis, file,
     state, values, selection, chooseTargets, blockScope,enterScope,probeRange,setProbeRange, selected, focusSnapshot, selectedObject, setSelectedObject, object, tasks, outputs, notice, setNotice, dirty, loading, preparing,
     recordOutput: (output: ProbeOutput) => setOutputs(current => [output, ...current.filter(o => o.id !== output.id)]),
-    open, track, selectSnapshot, selectBinding, parse, saveConfig, run, imported };
+    refreshDefinitions:()=>void wb.definitions().then(setDefinitions).catch(e=>setNotice(e.message)), open, track, selectSnapshot, selectBinding, parse, saveConfig, run, imported };
 }
