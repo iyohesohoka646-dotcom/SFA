@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import asyncio
 import sys
 import threading
 
@@ -29,7 +30,26 @@ class WorkbenchService:
         self.drawing = DrawingService(self.root, self.catalog, pool=research.pool, tools=self.tools)
         self.jobs = JobManager(self.store)
         self.models = None
+        self._harness = None
+        self._owns_models = False
         self._closed = False
+
+    @property
+    def harness(self):
+        from .intelligence.harness import HarnessService
+        if self.models is None:
+            from ...settings.service import ModelSettingsService
+            self.models = ModelSettingsService(self.root)
+            self._owns_models = True
+        if self._harness is None or self._harness.models is not self.models:
+            self._harness = HarnessService(self, self.models)
+        return self._harness
+
+    def ask(self, request):
+        def execute(task, cancel):
+            result = asyncio.run(self.harness.execute(request, task_id=task.id, cancel=cancel))
+            return {'receipt': result, 'status': 'failed' if result['status'] in ('error', 'budget_exhausted') else 'completed'}
+        return self.jobs.submit('intelligence.' + request.policy.role, execute, receipt={'analysis_id': request.analysis_id})
 
     def import_source(self, path):
         path = Path(path)
@@ -142,6 +162,20 @@ class WorkbenchService:
                     raise InterruptedError()
                 if definition.id == 'view.relationships':
                     output = relationship_output(self.research, snapshot.id).model_copy(update={'instance_id': instance.id})
+                elif definition.execution in ('model', 'skill'):
+                    from .intelligence.harness import HarnessRequest
+                    policy = next(p for p in plan.config.harness if p.role == 'probe').model_copy(deep=True)
+                    if instance.parameters.get('provider_id'):
+                        policy.provider_id = instance.parameters['provider_id']
+                    if instance.parameters.get('model'):
+                        policy.model = instance.parameters['model']
+                    request = HarnessRequest(question=instance.parameters.get('prompt') or 'Explain the selected scientific evidence, its direct relationships and coverage.',
+                        analysis_id=plan.analysis_id, run_id=run_id, snapshot_id=snapshot.id, policy=policy, skill_id=instance.parameters.get('skill_id'))
+                    result = asyncio.run(self.harness.execute(request, task_id=task.id, cancel=cancel))
+                    output = ProbeOutput(instance_id=instance.id, definition_id=definition.id, capability=definition.capability, execution=definition.execution,
+                        status='ready' if result['status'] == 'completed' else 'cancelled' if result['status'] == 'cancelled' else 'unknown' if result['status'] == 'offline' else 'error',
+                        run_id=run_id, snapshot_id=snapshot.id, analysis_id=plan.analysis_id, fidelity=snapshot.fidelity,
+                        provenance='model', message=result['answer'] or result['message'], data={'context_id': result['context_id'], 'citations': result['citations'], 'automatic_check': False})
                 else:
                     output = self.drawing.render(instance, snapshot, cancel=cancel)
                 self.store.put('outputs', output.id, output)
@@ -194,3 +228,5 @@ class WorkbenchService:
         self._closed = True
         self.jobs.close()
         self.drawing.close()
+        if self._owns_models and self.models is not None:
+            self.models.close()

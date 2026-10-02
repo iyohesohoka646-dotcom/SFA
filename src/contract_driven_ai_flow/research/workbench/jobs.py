@@ -43,7 +43,7 @@ class JobManager:
             result = function(task, cancel) or {}
             if cancel.is_set():
                 raise InterruptedError()
-            self.update(task.id, **{**result, 'status': 'completed', 'progress': 1})
+            self.update(task.id, **{**result, 'status': result.get('status', 'completed'), 'progress': 1})
         except InterruptedError:
             self.update(task.id, status='cancelled', message='Task cancelled')
         except Exception as error:

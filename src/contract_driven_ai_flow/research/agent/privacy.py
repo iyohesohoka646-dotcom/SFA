@@ -18,9 +18,16 @@ def sensitive(name: str, fields=()) -> bool:
 def clean_text(value: str, limit: int = 512) -> str:
     value = value[:limit]
     value = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", "[REDACTED_EMAIL]", value)
-    prefix = r"(?i)([\"']?[A-Za-z0-9_.-]*(?:api[_-]?key|password|token|secret|authorization)[A-Za-z0-9_.-]*[\"']?\s*[:=]\s*)(?:[rbuf]*)(\"\"\"[\s\S]*?(?:\"\"\"|$)|'''[\s\S]*?(?:'''|$)|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')"
-    value = re.sub(prefix, lambda m: m.group(1) + '"[REDACTED]"' + '\n' * m.group(2).count('\n'), value)
-    return re.sub(r"(?i)(bearer\s+|(?:api[_-]?key|password|token|secret)\s*[:=]\s*)[^\s,;\"']+", r"\1[REDACTED]", value)
+    # Match an identifier once at its boundary, then classify it. Searching an
+    # unanchored greedy identifier for an embedded credential word was quadratic
+    # even for ordinary long strings with no credentials.
+    def credential(prefix):
+        return any(word in prefix.casefold().replace('-', '_') for word in ('api_key', 'apikey', 'password', 'token', 'secret', 'authorization'))
+    prefix = r"(?i)(?<![\w.-])([\"']?[A-Za-z0-9_.-]+[\"']?\s*[:=]\s*)(?:[rbuf]*)(\"\"\"[\s\S]*?(?:\"\"\"|$)|'''[\s\S]*?(?:'''|$)|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')"
+    value = re.sub(prefix, lambda m: m.group(1) + '"[REDACTED]"' + '\n' * m.group(2).count('\n') if credential(m.group(1)) else m.group(0), value)
+    unquoted = r"(?i)(?<![\w.-])([\"']?[A-Za-z0-9_.-]+[\"']?\s*[:=]\s*)([^\s,;\"']+)"
+    value = re.sub(unquoted, lambda m: m.group(1) + '[REDACTED]' if credential(m.group(1)) else m.group(0), value)
+    return re.sub(r"(?i)(bearer\s+)[^\s,;\"']+", r"\1[REDACTED]", value)
 
 
 def finite_number(value):
@@ -64,22 +71,22 @@ def cell(value, depth: int = 0):
     return {"type": "unavailable", "type_name": type_name(value)}
 
 
-def sanitize_json(value, fields=(), depth=0):
+def sanitize_json(value, fields=(), depth=0, *, string_limit=16384):
     if depth > 16:
         raise ValueError("Adapter JSON exceeds maximum depth")
     if type(value) is dict:
         if len(value) > 4096:
             raise ValueError("Adapter JSON has too many fields")
-        return {k: "[REDACTED]" if sensitive(k, fields) else sanitize_json(v, fields, depth + 1)
+        return {k: "[REDACTED]" if sensitive(k, fields) else sanitize_json(v, fields, depth + 1, string_limit=string_limit)
                 for k, v in value.items() if type(k) is str and len(k) <= 256}
     if type(value) in (list, tuple):
         if len(value) > 65536:
             raise ValueError("Adapter JSON has too many elements")
-        return [sanitize_json(v, fields, depth + 1) for v in value]
+        return [sanitize_json(v, fields, depth + 1, string_limit=string_limit) for v in value]
     if type(value) is float and not math.isfinite(value):
         raise ValueError("Adapter returned non-finite JSON")
     if value is None or type(value) in (bool, int, float):
         return value
     if type(value) is str:
-        return clean_text(value, 16384)
+        return clean_text(value, string_limit)
     raise TypeError("Adapter returned a non-JSON value")

@@ -33,5 +33,10 @@ async def execute_command(command, arguments, service, settings):
             return service.tools.catalog()
         if command == 'tools.scan':
             return service.tools.scan(arguments.get('interpreter'))
+        if command == 'ask':
+            from .intelligence.harness import HarnessRequest
+            return service.ask(HarnessRequest.model_validate(arguments)).model_dump(mode='json')
+        if command == 'context':
+            return service.store.get('contexts', arguments['context_id'])
         raise ValueError('Unknown workbench command')
     return await asyncio.to_thread(invoke)

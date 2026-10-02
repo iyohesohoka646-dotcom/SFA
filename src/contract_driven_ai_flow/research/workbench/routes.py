@@ -4,6 +4,7 @@ from pydantic import Field
 
 from ..models import WireModel
 from .models import WorkbenchConfig
+from .intelligence.harness import HarnessRequest
 
 
 class ImportRequest(WireModel):
@@ -36,6 +37,14 @@ class EvidenceRequest(WireModel):
 class ToolRequest(WireModel):
     interpreter: str | None = None
     disabled: bool = True
+
+
+class ManualRequest(WireModel):
+    instance_id: str
+    analysis_id: str
+    snapshot_id: str | None = None
+    note: str = Field(max_length=4096)
+    verdict: str = 'unknown'
 
 
 def attach_workbench_routes(app, research):
@@ -136,5 +145,29 @@ def attach_workbench_routes(app, research):
     @router.post('/tools/{key}/remove', status_code=202)
     def remove(key: str):
         return service.jobs.submit('tools.remove', lambda task, cancel: {'receipt': service.tools.remove(key, cancel=cancel)})
+
+    @router.post('/intelligence', status_code=202)
+    def ask(body: HarnessRequest):
+        return service.ask(body)
+
+    @router.get('/contexts')
+    def contexts():
+        return [{k: v for k, v in record.items() if k not in ('calls', 'tools')} for record in service.store.list('contexts')]
+
+    @router.get('/contexts/{key}')
+    def context(key: str):
+        return service.store.get('contexts', key)
+
+    @router.get('/skills')
+    def skills():
+        return service.harness.skills.list()
+
+    @router.post('/skills')
+    def register_skill(body: ImportRequest):
+        return service.harness.skills.register(body.path)
+
+    @router.post('/manual-results')
+    def manual_result(body: ManualRequest):
+        return service.harness.manual(**body.model_dump())
 
     app.include_router(router)

@@ -117,7 +117,9 @@ class ModelSettingsService:
         allowed = ("prompt_tokens", "completion_tokens", "total_tokens", "input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
         return {k: v for k, v in body.get("usage", {}).items() if k in allowed and type(v) is int and v >= 0}
 
-    async def _call(self, profile, *, inference=False, messages=None, model=None, operation_id=None):
+    async def _call(self, profile, *, inference=False, messages=None, model=None, operation_id=None, max_output_tokens=2048, max_requests=2):
+        if not 128 <= max_output_tokens <= 16384 or not 1 <= max_requests <= 2:
+            raise ValueError('Invalid model call budget')
         identifier = operation_id or uuid.uuid4().hex
         with self._lock:
             if identifier in self._tasks:
@@ -145,19 +147,19 @@ class ModelSettingsService:
                     raise ValueError("Choose a model ID before sending inference")
                 if profile.protocol == "anthropic":
                     endpoint = "/messages"
-                    payload = {"model": selected, "max_tokens": 2048,
+                    payload = {"model": selected, "max_tokens": max_output_tokens,
                         "system": "\n".join(m["content"] for m in messages if m["role"] == "system"),
                         "messages": [m for m in messages if m["role"] != "system"]}
                 else:
                     endpoint = "/chat/completions"
-                    payload = {"model": selected, "messages": messages, "max_tokens": 2048, "stream": False}
+                    payload = {"model": selected, "messages": messages, "max_tokens": max_output_tokens, "stream": False}
                 method = "POST"
             async with asyncio.timeout(profile.timeout_seconds):
                 async with httpx.AsyncClient(transport=self.transport, timeout=profile.timeout_seconds, follow_redirects=False, trust_env=False) as client:
-                    for attempt in range(2):
+                    for attempt in range(max_requests):
                         count += 1
                         async with client.stream(method, profile.base_url + endpoint, headers=headers, json=payload) as response:
-                            if response.status_code in (429, 500, 502, 503, 504) and attempt == 0:
+                            if response.status_code in (429, 500, 502, 503, 504) and attempt + 1 < max_requests:
                                 await asyncio.sleep(.2)
                                 continue
                             if response.status_code >= 300:
@@ -205,5 +207,5 @@ class ModelSettingsService:
         response = await self._call(self.profile(profile_id), inference=inference, messages=messages, model=model, operation_id=operation_id)
         return ConnectionResult.model_validate(response.model_dump(exclude={"text"}))
 
-    async def complete(self, profile_id, messages, *, model=None, operation_id=None):
-        return await self._call(self.profile(profile_id), inference=True, messages=messages, model=model, operation_id=operation_id)
+    async def complete(self, profile_id, messages, *, model=None, operation_id=None, max_output_tokens=2048, max_requests=2):
+        return await self._call(self.profile(profile_id), inference=True, messages=messages, model=model, operation_id=operation_id, max_output_tokens=max_output_tokens, max_requests=max_requests)

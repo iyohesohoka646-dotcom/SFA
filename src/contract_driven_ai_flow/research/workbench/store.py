@@ -32,7 +32,7 @@ class WorkbenchStore:
         if kind not in self.kinds:
             raise ValueError('Unknown workbench record kind')
         data = value.model_dump(mode='json') if hasattr(value, 'model_dump') else value
-        data = sanitize_json(data)
+        data = sanitize_json(data, string_limit=131072 if kind == 'contexts' else 16384)
         payload = json.dumps(data, ensure_ascii=False, allow_nan=False)
         if len(payload.encode()) > 4 * 1024 * 1024:
             raise ValueError('Workbench record exceeds 4 MiB')
