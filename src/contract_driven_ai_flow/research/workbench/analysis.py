@@ -6,6 +6,7 @@ import hashlib
 from pathlib import Path
 
 from ..agent.privacy import clean_text
+from ..agent.source import read_source
 from .models import AnalysisDocument, Relation, SourceObject
 
 
@@ -32,8 +33,9 @@ def analyze_source(path: Path) -> AnalysisDocument:
         raise ValueError('Select an existing Python source file')
     if path.stat().st_size > 10 * 1024 * 1024:
         raise ValueError('Source exceeds 10 MiB')
-    text = path.read_text(encoding='utf-8-sig')
-    source_digest = digest(text)
+    source = read_source(path)
+    text = source.text
+    source_digest = source.digest
     doc = AnalysisDocument(path=str(path), source_digest=source_digest)
     try:
         tree = ast.parse(text)

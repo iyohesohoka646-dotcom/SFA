@@ -27,6 +27,9 @@ async def dispatch(command: str, arguments: dict, *, service, settings) -> Comma
             data = {'help': HELP}
         elif command == 'quit':
             data = {'quit': True}
+        elif command.startswith('workbench.'):
+            from ..research.workbench.commands import execute_command
+            data = await execute_command(command.removeprefix('workbench.'), arguments, service.workbench, settings)
         elif command == 'open':
             from ..research.agent.source import read_source
             from ..research.agent.privacy import clean_text

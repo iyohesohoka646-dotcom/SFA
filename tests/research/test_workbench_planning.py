@@ -44,6 +44,13 @@ def test_invalid_source_has_diagnostic_without_execution(tmp_path):
         compile_plan(analysis, WorkbenchConfig(script=str(path)), [])
 
 
+def test_analysis_uses_the_same_raw_source_digest_as_runtime(tmp_path):
+    from contract_driven_ai_flow.research.agent.source import read_source
+    path = tmp_path / 'windows.py'
+    path.write_bytes(b'X = 1\r\n')
+    assert analyze_source(path).source_digest == read_source(path).digest
+
+
 def test_frozen_plan_and_revision_conflicts(tmp_path):
     script = tmp_path / 'a.py'
     script.write_text('X = [1, 2]\n', encoding='utf-8')

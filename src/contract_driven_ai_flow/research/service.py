@@ -79,9 +79,20 @@ class ResearchService:
         self._active = {}
         self._lock = threading.RLock()
         self._closed = False
+        self._workbench = None
+
+    @property
+    def workbench(self):
+        from .workbench.service import WorkbenchService
+        with self._lock:
+            if self._closed:
+                raise ValueError('Scientific service is closed')
+            if self._workbench is None:
+                self._workbench = WorkbenchService(self)
+            return self._workbench
 
     def start_analysis(self, script: Path, *, interpreter=None, arguments=(), mode="summary", probes=None,
-                       adapters=(), watched_names=(), watched_lines=(), instrument="auto", capture=None, runner="python"):
+                       adapters=(), watched_names=(), watched_lines=(), instrument="auto", capture=None, runner="python", expected_digest=None):
         if self._closed:
             raise ValueError("Research service is closed")
         with self._lock:
@@ -91,6 +102,8 @@ class ResearchService:
         if Path(script).stat().st_size > 10 * 1024 * 1024:
             raise ValueError("Choose a Python script of at most 10 MiB")
         source = read_source(script)
+        if expected_digest is not None and source.digest != expected_digest:
+            raise ValueError('Source changed before launch; import and plan again')
         if Path(source.path).suffix != ".py" or len(source.text.encode("utf-8")) > 10 * 1024 * 1024:
             raise ValueError("Choose a Python script of at most 10 MiB")
         # Resolving a POSIX venv executable symlink selects the base interpreter
@@ -382,6 +395,8 @@ class ResearchService:
         if self._closed:
             return
         self._closed = True
+        if self._workbench is not None:
+            self._workbench.close()
         with self._lock:
             identifiers = list(self._active)
         for run_id in identifiers:

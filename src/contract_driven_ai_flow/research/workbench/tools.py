@@ -50,17 +50,20 @@ class ToolManager:
         with self._lock:
             versions = {}
             interpreters = {}
+            selected_packages = {}
             for executable in dict.fromkeys([selected, *([str(self.python)] if self.python.exists() else [])]):
                 code, stdout, _ = run_process([executable, '-E', '-P', '-X', 'utf8', '-c', self.discovery_code], timeout=10, cancel=cancel)
                 if code != 0:
                     raise ValueError('Interpreter metadata discovery failed')
                 distributions = json.loads(stdout.decode('utf-8'))
+                if executable == selected:
+                    selected_packages = distributions
                 for key, *_ in PUBLIC_TOOLS:
                     if key in distributions:
                         versions[key] = distributions[key]
                         interpreters[key] = executable
             self._versions, self._interpreters = versions, interpreters
-            return {'interpreter': selected, 'method': 'distribution-metadata', 'tools': self.catalog()}
+            return {'interpreter': selected, 'method': 'distribution-metadata', 'packages': selected_packages, 'tools': self.catalog()}
 
     def _tool(self, key):
         for tool in PUBLIC_TOOLS:

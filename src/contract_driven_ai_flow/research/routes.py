@@ -188,6 +188,8 @@ def attach_research_routes(app, service: ResearchService):
     app.include_router(router)
     from ..settings.routes import attach_model_routes
     attach_model_routes(app, service)
+    from .workbench.routes import attach_workbench_routes
+    attach_workbench_routes(app, service)
 
     @app.exception_handler(LookupError)
     async def missing(request, exc):
