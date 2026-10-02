@@ -49,7 +49,12 @@ class InstrumentedCode:
         if self.references:
             environment[self.runtime_name] = ObservationRuntime(session, self.references)
         session.emit("coverage.report", {"entries": self.coverage.entries}, critical=True)
-        exec(self.code, environment)
+        try:
+            exec(self.code, environment)
+        finally:
+            runtime = environment.get(self.runtime_name)
+            if runtime is not None:
+                runtime.controls.flush(final=True)
         return environment
 
 
@@ -177,17 +182,57 @@ class Transformer(ast.NodeTransformer):
         self.in_class = False
         self.qualname.append(node.name)
         qualname = ".".join(self.qualname)
-        reference_count = len(self.references)
+        self.references.append({'source': self.source_ref(node), 'kind': 'function', 'outputs': []})
         node = self.generic_visit(node)
         self.qualname.pop()
         self.in_class = previous_class
-        if len(self.references) == reference_count:
-            return node
+        # Pure-return/control-only functions still need invocation ownership.
         doc = node.body[:1] if node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str) else []
         body = node.body[len(doc):]
         scope = ast.With(items=[ast.withitem(context_expr=self.helper("function_scope", ast.Constant(qualname)))], body=body, type_comment=None)
         ast.copy_location(scope, body[0] if body else node)
         node.body = [*doc, scope]
+        return node
+
+    def control_ref(self, node, kind):
+        from .source import source_identity
+        from .privacy import clean_text
+        index = len(self.references)
+        source = self.source_ref(node)
+        source['code'] = clean_text(ast.get_source_segment(self.source, getattr(node, 'test', None) or getattr(node, 'iter', node)) or '', 512)
+        self.references.append({'source': source, 'kind': kind, 'outputs': [],
+            'node_id': source_identity(self.filename, self.digest, node, 'block:' + ('condition' if kind == 'branch' else 'loop'))})
+        self.coverage.add(kind, 'supported', node.lineno, 'Actual suite entry observed; predicate and iterator unchanged')
+        return index
+
+    def marker(self, node, name, index, *arguments):
+        return ast.copy_location(ast.Expr(value=self.helper(name, ast.Constant(index), *arguments)), node)
+
+    def visit_If(self, node):
+        if self.in_class:
+            return self.generic_visit(node)
+        index = self.control_ref(node, 'branch')
+        node = self.generic_visit(node)
+        node.body.insert(0, self.marker(node, 'branch', index, ast.Constant(True)))
+        node.orelse.insert(0, self.marker(node, 'branch', index, ast.Constant(False)))
+        return node
+
+    def control_loop(self, node):
+        if self.in_class:
+            return self.generic_visit(node)
+        index = self.control_ref(node, 'loop')
+        node = self.generic_visit(node)
+        node.body.insert(0, self.marker(node, 'iteration_enter', index))
+        node.orelse.insert(0, self.marker(node, 'natural_exit', index))
+        wrapper = ast.With(items=[ast.withitem(context_expr=self.helper('loop_scope', ast.Constant(index)))],
+            body=[node, self.marker(node, 'reached_after', index)], type_comment=None)
+        return ast.copy_location(wrapper, node)
+
+    visit_For = control_loop
+    visit_While = control_loop
+
+    def visit_AsyncFor(self, node):
+        self.coverage.add('async-loop', 'unsupported', node.lineno, 'Async lifecycle adapter required')
         return node
 
     def visit_AsyncFunctionDef(self, node):

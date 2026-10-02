@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from typing import Literal
-from pydantic import Field, model_validator
+from pydantic import Field, JsonValue, model_validator
 from ..models import SourceRef, WireModel
 
 TargetKind = Literal['data', 'operation', 'function', 'control', 'file', 'project', 'folder', 'stream']
@@ -80,6 +80,24 @@ class GraphCoverage(WireModel):
     message: str
     source: SourceRef | None = None
     runtime: Literal['supported', 'partial', 'unsupported'] = 'partial'
+
+
+class ControlSummary(WireModel):
+    node_id: str
+    kind: Literal['branch', 'loop']
+    source: SourceRef | None = None
+    true_count: int = Field(default=0, ge=0)
+    false_count: int = Field(default=0, ge=0)
+    body_entries: int = Field(default=0, ge=0)
+    activations: int = Field(default=0, ge=0)
+    natural_exits: int = Field(default=0, ge=0)
+    break_exits: int = Field(default=0, ge=0)
+    nonlocal_exits: int = Field(default=0, ge=0)
+    exception_exits: int = Field(default=0, ge=0)
+    complete: bool = False
+    revision: int = Field(default=0, ge=0)
+    activation_samples: list[dict[str, JsonValue]] = Field(default_factory=list, max_length=16)
+    omitted_activations: int = Field(default=0, ge=0)
 
 
 class SemanticGraph(WireModel):

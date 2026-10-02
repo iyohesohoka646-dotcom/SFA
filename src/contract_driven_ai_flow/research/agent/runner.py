@@ -24,6 +24,23 @@ class ObservationRuntime:
         self._active = contextvars.ContextVar("research_statement", default=None)
         self._frames = contextvars.ContextVar("research_scope_frames", default=())
         self._array_refs = {}
+        from .control_observation import ControlCollector
+        self.controls = ControlCollector(session)
+
+    def branch(self, identifier, selected):
+        self.controls.branch(self.references[identifier], selected)
+
+    def loop_scope(self, identifier):
+        return self.controls.loop(self.references[identifier])
+
+    def iteration_enter(self, identifier):
+        self.controls.iteration(self.references[identifier])
+
+    def natural_exit(self, identifier):
+        self.controls.natural(self.references[identifier])
+
+    def reached_after(self, identifier):
+        self.controls.reached_after(self.references[identifier])
 
     @staticmethod
     def values(frame, names):
@@ -156,7 +173,7 @@ class ObservationRuntime:
         def managed():
             token = self._frames.set((*self._frames.get(), (scope_id, declared)))
             try:
-                with self.session.scope(scope_id):
+                with self.session.scope(scope_id), self.controls.activation(qualname, scope_id):
                     yield
             finally:
                 self._frames.reset(token)

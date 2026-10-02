@@ -1,5 +1,11 @@
 """Source identity and Python encoding handling, without editing scripts."""
 import hashlib
+
+
+def source_identity(path, digest, node, role):
+    """Shared AST span identity without importing UI/server dependencies."""
+    span = ':'.join(str(getattr(node, key, 0)) for key in ('lineno', 'col_offset', 'end_lineno', 'end_col_offset'))
+    return hashlib.sha256(f'{path}\0{digest}\0{span}\0{role}'.encode()).hexdigest()[:24]
 import io
 import tokenize
 from dataclasses import dataclass

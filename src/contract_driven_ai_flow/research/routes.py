@@ -50,6 +50,11 @@ def attach_research_routes(app, service: ResearchService):
     def runs(limit: int = 100):
         return service.store.runs(limit)
 
+    @router.get('/runs/{run_id}/controls')
+    def controls(run_id: str, details: bool = False):
+        return {'summaries': service.store.control_summaries(run_id),
+            'details': service.store.control_details(run_id) if details else None}
+
     @router.get("/info")
     def info():
         return {"protocol_version": 1, "root": str(service.root), "interpreter": sys.executable,

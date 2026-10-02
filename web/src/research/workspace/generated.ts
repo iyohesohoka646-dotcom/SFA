@@ -197,6 +197,464 @@ export type Mode = "selection" | "block" | "project";
 export type BlockId3 = string | null;
 export type Targets = TargetRef[];
 export type ExcludedKeys = string[];
+export type NodeId = string;
+export type Kind6 = "branch" | "loop";
+export type TrueCount = number;
+export type FalseCount = number;
+export type BodyEntries = number;
+export type Activations = number;
+export type NaturalExits = number;
+export type BreakExits = number;
+export type NonlocalExits = number;
+export type ExceptionExits = number;
+export type Complete = boolean;
+export type Revision1 = number;
+/**
+ * @maxItems 16
+ */
+export type ActivationSamples =
+  | []
+  | [
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ]
+  | [
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      },
+      {
+        [k: string]: JsonValue;
+      }
+    ];
+export type OmittedActivations = number;
 export type Question = string;
 export type AnalysisId4 = string;
 export type ObjectId2 = string | null;
@@ -219,6 +677,7 @@ export interface WorkbenchProtocol {
   SemanticGraph: SemanticGraph;
   TargetRef: TargetRef;
   ScopeSelector: ScopeSelector;
+  ControlSummary: ControlSummary;
   HarnessRequest: HarnessRequest;
 }
 export interface AnalysisDocument {
@@ -459,6 +918,23 @@ export interface ScopeSelector {
   block_id: BlockId3;
   targets: Targets;
   excluded_keys: ExcludedKeys;
+}
+export interface ControlSummary {
+  node_id: NodeId;
+  kind: Kind6;
+  source: SourceRef | null;
+  true_count: TrueCount;
+  false_count: FalseCount;
+  body_entries: BodyEntries;
+  activations: Activations;
+  natural_exits: NaturalExits;
+  break_exits: BreakExits;
+  nonlocal_exits: NonlocalExits;
+  exception_exits: ExceptionExits;
+  complete: Complete;
+  revision: Revision1;
+  activation_samples: ActivationSamples;
+  omitted_activations: OmittedActivations;
 }
 export interface HarnessRequest {
   question: Question;

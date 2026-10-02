@@ -11,13 +11,9 @@ from collections import defaultdict
 from typing import Protocol
 
 from ..agent.privacy import clean_text
+from ..agent.source import source_identity as identity
 from ..models import SourceRef
 from .semantic_models import GraphBlock, GraphCoverage, GraphEdge, GraphNode, GraphPort, SemanticGraph
-
-
-def identity(path: str, digest: str, node: ast.AST, role: str) -> str:
-    span = ':'.join(str(getattr(node, key, 0)) for key in ('lineno', 'col_offset', 'end_lineno', 'end_col_offset'))
-    return hashlib.sha256(f'{path}\0{digest}\0{span}\0{role}'.encode()).hexdigest()[:24]
 
 
 def lexical_bindings(function: ast.AST) -> set[str]:

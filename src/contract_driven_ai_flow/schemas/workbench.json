@@ -225,6 +225,129 @@
       "title": "CodeProposal",
       "type": "object"
     },
+    "ControlSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "title": "Node Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "branch",
+            "loop"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "true_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "True Count",
+          "type": "integer"
+        },
+        "false_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "False Count",
+          "type": "integer"
+        },
+        "body_entries": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Body Entries",
+          "type": "integer"
+        },
+        "activations": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Activations",
+          "type": "integer"
+        },
+        "natural_exits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Natural Exits",
+          "type": "integer"
+        },
+        "break_exits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Break Exits",
+          "type": "integer"
+        },
+        "nonlocal_exits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Nonlocal Exits",
+          "type": "integer"
+        },
+        "exception_exits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Exception Exits",
+          "type": "integer"
+        },
+        "complete": {
+          "default": false,
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "activation_samples": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxItems": 16,
+          "title": "Activation Samples",
+          "type": "array"
+        },
+        "omitted_activations": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Omitted Activations",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "node_id",
+        "kind",
+        "source",
+        "true_count",
+        "false_count",
+        "body_entries",
+        "activations",
+        "natural_exits",
+        "break_exits",
+        "nonlocal_exits",
+        "exception_exits",
+        "complete",
+        "revision",
+        "activation_samples",
+        "omitted_activations"
+      ],
+      "title": "ControlSummary",
+      "type": "object"
+    },
     "ExecutionPlan": {
       "additionalProperties": false,
       "properties": {
@@ -1830,6 +1953,9 @@
     "ScopeSelector": {
       "$ref": "#/$defs/ScopeSelector"
     },
+    "ControlSummary": {
+      "$ref": "#/$defs/ControlSummary"
+    },
     "HarnessRequest": {
       "$ref": "#/$defs/HarnessRequest"
     }
@@ -1849,6 +1975,7 @@
     "SemanticGraph",
     "TargetRef",
     "ScopeSelector",
+    "ControlSummary",
     "HarnessRequest"
   ],
   "title": "WorkbenchProtocol",

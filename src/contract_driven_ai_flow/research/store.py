@@ -42,6 +42,14 @@ class ExperimentStore:
                 CREATE TABLE IF NOT EXISTS operations (
                     id TEXT PRIMARY KEY, run_id TEXT NOT NULL, body TEXT NOT NULL,
                     FOREIGN KEY(run_id) REFERENCES runs(id));
+                CREATE TABLE IF NOT EXISTS control_summaries (
+                    run_id TEXT NOT NULL, node_id TEXT NOT NULL, revision INTEGER NOT NULL,
+                    body TEXT NOT NULL, PRIMARY KEY(run_id,node_id));
+                CREATE TABLE IF NOT EXISTS control_details (
+                    run_id TEXT NOT NULL, ordinal INTEGER NOT NULL, body TEXT NOT NULL,
+                    PRIMARY KEY(run_id,ordinal));
+                CREATE TABLE IF NOT EXISTS control_receipts (
+                    run_id TEXT PRIMARY KEY, body TEXT NOT NULL);
             """)
 
     @contextmanager
@@ -108,7 +116,8 @@ class ExperimentStore:
         return {"run": self._run(row), "cursor": cursor, "binding_count": count,
                 "parent_bindings": parent_bindings,
                 "snapshots": indexed, "operations": [json.loads(r["body"]) for r in reversed(operations)],
-                "probe_events": [json.loads(r["body"]) for r in reversed(probes)]}
+                "probe_events": [json.loads(r["body"]) for r in reversed(probes)],
+                "control_summaries": self.control_summaries(run_id)}
 
     def runs(self, limit: int = 100) -> list[dict]:
         if not 1 <= limit <= 1000:
@@ -131,6 +140,8 @@ class ExperimentStore:
                 cursor = db.execute("INSERT INTO events(run_id,body) VALUES (?,?)", (event.run_id, "{}"))
                 body["sequence"] = cursor.lastrowid
                 db.execute("UPDATE events SET body=? WHERE sequence=?", (encode(body), cursor.lastrowid))
+                if event.kind.startswith('control.'):
+                    self._append_control(db, event, cursor.lastrowid)
                 if event.kind == "value.observed" and "snapshot" in event.payload:
                     snapshot = SnapshotRef.model_validate(event.payload["snapshot"])
                     if snapshot.run_id != event.run_id or event.snapshot_id != snapshot.id:
@@ -170,6 +181,53 @@ class ExperimentStore:
         if row is None:
             raise LookupError("Unknown scientific snapshot")
         return SnapshotRef.model_validate_json(row["body"])
+
+    def _append_control(self, db, event, sequence):
+        """Cumulative summaries replace old versions; detail storage is bounded."""
+        if event.kind == 'control.summary':
+            for summary in event.payload.get('summaries', [])[:16]:
+                if not isinstance(summary, dict) or not summary.get('node_id'):
+                    raise ValueError('Control summary requires a semantic node identity')
+                revision = summary.get('revision', 0)
+                if type(revision) is not int or revision < 0:
+                    raise ValueError('Control summary revision must be nonnegative')
+                count = db.execute('SELECT COUNT(*) FROM control_summaries WHERE run_id=?', (event.run_id,)).fetchone()[0]
+                if count >= 4096 and not db.execute('SELECT 1 FROM control_summaries WHERE run_id=? AND node_id=?', (event.run_id, summary['node_id'])).fetchone():
+                    continue
+                db.execute('INSERT INTO control_summaries VALUES (?,?,?,?) ON CONFLICT(run_id,node_id) DO UPDATE SET revision=excluded.revision,body=excluded.body WHERE excluded.revision>=control_summaries.revision',
+                    (event.run_id, summary['node_id'], revision, encode(summary)))
+        elif event.kind == 'control.details':
+            count = db.execute('SELECT COUNT(*) FROM control_details WHERE run_id=?', (event.run_id,)).fetchone()[0]
+            for offset, detail in enumerate(event.payload.get('details', [])[:max(0, 512-count)]):
+                db.execute('INSERT INTO control_details VALUES (?,?,?)', (event.run_id, count+offset, encode(detail)))
+        elif event.kind == 'control.finished':
+            db.execute('INSERT INTO control_receipts VALUES (?,?) ON CONFLICT(run_id) DO UPDATE SET body=excluded.body', (event.run_id, encode(event.payload)))
+        # SSE still has a monotonically increasing cursor. Bootstrap reads the
+        # tables, so reconnect does not depend on unbounded old checkpoint events.
+        db.execute("DELETE FROM events WHERE run_id=? AND json_extract(body,'$.kind')=? AND sequence NOT IN (SELECT sequence FROM events WHERE run_id=? AND json_extract(body,'$.kind')=? ORDER BY sequence DESC LIMIT 4)",
+            (event.run_id, event.kind, event.run_id, event.kind))
+
+    def control_summaries(self, run_id):
+        self.run(run_id)
+        with self.connect() as db:
+            rows = db.execute('SELECT revision,body FROM control_summaries WHERE run_id=? ORDER BY node_id', (run_id,)).fetchall()
+            receipt_row = db.execute('SELECT body FROM control_receipts WHERE run_id=?', (run_id,)).fetchone()
+        receipt = json.loads(receipt_row['body']) if receipt_row else {}
+        records = [json.loads(row['body']) for row in rows]
+        # Missing final chunks or a forced exit never turn lower bounds into
+        # complete counts just because an earlier checkpoint said complete.
+        finished = bool(receipt.get('complete')) and len(records) == receipt.get('node_count') and all(row['revision'] == receipt.get('revision') for row in rows)
+        for record in records:
+            record['complete'] = finished and bool(record.get('complete'))
+        return records
+
+    def control_details(self, run_id):
+        self.run(run_id)
+        with self.connect() as db:
+            rows = db.execute('SELECT body FROM control_details WHERE run_id=? ORDER BY ordinal LIMIT 512', (run_id,)).fetchall()
+            events = db.execute("SELECT body FROM events WHERE run_id=? AND json_extract(body,'$.kind') IN ('control.summary','control.details','control.finished')", (run_id,)).fetchall()
+        omitted = max((json.loads(row['body'])['payload'].get('omitted', 0) for row in events), default=0)
+        return {'items': [json.loads(row['body']) for row in rows], 'omitted': omitted}
 
     def snapshots(self, run_id: str, *, latest: bool = True, limit: int = 1000, after: str | None = None) -> list[SnapshotRef]:
         self.run(run_id)
