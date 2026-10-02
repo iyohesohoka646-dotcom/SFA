@@ -6,12 +6,14 @@ import { useOperation } from '../operations';
 import type { AnalysisDocument, ProbeDefinition, ProbeOutput, TaskRecord, WorkbenchConfig } from './generated';
 import { useWorkspace } from './useWorkspace';
 import { wb } from './WorkbenchClient';
+import {scopeSelector,type Selection} from './selection';
 import { groups, type DocumentKind, type WorkspaceDocument } from './layout';
 
 export function useWorkbench() {
   const [info, setInfo] = useState<ResearchInfo>(), [runs, setRuns] = useState<RunRecord[]>([]), [runId, setRunIdRaw] = useState('');
   const [config, setConfig] = useState<WorkbenchConfig>(), [definitions, setDefinitions] = useState<ProbeDefinition[]>([]);
   const [script, setScriptRaw] = useState(''), [interpreter, setInterpreterRaw] = useState(''), [analysis, setAnalysis] = useState<AnalysisDocument>(), [file, setFile] = useState<SourceFile>();
+  const [selection,setSelection] = useState<Selection>({targets:[],anchor:null}), [blockScope,setBlockScope]=useState<string|null>(null), [probeRange,setProbeRange]=useState<'selection'|'block'|'project'>('project');
   const [state, setState] = useState(() => createState('')), [selected, setSelected] = useState(''), [focusSnapshot, setFocusSnapshot] = useState<SnapshotRef>(), [selectedObject, setSelectedObject] = useState('');
   const [tasks, setTasks] = useState<TaskRecord[]>([]), [outputs, setOutputs] = useState<ProbeOutput[]>([]), [notice, setNotice] = useState(''), [dirty, setDirty] = useState(false);
   const changed = useRef(new Set<string>()), importVersion = useRef(0), runRef = useRef(runId), stateRef = useRef(state);
@@ -23,7 +25,7 @@ export function useWorkbench() {
   const setScript = (value: string) => { changed.current.add('script'); setScriptRaw(value); };
   const setInterpreter = (value: string) => { changed.current.add('interpreter'); setInterpreterRaw(value); setDirty(true); };
   const open = useCallback((kind: DocumentKind, reference: WorkspaceDocument['reference'] = {}, title?: string, pinned = false, group?: string, background = false) => {
-    const id = kind + ':' + (reference.snapshot_id ?? reference.context_id ?? reference.proposal_id ?? reference.analysis_id ?? reference.run_id ?? 'workspace');
+    const id = kind + ':' + ((reference.snapshot_id ? reference.snapshot_id + (reference.instance_id ? ':'+reference.instance_id : '') : undefined) ?? reference.context_id ?? reference.proposal_id ?? reference.analysis_id ?? reference.run_id ?? 'workspace');
     workspace.dispatch({ type: 'open', background, document: { id, kind, reference, title: title ?? ({ source: '源码', data: '数据探针', graph: '计算关系图', probes: '探针台', tools: '工具库', intelligence: '智能助手', changes: '代码审查', context: '上下文记录', tasks: '任务与结果', terminal: '命令台' }[kind]), pinned }, group: group ?? (kind === 'source' ? 'source' : kind === 'tasks' ? 'bottom' : 'main') });
   }, [workspace.dispatch]);
   const track = useCallback((task: TaskRecord) => { if (task.kind === 'compute') followedTask.current = task.id; setTasks(current => [task, ...current.filter(t => t.id !== task.id)].slice(0, 64)); open('tasks', {}, '任务与结果', true, 'bottom'); }, [open]);
@@ -33,7 +35,7 @@ export function useWorkbench() {
     const next = await wb.importSource(path, signal);
     const source = await wb.source(next.id, signal);
     if (signal?.aborted || version !== importVersion.current) return;
-    setAnalysis(next); setFile(source); setSelectedObject('');
+    setAnalysis(next); setFile(source); setSelectedObject(''); setSelection({targets:[],anchor:null}); setBlockScope(null);
     open('source', { analysis_id: next.id }, path.split(/[\\/]/).at(-1) ?? '源码', false, 'source', background);
     if (!next.diagnostics.length) setNotice('源码已解析 · ' + next.objects.length + ' 个对象');
     else setNotice(next.diagnostics.join('；'));
@@ -110,7 +112,9 @@ export function useWorkbench() {
   const selectSnapshot = useCallback((value: SnapshotRef, group = 'main') => {
     setSelected(value.binding_id); setFocusSnapshot(value);
     if (analysis && value.source?.digest === analysis.source_digest) {
-      const object = analysis.objects.find(o => o.line === value.source?.line && o.name === value.name) ?? analysis.objects.find(o => o.qualname === value.source?.qualname);
+      const chooseTargets = (next:Selection) => { setSelection(next); const target=next.targets.at(-1); if(next.targets.length===1&&target){setSelectedObject(target.object_id??'');const value=target.snapshot_id ? values.find(v=>v.id===target.snapshot_id) : values.find(v=>v.logical_key===target.logical_key);setFocusSnapshot(value);setSelected(value?.binding_id??'');}else{setSelectedObject('');setFocusSnapshot(undefined);setSelected('');} };
+  const enterScope=(id:string|null)=>{setBlockScope(id);chooseTargets({targets:[],anchor:null});};
+  const object = analysis.objects.find(o => o.line === value.source?.line && o.name === value.name) ?? analysis.objects.find(o => o.qualname === value.source?.qualname);
       if (object) setSelectedObject(object.id);
       open('source', { analysis_id: analysis.id }, analysis.path.split(/[\\/]/).at(-1), false, 'source');
     } else {
@@ -131,16 +135,17 @@ export function useWorkbench() {
   const run = (scope: 'compute' | 'probes' | 'replot' = 'compute') => preparing.run(async signal => {
     if (!analysis || script !== analysis.path && script !== config?.script) throw new Error('先导入当前源码');
     await saveConfig(signal);
-    const task = scope === 'compute' ? await wb.execute((await wb.plan(analysis.id, signal)).id, signal) :
-      scope === 'probes' ? await wb.evaluate(runId, []) : await wb.replot(runId, []);
+    const task = scope === 'compute' ? await wb.execute((await wb.plan(analysis.id, signal, scopeSelector(blockScope,selection.targets,probeRange))).id, signal) :
+      scope === 'probes' ? await wb.evaluate(runId, [],undefined, scopeSelector(blockScope,selection.targets,probeRange)) : await wb.replot(runId, [],undefined,scopeSelector(blockScope,selection.targets,probeRange));
     if (!signal.aborted) track(task);
     return task;
   });
   const values = useMemo(() => [...state.latest.values()], [state.runId, state.lastSequence]);
-  useEffect(() => { if (!selected && values.length && workspace.ready && !groups(workspace.layout.tree).find(g => g.id === 'main')?.tabs.length) selectSnapshot(values.find(v => v.descriptor.shape && v.descriptor.shape.length > 0) ?? values[0]); }, [values.length, state.runId, workspace.ready]);
+  const chooseTargets = (next:Selection) => { setSelection(next); const target=next.targets.at(-1); if(next.targets.length===1&&target){setSelectedObject(target.object_id??'');const value=target.snapshot_id ? values.find(v=>v.id===target.snapshot_id) : values.find(v=>v.logical_key===target.logical_key);setFocusSnapshot(value);setSelected(value?.binding_id??'');}else{setSelectedObject('');setFocusSnapshot(undefined);setSelected('');} };
+  const enterScope=(id:string|null)=>{setBlockScope(id);chooseTargets({targets:[],anchor:null});};
   const object = analysis?.objects.find(o => o.id === selectedObject);
   return { ...workspace, info, runs, runId, setRunId, script, setScript, interpreter, setInterpreter, config, editConfig, definitions, analysis, file,
-    state, values, selected, focusSnapshot, selectedObject, setSelectedObject, object, tasks, outputs, notice, setNotice, dirty, loading, preparing,
+    state, values, selection, chooseTargets, blockScope,enterScope,probeRange,setProbeRange, selected, focusSnapshot, selectedObject, setSelectedObject, object, tasks, outputs, notice, setNotice, dirty, loading, preparing,
     recordOutput: (output: ProbeOutput) => setOutputs(current => [output, ...current.filter(o => o.id !== output.id)]),
     open, track, selectSnapshot, selectBinding, parse, saveConfig, run, imported };
 }

@@ -2,7 +2,7 @@ import {useEffect,useState} from 'react';
 import type {ProbeResult,ProbeSpec,SnapshotRef} from './generated';
 import {client} from './client';
 import {useOperation} from './operations';
-export const newProbe=(id:string,kind='finite',binding='*'):ProbeSpec=>({id,kind,binding,enabled:true,parameters:{},policy:'continue',budget_ms:50,protocol_version:1});
+export const newProbe=(id:string,kind='finite',binding='*'):ProbeSpec=>({id,kind,binding,enabled:true,parameters:{},policy:'continue',budget_ms:50,protocol_version:1,target_keys:null,excluded_keys:[]});
 export function ProbePanel({snapshot,results,definitions,onSave}:{snapshot?:SnapshotRef;results:ProbeResult[];definitions:ProbeSpec[];onSave:(probes:ProbeSpec[])=>Promise<void>}){
   const [editing,setEditing]=useState(false),[kind,setKind]=useState('finite'),[policy,setPolicy]=useState<ProbeSpec['policy']>('continue'),[parameters,setParameters]=useState('{}'),[types,setTypes]=useState<{kind:string;label:string;expensive:boolean}[]>([]),[preview,setPreview]=useState<ProbeResult>(),[notice,setNotice]=useState('');
   const operation=useOperation('probe-preview'),saving=useOperation('probe-save');

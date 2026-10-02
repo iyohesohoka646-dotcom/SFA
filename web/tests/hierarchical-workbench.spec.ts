@@ -1,0 +1,24 @@
+import {test,expect} from '@playwright/test';
+import {session} from './session';
+test('selection is pure, multi selection shares graph, explicit menu navigates',async({page})=>{
+ await page.goto('http://127.0.0.1:8879/#session='+session);
+ const tree=page.getByRole('tree',{name:'计算对象树'});await expect(tree).toBeVisible();
+ const row=tree.getByRole('treeitem').filter({hasText:'X'}).first();
+ await expect(page.locator('.workspace-tab')).toHaveCount(3);
+ const before=await page.locator('.workspace-tab').count();
+ await row.click();await expect(row).toHaveAttribute('aria-selected','true');
+ expect(await page.locator('.workspace-tab').count()).toBe(before);
+ await tree.focus();await page.keyboard.press('Control+a');
+ await expect(page.locator('.object-selection')).toContainText('项选中');
+ expect(await page.locator('.workspace-tab').count()).toBe(before);
+ await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
+ await expect(page.getByLabel('关系图视图')).toBeVisible();
+ await expect(page.getByTestId('graph-layout-metric')).not.toContainText('0 ms');
+ await page.getByText('布局与关系',{exact:true}).click();
+ await expect(page.getByLabel('淡化无关对象')).not.toBeChecked();
+ await page.getByLabel('淡化无关对象').check();
+ await expect(page.getByLabel('淡化无关对象')).toBeChecked();
+ await row.click({button:'right'});
+ await expect(page.getByRole('menu')).toBeVisible();
+ await expect(page.getByRole('button',{name:'定位源码',exact:true})).toBeVisible();
+});

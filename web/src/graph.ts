@@ -61,3 +61,16 @@ export function reachable(edges: Edge[], start: string, direction: 'upstream' | 
   }
   return found;
 }
+// Compound layout runs in ELK's dedicated worker. Selection never calls it.
+export async function layoutSemantic(nodes:Node[],edges:Edge[],direction='RIGHT'):Promise<Map<string,{x:number;y:number;width:number;height:number}>>{
+ elk??=new ELK({workerFactory:()=>new Worker(workerUrl)});
+ const all=new Map(nodes.map(n=>[n.id,{id:n.id,width:Number(n.style?.width??180),height:Number(n.style?.height??76),children:[] as any[],ports:[] as any[],layoutOptions:{'elk.padding':'[top=48,left=24,bottom=24,right=24]','elk.portConstraints':'FIXED_SIDE'}}]));
+ for(const node of nodes){const item=all.get(node.id)!;const ports=(node.data.ports??[]) as {id:string;direction:string}[];item.ports=ports.map(p=>({id:node.id+':'+p.id,width:6,height:6,layoutOptions:{'elk.port.side':p.direction==='input'?'WEST':'EAST'}}));}
+ const roots:any[]=[];
+ for(const node of nodes){const item=all.get(node.id)!;if(node.parentId&&all.has(node.parentId))all.get(node.parentId)!.children.push(item);else roots.push(item);}
+ for(const item of all.values())if(!item.children.length)delete (item as any).children;
+ const graph=await elk.layout({id:'semantic',layoutOptions:{'elk.algorithm':'layered','elk.direction':direction,'elk.hierarchyHandling':'INCLUDE_CHILDREN','elk.edgeRouting':'ORTHOGONAL','elk.spacing.nodeNode':'30','elk.layered.spacing.nodeNodeBetweenLayers':'65'},children:roots,edges:edges.filter(e=>e.source!==e.target).map(e=>({id:e.id,sources:[e.sourceHandle?e.source+':'+e.sourceHandle:e.source],targets:[e.targetHandle?e.target+':'+e.targetHandle:e.target]}))});
+ const result=new Map<string,{x:number;y:number;width:number;height:number}>();
+ const visit=(items:any[])=>{for(const item of items){result.set(item.id,{x:item.x??0,y:item.y??0,width:item.width??180,height:item.height??76});if(item.children)visit(item.children);}};
+ visit(graph.children??[]);return result;
+}

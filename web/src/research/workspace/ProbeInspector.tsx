@@ -12,7 +12,7 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
   const [adding, setAdding] = useState(false), [type, setType] = useState('view.matrix'), [binding, setBinding] = useState('*');
   const [editing, setEditing] = useState<string>(), [parameters, setParameters] = useState('{}'), [note, setNote] = useState(''), [verdict, setVerdict] = useState('unknown');
   const add = () => {
-    const probe: ProbeInstance = { id: crypto.randomUUID(), definition_id: type, binding, enabled: true, parameters: {}, policy: 'continue', budget_ms: definitions.find(d => d.id === type)?.tool_id ? 30000 : 5000 };
+    const probe: ProbeInstance = { id: crypto.randomUUID(), definition_id: type, binding, enabled: true, parameters: {}, policy: 'continue', selector:null,inputs:{},origin:'manual',overrides:{}, budget_ms: definitions.find(d => d.id === type)?.tool_id ? 30000 : 5000 };
     onChange({ ...config, probes: [...config.probes, probe] }); setAdding(false);
   };
   const update = (id: string, patch: Partial<ProbeInstance>) => onChange({ ...config, probes: config.probes.map(p => p.id === id ? { ...p, ...patch } : p) });

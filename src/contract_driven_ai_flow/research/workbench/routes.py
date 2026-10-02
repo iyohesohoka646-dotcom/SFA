@@ -37,6 +37,7 @@ class ExecuteRequest(WireModel):
 
 
 class EvidenceRequest(WireModel):
+    target_scope: ScopeSelector | None = None
     run_id: str
     snapshot_ids: list[str] = Field(default_factory=list, max_length=512)
     instance_ids: list[str] | None = None

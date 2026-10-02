@@ -1,6 +1,6 @@
 import { headers } from '../../api';
 import { request } from '../client';
-import type { AnalysisDocument, CodeProposal, ExecutionPlan, HarnessRequest, ProbeDefinition, ProbeOutput, TaskRecord, WorkbenchConfig } from './generated';
+import type { AnalysisDocument, CodeProposal, ExecutionPlan, HarnessRequest, ProbeDefinition, ProbeOutput, TaskRecord, WorkbenchConfig, ScopeSelector } from './generated';
 
 const call = <T,>(path: string, body?: unknown, signal?: AbortSignal, method = body === undefined ? 'GET' : 'POST') => request<T>('/workbench' + path, { method, body, signal });
 export interface PublicTool { id: string; label: string; package: string; url: string; adapter_status: string; format: string; available: boolean; version: string | null; interpreter: string | null; enabled: boolean; managed: boolean }
@@ -16,10 +16,10 @@ export const wb = {
   configuration: (signal?: AbortSignal) => call<WorkbenchConfig>('/configuration', undefined, signal),
   configure: (config: WorkbenchConfig, signal?: AbortSignal) => call<WorkbenchConfig>('/configuration', { config, expected_revision: config.revision }, signal, 'PUT'),
   definitions: (signal?: AbortSignal) => call<ProbeDefinition[]>('/probe-definitions', undefined, signal),
-  plan: (analysis_id: string, signal?: AbortSignal) => call<ExecutionPlan>('/plans', { analysis_id }, signal),
+  plan: (analysis_id: string, signal?: AbortSignal, target_scope?:ScopeSelector) => call<ExecutionPlan>('/plans', { analysis_id, target_scope }, signal),
   execute: (plan_id: string, signal?: AbortSignal) => call<TaskRecord>('/execute', { plan_id }, signal),
-  evaluate: (run_id: string, snapshot_ids: string[], instance_ids?: string[]) => call<TaskRecord>('/evaluate', { run_id, snapshot_ids, instance_ids }),
-  replot: (run_id: string, snapshot_ids: string[], instance_ids?: string[]) => call<TaskRecord>('/replot', { run_id, snapshot_ids, instance_ids }),
+  evaluate: (run_id: string, snapshot_ids: string[], instance_ids?: string[], target_scope?:ScopeSelector) => call<TaskRecord>('/evaluate', { run_id, snapshot_ids, instance_ids, target_scope }),
+  replot: (run_id: string, snapshot_ids: string[], instance_ids?: string[], target_scope?:ScopeSelector) => call<TaskRecord>('/replot', { run_id, snapshot_ids, instance_ids, target_scope }),
   tasks: (signal?: AbortSignal) => call<TaskRecord[]>('/tasks', undefined, signal),
   task: (id: string, signal?: AbortSignal) => call<TaskRecord>('/tasks/' + encodeURIComponent(id), undefined, signal),
   cancel: (id: string) => call<TaskRecord>('/tasks/' + encodeURIComponent(id) + '/cancel', {}),

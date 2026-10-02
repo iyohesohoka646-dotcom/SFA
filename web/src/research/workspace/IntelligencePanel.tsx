@@ -18,7 +18,7 @@ export function IntelligencePanel({ analysis, object, snapshot, config, onChange
   const ask = () => {
     if (!analysis) return;
     const matched = snapshot?.source?.digest === analysis.source_digest;
-    void onSave().then(() => wb.ask({ question, analysis_id: analysis.id, object_id: object?.id ?? null, run_id: matched ? snapshot!.run_id : null,
+    void onSave().then(() => wb.ask({source_object_ids:null, question, analysis_id: analysis.id, object_id: object?.id ?? null, run_id: matched ? snapshot!.run_id : null,
       snapshot_id: matched ? snapshot!.id : null, skill_id: skill || null, policy })).then(onTask).catch(error => onError(error.message));
   };
   return <div className="wb-full-pane"><div className="wb-view-toolbar"><strong>智能助手</strong><select aria-label="智能任务角色" value={role} onChange={e => setRole(e.target.value as HarnessPolicy['role'])}><option value="explain">解读</option><option value="parse">解析</option><option value="probe">探针</option><option value="code">代码修改</option></select><button onClick={() => setSettings(!settings)} aria-expanded={settings}>任务设置</button><button onClick={onModels}>模型设置</button></div>

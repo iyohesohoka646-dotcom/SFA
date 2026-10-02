@@ -288,7 +288,7 @@ class WorkbenchService:
         analysis = self.analysis(analysis_id) if analysis_id else AnalysisDocument.model_validate(candidates[0]) if candidates else AnalysisDocument(path=run['script'], source_digest=run['source_digest'])
         return effective_presenters(self.configurations.load(), self.catalog.definitions(), snapshot, analysis)
 
-    def _evidence_plan(self, run_id, *, scope, snapshot_ids=(), instance_ids=None):
+    def _evidence_plan(self, run_id, *, scope, snapshot_ids=(), instance_ids=None, target_scope=None):
         run = self.research.store.run(run_id)
         analyses = [a for a in self.store.list('analyses', limit=1000) if a['source_digest'] == run['source_digest'] and a['path'] == run['script']]
         if not analyses:
@@ -298,13 +298,13 @@ class WorkbenchService:
             analysis = self.import_source(path)
         else:
             analysis = AnalysisDocument.model_validate(analyses[0])
-        return self.plan(analysis.id, scope=scope, run_id=run_id, snapshot_ids=snapshot_ids, instance_ids=instance_ids)
+        return self.plan(analysis.id, scope=scope, run_id=run_id, snapshot_ids=snapshot_ids, instance_ids=instance_ids, target_scope=target_scope)
 
-    def execute_probes(self, run_id, *, snapshot_ids=(), instance_ids=None):
-        return self.execute(self._evidence_plan(run_id, scope='probes', snapshot_ids=snapshot_ids, instance_ids=instance_ids).id)
+    def execute_probes(self, run_id, *, snapshot_ids=(), instance_ids=None, target_scope=None):
+        return self.execute(self._evidence_plan(run_id, scope='probes', snapshot_ids=snapshot_ids, instance_ids=instance_ids, target_scope=target_scope).id)
 
-    def replot(self, run_id, *, snapshot_ids=(), instance_ids=None):
-        return self.execute(self._evidence_plan(run_id, scope='replot', snapshot_ids=snapshot_ids, instance_ids=instance_ids).id)
+    def replot(self, run_id, *, snapshot_ids=(), instance_ids=None, target_scope=None):
+        return self.execute(self._evidence_plan(run_id, scope='replot', snapshot_ids=snapshot_ids, instance_ids=instance_ids, target_scope=target_scope).id)
 
     def task(self, key):
         return self.jobs.get(key)
