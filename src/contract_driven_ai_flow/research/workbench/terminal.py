@@ -240,6 +240,7 @@ class TerminalService:
                 "data": "",
                 "cursor": 0,
                 "thread": None,
+                "connected": False,
             }
             self._sessions[session.id] = entry
             env = dict(
@@ -357,6 +358,13 @@ class TerminalService:
     def alive(self, key):
         pty = self._entry(key)["pty"]
         return pty is not None and pty.poll() is None
+
+    def connect(self, key):
+        with self._lock:
+            entry = self._entry(key)
+            replay = entry["connected"]
+            entry["connected"] = True
+            return replay
 
     def read(self, key, after=0):
         if not isinstance(after, int) or after < 0:
@@ -487,6 +495,9 @@ def attach_terminal_routes(app, research):
                 return
             after = auth.get("after", 0)
             service.read(key, after)
+            # A new PTY's buffered output contains unanswered initialization
+            # queries. Only an already attached terminal is history replay.
+            reconnect = service.connect(key)
 
             async def output():
                 nonlocal after
@@ -496,7 +507,7 @@ def attach_terminal_routes(app, research):
                     frame = service.read(key, after)
                     signature = (frame["cursor"], frame["status"], frame["error"])
                     if signature != last:
-                        await ws.send_json({**frame, "replay": initial})
+                        await ws.send_json({**frame, "replay": initial and reconnect})
                         initial = False
                         after = frame["cursor"]
                         last = signature

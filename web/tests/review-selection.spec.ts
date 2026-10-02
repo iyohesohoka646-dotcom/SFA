@@ -4,6 +4,24 @@ import { join } from "node:path";
 import { session } from "./session";
 import { researchApi, runCompute } from "./scientific-helpers";
 
+let savedConfiguration: any;
+test.beforeEach(async ({ request }) => {
+  const response = await request.get("http://127.0.0.1:8879/api/v1/research/workbench/configuration", {
+    headers: { Authorization: "Bearer " + session },
+  });
+  savedConfiguration = await response.json();
+});
+test.afterEach(async ({ request }) => {
+  const url = "http://127.0.0.1:8879/api/v1/research/workbench/configuration";
+  const headers = { Authorization: "Bearer " + session };
+  const current = await (await request.get(url, { headers })).json();
+  const restored = await request.put(url, {
+    headers,
+    data: { config: { ...savedConfiguration, revision: current.revision }, expected_revision: current.revision },
+  });
+  expect(restored.ok()).toBe(true);
+});
+
 async function importSource(
   page: Page,
   name: string,

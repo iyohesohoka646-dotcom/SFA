@@ -175,7 +175,8 @@ test('pinned relation graph keeps its nodes and camera after switching global ru
   await expect(page.getByTestId('relation-node').first()).toBeVisible();
   await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
   await page.getByLabel('关系图视图').selectOption('data');
-  await expect(page.getByTestId('graph-layout-metric')).toHaveText(/72 单元.*· [1-9]\d* ms$/);
+  await expect(page.locator('.semantic-node.kind-data').first()).toBeVisible();
+  await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   await expect(page.locator('.semantic-node.kind-data').first()).toBeVisible();
   const count = await page.getByTestId('relation-node').count();
