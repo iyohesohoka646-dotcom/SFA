@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { createLayout, groups, layoutReducer, restoreLayout, type WorkspaceDocument } from '../src/research/workspace/layout';
 
 const data = (id: string, pinned = false): WorkspaceDocument => ({ id, kind: 'data', title: id, pinned, reference: { snapshot_id: id, run_id: 'run1' } });
+it('restores narrow Dockview ratios without discarding documents',()=>{
+ const state=layoutReducer(createLayout(),{type:'open',document:data('preserved'),group:'main'});
+ if(state.tree.type==='split')state.tree.ratio=.95;
+ expect(restoreLayout(JSON.stringify(state)).documents.preserved).toBeDefined();
+});
+it('rejects a queued Dockview snapshot from before a document replacement',()=>{
+ let state=layoutReducer(createLayout(),{type:'open',document:data('old'),group:'main'});const stale=state.tree;
+ state=layoutReducer(state,{type:'open',document:data('new'),group:'main'});
+ state=layoutReducer(state,{type:'dock-state',tree:stale,json:{panels:{},grid:{}} as any,activeGroup:'main'});
+ expect(groups(state.tree).find(g=>g.id==='main')!.tabs).toEqual(['new']);
+});
 
 describe('scientific document geometry and immutable references', () => {
   it('background import cannot take focus from a user-opened tool', () => {

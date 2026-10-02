@@ -8,7 +8,11 @@ export interface ContextRecord { id: string; status: string; answer: string; mes
   calls: { step: number; messages: { role: string; content: string }[]; response?: string; status?: string; input_token_bound: number; usage?: Record<string, number>; requests?: number; duration_ms?: number }[];
   tools: { step: number; name: string; arguments: unknown; output: unknown }[]; }
 export interface SkillRecord { id: string; title: string; version: string; truncated: boolean }
+export interface Preferences{values:Record<string,Record<string,string|number|boolean>>;sources:Record<string,string>;user_revision:number;project_revision:number}
 export const wb = {
+ preferences:()=>call<Preferences>('/settings'),
+ savePreferences:(scope:string,values:Preferences['values'],expected_revision:number)=>call<Preferences>('/settings',{scope,values,expected_revision},undefined,'PUT'),
+ resetPreferences:(scope:string,group:string,expected_revision:number)=>call<Preferences>('/settings/reset',{scope,group,expected_revision}),
   analyses: (signal?: AbortSignal) => call<AnalysisDocument[]>('/analyses', undefined, signal),
   analysis: (id: string, signal?: AbortSignal) => call<AnalysisDocument>('/analyses/' + encodeURIComponent(id), undefined, signal),
   source: (id: string, signal?: AbortSignal) => call<import('../client').SourceFile>('/analyses/' + encodeURIComponent(id) + '/source', undefined, signal),

@@ -513,6 +513,45 @@
     ]
   },
   {
+    "name": "dockview",
+    "version": "8.4.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/dockview/dockview.git",
+      "directory": "packages/dockview"
+    },
+    "license_files": [
+      "LICENCE.md"
+    ]
+  },
+  {
+    "name": "dockview-core",
+    "version": "8.4.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/dockview/dockview.git",
+      "directory": "packages/dockview-core"
+    },
+    "license_files": [
+      "LICENCE.md"
+    ]
+  },
+  {
+    "name": "dockview-react",
+    "version": "8.4.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/dockview/dockview.git",
+      "directory": "packages/dockview-react"
+    },
+    "license_files": [
+      "LICENCE.md"
+    ]
+  },
+  {
     "name": "elkjs",
     "version": "0.11.1",
     "license": "EPL-2.0",

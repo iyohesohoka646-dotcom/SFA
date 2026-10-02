@@ -35,6 +35,8 @@ class WorkbenchService:
         self.resources = ResourceManager(self.root, self.catalog, self.tools)
         from .data_semantics import SemanticsService
         self.semantics = SemanticsService(self.root)
+        from .preferences import PreferenceService
+        self.preferences = PreferenceService(self.root)
         self.drawing = DrawingService(self.root, self.catalog, pool=research.pool, tools=self.tools)
         self.jobs = JobManager(self.store)
         self.models = None
@@ -159,7 +161,7 @@ class WorkbenchService:
                 if call.definition.evidence in ('full', 'full_coordinates') for target in call.targets if target.kind == 'data'))
             handle = self.research.start_analysis(Path(self.analysis(plan.analysis_id).path), interpreter=config.interpreter or None,
                 arguments=config.arguments, mode=config.capture, probes=checks, adapters=config.adapters,
-                capture={'full_targets': full_targets}, expected_digest=plan.source_digest)
+                capture={**{k:v for k,v in self.preferences.load()['values']['capture'].items() if k!='level'},'full_targets': full_targets}, expected_digest=plan.source_digest)
             run_id = handle.run_id
             self.jobs.update(task.id, run_id=run_id, calculation_status='running')
             while True:

@@ -98,6 +98,18 @@ def attach_workbench_routes(app, research):
     def configure(body: SaveConfig):
         return service.configure(body.config, expected_revision=body.expected_revision)
 
+    @router.get('/settings')
+    def settings():
+        return service.preferences.load()
+
+    @router.put('/settings')
+    def save_settings(body: dict):
+        return service.preferences.save(body['scope'], body['values'], expected_revision=body['expected_revision'])
+
+    @router.post('/settings/reset')
+    def reset_settings(body: dict):
+        return service.preferences.reset(body['scope'], body['group'], expected_revision=body['expected_revision'])
+
     @router.post('/migration')
     def migration(apply: bool = False):
         return service.configurations.migrate_legacy(apply=apply)

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class CapturePolicy:
     level: str = "summary"
+    max_control_details: int = 512
     max_preview_cells: int = 1024
     max_stat_elements: int = 4096
     publish_interval_ms: int = 100
@@ -18,7 +19,7 @@ class CapturePolicy:
     def __post_init__(self):
         if self.level not in ("metadata", "sample", "summary", "full"):
             raise ValueError("Unknown scientific capture level")
-        limits = {"max_preview_cells": 4096, "max_stat_elements": 65536,
+        limits = {"max_control_details":512, "max_preview_cells": 4096, "max_stat_elements": 65536,
                   "max_queue_events": 10000, "max_queue_bytes": 64 * 1024 * 1024,
                   "max_artifact_bytes": 64 * 1024 * 1024, "max_run_bytes": 256 * 1024 * 1024,
                   "publish_interval_ms": 10000}

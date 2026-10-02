@@ -1,4 +1,5 @@
-export type DocumentKind = 'source' | 'data' | 'graph' | 'probes' | 'tools' | 'intelligence' | 'changes' | 'context' | 'tasks' | 'terminal' | 'comparison';
+import type {SerializedDockview} from 'dockview';
+export type DocumentKind = 'source' | 'data' | 'graph' | 'probes' | 'tools' | 'intelligence' | 'changes' | 'context' | 'tasks' | 'terminal' | 'comparison' | 'settings';
 export interface WorkspaceDocument {
   id: string; kind: DocumentKind; title: string; pinned: boolean;
   reference: { analysis_id?: string; run_id?: string; snapshot_id?: string; instance_id?: string; context_id?: string; proposal_id?: string; output_id?:string };
@@ -6,12 +7,14 @@ export interface WorkspaceDocument {
 export interface Group { type: 'group'; id: string; tabs: string[]; active: string | null; minimized: boolean }
 export interface Split { type: 'split'; id: string; axis: 'horizontal' | 'vertical'; ratio: number; first: LayoutNode; second: LayoutNode }
 export type LayoutNode = Group | Split;
-interface Preset { tree: LayoutNode; documents: Record<string, WorkspaceDocument>; explorerWidth: number }
+interface Preset { dockview?:SerializedDockview; tree: LayoutNode; documents: Record<string, WorkspaceDocument>; explorerWidth: number }
 export interface WorkspaceLayout {
-  version: 1; tree: LayoutNode; documents: Record<string, WorkspaceDocument>; focused: string | null; activeGroup: string; locked: boolean;
+  dockview?:SerializedDockview; dockRevision?:number; commandRevision?:number; version: 1; tree: LayoutNode; documents: Record<string, WorkspaceDocument>; focused: string | null; activeGroup: string; locked: boolean;
   presets: Record<string, Preset>; explorerWidth: number;
 }
 export type LayoutAction =
+  | {type:'dock-state';json:SerializedDockview;tree:LayoutNode;activeGroup:string}
+
   | { type: 'open'; document: WorkspaceDocument; group?: string; background?: boolean }
   | { type: 'close'; documentId: string }
   | { type: 'activate'; group: string; documentId: string }
@@ -39,7 +42,12 @@ export const groups = (node: LayoutNode): Group[] => node.type === 'group' ? [no
 const map = (node: LayoutNode, fn: (node: LayoutNode) => LayoutNode): LayoutNode => fn(node.type === 'split' ? { ...node, first: map(node.first, fn), second: map(node.second, fn) } : node);
 const bound = (ratio: number) => Math.max(.15, Math.min(.85, Number.isFinite(ratio) ? ratio : .5));
 
-export function layoutReducer(state: WorkspaceLayout, action: LayoutAction): WorkspaceLayout {
+function baseReducer(state: WorkspaceLayout, action: LayoutAction): WorkspaceLayout {
+  if(action.type==='dock-state'){
+    const ids=groups(action.tree).flatMap(g=>g.tabs);
+    if(ids.length!==Object.keys(state.documents).length||ids.some(id=>!state.documents[id]))return state;
+    return {...state,dockview:action.json,tree:action.tree,activeGroup:action.activeGroup};
+  }
   if (action.type === 'restore') return action.layout;
   if (action.type === 'reset') return { ...createLayout(), presets: state.presets };
   if (action.type === 'lock') return { ...state, locked: action.locked };
@@ -111,7 +119,7 @@ export function layoutReducer(state: WorkspaceLayout, action: LayoutAction): Wor
   if (action.type === 'save-preset') {
     const name = action.name.trim().slice(0, 64);
     return !name || Object.keys(state.presets).length >= 16 && !state.presets[name] ? state :
-      { ...state, presets: { ...state.presets, [name]: structuredClone({ tree: state.tree, documents: state.documents, explorerWidth: state.explorerWidth }) } };
+      { ...state, presets: { ...state.presets, [name]: structuredClone({ tree: state.tree, documents: state.documents, explorerWidth: state.explorerWidth, dockview:state.dockview }) } };
   }
   if (action.type === 'load-preset') {
     const preset = state.presets[action.name];
@@ -129,18 +137,20 @@ export function restoreLayout(raw: string | null): WorkspaceLayout {
     function valid(node: LayoutNode, depth = 0): boolean {
       if (!node || depth > 20 || typeof node.id !== 'string' || ids.has(node.id)) return false;
       ids.add(node.id);
-      if (node.type === 'split') return ['horizontal', 'vertical'].includes(node.axis) && Number.isFinite(node.ratio) && node.ratio >= .15 && node.ratio <= .85 && valid(node.first, depth + 1) && valid(node.second, depth + 1);
+      if (node.type === 'split') return ['horizontal', 'vertical'].includes(node.axis) && Number.isFinite(node.ratio) && node.ratio > 0 && node.ratio < 1 && valid(node.first, depth + 1) && valid(node.second, depth + 1);
       return node.type === 'group' && typeof node.minimized === 'boolean' && Array.isArray(node.tabs) && node.tabs.length <= 64 && node.tabs.every(id => !!state.documents[id]) && (node.active === null || node.tabs.includes(node.active));
     }
-    const kinds = ['source', 'data', 'graph', 'probes', 'tools', 'intelligence', 'changes', 'context', 'tasks', 'terminal','comparison'];
+    const kinds = ['source', 'data', 'graph', 'probes', 'tools', 'intelligence', 'changes', 'context', 'tasks', 'terminal','comparison','settings'];
     if (!valid(state.tree) || groups(state.tree).length > 12 || !groups(state.tree).some(g => g.id === state.activeGroup)) return createLayout();
     for (const [id, doc] of Object.entries(state.documents)) if (doc.id !== id || !kinds.includes(doc.kind) || typeof doc.title !== 'string' || typeof doc.pinned !== 'boolean' || typeof doc.reference !== 'object' || !doc.reference) return createLayout();
     // Validate each saved preset independently, including its own document map.
     const presets: WorkspaceLayout['presets'] = {};
     for (const [name, preset] of Object.entries(state.presets ?? {}).slice(0, 16)) {
       const saved = restoreLayout(JSON.stringify({ version: 1, ...preset, activeGroup: groups(preset.tree)[0]?.id, locked: false, focused: null, presets: {} }));
-      presets[name] = { tree: saved.tree, documents: saved.documents, explorerWidth: saved.explorerWidth };
+      presets[name] = { tree: saved.tree, documents: saved.documents, explorerWidth: saved.explorerWidth,dockview:saved.dockview };
     }
     return { ...state, focused: null, locked: !!state.locked, presets, explorerWidth: Math.max(170, Math.min(360, Number.isFinite(state.explorerWidth) ? state.explorerWidth : 218)) };
   } catch { return createLayout(); }
 }
+
+export function layoutReducer(state:WorkspaceLayout,action:LayoutAction):WorkspaceLayout{let result=baseReducer(state,action);if(result===state)return state;if(action.type!=='dock-state')result={...result,commandRevision:(state.commandRevision??0)+1};return ['split','remove-group','load-preset','reset'].includes(action.type)?{...result,dockview:action.type==='load-preset'?result.dockview:undefined,dockRevision:(state.dockRevision??0)+1}:result;}

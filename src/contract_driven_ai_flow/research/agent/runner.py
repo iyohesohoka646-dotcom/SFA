@@ -25,7 +25,7 @@ class ObservationRuntime:
         self._frames = contextvars.ContextVar("research_scope_frames", default=())
         self._array_refs = {}
         from .control_observation import ControlCollector
-        self.controls = ControlCollector(session)
+        self.controls = ControlCollector(session, detail_limit=session.policy.max_control_details)
 
     def branch(self, identifier, selected):
         self.controls.branch(self.references[identifier], selected)
