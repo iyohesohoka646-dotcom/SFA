@@ -352,8 +352,11 @@
       "additionalProperties": false,
       "properties": {
         "protocol_version": {
-          "const": 2,
-          "default": 2,
+          "default": 3,
+          "enum": [
+            2,
+            3
+          ],
           "title": "Protocol Version",
           "type": "integer"
         },
@@ -427,6 +430,23 @@
           },
           "title": "Diagnostics",
           "type": "array"
+        },
+        "target_scope": {
+          "$ref": "#/$defs/ScopeSelector"
+        },
+        "resolved_targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Resolved Targets",
+          "type": "array"
+        },
+        "invocations": {
+          "items": {
+            "$ref": "#/$defs/ResolvedProbeCall"
+          },
+          "title": "Invocations",
+          "type": "array"
         }
       },
       "required": [
@@ -442,7 +462,10 @@
         "scope",
         "run_id",
         "snapshot_ids",
-        "diagnostics"
+        "diagnostics",
+        "target_scope",
+        "resolved_targets",
+        "invocations"
       ],
       "title": "ExecutionPlan",
       "type": "object"
@@ -929,6 +952,22 @@
           "default": null,
           "title": "Object Id"
         },
+        "source_object_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Ids"
+        },
         "run_id": {
           "anyOf": [
             {
@@ -973,12 +1012,59 @@
         "question",
         "analysis_id",
         "object_id",
+        "source_object_ids",
         "run_id",
         "snapshot_id",
         "skill_id",
         "policy"
       ],
       "title": "HarnessRequest",
+      "type": "object"
+    },
+    "InputRole": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "supported_kinds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supported Kinds",
+          "type": "array"
+        },
+        "supported_targets": {
+          "items": {
+            "enum": [
+              "data",
+              "operation",
+              "function",
+              "control",
+              "file",
+              "project",
+              "folder",
+              "stream"
+            ],
+            "type": "string"
+          },
+          "title": "Supported Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "required",
+        "supported_kinds",
+        "supported_targets"
+      ],
+      "title": "InputRole",
       "type": "object"
     },
     "JsonValue": {},
@@ -997,7 +1083,8 @@
           "enum": [
             "view",
             "check",
-            "interpret"
+            "interpret",
+            "derive"
           ],
           "title": "Capability",
           "type": "string"
@@ -1043,6 +1130,132 @@
           "default": "1",
           "title": "Version",
           "type": "string"
+        },
+        "supported_targets": {
+          "items": {
+            "enum": [
+              "data",
+              "operation",
+              "function",
+              "control",
+              "file",
+              "project",
+              "folder",
+              "stream"
+            ],
+            "type": "string"
+          },
+          "title": "Supported Targets",
+          "type": "array"
+        },
+        "input_mode": {
+          "default": "per_target",
+          "enum": [
+            "single",
+            "per_target",
+            "joint"
+          ],
+          "title": "Input Mode",
+          "type": "string"
+        },
+        "input_roles": {
+          "items": {
+            "$ref": "#/$defs/InputRole"
+          },
+          "title": "Input Roles",
+          "type": "array"
+        },
+        "evidence": {
+          "default": "sample",
+          "enum": [
+            "metadata",
+            "sample",
+            "full",
+            "full_coordinates"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "output_kinds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Output Kinds",
+          "type": "array"
+        },
+        "renderer": {
+          "anyOf": [
+            {
+              "enum": [
+                "auto",
+                "matrix",
+                "table",
+                "scalar",
+                "raw",
+                "relationships",
+                "compare"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Renderer"
+        },
+        "resource_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Id"
+        },
+        "resource_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Version"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "entrypoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entrypoint"
+        },
+        "examples": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Examples",
+          "type": "array"
         }
       },
       "required": [
@@ -1053,7 +1266,18 @@
         "supported_kinds",
         "tool_id",
         "parameter_schema",
-        "version"
+        "version",
+        "supported_targets",
+        "input_mode",
+        "input_roles",
+        "evidence",
+        "output_kinds",
+        "renderer",
+        "resource_id",
+        "resource_version",
+        "dependencies",
+        "entrypoint",
+        "examples"
       ],
       "title": "ProbeDefinition",
       "type": "object"
@@ -1102,6 +1326,41 @@
           "minimum": 1,
           "title": "Budget Ms",
           "type": "integer"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScopeSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Inputs",
+          "type": "object"
+        },
+        "origin": {
+          "default": "manual",
+          "enum": [
+            "project_default",
+            "local",
+            "manual"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TargetOverride"
+          },
+          "title": "Overrides",
+          "type": "object"
         }
       },
       "required": [
@@ -1111,7 +1370,11 @@
         "enabled",
         "parameters",
         "policy",
-        "budget_ms"
+        "budget_ms",
+        "selector",
+        "inputs",
+        "origin",
+        "overrides"
       ],
       "title": "ProbeInstance",
       "type": "object"
@@ -1120,8 +1383,11 @@
       "additionalProperties": false,
       "properties": {
         "protocol_version": {
-          "const": 2,
-          "default": 2,
+          "default": 3,
+          "enum": [
+            2,
+            3
+          ],
           "title": "Protocol Version",
           "type": "integer"
         },
@@ -1141,7 +1407,8 @@
           "enum": [
             "view",
             "check",
-            "interpret"
+            "interpret",
+            "derive"
           ],
           "title": "Capability",
           "type": "string"
@@ -1262,6 +1529,32 @@
           ],
           "title": "Provenance",
           "type": "string"
+        },
+        "invocation_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Invocation Id"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "parent_snapshot_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Parent Snapshot Ids",
+          "type": "array"
         }
       },
       "required": [
@@ -1282,9 +1575,115 @@
         "artifact_id",
         "cache_key",
         "duration_ms",
-        "provenance"
+        "provenance",
+        "invocation_id",
+        "targets",
+        "parent_snapshot_ids"
       ],
       "title": "ProbeOutput",
+      "type": "object"
+    },
+    "ProbeResource": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,127}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 256,
+          "title": "Label",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 128,
+          "title": "Version",
+          "type": "string"
+        },
+        "source": {
+          "default": "local",
+          "enum": [
+            "builtin",
+            "public",
+            "local",
+            "model",
+            "skill"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "kind": {
+          "default": "definition",
+          "enum": [
+            "definition",
+            "adapter",
+            "skill"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "default": "draft",
+          "enum": [
+            "available",
+            "installed",
+            "draft",
+            "disabled",
+            "error"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "definitions": {
+          "items": {
+            "$ref": "#/$defs/ProbeDefinition"
+          },
+          "maxItems": 128,
+          "title": "Definitions",
+          "type": "array"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "version",
+        "source",
+        "kind",
+        "status",
+        "definitions",
+        "dependencies",
+        "url",
+        "diagnostics"
+      ],
+      "title": "ProbeResource",
       "type": "object"
     },
     "Relation": {
@@ -1330,6 +1729,58 @@
         "evidence"
       ],
       "title": "Relation",
+      "type": "object"
+    },
+    "ResolvedProbeCall": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "definition": {
+          "$ref": "#/$defs/ProbeDefinition"
+        },
+        "instance": {
+          "$ref": "#/$defs/ProbeInstance"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Inputs",
+          "type": "object"
+        },
+        "resource_versions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Resource Versions",
+          "type": "object"
+        },
+        "input_digest": {
+          "default": "",
+          "title": "Input Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "definition",
+        "instance",
+        "targets",
+        "inputs",
+        "resource_versions",
+        "input_digest"
+      ],
+      "title": "ResolvedProbeCall",
       "type": "object"
     },
     "ScopeSelector": {
@@ -1600,6 +2051,18 @@
           "default": "",
           "title": "Code",
           "type": "string"
+        },
+        "column": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Column",
+          "type": "integer"
+        },
+        "end_column": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Column",
+          "type": "integer"
         }
       },
       "required": [
@@ -1608,9 +2071,41 @@
         "line",
         "end_line",
         "digest",
-        "code"
+        "code",
+        "column",
+        "end_column"
       ],
       "title": "SourceRef",
+      "type": "object"
+    },
+    "TargetOverride": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enabled"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        }
+      },
+      "required": [
+        "enabled",
+        "parameters"
+      ],
+      "title": "TargetOverride",
       "type": "object"
     },
     "TargetRef": {
@@ -1824,8 +2319,11 @@
       "additionalProperties": false,
       "properties": {
         "protocol_version": {
-          "const": 2,
-          "default": 2,
+          "default": 3,
+          "enum": [
+            2,
+            3
+          ],
           "title": "Protocol Version",
           "type": "integer"
         },
@@ -1956,6 +2454,12 @@
     "ControlSummary": {
       "$ref": "#/$defs/ControlSummary"
     },
+    "ProbeResource": {
+      "$ref": "#/$defs/ProbeResource"
+    },
+    "ResolvedProbeCall": {
+      "$ref": "#/$defs/ResolvedProbeCall"
+    },
     "HarnessRequest": {
       "$ref": "#/$defs/HarnessRequest"
     }
@@ -1976,6 +2480,8 @@
     "TargetRef",
     "ScopeSelector",
     "ControlSummary",
+    "ProbeResource",
+    "ResolvedProbeCall",
     "HarnessRequest"
   ],
   "title": "WorkbenchProtocol",

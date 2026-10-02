@@ -41,6 +41,12 @@ class HarnessContextBuilder:
         return analysis
 
     def authorized_objects(self, analysis, request):
+        if request.source_object_ids is not None:
+            focus = set(request.source_object_ids)
+            known = {obj.id for obj in analysis.objects if obj.kind != 'class'}
+            if focus - known:
+                raise ValueError('Source scope contains an unavailable object')
+            return focus | {edge.source for edge in analysis.relations if edge.target in focus and edge.source in known}
         if request.object_id is not None or not request.snapshot_id:
             return self.allowed_objects(analysis, request.object_id)
         snapshot = self.workbench.research.store.snapshot(request.snapshot_id)

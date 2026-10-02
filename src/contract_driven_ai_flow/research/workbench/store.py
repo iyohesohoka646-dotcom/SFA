@@ -8,7 +8,7 @@ from ..agent.privacy import sanitize_json
 
 
 class WorkbenchStore:
-    kinds = {'analyses', 'plans', 'tasks', 'outputs', 'proposals', 'contexts', 'skills', 'artifacts'}
+    kinds = {'analyses', 'plans', 'tasks', 'outputs', 'proposals', 'contexts', 'skills', 'artifacts', 'resources', 'invocations', 'semantics', 'templates', 'derived', 'settings'}
 
     def __init__(self, root: Path):
         self.state = root.resolve() / '.cdaf' / 'research'

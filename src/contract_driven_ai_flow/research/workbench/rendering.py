@@ -25,12 +25,12 @@ class DrawingService:
         self.artifacts = self.store.state / 'drawings'
         self.artifacts.mkdir(exist_ok=True)
 
-    def render(self, instance: ProbeInstance, snapshot: SnapshotRef, *, cancel=None) -> ProbeOutput:
-        definition = self.catalog.resolve(instance.definition_id)
+    def render(self, instance: ProbeInstance, snapshot: SnapshotRef, *, cancel=None, definition=None, resource_versions=None) -> ProbeOutput:
+        definition = definition or self.catalog.resolve(instance.definition_id)
         started = time.perf_counter()
         output = ProbeOutput(instance_id=instance.id, definition_id=definition.id, capability=definition.capability,
             execution=definition.execution, status='unknown', run_id=snapshot.run_id, snapshot_id=snapshot.id,
-            fidelity=snapshot.fidelity, data={'snapshot_id': snapshot.id, 'coverage': snapshot.coverage},
+            fidelity=snapshot.fidelity, data={'snapshot_id': snapshot.id, 'coverage': snapshot.coverage, 'definition_version': definition.version, 'parameters': instance.parameters},
             cache_key=fingerprint({'snapshot': snapshot.id, 'descriptor': snapshot.descriptor.model_dump(mode='json'), 'sample': snapshot.sample,
                 'parameters': instance.parameters, 'definition': definition.model_dump(mode='json')}))
         if cancel is not None and cancel.is_set():
@@ -44,15 +44,17 @@ class DrawingService:
                 result = self.pool.evaluate(spec, snapshot, cancel=cancel)
                 output = output.model_copy(update={'status': result.status, 'message': result.message, 'fidelity': result.fidelity, 'data': result.evidence})
             elif definition.execution == 'builtin':
-                kind = definition.id.removeprefix('view.')
+                kind = definition.renderer or definition.id.removeprefix('view.')
+                if kind not in ('auto', 'table', 'matrix', 'scalar', 'raw', 'metadata'):
+                    kind = 'auto'
                 values = snapshot.sample.get('values')
                 if kind == 'auto':
                     kind = 'table' if snapshot.sample.get('columns') else 'matrix' if values else 'scalar' if snapshot.descriptor.kind == 'scalar' else 'metadata'
-                available = kind == 'metadata' or kind == 'scalar' and snapshot.descriptor.kind == 'scalar' or kind in ('matrix', 'table') and values is not None
+                available = kind in ('metadata', 'raw') or kind == 'scalar' and snapshot.descriptor.kind == 'scalar' or kind in ('matrix', 'table') and values is not None
                 output = output.model_copy(update={'status': 'ready' if available else 'unknown', 'message': 'Saved evidence view' if available else 'Required captured values are unavailable for this view',
                     'data': {**output.data, 'renderer': kind}})
             elif definition.tool_id:
-                output = self._plot(instance, snapshot, output, definition.tool_id, cancel)
+                output = self._plot(instance, snapshot, output, definition.tool_id, cancel, resource_versions)
             else:
                 output = output.model_copy(update={'message': 'Requires an explicit model, Skill or manual result'})
         except InterruptedError:
@@ -65,13 +67,15 @@ class DrawingService:
             output = output.model_copy(update={'status': 'error', 'message': f'Isolated drawing failed ({type(error).__name__})'})
         return output.model_copy(update={'duration_ms': (time.perf_counter() - started) * 1000})
 
-    def _plot(self, instance, snapshot, output, tool, cancel):
+    def _plot(self, instance, snapshot, output, tool, cancel, resource_versions=None):
         values = sanitize_json(snapshot.sample.get('values', []))
         if not values or not isinstance(values, list) or not all(isinstance(row, list) for row in values) or sum(map(len, values)) > 65536:
             raise LookupError('A bounded numeric matrix sample is required for this drawing adapter')
         if not any(type(value) in (int, float) for row in values for value in row):
             raise LookupError('Captured cells are not numeric; choose a table or register another adapter')
         interpreter, version = self.tools.resolve(tool)
+        if resource_versions and tool in resource_versions and resource_versions[tool] != version:
+            raise ValueError('Drawing resource version changed; prepare a new plan')
         key = fingerprint({'key': output.cache_key, 'tool': tool, 'version': version, 'interpreter': interpreter})
         suffix = '.png' if tool in ('matplotlib', 'seaborn') else '.html' if tool == 'plotly' else '.json'
         path = self.artifacts / (key + suffix)

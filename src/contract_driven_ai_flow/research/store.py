@@ -229,11 +229,12 @@ class ExperimentStore:
         omitted = max((json.loads(row['body'])['payload'].get('omitted', 0) for row in events), default=0)
         return {'items': [json.loads(row['body']) for row in rows], 'omitted': omitted}
 
-    def snapshots(self, run_id: str, *, latest: bool = True, limit: int = 1000, after: str | None = None) -> list[SnapshotRef]:
+    def snapshots(self, run_id: str, *, latest: bool = True, limit: int = 1000, after: str | None = None, metadata_only: bool = False) -> list[SnapshotRef]:
         self.run(run_id)
         if not 1 <= limit <= 10000:
             raise ValueError("Snapshot page limit is invalid")
-        query = "SELECT s.body FROM snapshots s WHERE s.run_id=?"
+        projection = "json_set(s.body,'$.sample',json('{}')) AS body" if metadata_only else 's.body'
+        query = f"SELECT {projection} FROM snapshots s WHERE s.run_id=?"
         if latest:
             query += " AND s.version=(SELECT MAX(o.version) FROM snapshots o WHERE o.run_id=s.run_id AND o.binding_id=s.binding_id)"
         parameters = [run_id]

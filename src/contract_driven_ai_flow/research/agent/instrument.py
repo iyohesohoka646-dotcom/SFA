@@ -107,6 +107,7 @@ class Transformer(ast.NodeTransformer):
     def source_ref(self, node):
         return {"path": self.filename, "qualname": ".".join(self.qualname), "line": node.lineno,
                 "end_line": getattr(node, "end_lineno", node.lineno), "digest": self.digest,
+                "column": getattr(node, 'col_offset', 0), "end_column": getattr(node, 'end_col_offset', 0),
                 "code": (ast.get_source_segment(self.source, node) or "")[:16384]}
 
     def selected(self, node, outputs):

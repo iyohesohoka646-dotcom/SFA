@@ -4,6 +4,7 @@ from pydantic import Field
 
 from ..models import WireModel
 from .models import WorkbenchConfig
+from .semantic_models import ScopeSelector
 from .intelligence.harness import HarnessRequest
 
 
@@ -22,6 +23,7 @@ class PlanRequest(WireModel):
     run_id: str | None = None
     snapshot_ids: list[str] = Field(default_factory=list, max_length=512)
     instance_ids: list[str] | None = None
+    target_scope: ScopeSelector | None = None
 
 
 class ExecuteRequest(WireModel):
@@ -96,6 +98,26 @@ def attach_workbench_routes(app, research):
     @router.get('/probe-definitions')
     def definitions():
         return service.catalog.definitions()
+
+    @router.get('/resources')
+    def resources():
+        return service.resources.resources()
+
+    @router.post('/resources')
+    def import_resource(body: dict):
+        return service.resources.import_manifest(body)
+
+    @router.post('/resources/{key}/enable')
+    def enable_resource(key: str):
+        return service.resources.enable(key)
+
+    @router.post('/resources/{key}/disable')
+    def disable_resource(key: str):
+        return service.resources.disable(key)
+
+    @router.get('/snapshots/{key}/presenters')
+    def presenters(key: str, analysis_id: str | None = None):
+        return service.presenters(key, analysis_id)
 
     @router.post('/plans')
     def plan(body: PlanRequest):

@@ -43,6 +43,8 @@ export type Line1 = number;
 export type EndLine1 = number;
 export type Digest = string;
 export type Code1 = string;
+export type Column1 = number;
+export type EndColumn1 = number;
 export type SourceObjectId = string | null;
 export type Members = string[];
 export type RuntimeCoverage = "supported" | "partial" | "unsupported";
@@ -91,28 +93,62 @@ export type Diagnostics = string[];
 export type ImportedAt = string;
 export type Id6 = string;
 export type Label4 = string;
-export type Capability = "view" | "check" | "interpret";
+export type Capability = "view" | "check" | "interpret" | "derive";
 export type Execution = "builtin" | "program" | "model" | "skill" | "manual";
 export type SupportedKinds = string[];
 export type ToolId = string | null;
 export type JsonValue = unknown;
 export type Version1 = string;
+export type SupportedTargets = (
+  "data" | "operation" | "function" | "control" | "file" | "project" | "folder" | "stream"
+)[];
+export type InputMode = "single" | "per_target" | "joint";
+export type Name2 = string;
+export type Required = boolean;
+export type SupportedKinds1 = string[];
+export type SupportedTargets1 = (
+  "data" | "operation" | "function" | "control" | "file" | "project" | "folder" | "stream"
+)[];
+export type InputRoles = InputRole[];
+export type Evidence1 = "metadata" | "sample" | "full" | "full_coordinates";
+export type OutputKinds = string[];
+export type Renderer = ("auto" | "matrix" | "table" | "scalar" | "raw" | "relationships" | "compare") | null;
+export type ResourceId = string | null;
+export type ResourceVersion = string | null;
+export type Dependencies = string[];
+export type Entrypoint = string | null;
+export type Examples = {
+  [k: string]: JsonValue;
+}[];
 export type Id7 = string;
 export type DefinitionId = string;
 export type Binding = string;
 export type Enabled = boolean;
 export type Policy = "continue" | "pause" | "cancel";
 export type BudgetMs = number;
-export type ProtocolVersion2 = 2;
+export type Mode = "selection" | "block" | "project";
+export type BlockId2 = string | null;
+export type Kind4 = "data" | "operation" | "function" | "control" | "file" | "project" | "folder" | "stream";
+export type LogicalKey3 = string;
+export type ObjectId = string | null;
+export type BlockId3 = string | null;
+export type AnalysisId = string | null;
+export type RunId = string | null;
+export type SnapshotId = string | null;
+export type Targets = TargetRef[];
+export type ExcludedKeys = string[];
+export type Origin = "project_default" | "local" | "manual";
+export type Enabled1 = boolean | null;
+export type ProtocolVersion2 = 2 | 3;
 export type Id8 = string;
 export type InstanceId = string;
 export type DefinitionId1 = string;
-export type Capability1 = "view" | "check" | "interpret";
+export type Capability1 = "view" | "check" | "interpret" | "derive";
 export type Execution1 = "builtin" | "program" | "model" | "skill" | "manual";
 export type Status = "ready" | "pass" | "fail" | "error" | "skipped" | "unknown" | "cancelled";
-export type RunId = string | null;
-export type SnapshotId = string | null;
-export type AnalysisId = string | null;
+export type RunId1 = string | null;
+export type SnapshotId1 = string | null;
+export type AnalysisId1 = string | null;
 export type CreatedAt = string;
 export type Fidelity = string;
 export type Message1 = string;
@@ -120,7 +156,10 @@ export type ArtifactId = string | null;
 export type CacheKey = string;
 export type DurationMs = number;
 export type Provenance3 = "observed" | "inferred" | "declared" | "manual" | "model" | "skill" | "unknown";
-export type ProtocolVersion3 = 2;
+export type InvocationId = string | null;
+export type Targets1 = TargetRef[];
+export type ParentSnapshotIds = string[];
+export type ProtocolVersion3 = 2 | 3;
 export type Revision = number;
 export type Script = string;
 export type Interpreter = string;
@@ -145,34 +184,39 @@ export type IncludeSamples = boolean;
 export type AllowExecute = boolean;
 export type Harness = HarnessPolicy[];
 export type MaxOutputs = number;
-export type ProtocolVersion4 = 2;
+export type ProtocolVersion4 = 2 | 3;
 export type Id9 = string;
 export type CreatedAt1 = string;
-export type AnalysisId1 = string;
+export type AnalysisId2 = string;
 export type SourceDigest3 = string;
 export type ConfigDigest = string;
 export type EnvironmentDigest = string;
 export type Definitions = ProbeDefinition[];
 export type Scope1 = "compute" | "probes" | "replot";
-export type RunId1 = string | null;
+export type RunId2 = string | null;
 export type SnapshotIds = string[];
 export type Diagnostics1 = string[];
-export type ProtocolVersion5 = 2;
+export type ResolvedTargets = TargetRef[];
 export type Id10 = string;
-export type Kind4 = string;
+export type Targets2 = TargetRef[];
+export type InputDigest = string;
+export type Invocations = ResolvedProbeCall[];
+export type ProtocolVersion5 = 2;
+export type Id11 = string;
+export type Kind5 = string;
 export type Status1 = "queued" | "running" | "completed" | "failed" | "cancelled" | "interrupted";
 export type CreatedAt2 = string;
 export type UpdatedAt = string;
 export type PlanId = string | null;
-export type RunId2 = string | null;
+export type RunId3 = string | null;
 export type CalculationStatus = string;
 export type Progress = number;
 export type OutputIds = string[];
 export type Message2 = string;
 export type ProtocolVersion6 = 2;
-export type Id11 = string;
-export type AnalysisId2 = string;
-export type ObjectId = string | null;
+export type Id12 = string;
+export type AnalysisId3 = string;
+export type ObjectId1 = string | null;
 export type Path3 = string;
 export type SourceDigest4 = string;
 export type Candidate = string;
@@ -186,17 +230,6 @@ export type ValidationRunId = string | null;
 export type ValidationOutputIds = string[];
 export type RollbackOf = string | null;
 export type CreatedAt3 = string;
-export type Kind5 = "data" | "operation" | "function" | "control" | "file" | "project" | "folder" | "stream";
-export type LogicalKey3 = string;
-export type ObjectId1 = string | null;
-export type BlockId2 = string | null;
-export type AnalysisId3 = string | null;
-export type RunId3 = string | null;
-export type SnapshotId1 = string | null;
-export type Mode = "selection" | "block" | "project";
-export type BlockId3 = string | null;
-export type Targets = TargetRef[];
-export type ExcludedKeys = string[];
 export type NodeId = string;
 export type Kind6 = "branch" | "loop";
 export type TrueCount = number;
@@ -655,9 +688,26 @@ export type ActivationSamples =
       }
     ];
 export type OmittedActivations = number;
+export type Id13 = string;
+export type Label5 = string;
+export type Version2 = string;
+export type Source2 = "builtin" | "public" | "local" | "model" | "skill";
+export type Kind7 = "definition" | "adapter" | "skill";
+export type Status3 = "available" | "installed" | "draft" | "disabled" | "error";
+/**
+ * @maxItems 128
+ */
+export type Definitions1 = ProbeDefinition[];
+/**
+ * @maxItems 128
+ */
+export type Dependencies1 = string[];
+export type Url = string | null;
+export type Diagnostics3 = string[];
 export type Question = string;
 export type AnalysisId4 = string;
 export type ObjectId2 = string | null;
+export type SourceObjectIds = string[] | null;
 export type RunId4 = string | null;
 export type SnapshotId2 = string | null;
 export type SkillId = string | null;
@@ -678,6 +728,8 @@ export interface WorkbenchProtocol {
   TargetRef: TargetRef;
   ScopeSelector: ScopeSelector;
   ControlSummary: ControlSummary;
+  ProbeResource: ProbeResource;
+  ResolvedProbeCall: ResolvedProbeCall;
   HarnessRequest: HarnessRequest;
 }
 export interface AnalysisDocument {
@@ -745,6 +797,8 @@ export interface SourceRef {
   end_line: EndLine1;
   digest: Digest;
   code: Code1;
+  column: Column1;
+  end_column: EndColumn1;
 }
 export interface GraphNode {
   id: Id3;
@@ -790,9 +844,26 @@ export interface ProbeDefinition {
   tool_id: ToolId;
   parameter_schema: ParameterSchema;
   version: Version1;
+  supported_targets: SupportedTargets;
+  input_mode: InputMode;
+  input_roles: InputRoles;
+  evidence: Evidence1;
+  output_kinds: OutputKinds;
+  renderer: Renderer;
+  resource_id: ResourceId;
+  resource_version: ResourceVersion;
+  dependencies: Dependencies;
+  entrypoint: Entrypoint;
+  examples: Examples;
 }
 export interface ParameterSchema {
   [k: string]: JsonValue;
+}
+export interface InputRole {
+  name: Name2;
+  required: Required;
+  supported_kinds: SupportedKinds1;
+  supported_targets: SupportedTargets1;
 }
 export interface ProbeInstance {
   id: Id7;
@@ -802,8 +873,40 @@ export interface ProbeInstance {
   parameters: Parameters;
   policy: Policy;
   budget_ms: BudgetMs;
+  selector: ScopeSelector | null;
+  inputs: Inputs1;
+  origin: Origin;
+  overrides: Overrides;
 }
 export interface Parameters {
+  [k: string]: JsonValue;
+}
+export interface ScopeSelector {
+  mode: Mode;
+  block_id: BlockId2;
+  targets: Targets;
+  excluded_keys: ExcludedKeys;
+}
+export interface TargetRef {
+  kind: Kind4;
+  logical_key: LogicalKey3;
+  object_id: ObjectId;
+  block_id: BlockId3;
+  analysis_id: AnalysisId;
+  run_id: RunId;
+  snapshot_id: SnapshotId;
+}
+export interface Inputs1 {
+  [k: string]: TargetRef;
+}
+export interface Overrides {
+  [k: string]: TargetOverride;
+}
+export interface TargetOverride {
+  enabled: Enabled1;
+  parameters: Parameters1;
+}
+export interface Parameters1 {
   [k: string]: JsonValue;
 }
 export interface ProbeOutput {
@@ -814,9 +917,9 @@ export interface ProbeOutput {
   capability: Capability1;
   execution: Execution1;
   status: Status;
-  run_id: RunId;
-  snapshot_id: SnapshotId;
-  analysis_id: AnalysisId;
+  run_id: RunId1;
+  snapshot_id: SnapshotId1;
+  analysis_id: AnalysisId1;
   created_at: CreatedAt;
   fidelity: Fidelity;
   message: Message1;
@@ -825,6 +928,9 @@ export interface ProbeOutput {
   cache_key: CacheKey;
   duration_ms: DurationMs;
   provenance: Provenance3;
+  invocation_id: InvocationId;
+  targets: Targets1;
+  parent_snapshot_ids: ParentSnapshotIds;
 }
 export interface Data {
   [k: string]: JsonValue;
@@ -856,26 +962,44 @@ export interface ExecutionPlan {
   protocol_version: ProtocolVersion4;
   id: Id9;
   created_at: CreatedAt1;
-  analysis_id: AnalysisId1;
+  analysis_id: AnalysisId2;
   source_digest: SourceDigest3;
   config_digest: ConfigDigest;
   environment_digest: EnvironmentDigest;
   config: WorkbenchConfig;
   definitions: Definitions;
   scope: Scope1;
-  run_id: RunId1;
+  run_id: RunId2;
   snapshot_ids: SnapshotIds;
   diagnostics: Diagnostics1;
+  target_scope: ScopeSelector;
+  resolved_targets: ResolvedTargets;
+  invocations: Invocations;
+}
+export interface ResolvedProbeCall {
+  id: Id10;
+  definition: ProbeDefinition;
+  instance: ProbeInstance;
+  targets: Targets2;
+  inputs: Inputs2;
+  resource_versions: ResourceVersions;
+  input_digest: InputDigest;
+}
+export interface Inputs2 {
+  [k: string]: TargetRef;
+}
+export interface ResourceVersions {
+  [k: string]: string;
 }
 export interface TaskRecord {
   protocol_version: ProtocolVersion5;
-  id: Id10;
-  kind: Kind4;
+  id: Id11;
+  kind: Kind5;
   status: Status1;
   created_at: CreatedAt2;
   updated_at: UpdatedAt;
   plan_id: PlanId;
-  run_id: RunId2;
+  run_id: RunId3;
   calculation_status: CalculationStatus;
   progress: Progress;
   output_ids: OutputIds;
@@ -887,9 +1011,9 @@ export interface Receipt {
 }
 export interface CodeProposal {
   protocol_version: ProtocolVersion6;
-  id: Id11;
-  analysis_id: AnalysisId2;
-  object_id: ObjectId;
+  id: Id12;
+  analysis_id: AnalysisId3;
+  object_id: ObjectId1;
   path: Path3;
   source_digest: SourceDigest4;
   candidate: Candidate;
@@ -903,21 +1027,6 @@ export interface CodeProposal {
   validation_output_ids: ValidationOutputIds;
   rollback_of: RollbackOf;
   created_at: CreatedAt3;
-}
-export interface TargetRef {
-  kind: Kind5;
-  logical_key: LogicalKey3;
-  object_id: ObjectId1;
-  block_id: BlockId2;
-  analysis_id: AnalysisId3;
-  run_id: RunId3;
-  snapshot_id: SnapshotId1;
-}
-export interface ScopeSelector {
-  mode: Mode;
-  block_id: BlockId3;
-  targets: Targets;
-  excluded_keys: ExcludedKeys;
 }
 export interface ControlSummary {
   node_id: NodeId;
@@ -936,10 +1045,23 @@ export interface ControlSummary {
   activation_samples: ActivationSamples;
   omitted_activations: OmittedActivations;
 }
+export interface ProbeResource {
+  id: Id13;
+  label: Label5;
+  version: Version2;
+  source: Source2;
+  kind: Kind7;
+  status: Status3;
+  definitions: Definitions1;
+  dependencies: Dependencies1;
+  url: Url;
+  diagnostics: Diagnostics3;
+}
 export interface HarnessRequest {
   question: Question;
   analysis_id: AnalysisId4;
   object_id: ObjectId2;
+  source_object_ids: SourceObjectIds;
   run_id: RunId4;
   snapshot_id: SnapshotId2;
   skill_id: SkillId;

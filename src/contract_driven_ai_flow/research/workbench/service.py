@@ -31,6 +31,8 @@ class WorkbenchService:
         self.configurations = ConfigurationStore(self.root)
         self.catalog = ProbeCatalog(research.registry)
         self.tools = ToolManager(self.root)
+        from .resources import ResourceManager
+        self.resources = ResourceManager(self.root, self.catalog, self.tools)
         self.drawing = DrawingService(self.root, self.catalog, pool=research.pool, tools=self.tools)
         self.jobs = JobManager(self.store)
         self.models = None
@@ -88,7 +90,7 @@ class WorkbenchService:
     def configure(self, config, *, expected_revision):
         return self.configurations.save(config, expected_revision=expected_revision)
 
-    def plan(self, analysis_id, *, scope='compute', run_id=None, snapshot_ids=(), instance_ids=None):
+    def plan(self, analysis_id, *, scope='compute', run_id=None, snapshot_ids=(), instance_ids=None, target_scope=None):
         analysis = self.analysis(analysis_id)
         config = self.configurations.load()
         script = Path(config.script or analysis.path)
@@ -108,8 +110,11 @@ class WorkbenchService:
                 raise ValueError('Requested probe instance is not configured')
             config = config.model_copy(deep=True, update={'probes': [p for p in config.probes if p.id in wanted]})
         environment = self.tools.scan(config.interpreter or sys.executable)
+        snapshots = [self.research.store.snapshot(key) for key in snapshot_ids] if snapshot_ids else self.research.store.snapshots(run_id, latest=True, limit=10000, metadata_only=True) if run_id else []
+        if any(snapshot.run_id != run_id for snapshot in snapshots):
+            raise ValueError('Snapshot belongs to another run')
         plan = compile_plan(analysis, config, self.catalog.definitions(), scope=scope,
-            run_id=run_id, snapshot_ids=snapshot_ids, environment=environment)
+            run_id=run_id, snapshot_ids=snapshot_ids, environment=environment, snapshots=snapshots, target_scope=target_scope)
         self.store.put('plans', plan.id, plan)
         return plan
 
@@ -132,11 +137,17 @@ class WorkbenchService:
         config = plan.config
         if plan.scope == 'compute':
             checks = []
-            for instance in config.probes:
-                definition = self.catalog.resolve(instance.definition_id)
-                if instance.enabled and definition.capability == 'check' and definition.execution == 'program':
-                    checks.append(ProbeSpec(id=instance.id, kind=definition.id.removeprefix('check.'), binding=instance.binding,
-                        parameters=instance.parameters, policy=instance.policy, budget_ms=min(instance.budget_ms, 30000)).model_dump(mode='json'))
+            grouped = {}
+            for invocation in plan.invocations:
+                instance, definition = invocation.instance, invocation.definition
+                if instance.enabled and definition.capability == 'check' and definition.execution == 'program' and invocation.targets[0].kind == 'data':
+                    signature = (instance.id, fingerprint(instance.parameters))
+                    group = grouped.setdefault(signature, ProbeSpec(id=instance.id, kind=definition.id.removeprefix('check.'), binding=instance.binding,
+                        parameters=instance.parameters, policy=instance.policy, target_keys=[], budget_ms=min(instance.budget_ms, 30000)))
+                    for target in invocation.targets:
+                        if target.logical_key not in group.target_keys:
+                            group.target_keys.append(target.logical_key)
+            checks = [spec.model_dump(mode='json') for spec in grouped.values()]
             if cancel.is_set():
                 raise InterruptedError()
             handle = self.research.start_analysis(Path(self.analysis(plan.analysis_id).path), interpreter=config.interpreter or None,
@@ -164,58 +175,108 @@ class WorkbenchService:
         return {'run_id': run_id, 'calculation_status': run['status'], **result}
 
     def _postprocess(self, plan, run_id, task, cancel):
-        if plan.snapshot_ids:
-            snapshots = [self.research.store.snapshot(key) for key in plan.snapshot_ids[:plan.config.max_outputs]]
-            if any(s.run_id != run_id for s in snapshots):
-                raise ValueError('Snapshot belongs to another run')
+        from .bindings import resolve_calls, snapshot_target
+        from .scopes import resolve_scope, source_targets
+        analysis = self.analysis(plan.analysis_id)
+        if plan.scope == 'compute':
+            snapshots = self.research.store.snapshots(run_id, latest=True, limit=10000, metadata_only=True)
+            available = [snapshot_target(snapshot, analysis) for snapshot in snapshots]
+            available.extend(target for target in source_targets(analysis) if target.kind != 'data')
+            targets = resolve_scope(analysis.graph, plan.target_scope, available)
+            calls = resolve_calls(analysis, plan.config, plan.definitions, targets, snapshots,
+                resource_versions=plan.invocations[0].resource_versions if plan.invocations else {}, scope=plan.scope)
         else:
-            snapshots = self.research.store.snapshots(run_id, latest=True, limit=plan.config.max_outputs + 1)
+            calls = plan.invocations
         outputs = []
-        truncated = False
         counts = {'drawing_errors': 0, 'check_failures': 0, 'unknown': 0}
-        for snapshot in snapshots:
-            for instance in plan.config.probes:
-                if not instance.enabled or not (instance.binding == snapshot.id or fnmatchcase(snapshot.name, instance.binding) or fnmatchcase(snapshot.binding_id, instance.binding)):
-                    continue
-                definition = self.catalog.resolve(instance.definition_id)
-                if plan.scope == 'replot' and definition.capability != 'view':
-                    continue
-                if len(outputs) >= plan.config.max_outputs:
-                    truncated = True
-                    break
-                if cancel.is_set():
-                    raise InterruptedError()
-                if definition.id == 'view.relationships':
-                    output = relationship_output(self.research, snapshot.id).model_copy(update={'instance_id': instance.id})
-                elif definition.execution in ('model', 'skill'):
-                    from .intelligence.harness import HarnessRequest
-                    policy = next(p for p in plan.config.harness if p.role == 'probe').model_copy(deep=True)
-                    if instance.parameters.get('provider_id'):
-                        policy.provider_id = instance.parameters['provider_id']
-                    if instance.parameters.get('model'):
-                        policy.model = instance.parameters['model']
-                    request = HarnessRequest(question=instance.parameters.get('prompt') or 'Explain the selected scientific evidence, its direct relationships and coverage.',
-                        analysis_id=plan.analysis_id, run_id=run_id, snapshot_id=snapshot.id, policy=policy, skill_id=instance.parameters.get('skill_id'))
-                    result = asyncio.run(self.harness.execute(request, task_id=task.id, cancel=cancel))
-                    output = ProbeOutput(instance_id=instance.id, definition_id=definition.id, capability=definition.capability, execution=definition.execution,
-                        status='ready' if result['status'] == 'completed' else 'cancelled' if result['status'] == 'cancelled' else 'unknown' if result['status'] == 'offline' else 'error',
-                        run_id=run_id, snapshot_id=snapshot.id, analysis_id=plan.analysis_id, fidelity=snapshot.fidelity,
-                        provenance='skill' if definition.execution == 'skill' else 'model', message=result['answer'] or result['message'], data={'context_id': result['context_id'], 'citations': result['citations'], 'automatic_check': False})
-                else:
-                    output = self.drawing.render(instance, snapshot, cancel=cancel)
-                self.store.put('outputs', output.id, output)
-                outputs.append(output.id)
-                if output.status == 'error' and output.capability == 'view':
-                    counts['drawing_errors'] += 1
-                if output.status == 'fail' and output.capability == 'check':
-                    counts['check_failures'] += 1
-                if output.status == 'unknown':
-                    counts['unknown'] += 1
-                self.jobs.update(task.id, output_ids=outputs, progress=.6 + .39 * len(outputs) / plan.config.max_outputs)
-            if truncated:
-                break
-        return {'output_ids': outputs, 'receipt': {**counts, 'truncated': truncated, 'source_digest': plan.source_digest,
+        for invocation in calls[:plan.config.max_outputs]:
+            if cancel.is_set():
+                raise InterruptedError()
+            self.store.put('invocations', invocation.id, invocation)
+            output = self._evaluate_call(invocation, run_id, plan, task, cancel)
+            output = output.model_copy(update={'invocation_id': invocation.id, 'targets': invocation.targets,
+                'parent_snapshot_ids': [target.snapshot_id for target in invocation.targets if target.snapshot_id],
+                'data': {**output.data, 'definition_version': invocation.definition.version}})
+            self.store.put('outputs', output.id, output)
+            outputs.append(output.id)
+            if output.status == 'error' and output.capability == 'view':
+                counts['drawing_errors'] += 1
+            if output.status == 'fail' and output.capability == 'check':
+                counts['check_failures'] += 1
+            if output.status == 'unknown':
+                counts['unknown'] += 1
+            self.jobs.update(task.id, output_ids=outputs, progress=.6 + .39 * len(outputs) / plan.config.max_outputs)
+        return {'output_ids': outputs, 'receipt': {**counts, 'truncated': len(calls) > len(outputs),
+            'omitted_calls': max(0, len(calls) - len(outputs)), 'source_digest': plan.source_digest,
             'config_digest': plan.config_digest, 'environment_digest': plan.environment_digest, 'evidence_only': plan.scope != 'compute'}}
+
+    def _evaluate_call(self, invocation, run_id, plan, task, cancel):
+        instance, definition = invocation.instance, invocation.definition
+        if definition.input_mode == 'joint':
+            return self._joint_output(invocation, run_id, plan, cancel)
+        target = invocation.targets[0]
+        snapshot = self.research.store.snapshot(target.snapshot_id) if target.snapshot_id else None
+        if definition.execution in ('model', 'skill'):
+            from .intelligence.harness import HarnessRequest
+            policy = next(policy for policy in plan.config.harness if policy.role == 'probe').model_copy(deep=True)
+            if instance.parameters.get('provider_id'):
+                policy.provider_id = instance.parameters['provider_id']
+            if instance.parameters.get('model'):
+                policy.model = instance.parameters['model']
+            source_ids = None
+            if snapshot is None and target.kind != 'file':
+                from .scopes import resolve_scope, source_targets
+                from .semantic_models import ScopeSelector
+                analysis = self.analysis(plan.analysis_id)
+                scoped = resolve_scope(analysis.graph, ScopeSelector(mode='block', block_id=target.block_id), source_targets(analysis)) if target.block_id else []
+                source_ids = ([target.object_id] if target.object_id else []) if target.kind == 'operation' else list(dict.fromkeys(item.object_id for item in scoped if item.object_id))
+            request = HarnessRequest(question=instance.parameters.get('prompt') or 'Explain the selected scientific evidence, its direct relationships and coverage.',
+                analysis_id=plan.analysis_id, run_id=run_id, snapshot_id=snapshot.id if snapshot else None,
+                object_id=target.object_id if snapshot is None else None, source_object_ids=source_ids,
+                policy=policy, skill_id=instance.parameters.get('skill_id'))
+            result = asyncio.run(self.harness.execute(request, task_id=task.id, cancel=cancel))
+            return ProbeOutput(instance_id=instance.id, definition_id=definition.id, capability=definition.capability, execution=definition.execution,
+                status='ready' if result['status'] == 'completed' else 'cancelled' if result['status'] == 'cancelled' else 'unknown' if result['status'] == 'offline' else 'error',
+                run_id=run_id, snapshot_id=snapshot.id if snapshot else None, analysis_id=plan.analysis_id, fidelity=snapshot.fidelity if snapshot else 'metadata_only',
+                provenance='skill' if definition.execution == 'skill' else 'model', message=result['answer'] or result['message'],
+                data={'context_id': result['context_id'], 'citations': result['citations'], 'automatic_check': False})
+        if snapshot is None:
+            return self._block_output(invocation, run_id, plan)
+        if definition.id == 'view.relationships':
+            return relationship_output(self.research, snapshot.id).model_copy(update={'instance_id': instance.id})
+        return self.drawing.render(instance, snapshot, cancel=cancel, definition=definition, resource_versions=invocation.resource_versions)
+
+    def _joint_output(self, invocation, run_id, plan, cancel):
+        return ProbeOutput(instance_id=invocation.instance.id, definition_id=invocation.definition.id,
+            capability=invocation.definition.capability, execution=invocation.definition.execution,
+            status='unknown', run_id=run_id, analysis_id=plan.analysis_id, message='联合输入执行服务正在接入')
+
+    def _block_output(self, invocation, run_id, plan):
+        target, definition = invocation.targets[0], invocation.definition
+        analysis = self.analysis(plan.analysis_id)
+        base = dict(instance_id=invocation.instance.id, definition_id=definition.id, capability=definition.capability,
+            execution=definition.execution, run_id=run_id, analysis_id=plan.analysis_id, fidelity='metadata_only', provenance='inferred')
+        if definition.id == 'check.structure':
+            block = next((block for block in analysis.graph.blocks if block.id == target.block_id), None)
+            coverage = [item.model_dump(mode='json') for item in analysis.graph.coverage if not block or item.source and block.source and block.source.line <= item.source.line <= block.source.end_line]
+            return ProbeOutput(**base, status='unknown' if coverage else 'pass', message='结构覆盖检查', data={'coverage': coverage, 'diagnostics': analysis.diagnostics})
+        if definition.id == 'view.controls':
+            from .scopes import resolve_scope
+            from .semantic_models import ScopeSelector, TargetRef
+            summaries = self.research.store.control_summaries(run_id)
+            if target.block_id:
+                summaries = [summary for summary in summaries if resolve_scope(analysis.graph, ScopeSelector(mode='block', block_id=target.block_id),
+                    [TargetRef(kind='control', logical_key=summary['node_id'], block_id=summary['node_id'])])]
+            return ProbeOutput(**{**base, 'provenance': 'observed'}, status='ready' if summaries else 'unknown', message='实际控制摘要', data={'control_summaries': summaries})
+        return ProbeOutput(**base, status='unknown', message='此目标缺少该探针所需的运行证据')
+
+    def presenters(self, snapshot_id, analysis_id=None):
+        from .bindings import effective_presenters
+        snapshot = self.research.store.snapshot(snapshot_id)
+        run = self.research.store.run(snapshot.run_id)
+        candidates = [raw for raw in self.store.list('analyses', limit=1000) if raw['source_digest'] == run['source_digest'] and raw['path'] == run['script']]
+        analysis = self.analysis(analysis_id) if analysis_id else AnalysisDocument.model_validate(candidates[0]) if candidates else AnalysisDocument(path=run['script'], source_digest=run['source_digest'])
+        return effective_presenters(self.configurations.load(), self.catalog.definitions(), snapshot, analysis)
 
     def _evidence_plan(self, run_id, *, scope, snapshot_ids=(), instance_ids=None):
         run = self.research.store.run(run_id)

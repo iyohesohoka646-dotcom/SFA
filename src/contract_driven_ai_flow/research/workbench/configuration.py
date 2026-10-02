@@ -51,7 +51,7 @@ class ConfigurationStore:
                 binding=item.get('binding', '*'), enabled=item.get('enabled', True),
                 parameters=item.get('parameters', {}), policy=item.get('policy', 'continue'),
                 budget_ms=item.get('budget_ms', 50)))
-        config = WorkbenchConfig(script=old.get('script', ''), interpreter=old.get('interpreter') or sys.executable,
+        config = WorkbenchConfig(protocol_version=2, script=old.get('script', ''), interpreter=old.get('interpreter') or sys.executable,
             arguments=old.get('arguments', []), probes=probes, adapters=old.get('adapters', []))
         result = {'config': config.model_dump(mode='json'), 'issues': issues, 'applied': False}
         if apply:

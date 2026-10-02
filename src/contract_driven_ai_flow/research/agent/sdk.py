@@ -67,6 +67,8 @@ class TraceSession:
         if type(name) is not str or not name or len(name) > 256:
             raise ValueError("Observed binding name must be 1-256 characters")
         binding = scope_id + ":" + name
+        from .source import logical_binding
+        logical_key = logical_binding(source, scope_id, name)
         operation = self._current.get()
         private = sensitive(name, self.policy.sensitive_fields)
         adapter = self.registry._unknown
@@ -125,7 +127,7 @@ class TraceSession:
                 self._binding_count += 1
             self._versions[binding] = version
             snapshot = {"id": uuid.uuid4().hex, "run_id": self.run_id, "binding_id": binding, "scope_id": scope_id,
-                "name": name, "version": version, "descriptor": descriptor, "observed_at": now(),
+                "name": name, "logical_key": logical_key, "version": version, "descriptor": descriptor, "observed_at": now(),
                 "source": sanitize_json(source) if source is not None else None,
                 "operation_id": operation["id"] if operation else None, "parents": parent_ids,
                 "provenance": provenance if parent_ids else "unknown", "fidelity": fidelity,

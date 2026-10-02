@@ -19,6 +19,7 @@ class HarnessRequest(WireModel):
     question: str = Field(min_length=1, max_length=32768)
     analysis_id: str
     object_id: str | None = None
+    source_object_ids: list[str] | None = Field(default=None, max_length=4096)
     run_id: str | None = None
     snapshot_id: str | None = None
     skill_id: str | None = None

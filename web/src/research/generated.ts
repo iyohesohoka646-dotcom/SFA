@@ -6,6 +6,8 @@ export type Line = number;
 export type EndLine = number;
 export type Digest = string;
 export type Code = string;
+export type Column = number;
+export type EndColumn = number;
 export type SchemaVersion = 1;
 export type Kind = string;
 export type Backend = string;
@@ -23,6 +25,7 @@ export type RunId = string;
 export type BindingId = string;
 export type ScopeId = string;
 export type Name = string;
+export type LogicalKey = string;
 export type Version = number;
 export type ObservedAt = string;
 export type OperationId = string | null;
@@ -53,6 +56,8 @@ export type SnapshotId = string | null;
 export type Id2 = string;
 export type Kind3 = string;
 export type Binding = string;
+export type TargetKeys = string[] | null;
+export type ExcludedKeys = string[];
 export type Enabled = boolean;
 export type Policy = "continue" | "pause" | "cancel";
 export type BudgetMs = number;
@@ -86,6 +91,8 @@ export interface SourceRef {
   end_line: EndLine;
   digest: Digest;
   code: Code;
+  column: Column;
+  end_column: EndColumn;
 }
 export interface ValueDescriptor {
   schema_version: SchemaVersion;
@@ -110,6 +117,7 @@ export interface SnapshotRef {
   binding_id: BindingId;
   scope_id: ScopeId;
   name: Name;
+  logical_key: LogicalKey;
   version: Version;
   descriptor: ValueDescriptor;
   observed_at: ObservedAt;
@@ -170,6 +178,8 @@ export interface ProbeSpec {
   id: Id2;
   kind: Kind3;
   binding: Binding;
+  target_keys: TargetKeys;
+  excluded_keys: ExcludedKeys;
   enabled: Enabled;
   parameters: Parameters1;
   policy: Policy;

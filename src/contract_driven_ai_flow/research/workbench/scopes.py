@@ -10,6 +10,11 @@ def source_targets(analysis):
         if block.kind in ('condition', 'loop', 'try', 'with', 'file'):
             targets.append(TargetRef(kind='file' if block.kind == 'file' else 'control',
                 logical_key=block.logical_key, block_id=block.id, analysis_id=analysis.id))
+    for node in analysis.graph.nodes:
+        if node.kind in ('operation', 'call', 'return') and node.source:
+            matches = [obj for obj in analysis.objects if obj.kind == 'assignment' and obj.line == node.source.line and obj.column == node.source.column]
+            targets.append(TargetRef(kind='operation', logical_key=f'{analysis.path}::{node.source.qualname or "<module>"}::operation@{node.source.line}:{node.source.column}',
+                object_id=matches[0].id if len(matches) == 1 else None, block_id=node.block_id, analysis_id=analysis.id))
     return targets
 
 

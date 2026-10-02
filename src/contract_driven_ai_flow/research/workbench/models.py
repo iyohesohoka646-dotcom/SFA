@@ -5,6 +5,7 @@ from typing import Literal
 from uuid import uuid4
 
 from pydantic import Field, JsonValue, field_validator
+from .semantic_models import TargetKind
 
 from ..models import WireModel, timestamp
 from .semantic_models import SemanticGraph, TargetRef, ScopeSelector
@@ -54,15 +55,51 @@ class AnalysisDocument(WireModel):
     imported_at: str = Field(default_factory=timestamp)
 
 
+class InputRole(WireModel):
+    name: str
+    required: bool = True
+    supported_kinds: list[str] = Field(default_factory=list)
+    supported_targets: list[TargetKind] = Field(default_factory=lambda: ['data'])
+
+
 class ProbeDefinition(WireModel):
     id: str
     label: str
-    capability: Literal['view', 'check', 'interpret']
+    capability: Literal['view', 'check', 'interpret', 'derive']
     execution: Literal['builtin', 'program', 'model', 'skill', 'manual']
     supported_kinds: list[str] = Field(default_factory=list)
     tool_id: str | None = None
     parameter_schema: dict[str, JsonValue] = Field(default_factory=dict)
     version: str = '1'
+    supported_targets: list[TargetKind] = Field(default_factory=lambda: ['data'])
+    input_mode: Literal['single', 'per_target', 'joint'] = 'per_target'
+    input_roles: list[InputRole] = Field(default_factory=list)
+    evidence: Literal['metadata', 'sample', 'full', 'full_coordinates'] = 'sample'
+    output_kinds: list[str] = Field(default_factory=list)
+    renderer: Literal['auto', 'matrix', 'table', 'scalar', 'raw', 'relationships', 'compare'] | None = None
+    resource_id: str | None = None
+    resource_version: str | None = None
+    dependencies: list[str] = Field(default_factory=list)
+    entrypoint: str | None = None
+    examples: list[dict[str, JsonValue]] = Field(default_factory=list)
+
+
+class ProbeResource(WireModel):
+    id: str = Field(pattern=r'^[a-zA-Z][a-zA-Z0-9_.-]{0,127}$')
+    label: str = Field(max_length=256)
+    version: str = Field(max_length=128)
+    source: Literal['builtin', 'public', 'local', 'model', 'skill'] = 'local'
+    kind: Literal['definition', 'adapter', 'skill'] = 'definition'
+    status: Literal['available', 'installed', 'draft', 'disabled', 'error'] = 'draft'
+    definitions: list[ProbeDefinition] = Field(default_factory=list, max_length=128)
+    dependencies: list[str] = Field(default_factory=list, max_length=128)
+    url: str | None = None
+    diagnostics: list[str] = Field(default_factory=list)
+
+
+class TargetOverride(WireModel):
+    enabled: bool | None = None
+    parameters: dict[str, JsonValue] = Field(default_factory=dict)
 
 
 class ProbeInstance(WireModel):
@@ -73,14 +110,28 @@ class ProbeInstance(WireModel):
     parameters: dict[str, JsonValue] = Field(default_factory=dict)
     policy: Literal['continue', 'pause', 'cancel'] = 'continue'
     budget_ms: int = Field(default=5000, ge=1, le=120000)
+    selector: ScopeSelector | None = None
+    inputs: dict[str, TargetRef] = Field(default_factory=dict)
+    origin: Literal['project_default', 'local', 'manual'] = 'manual'
+    overrides: dict[str, TargetOverride] = Field(default_factory=dict)
+
+
+class ResolvedProbeCall(WireModel):
+    id: str = Field(default_factory=uid)
+    definition: ProbeDefinition
+    instance: ProbeInstance
+    targets: list[TargetRef]
+    inputs: dict[str, TargetRef] = Field(default_factory=dict)
+    resource_versions: dict[str, str] = Field(default_factory=dict)
+    input_digest: str = ''
 
 
 class ProbeOutput(WireModel):
-    protocol_version: Literal[2] = 2
+    protocol_version: Literal[2, 3] = 3
     id: str = Field(default_factory=uid)
     instance_id: str
     definition_id: str
-    capability: Literal['view', 'check', 'interpret']
+    capability: Literal['view', 'check', 'interpret', 'derive']
     execution: Literal['builtin', 'program', 'model', 'skill', 'manual']
     status: Literal['ready', 'pass', 'fail', 'error', 'skipped', 'unknown', 'cancelled']
     run_id: str | None = None
@@ -94,6 +145,9 @@ class ProbeOutput(WireModel):
     cache_key: str = ''
     duration_ms: float = 0
     provenance: Literal['observed', 'inferred', 'declared', 'manual', 'model', 'skill', 'unknown'] = 'observed'
+    invocation_id: str | None = None
+    targets: list[TargetRef] = Field(default_factory=list)
+    parent_snapshot_ids: list[str] = Field(default_factory=list)
 
 
 class HarnessPolicy(WireModel):
@@ -109,14 +163,14 @@ class HarnessPolicy(WireModel):
 
 
 class WorkbenchConfig(WireModel):
-    protocol_version: Literal[2] = 2
+    protocol_version: Literal[2, 3] = 3
     revision: int = Field(default=0, ge=0)
     script: str = ''
     interpreter: str = ''
     arguments: list[str] = Field(default_factory=list, max_length=256)
     capture: Literal['metadata', 'summary', 'sample', 'full'] = 'summary'
     probes: list[ProbeInstance] = Field(default_factory=lambda: [
-        ProbeInstance(id='auto-view', definition_id='view.auto'),
+        ProbeInstance(id='auto-view', definition_id='view.auto', origin='project_default', selector=ScopeSelector()),
         ProbeInstance(id='finite-check', definition_id='check.finite'),
     ], max_length=128)
     adapters: list[str] = Field(default_factory=list)
@@ -132,7 +186,7 @@ class WorkbenchConfig(WireModel):
 
 
 class ExecutionPlan(WireModel):
-    protocol_version: Literal[2] = 2
+    protocol_version: Literal[2, 3] = 3
     id: str = Field(default_factory=uid)
     created_at: str = Field(default_factory=timestamp)
     analysis_id: str
@@ -145,6 +199,9 @@ class ExecutionPlan(WireModel):
     run_id: str | None = None
     snapshot_ids: list[str] = Field(default_factory=list)
     diagnostics: list[str] = Field(default_factory=list)
+    target_scope: ScopeSelector = Field(default_factory=ScopeSelector)
+    resolved_targets: list[TargetRef] = Field(default_factory=list)
+    invocations: list[ResolvedProbeCall] = Field(default_factory=list)
 
 
 class TaskRecord(WireModel):

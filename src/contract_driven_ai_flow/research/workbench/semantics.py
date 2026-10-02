@@ -83,6 +83,7 @@ class GraphBuilder:
     def source(self, node, scope):
         return SourceRef(path=self.path, qualname='' if scope == '<module>' else scope,
             line=getattr(node, 'lineno', 1), end_line=getattr(node, 'end_lineno', 1),
+            column=getattr(node, 'col_offset', 0), end_column=getattr(node, 'end_col_offset', 0),
             digest=self.digest, code=clean_text(ast.get_source_segment(self.text, node) or '', 16384))
 
     def coverage(self, code, message, node, scope, runtime='partial'):

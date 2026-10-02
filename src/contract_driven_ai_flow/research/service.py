@@ -146,7 +146,7 @@ class ResearchService:
             "name": run["name"], "script": source.path, "source_digest": source.digest, "capture": asdict(policy),
             "artifact_root": str(self.store.state), "arguments": list(arguments), "adapters": list(adapters),
             "watched_names": list(watched_names), "watched_lines": list(watched_lines), "instrument": instrument,
-            "gates": [p.binding for p in configured if p.enabled and p.policy != "continue"]}
+            "gates": [{'binding': p.binding, 'target_keys': p.target_keys, 'excluded_keys': p.excluded_keys} for p in configured if p.enabled and p.policy != "continue"]}
         with os.fdopen(os.open(job_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600), "w", encoding="utf-8") as stream:
             stream.write(encode(configuration))
         try:
@@ -223,7 +223,8 @@ class ResearchService:
                 active.probe_condition.notify_all()
 
     def _observe(self, active, snapshot):
-        matched = [p for p in active.probes if p.enabled and (fnmatch.fnmatchcase(snapshot.name, p.binding) or fnmatch.fnmatchcase(snapshot.binding_id, p.binding))]
+        from .agent.source import matches_probe
+        matched = [p for p in active.probes if p.enabled and matches_probe(p.model_dump(mode='json'), snapshot.model_dump(mode='json'))]
         if active.implicit_probes and "finite_count" not in snapshot.statistics:
             matched = []
         gates = [p for p in matched if p.policy != "continue"]

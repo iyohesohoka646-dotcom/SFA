@@ -21,5 +21,6 @@ workbench_protocol = create_model('WorkbenchProtocol', **{model.__name__: (model
     workbench.AnalysisDocument, workbench.SourceObject, workbench.Relation, workbench.ProbeDefinition,
     workbench.ProbeInstance, workbench.ProbeOutput, workbench.WorkbenchConfig, workbench.ExecutionPlan,
     workbench.TaskRecord, workbench.HarnessPolicy, workbench.CodeProposal,
-    workbench.SemanticGraph, workbench.TargetRef, workbench.ScopeSelector, ControlSummary, HarnessRequest)})
+    workbench.SemanticGraph, workbench.TargetRef, workbench.ScopeSelector, ControlSummary,
+    workbench.ProbeResource, workbench.ResolvedProbeCall, HarnessRequest)})
 (target / 'workbench.json').write_text(json.dumps(workbench_protocol.model_json_schema(mode='serialization'), ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

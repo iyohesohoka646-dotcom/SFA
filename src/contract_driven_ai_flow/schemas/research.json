@@ -335,6 +335,28 @@
           "title": "Binding",
           "type": "string"
         },
+        "target_keys": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Keys"
+        },
+        "excluded_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Excluded Keys",
+          "type": "array"
+        },
         "enabled": {
           "default": true,
           "title": "Enabled",
@@ -375,6 +397,8 @@
         "id",
         "kind",
         "binding",
+        "target_keys",
+        "excluded_keys",
         "enabled",
         "parameters",
         "policy",
@@ -405,6 +429,11 @@
         },
         "name": {
           "title": "Name",
+          "type": "string"
+        },
+        "logical_key": {
+          "default": "",
+          "title": "Logical Key",
           "type": "string"
         },
         "version": {
@@ -524,6 +553,7 @@
         "binding_id",
         "scope_id",
         "name",
+        "logical_key",
         "version",
         "descriptor",
         "observed_at",
@@ -576,6 +606,18 @@
           "default": "",
           "title": "Code",
           "type": "string"
+        },
+        "column": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Column",
+          "type": "integer"
+        },
+        "end_column": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Column",
+          "type": "integer"
         }
       },
       "required": [
@@ -584,7 +626,9 @@
         "line",
         "end_line",
         "digest",
-        "code"
+        "code",
+        "column",
+        "end_column"
       ],
       "title": "SourceRef",
       "type": "object"

@@ -36,7 +36,9 @@ class AgentChannel:
         self.send({"type": "events", "events": events})
 
     def requires_gate(self, name, binding):
-        return any(fnmatch.fnmatchcase(name, pattern) or fnmatch.fnmatchcase(binding, pattern) for pattern in self.gates)
+        # The critical reserve is selected conservatively; exact lexical matching
+        # happens in boundary where complete source identity is available.
+        return any(isinstance(pattern, dict) or fnmatch.fnmatchcase(name, pattern) or fnmatch.fnmatchcase(binding, pattern) for pattern in self.gates)
 
     def _listen(self):
         try:
@@ -63,7 +65,8 @@ class AgentChannel:
                 self.condition.notify_all()
 
     def boundary(self, snapshot, trace):
-        if not self.requires_gate(snapshot["name"], snapshot["binding_id"]):
+        from .source import matches_probe
+        if not any(matches_probe(pattern if isinstance(pattern, dict) else {'binding': pattern}, snapshot) for pattern in self.gates):
             return
         trace.emit("boundary.waiting", {"snapshot_id": snapshot["id"]}, snapshot_id=snapshot["id"], critical=True)
         with self.condition:

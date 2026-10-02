@@ -23,6 +23,8 @@ class SourceRef(WireModel):
     end_line: int = Field(default=0, ge=0)
     digest: str = ""
     code: str = ""
+    column: int = Field(default=0, ge=0)
+    end_column: int = Field(default=0, ge=0)
 
 
 class ValueDescriptor(WireModel):
@@ -46,6 +48,7 @@ class SnapshotRef(WireModel):
     binding_id: str
     scope_id: str
     name: str
+    logical_key: str = ''
     version: int = Field(ge=1)
     descriptor: ValueDescriptor
     observed_at: str = Field(default_factory=timestamp)
@@ -106,6 +109,8 @@ class ProbeSpec(WireModel):
     id: str
     kind: str = "finite"
     binding: str = "*"
+    target_keys: list[str] | None = None
+    excluded_keys: list[str] = Field(default_factory=list)
     enabled: bool = True
     parameters: dict[str, JsonValue] = Field(default_factory=dict)
     policy: Literal["continue", "pause", "cancel"] = "continue"
