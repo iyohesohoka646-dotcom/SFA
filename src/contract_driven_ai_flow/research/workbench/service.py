@@ -7,6 +7,9 @@ import sys
 import threading
 
 from ..models import ProbeSpec
+from ..agent.source import read_source
+from ..agent.privacy import clean_text
+from ...storage import atomic_write_private
 from .analysis import analyze_source
 from .catalog import ProbeCatalog
 from .configuration import ConfigurationStore
@@ -64,8 +67,19 @@ class WorkbenchService:
         if not path.is_absolute():
             path = self.root / path
         analysis = analyze_source(path)
+        source = read_source(path)
+        if source.digest != analysis.source_digest:
+            raise ValueError('Source changed during import; retry parsing')
+        atomic_write_private(self.research.store.state / 'sources' / (source.digest + '.txt'), clean_text(source.text, 10 * 1024 * 1024))
         self.store.put('analyses', analysis.id, analysis)
         return analysis
+
+    def analysis_source(self, key):
+        analysis = self.analysis(key)
+        path = self.research.store.state / 'sources' / (analysis.source_digest + '.txt')
+        if not path.exists():
+            raise LookupError('Imported source snapshot is unavailable')
+        return {'path': analysis.path, 'digest': analysis.source_digest, 'code': path.read_text(encoding='utf-8')}
 
     def analysis(self, key):
         return AnalysisDocument.model_validate(self.store.get('analyses', key))

@@ -92,3 +92,11 @@ def test_legacy_migration_preserves_authored_file(tmp_path):
     assert old.read_text(encoding='utf-8') == original
     assert (tmp_path / 'research.yaml.v1.bak').read_text(encoding='utf-8') == original
     assert store.load().protocol_version == 2
+def test_harness_roles_are_complete_and_unique():
+    from pydantic import ValidationError
+    from contract_driven_ai_flow.research.workbench.models import WorkbenchConfig, HarnessPolicy
+    import pytest
+    with pytest.raises(ValidationError, match='harness roles'):
+        WorkbenchConfig(harness=[])
+    with pytest.raises(ValidationError, match='harness roles'):
+        WorkbenchConfig(harness=[HarnessPolicy(role='explain')] * 4)

@@ -12,5 +12,5 @@ export function useWorkspace(storageKey: string) {
     }
     try { localStorage.setItem(storageKey, JSON.stringify(state.layout)); } catch { /* restricted browser storage keeps the current in-memory workspace */ }
   }, [storageKey, state]);
-  return { layout: state.layout, dispatch };
+  return { layout: state.layout, dispatch, ready: state.key === storageKey };
 }

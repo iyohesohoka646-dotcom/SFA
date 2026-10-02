@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     @app.get('/fake-model/v1/models')
     async def fake_models(request: Request):
-        return {'data':[{'id':'model-a'},{'id':'model-b'}]}
+        return {'data':[{'id':'model-a'},{'id':'model-b'},{'id':'harness-model'}]}
 
     @app.post('/fake-model/v1/chat/completions')
     async def fake_completion(request: Request):
@@ -60,6 +60,20 @@ if __name__ == "__main__":
             await asyncio.sleep(30)
         if body.get('model')=='error-model':
             return JSONResponse({'message':'synthetic-private-error'},status_code=401)
+        if body.get('model')=='harness-model':
+            import json
+            manifest = json.loads(body['messages'][0]['content'].split('\n', 1)[1])
+            obj = manifest['focus']['object_id'] or next(o['id'] for o in manifest['objects'] if o['kind'] == 'function')
+            last = body['messages'][-1]['content']
+            if not last.startswith('Tool result'):
+                action = {'tool': 'source.read', 'arguments': {'object_id': obj}}
+            else:
+                result = json.loads(last.split('\n', 1)[1])
+                if manifest['role'] == 'code' and result['reference'].startswith('source:'):
+                    action = {'tool': 'code.propose', 'arguments': {'object_id': obj, 'candidate': 'def calculate(x):\n    return x + 2\n'}}
+                else:
+                    action = {'answer': '已读取真实定义并记录证据。', 'citations': [result['reference']]}
+            return {'choices': [{'message': {'content': json.dumps(action, ensure_ascii=False)}}], 'usage': {'prompt_tokens': 24, 'completion_tokens': 12}}
         return {'choices':[{'message':{'content':'事实：这是已记录的数值运算。推测：实验意义需要用户标注。'}}], 'usage':{'prompt_tokens':24,'completion_tokens':12}}
     app.mount("/", StaticFiles(directory=base / "src/contract_driven_ai_flow/static", html=True))
     uvicorn.run(app, host="127.0.0.1", port=8879, access_log=False)

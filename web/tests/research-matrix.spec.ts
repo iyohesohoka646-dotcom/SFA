@@ -1,11 +1,11 @@
 import {session} from './session';
 import {test,expect} from '@playwright/test';
+import {chooseExample,runCompute} from './scientific-helpers';
 test.use({baseURL:'http://127.0.0.1:8879'});
 test('research-matrix: complex, higher axes, empty matrices and table indices',async({page})=>{
   await page.goto(`/#session=${session}`);
-  await page.getByText('示例、脚本参数与扩展适配器',{exact:true}).click();
-  await page.getByLabel('示例选择').selectOption('edge-cases');
-  await page.getByRole('button',{name:'运行分析',exact:true}).click();
+  await chooseExample(page,'edge-cases');
+  await runCompute(page);
   await expect(page.getByTestId('run-status')).toHaveText('completed',{timeout:15000});
   const search=page.getByRole('searchbox',{name:'搜索变量'});
   await search.fill('complex_matrix');await page.getByRole('button',{name:/^complex_matrix ·/}).first().click();
@@ -22,7 +22,7 @@ test('research-matrix: complex, higher axes, empty matrices and table indices',a
   await expect(page.getByRole('table',{name:'数据表预览'})).toBeVisible();
   await expect(page.getByRole('table',{name:'数据表预览'})).toContainText('重复索引');
   await expect(page.getByRole('table',{name:'数据表预览'})).toContainText('[REDACTED]');
-  const download=page.waitForEvent('download');await page.getByRole('button',{name:'导出离线报告',exact:true}).click();
+  const download=page.waitForEvent('download');await page.getByRole('button',{name:'导出报告',exact:true}).click();
   const artifact=await download;await artifact.saveAs('../.work/research-offline.html');
   await page.goto('file:///'+process.cwd().replaceAll('\\','/')+'/../.work/research-offline.html');
   await expect(page.getByRole('heading',{name:'Scientific Dataflow Inspector'})).toBeVisible();
@@ -31,11 +31,12 @@ test('research-matrix: complex, higher axes, empty matrices and table indices',a
 
 test('research-matrix: exact slices use exact coordinates and keyboard selection',async({page})=>{
   await page.goto(`/#session=${session}`);
-  await page.getByText('示例、脚本参数与扩展适配器',{exact:true}).click();
-  await page.getByLabel('示例选择').selectOption('edge-cases');
-  await page.getByLabel('采集级别').selectOption('full');
+  await chooseExample(page,'edge-cases');
+  await page.getByRole('button',{name:'打开源码配置'}).click();
+  await page.getByLabel('采集模式').selectOption('full');
+  await page.getByRole('button',{name:'打开源码配置'}).click();
   const previous=await page.getByLabel('运行记录').inputValue();
-  await page.getByRole('button',{name:'运行分析',exact:true}).click();
+  await runCompute(page);
   await expect(page.getByLabel('运行记录')).not.toHaveValue(previous);
   await expect(page.getByTestId('run-status')).toHaveText('completed',{timeout:15000});
   await page.getByRole('searchbox',{name:'搜索变量'}).fill('tensor');

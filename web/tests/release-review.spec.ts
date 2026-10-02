@@ -12,10 +12,11 @@ async function fixture(page:Page,delays:{history?:ReturnType<typeof deferred>;sl
  const run={id:'review',name:'Review fixture',script:'analysis.py',interpreter:'python',source_digest:'a',status:'completed',summary:{},environment:{},finished:'',started:'',owner:1};
  await page.route('**/api/v1/research/**',async route=>{
   const path=new URL(route.request().url()).pathname;let json:unknown={};
+  if(path.includes('/workbench')){await route.continue();return;}
   if(path.endsWith('/info'))json={root:'.',interpreter:'python',examples:[]};
   else if(path.endsWith('/experiment'))json=null;
   else if(path.endsWith('/runs'))json=[run];
-  else if(path.endsWith('/bootstrap'))json={run,cursor:4,binding_count:2,snapshots:[x,y],operations:[],probe_events:[{schema_version:1,run_id:'review',sequence:1,kind:'capture.marker',timestamp:'',snapshot_id:'x1',payload:{}}]};
+  else if(path.endsWith('/bootstrap'))json={run,cursor:4,binding_count:2,parent_bindings:{},snapshots:[x,y],operations:[],probe_events:[{schema_version:1,run_id:'review',sequence:1,kind:'capture.marker',timestamp:'',snapshot_id:'x1',payload:{}}]};
   else if(path.endsWith('/source'))json={path:'analysis.py',digest:'a',code:'X = data\nY = X+1'};
   else if(path.endsWith('/probe-types'))json=[];
   else if(path.endsWith('/history'))json=[x,old];
@@ -24,13 +25,14 @@ async function fixture(page:Page,delays:{history?:ReturnType<typeof deferred>;sl
   await route.fulfill({json}).catch(()=>{});
  });
  await page.goto(`/#session=${session}`);
- await expect(page.getByTestId('detail-status')).toHaveText('详情已就绪');
+ await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
  return entered;
 }
 
 test('review: delayed timeline selection cannot override a newer variable',async({page})=>{
  const pending=deferred(),entered=await fixture(page,{history:pending});
- await page.getByRole('button',{name:'查看此版本',exact:true}).click();await entered.promise;
+ await page.getByRole('button',{name:'查看变量历史'}).click();
+ await page.getByRole('button',{name:'版本 1',exact:true}).click();await entered.promise;
  await page.getByRole('button',{name:/^Y ·/}).click();await expect(page.getByTestId('current-variable')).toHaveText('Y');
  pending.resolve();await page.waitForTimeout(250);await expect(page.getByTestId('current-variable')).toHaveText('Y');
 });
@@ -48,7 +50,7 @@ test('review: changing fixed axis invalidates pending exact slice',async({page})
  await page.getByLabel('固定 axis 0').fill('1');await page.getByRole('button',{name:'读取此版本切片',exact:true}).click();await entered.promise;
  await page.getByLabel('固定 axis 0').fill('0');pending.resolve();await page.waitForTimeout(250);
  await expect(page.getByTestId('matrix-cell-value')).toHaveText('[0, 0] = 0');
- await expect(page.locator('.ri-matrix .ri-fidelity').first()).toContainText('抽样预览');
+ await expect(page.locator('.wb-evidence-bar').first()).toContainText('sampled');
 });
 
 test('review: legacy run selection discards delayed older responses',async({page})=>{

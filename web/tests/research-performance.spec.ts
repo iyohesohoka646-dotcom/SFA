@@ -17,14 +17,17 @@ test('research-performance: 1000 values and 10000 events stay interactive', asyn
   await page.goto(`/#session=${session}`);
   await expect(page.getByRole('heading', {name: 'Scientific Dataflow Inspector'})).toBeVisible();
   await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Analysis · completed'}).last().textContent()||''});
-  await expect(page.getByTestId('variable-count')).toHaveText('1000');
-  await page.getByRole('button',{name:'展开运算链',exact:true}).click();
-  await expect(page.getByTestId('flow-node')).toHaveCount(80);
+  await expect.poll(()=>page.getByLabel('搜索变量').isVisible()).toBe(true);
+  await page.getByRole('button',{name:'计算关系图',exact:true}).click();
+  await expect(page.getByTestId('relation-node').first()).toBeVisible();
+  expect(await page.getByTestId('relation-node').count()).toBeLessThanOrEqual(160);
+  await page.getByRole('button',{name:'放大 main 视图'}).click();
+  await page.getByRole('button',{name:'还原 main 视图'}).click();
   for (const name of ['X999', 'X7', 'X20', 'X999', 'X15', 'X7', 'X81', 'X999', 'X0', 'X1']) {
     await page.getByRole('searchbox', {name: '搜索变量'}).fill(name);
     await page.getByRole('button', {name: new RegExp(`^${name} ·`)}).first().click();
     await expect(page.getByTestId('current-variable')).toHaveText(name);
-    await expect(page.getByTestId('detail-status')).toHaveText('详情已就绪');
+    await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
   }
   const measured=await page.evaluate(()=>({...(window as unknown as {researchPerformance:Record<string,unknown>}).researchPerformance,ready:performance.now()}));
   const metrics=measured.paint as number[],sorted = metrics.sort((a,b)=>a-b);
@@ -44,7 +47,7 @@ test('research-performance: slow details do not disable input and selection', as
   await page.goto(`/#session=${session}`);
   await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Analysis · completed'}).last().textContent()||''});
   const search = page.getByRole('searchbox', {name: '搜索变量'});
-  await expect(page.getByTestId('variable-count')).toHaveText('1000');
+  await expect.poll(()=>page.getByLabel('搜索变量').isVisible()).toBe(true);
   await search.fill('X7');
   await page.getByRole('button', {name: /^X7 ·/}).first().click();
   await pending;

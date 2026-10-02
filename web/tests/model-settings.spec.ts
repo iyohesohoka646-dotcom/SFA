@@ -1,4 +1,5 @@
 import {session} from './session';
+import {chooseExample,runCompute,researchApi} from './scientific-helpers';
 import {test,expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 test.use({baseURL:'http://127.0.0.1:8879'});
@@ -54,32 +55,24 @@ test('model-settings: discover, configure, share with CLI, and cancel without bl
   await expect(page.getByTestId('connection-result')).toContainText('cancelled');
 });
 
-test('model-settings: evidence scope is explicit and model explanations remain cancellable',async({page})=>{
+test('model-settings: automatic evidence tools and slow harness stay independently cancellable',async({page})=>{
   await page.goto(`/#session=${session}`);
-  await page.evaluate(async()=>{await fetch('/api/v1/settings/models/browser-lab',{method:'PUT',headers:{Authorization:'Bearer '+sessionStorage.getItem('cdaf-session'),'Content-Type':'application/json'},body:JSON.stringify({profile:{id:'browser-lab',protocol:'openai-compatible',base_url:'http://127.0.0.1:8879/fake-model/v1',default_model:'model-a',credential_ref:'env:CDAF_BROWSER_TEST_KEY'}})});});
-  await page.getByText('示例、脚本参数与扩展适配器',{exact:true}).click();
-  await page.getByLabel('示例选择').selectOption('analysis');
-  await page.getByLabel('脚本参数').fill('');
-  await page.getByRole('button',{name:'运行分析',exact:true}).click();
-  await expect(page.getByTestId('run-status')).toHaveText('completed',{timeout:15000});
-  await page.getByRole('searchbox',{name:'搜索变量'}).fill('Z');
-  await page.getByRole('button',{name:/^Z ·/}).first().click();
-  await page.getByText('自然语言解释与发送范围',{exact:true}).click();
-  await expect(page.getByLabel('解释模型服务')).toBeVisible();
-  await page.getByLabel('解释模型服务').selectOption('browser-lab');
-  await page.getByLabel('解释模型 ID').fill('model-a');
-  await expect(page.getByLabel('包含脱敏样例')).not.toBeChecked();
-  await page.getByRole('button',{name:'查看解释发送内容',exact:true}).click();
-  await expect(page.getByTestId('explanation-context')).toContainText('Z = (X - mu) / sigma');
-  await expect(page.getByTestId('explanation-context')).not.toContainText('"sample"');
-  await page.getByRole('button',{name:'生成模型解释',exact:true}).click();
-  await expect(page.getByTestId('model-explanation')).toContainText('尚未人工验证');
-  await expect(page.getByTestId('model-explanation')).toContainText('24');
+  await researchApi(page,'settings/models/browser-lab',{profile:{id:'browser-lab',protocol:'openai-compatible',base_url:'http://127.0.0.1:8879/fake-model/v1',default_model:'harness-model'}},'PUT');
+  await chooseExample(page);await runCompute(page);
+  await page.getByRole('searchbox',{name:'搜索变量'}).fill('Z');await page.getByRole('button',{name:/^Z ·/}).first().click();
+  await page.getByRole('button',{name:'智能助手',exact:true}).click();await page.getByRole('button',{name:'任务设置'}).click();
+  await page.getByLabel('任务模型服务').selectOption('browser-lab');await page.getByLabel('任务模型',{exact:true}).fill('harness-model');
+  await expect(page.getByLabel('允许读取脱敏样例')).not.toBeChecked();
+  await page.getByLabel('任务指令').fill('解读标准化定义。');await page.getByRole('button',{name:'执行智能任务'}).click();
+  await expect(page.getByTestId('task-record').first().locator('strong')).toContainText('intelligence.explain');
+  await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed');
+  await page.getByRole('button',{name:'查看智能结果'}).first().click();
+  await expect(page.locator('.wb-ai-answer')).toContainText('真实定义');await expect(page.locator('.wb-context-view')).toContainText('source.read');
   await page.screenshot({path:'../docs/assets/research-model-explanation.png'});
-  await page.getByLabel('解释模型 ID').fill('slow-model');
-  await page.getByRole('button',{name:'生成模型解释',exact:true}).click();
-  await expect(page.getByRole('button',{name:'取消解释请求',exact:true})).toBeVisible();
-  await page.getByRole('img',{name:'矩阵热图'}).click({position:{x:12,y:12}});
-  await page.getByRole('button',{name:'取消解释请求',exact:true}).click();
-  await expect(page.getByTestId('explanation-status')).toContainText('cancelled');
+  await page.getByRole('button',{name:'智能助手',exact:true}).click();await page.getByRole('button',{name:'任务设置'}).click();
+  await page.getByLabel('任务模型',{exact:true}).fill('slow-model');await page.getByLabel('任务指令').fill('慢请求期间继续查看数据。');
+  await page.getByRole('button',{name:'执行智能任务'}).click();await expect(page.getByRole('button',{name:'取消任务'}).first()).toBeVisible();
+  await page.getByRole('searchbox',{name:'搜索变量'}).fill('X');await page.getByRole('button',{name:/^X ·/}).first().click();
+  await expect(page.getByTestId('current-variable')).toHaveText('X');
+  await page.getByRole('button',{name:'取消任务'}).first().click();await expect(page.getByTestId('task-record').first()).toContainText('cancelled');
 });

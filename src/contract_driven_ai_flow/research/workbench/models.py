@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Literal
 from uuid import uuid4
 
-from pydantic import Field, JsonValue
+from pydantic import Field, JsonValue, field_validator
 
 from ..models import WireModel, timestamp
 
@@ -116,6 +116,13 @@ class WorkbenchConfig(WireModel):
     adapters: list[str] = Field(default_factory=list)
     harness: list[HarnessPolicy] = Field(default_factory=lambda: [HarnessPolicy(role=role) for role in ('parse', 'explain', 'probe', 'code')])
     max_outputs: int = Field(default=128, ge=1, le=512)
+
+    @field_validator('harness')
+    @classmethod
+    def complete_roles(cls, value):
+        if len(value) != 4 or {policy.role for policy in value} != {'parse', 'explain', 'probe', 'code'}:
+            raise ValueError('harness roles must include parse, explain, probe and code exactly once')
+        return value
 
 
 class ExecutionPlan(WireModel):

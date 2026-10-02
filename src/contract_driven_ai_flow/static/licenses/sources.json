@@ -78,6 +78,32 @@
     ]
   },
   {
+    "name": "@types/estree",
+    "version": "1.0.9",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "directory": "types/estree"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "@types/geojson",
+    "version": "7946.0.16",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "directory": "types/geojson"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
     "name": "@types/react",
     "version": "19.3.0",
     "license": "MIT",
@@ -130,12 +156,51 @@
     ]
   },
   {
+    "name": "ansi-regex",
+    "version": "6.4.0",
+    "license": "MIT",
+    "repository": "chalk/ansi-regex",
+    "license_files": [
+      "license"
+    ]
+  },
+  {
+    "name": "ansi-styles",
+    "version": "6.2.3",
+    "license": "MIT",
+    "repository": "chalk/ansi-styles",
+    "license_files": [
+      "license"
+    ]
+  },
+  {
     "name": "classcat",
     "version": "5.0.5",
     "license": "MIT",
     "repository": "jorgebucaran/classcat",
     "license_files": [
       "LICENSE.md"
+    ]
+  },
+  {
+    "name": "cliui",
+    "version": "9.0.1",
+    "license": "ISC",
+    "repository": "yargs/cliui",
+    "license_files": [
+      "LICENSE.txt"
+    ]
+  },
+  {
+    "name": "commander",
+    "version": "7.2.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/tj/commander.js.git"
+    },
+    "license_files": [
+      "LICENSE"
     ]
   },
   {
@@ -148,12 +213,36 @@
     ]
   },
   {
+    "name": "d3-array",
+    "version": "3.2.4",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-array.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
     "name": "d3-color",
     "version": "3.1.0",
     "license": "ISC",
     "repository": {
       "type": "git",
       "url": "https://github.com/d3/d3-color.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-delaunay",
+    "version": "6.0.4",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-delaunay.git"
     },
     "license_files": [
       "LICENSE"
@@ -184,12 +273,84 @@
     ]
   },
   {
+    "name": "d3-dsv",
+    "version": "3.0.1",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-dsv.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
     "name": "d3-ease",
     "version": "3.0.1",
     "license": "BSD-3-Clause",
     "repository": {
       "type": "git",
       "url": "https://github.com/d3/d3-ease.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-force",
+    "version": "3.0.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-force.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-format",
+    "version": "3.1.2",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-format.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-geo",
+    "version": "3.1.1",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-geo.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-geo-projection",
+    "version": "4.0.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-geo-projection.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-hierarchy",
+    "version": "3.1.2",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-hierarchy.git"
     },
     "license_files": [
       "LICENSE"
@@ -208,12 +369,96 @@
     ]
   },
   {
+    "name": "d3-path",
+    "version": "3.1.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-path.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-quadtree",
+    "version": "3.0.1",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-quadtree.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-scale",
+    "version": "4.0.2",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-scale.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-scale-chromatic",
+    "version": "3.1.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-scale-chromatic.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
     "name": "d3-selection",
     "version": "3.0.0",
     "license": "ISC",
     "repository": {
       "type": "git",
       "url": "https://github.com/d3/d3-selection.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-shape",
+    "version": "3.2.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-shape.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-time",
+    "version": "3.1.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-time.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-time-format",
+    "version": "4.1.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-time-format.git"
     },
     "license_files": [
       "LICENSE"
@@ -256,6 +501,18 @@
     ]
   },
   {
+    "name": "delaunator",
+    "version": "5.1.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/mapbox/delaunator.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
     "name": "elkjs",
     "version": "0.11.1",
     "license": "EPL-2.0",
@@ -265,6 +522,91 @@
     },
     "license_files": [
       "LICENSE.md"
+    ]
+  },
+  {
+    "name": "emoji-regex",
+    "version": "10.6.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/mathiasbynens/emoji-regex.git"
+    },
+    "license_files": []
+  },
+  {
+    "name": "escalade",
+    "version": "3.2.0",
+    "license": "MIT",
+    "repository": "lukeed/escalade",
+    "license_files": [
+      "license"
+    ]
+  },
+  {
+    "name": "fast-json-patch",
+    "version": "3.1.1",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/Starcounter-Jack/JSON-Patch.git"
+    },
+    "license_files": [
+      "LICENSE.txt"
+    ]
+  },
+  {
+    "name": "get-caller-file",
+    "version": "2.0.5",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/stefanpenner/get-caller-file.git"
+    },
+    "license_files": [
+      "LICENSE.md"
+    ]
+  },
+  {
+    "name": "get-east-asian-width",
+    "version": "1.7.0",
+    "license": "MIT",
+    "repository": "sindresorhus/get-east-asian-width",
+    "license_files": [
+      "license"
+    ]
+  },
+  {
+    "name": "iconv-lite",
+    "version": "0.6.3",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/ashtuchkin/iconv-lite.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "internmap",
+    "version": "2.0.3",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/mbostock/internmap.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "json-stringify-pretty-compact",
+    "version": "4.0.0",
+    "license": "MIT",
+    "repository": "lydell/json-stringify-pretty-compact",
+    "license_files": [
+      "LICENSE"
     ]
   },
   {
@@ -294,6 +636,42 @@
     ]
   },
   {
+    "name": "robust-predicates",
+    "version": "3.0.3",
+    "license": "Unlicense",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/mourner/robust-predicates.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "rw",
+    "version": "1.3.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "http://github.com/mbostock/rw.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "safer-buffer",
+    "version": "2.1.2",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/ChALkeR/safer-buffer.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
     "name": "scheduler",
     "version": "0.28.0",
     "license": "MIT",
@@ -307,6 +685,60 @@
     ]
   },
   {
+    "name": "string-width",
+    "version": "7.2.0",
+    "license": "MIT",
+    "repository": "sindresorhus/string-width",
+    "license_files": [
+      "license"
+    ]
+  },
+  {
+    "name": "strip-ansi",
+    "version": "7.2.0",
+    "license": "MIT",
+    "repository": "chalk/strip-ansi",
+    "license_files": [
+      "license"
+    ]
+  },
+  {
+    "name": "topojson-client",
+    "version": "3.1.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/topojson/topojson-client.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "commander",
+    "version": "2.20.3",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/tj/commander.js.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "tslib",
+    "version": "2.8.1",
+    "license": "0BSD",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Microsoft/tslib.git"
+    },
+    "license_files": [
+      "LICENSE.txt"
+    ]
+  },
+  {
     "name": "use-sync-external-store",
     "version": "1.7.0",
     "license": "MIT",
@@ -317,6 +749,492 @@
     },
     "license_files": [
       "LICENSE"
+    ]
+  },
+  {
+    "name": "vega",
+    "version": "6.4.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-canvas",
+    "version": "2.0.0",
+    "license": "BSD-3-Clause",
+    "repository": "vega/vega",
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-crossfilter",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-dataflow",
+    "version": "6.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-embed",
+    "version": "7.3.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+http://github.com/vega/vega-embed.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "semver",
+    "version": "7.8.5",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/npm/node-semver.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-encode",
+    "version": "5.2.2",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-event-selector",
+    "version": "4.0.0",
+    "license": "BSD-3-Clause",
+    "repository": "vega/vega",
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-expression",
+    "version": "6.2.2",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-force",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-format",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-functions",
+    "version": "6.2.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-geo",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-hierarchy",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-interpreter",
+    "version": "2.3.2",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-label",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-lite",
+    "version": "6.4.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega-lite.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-expression",
+    "version": "6.1.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-loader",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-parser",
+    "version": "7.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-projection",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-regression",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-runtime",
+    "version": "7.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-scale",
+    "version": "8.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-scenegraph",
+    "version": "5.3.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-schema-url-parser",
+    "version": "3.0.2",
+    "license": "BSD-3-Clause",
+    "repository": "git@github.com:vega/schema.git",
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-selections",
+    "version": "6.1.5",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-statistics",
+    "version": "2.0.0",
+    "license": "BSD-3-Clause",
+    "repository": "vega/vega",
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-themes",
+    "version": "3.0.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega-themes.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-time",
+    "version": "3.3.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-tooltip",
+    "version": "1.1.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega-tooltip.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-transforms",
+    "version": "5.2.2",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-typings",
+    "version": "2.3.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-util",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-view",
+    "version": "6.2.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-view-transforms",
+    "version": "5.2.2",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-voronoi",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "vega-wordcloud",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vega/vega.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "wrap-ansi",
+    "version": "9.0.2",
+    "license": "MIT",
+    "repository": "chalk/wrap-ansi",
+    "license_files": [
+      "license"
+    ]
+  },
+  {
+    "name": "y18n",
+    "version": "5.0.8",
+    "license": "ISC",
+    "repository": "yargs/y18n",
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "yargs",
+    "version": "18.0.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/yargs/yargs.git"
+    },
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "yargs-parser",
+    "version": "22.0.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/yargs/yargs-parser.git"
+    },
+    "license_files": [
+      "LICENSE.txt"
     ]
   },
   {

@@ -4,6 +4,20 @@ import { createLayout, groups, layoutReducer, restoreLayout, type WorkspaceDocum
 const data = (id: string, pinned = false): WorkspaceDocument => ({ id, kind: 'data', title: id, pinned, reference: { snapshot_id: id, run_id: 'run1' } });
 
 describe('scientific document geometry and immutable references', () => {
+  it('background import cannot take focus from a user-opened tool', () => {
+    let state = layoutReducer(createLayout(), { type: 'open', document: { ...data('assistant'), kind: 'intelligence' }, group: 'main' });
+    state = layoutReducer(state, { type: 'open', document: { ...data('source'), kind: 'source' }, group: 'source', background: true });
+    expect(state.activeGroup).toBe('main');
+  });
+  it('stores the explorer width in a named layout and locks its separator', () => {
+    let state = layoutReducer(createLayout(), { type: 'explorer-width', width: 270 });
+    state = layoutReducer(state, { type: 'save-preset', name: '宽对象栏' });
+    state = layoutReducer(state, { type: 'explorer-width', width: 200 });
+    state = layoutReducer(state, { type: 'load-preset', name: '宽对象栏' });
+    expect(state.explorerWidth).toBe(270);
+    state = layoutReducer(state, { type: 'lock', locked: true });
+    expect(layoutReducer(state, { type: 'explorer-width', width: 300 }).explorerWidth).toBe(270);
+  });
   it('bounds both axes and preserves geometry while locked', () => {
     let state = createLayout();
     state = layoutReducer(state, { type: 'resize', id: 'columns', ratio: 10 });
@@ -59,4 +73,11 @@ describe('scientific document geometry and immutable references', () => {
     expect(restoreLayout('{"version":99}')?.version).toBe(1);
     expect(restoreLayout('{"version":1,"tree":{}}')?.documents).toEqual({});
   });
+});
+it('background source replacement keeps a valid active tab and persisted lock', () => {
+  let layout = layoutReducer(createLayout(), { type: 'open', group: 'source', document: { id: 'old', kind: 'source', title: 'old', pinned: false, reference: {} } });
+  layout = layoutReducer(layout, { type: 'lock', locked: true });
+  layout = layoutReducer(layout, { type: 'open', group: 'source', background: true, document: { id: 'new', kind: 'source', title: 'new', pinned: false, reference: {} } });
+  expect(groups(layout.tree).find(g => g.id === 'source')?.active).toBe('new');
+  expect(restoreLayout(JSON.stringify(layout)).locked).toBe(true);
 });

@@ -77,6 +77,10 @@ def attach_workbench_routes(app, research):
     def analysis(key: str):
         return service.analysis(key)
 
+    @router.get('/analyses/{key}/source')
+    def analysis_source(key: str):
+        return service.analysis_source(key)
+
     @router.get('/configuration')
     def configuration():
         return service.configurations.load()

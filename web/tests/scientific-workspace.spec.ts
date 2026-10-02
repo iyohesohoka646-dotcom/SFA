@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { session } from './session';
 
 test('workspace minimizes, resizes, locks and restores named layouts without execution', async ({ page }) => {
   let executions = 0;
   page.on('request', request => { if (/\/(execute|intelligence|replot|evaluate)$/.test(request.url()) && request.method() === 'POST') executions++; });
-  await page.goto('http://127.0.0.1:8879');
+  await page.goto('http://127.0.0.1:8879/#session=' + session);
   await expect(page.getByRole('button', { name: '锁定布局', exact: true })).toBeVisible();
   const horizontal = page.getByRole('separator', { name: '调整 columns 分屏' });
   await horizontal.focus(); await page.keyboard.press('ArrowRight');

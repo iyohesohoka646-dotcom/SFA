@@ -16,7 +16,8 @@
     "@xyflow/react": "^12.11.6",
     "elkjs": "^0.11.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "vega-embed": "^7.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

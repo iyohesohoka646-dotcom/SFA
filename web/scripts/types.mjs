@@ -7,3 +7,5 @@ const research = await compileFromFile('../src/contract_driven_ai_flow/schemas/r
 await writeFile('src/research/generated.ts', research, 'utf8');
 const models = await compileFromFile('../src/contract_driven_ai_flow/schemas/models.json', {bannerComment:'/* Generated from Python model profiles; scripts/export_schema.py + npm run types. */', additionalProperties:false});
 await writeFile('src/settings/generated.ts',models,'utf8');
+const workbench = await compileFromFile('../src/contract_driven_ai_flow/schemas/workbench.json', {bannerComment:'/* Generated from Python scientific workbench protocol v2; scripts/export_schema.py + npm run types. */', additionalProperties:false});
+await writeFile('src/research/workspace/generated.ts',workbench,'utf8');

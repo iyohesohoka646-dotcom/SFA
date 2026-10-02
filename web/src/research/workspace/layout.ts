@@ -6,13 +6,13 @@ export interface WorkspaceDocument {
 export interface Group { type: 'group'; id: string; tabs: string[]; active: string | null; minimized: boolean }
 export interface Split { type: 'split'; id: string; axis: 'horizontal' | 'vertical'; ratio: number; first: LayoutNode; second: LayoutNode }
 export type LayoutNode = Group | Split;
-interface Preset { tree: LayoutNode; documents: Record<string, WorkspaceDocument> }
+interface Preset { tree: LayoutNode; documents: Record<string, WorkspaceDocument>; explorerWidth: number }
 export interface WorkspaceLayout {
   version: 1; tree: LayoutNode; documents: Record<string, WorkspaceDocument>; focused: string | null; activeGroup: string; locked: boolean;
-  presets: Record<string, Preset>;
+  presets: Record<string, Preset>; explorerWidth: number;
 }
 export type LayoutAction =
-  | { type: 'open'; document: WorkspaceDocument; group?: string }
+  | { type: 'open'; document: WorkspaceDocument; group?: string; background?: boolean }
   | { type: 'close'; documentId: string }
   | { type: 'activate'; group: string; documentId: string }
   | { type: 'pin'; documentId: string; pinned: boolean }
@@ -20,6 +20,7 @@ export type LayoutAction =
   | { type: 'minimize'; group: string; minimized: boolean }
   | { type: 'focus'; group: string | null }
   | { type: 'resize'; id: string; ratio: number }
+  | { type: 'explorer-width'; width: number }
   | { type: 'lock'; locked: boolean }
   | { type: 'split'; group: string; axis: Split['axis'] }
   | { type: 'remove-group'; group: string }
@@ -32,7 +33,7 @@ export function createLayout(): WorkspaceLayout {
   return { version: 1, tree: { type: 'split', id: 'rows', axis: 'vertical', ratio: .78,
     first: { type: 'split', id: 'columns', axis: 'horizontal', ratio: .34, first: group('source'),
       second: { type: 'split', id: 'detail-width', axis: 'horizontal', ratio: .72, first: group('main'), second: group('detail') } }, second: group('bottom') },
-    documents: {}, focused: null, activeGroup: 'main', locked: false, presets: {} };
+    documents: {}, focused: null, activeGroup: 'main', locked: false, presets: {}, explorerWidth: 218 };
 }
 export const groups = (node: LayoutNode): Group[] => node.type === 'group' ? [node] : [...groups(node.first), ...groups(node.second)];
 const map = (node: LayoutNode, fn: (node: LayoutNode) => LayoutNode): LayoutNode => fn(node.type === 'split' ? { ...node, first: map(node.first, fn), second: map(node.second, fn) } : node);
@@ -42,6 +43,7 @@ export function layoutReducer(state: WorkspaceLayout, action: LayoutAction): Wor
   if (action.type === 'restore') return action.layout;
   if (action.type === 'reset') return { ...createLayout(), presets: state.presets };
   if (action.type === 'lock') return { ...state, locked: action.locked };
+  if (action.type === 'explorer-width') return state.locked ? state : { ...state, explorerWidth: Math.max(170, Math.min(360, Number.isFinite(action.width) ? action.width : 218)) };
   if (action.type === 'focus') return { ...state, focused: action.group && groups(state.tree).some(g => g.id === action.group) ? action.group : null };
   if (action.type === 'resize') return state.locked ? state : { ...state, tree: map(state.tree, n => n.type === 'split' && n.id === action.id ? { ...n, ratio: bound(action.ratio) } : n) };
   if (action.type === 'minimize') return { ...state, focused: state.focused === action.group && action.minimized ? null : state.focused,
@@ -52,7 +54,7 @@ export function layoutReducer(state: WorkspaceLayout, action: LayoutAction): Wor
   }
   if (action.type === 'open') {
     const existing = groups(state.tree).find(g => g.tabs.includes(action.document.id));
-    const target = existing?.id ?? state.focused ?? (state.locked ? state.activeGroup : groups(state.tree).some(g => g.id === action.group) ? action.group! : state.activeGroup);
+    const target = existing?.id ?? state.focused ?? (groups(state.tree).some(g => g.id === action.group) ? action.group! : state.activeGroup);
     const documents = { ...state.documents };
     const tree = map(state.tree, n => {
       if (n.type !== 'group' || n.id !== target) return n;
@@ -64,11 +66,11 @@ export function layoutReducer(state: WorkspaceLayout, action: LayoutAction): Wor
         });
       }
       if (!tabs.includes(action.document.id)) tabs.push(action.document.id);
-      return { ...n, tabs, active: action.document.id, minimized: false };
+      return { ...n, tabs, active: action.background && n.active && tabs.includes(n.active) ? n.active : action.document.id, minimized: action.background ? n.minimized : false };
     });
     if (!existing && Object.keys(documents).length >= 64) return state;
     if (!documents[action.document.id]) documents[action.document.id] = structuredClone(action.document);
-    return { ...state, tree, documents, activeGroup: target, focused: state.focused ? target : null };
+    return { ...state, tree, documents, activeGroup: action.background ? state.activeGroup : target, focused: action.background ? state.focused : state.focused ? target : null };
   }
   if (action.type === 'close') {
     const documents = { ...state.documents }; delete documents[action.documentId];
@@ -101,7 +103,7 @@ export function layoutReducer(state: WorkspaceLayout, action: LayoutAction): Wor
       if (node.second.type === 'group' && node.second.id === action.group) return node.first;
       return { ...node, first: remove(node.first), second: remove(node.second) };
     };
-    let next = { ...state, tree: remove(state.tree), focused: null };
+    let next: WorkspaceLayout = { ...state, tree: remove(state.tree), focused: null };
     const target = groups(next.tree)[0].id; next.activeGroup = target;
     for (const id of removed.tabs) next = layoutReducer(next, { type: 'open', document: state.documents[id], group: target });
     return next;
@@ -109,7 +111,7 @@ export function layoutReducer(state: WorkspaceLayout, action: LayoutAction): Wor
   if (action.type === 'save-preset') {
     const name = action.name.trim().slice(0, 64);
     return !name || Object.keys(state.presets).length >= 16 && !state.presets[name] ? state :
-      { ...state, presets: { ...state.presets, [name]: structuredClone({ tree: state.tree, documents: state.documents }) } };
+      { ...state, presets: { ...state.presets, [name]: structuredClone({ tree: state.tree, documents: state.documents, explorerWidth: state.explorerWidth }) } };
   }
   if (action.type === 'load-preset') {
     const preset = state.presets[action.name];
@@ -137,8 +139,8 @@ export function restoreLayout(raw: string | null): WorkspaceLayout {
     const presets: WorkspaceLayout['presets'] = {};
     for (const [name, preset] of Object.entries(state.presets ?? {}).slice(0, 16)) {
       const saved = restoreLayout(JSON.stringify({ version: 1, ...preset, activeGroup: groups(preset.tree)[0]?.id, locked: false, focused: null, presets: {} }));
-      presets[name] = { tree: saved.tree, documents: saved.documents };
+      presets[name] = { tree: saved.tree, documents: saved.documents, explorerWidth: saved.explorerWidth };
     }
-    return { ...state, focused: null, locked: !!state.locked, presets };
+    return { ...state, focused: null, locked: !!state.locked, presets, explorerWidth: Math.max(170, Math.min(360, Number.isFinite(state.explorerWidth) ? state.explorerWidth : 218)) };
   } catch { return createLayout(); }
 }

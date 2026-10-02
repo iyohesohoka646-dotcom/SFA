@@ -34,9 +34,11 @@ function Separator({ node, dispatch, disabled }: { node: Split; dispatch: Dispat
 }
 
 export function WorkspaceShell({ layout, dispatch, render, onOpen }: { layout: WorkspaceLayout; dispatch: Dispatch<LayoutAction>; render: (doc: WorkspaceDocument) => ReactNode; onOpen: () => void }) {
+  const candidates = groups(layout.tree);
+  const mobileGroup = layout.activeGroup !== 'bottom' && candidates.some(g => g.id === layout.activeGroup && g.tabs.length) ? layout.activeGroup : candidates.find(g => g.id === 'main' && g.tabs.length)?.id ?? candidates.find(g => g.id !== 'bottom' && g.tabs.length)?.id;
   const drawGroup = (group: Group) => {
     const active = group.active ? layout.documents[group.active] : null;
-    return <section key={group.id} className={'workspace-group' + (layout.focused && layout.focused !== group.id ? ' focus-hidden' : '') + (group.minimized ? ' minimized' : '')} data-group={group.id}
+    return <section key={group.id} className={'workspace-group' + (layout.focused && layout.focused !== group.id ? ' focus-hidden' : '') + (group.minimized ? ' minimized' : '') + (group.id === mobileGroup ? ' mobile-current' : '')} data-group={group.id}
       onDragOver={e => { e.preventDefault(); }} onDrop={e => { e.preventDefault(); const id = e.dataTransfer.getData('application/cdaf-document'); if (id) dispatch({ type: 'move', documentId: id, group: group.id }); }}>
       <div className="workspace-tabs" role="tablist" aria-label={group.id + ' 视图'}>
         <div className="workspace-tab-scroll">{group.tabs.map(id => { const doc = layout.documents[id]; return <div key={id} className={'workspace-tab' + (group.active === id ? ' active' : '')} draggable onDragStart={e => e.dataTransfer.setData('application/cdaf-document', id)}>
