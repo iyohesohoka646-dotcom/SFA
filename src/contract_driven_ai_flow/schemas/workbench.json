@@ -2695,6 +2695,74 @@
       "title": "TaskRecord",
       "type": "object"
     },
+    "TerminalSession": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "profile": {
+          "title": "Profile",
+          "type": "string"
+        },
+        "cwd": {
+          "title": "Cwd",
+          "type": "string"
+        },
+        "status": {
+          "default": "running",
+          "title": "Status",
+          "type": "string"
+        },
+        "pid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pid"
+        },
+        "rows": {
+          "default": 24,
+          "title": "Rows",
+          "type": "integer"
+        },
+        "cols": {
+          "default": 80,
+          "title": "Cols",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        }
+      },
+      "required": [
+        "id",
+        "profile",
+        "cwd",
+        "status",
+        "pid",
+        "rows",
+        "cols",
+        "error"
+      ],
+      "title": "TerminalSession",
+      "type": "object"
+    },
     "WorkbenchConfig": {
       "additionalProperties": false,
       "properties": {
@@ -2851,6 +2919,9 @@
     },
     "HarnessRequest": {
       "$ref": "#/$defs/HarnessRequest"
+    },
+    "TerminalSession": {
+      "$ref": "#/$defs/TerminalSession"
     }
   },
   "required": [
@@ -2874,7 +2945,8 @@
     "DerivedData",
     "DataSemantics",
     "PresentationSpec",
-    "HarnessRequest"
+    "HarnessRequest",
+    "TerminalSession"
   ],
   "title": "WorkbenchProtocol",
   "type": "object"

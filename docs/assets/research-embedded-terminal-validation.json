@@ -1,0 +1,9 @@
+{
+  "platform": "win32",
+  "installed": false,
+  "unicode": true,
+  "real_python": true,
+  "owner_exit_cleanup": true,
+  "port_released": true,
+  "result": "passed"
+}

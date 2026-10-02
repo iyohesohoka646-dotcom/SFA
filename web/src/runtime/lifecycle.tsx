@@ -32,6 +32,6 @@ export function ServiceControl(){
  if(!owned&&!desktop)return null;
  const button=<button disabled={stopped} onClick={async()=>{setStopped(true);try{const response=await fetch('/api/v1/studio/shutdown',{method:'POST',headers:headers()});if(!response.ok)setStopped(false);}catch{setStopped(false);} }}> {stopped?'本地服务已停止':'退出并停止'} </button>;
  const target=document.querySelector('.ri-header-actions');
- const controls=<>{desktop&&<button onClick={()=>void desktop.terminal().catch(()=>{})}>打开终端</button>}{owned&&button}</>;
+ const controls=<>{desktop&&<button onClick={()=>window.dispatchEvent(new Event('cdaf-open-terminal'))}>打开终端</button>}{owned&&button}</>;
  return target?createPortal(controls,target):<div className="service-control">{controls}</div>;
 }

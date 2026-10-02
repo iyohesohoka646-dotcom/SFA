@@ -29,6 +29,7 @@ const views: { kind: DocumentKind; label: string }[] = [{ kind: 'graph', label: 
 
 export default function ResearchWorkbench() {
   const c = useWorkbench(), [modelsVisible, setModelsVisible] = useState(false), [sourceOptions, setSourceOptions] = useState(false), [requestedProbe,setRequestedProbe]=useState('');
+  useEffect(()=>{const open=()=>c.open('terminal',{},'终端',true,'main');window.addEventListener('cdaf-open-terminal',open);return()=>window.removeEventListener('cdaf-open-terminal',open);},[c.open]);
   const [viewMenu, setViewMenu] = useState(false), [explorer, setExplorer] = useState(true);
   const width = c.layout.explorerWidth;
   const setWidth = (value: number) => c.dispatch({ type: 'explorer-width', width: value });

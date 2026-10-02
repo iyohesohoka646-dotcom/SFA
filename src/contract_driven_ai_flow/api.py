@@ -77,6 +77,7 @@ class CleanRequest(Model):
 
 def secure_app(app: FastAPI, token: str, port: int):
     """Apply the same local session boundary to project and workspace routes."""
+    app.state.session_token, app.state.local_port = token, port
     @app.middleware("http")
     async def boundaries(request: Request, call_next):
         host = request.headers.get("host", "").split(":")[0]
@@ -143,6 +144,7 @@ def create_app(root: Path, token: str | None = None, port: int = 8765, shutdown:
 
     app = FastAPI(title="Contract-Driven AI Flow", version="1", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.session_token = token
+    app.state.local_port = port
     app.state.research = research
     attach_research_routes(app, research)
 

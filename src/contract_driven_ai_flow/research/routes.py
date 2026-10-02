@@ -195,6 +195,8 @@ def attach_research_routes(app, service: ResearchService):
     attach_model_routes(app, service)
     from .workbench.routes import attach_workbench_routes
     attach_workbench_routes(app, service)
+    from .workbench.terminal import attach_terminal_routes
+    attach_terminal_routes(app, service)
 
     @app.exception_handler(LookupError)
     async def missing(request, exc):

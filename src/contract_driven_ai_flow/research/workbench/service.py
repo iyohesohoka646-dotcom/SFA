@@ -326,5 +326,7 @@ class WorkbenchService:
         self._closed = True
         self.jobs.close()
         self.drawing.close()
+        if getattr(self, 'terminals', None):
+            self.terminals.close()
         if self._owns_models and self.models is not None:
             self.models.close()

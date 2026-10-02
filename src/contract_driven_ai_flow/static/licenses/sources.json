@@ -130,6 +130,24 @@
     ]
   },
   {
+    "name": "@xterm/addon-fit",
+    "version": "0.11.0",
+    "license": "MIT",
+    "repository": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-fit",
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "@xterm/xterm",
+    "version": "6.0.0",
+    "license": "MIT",
+    "repository": "https://github.com/xtermjs/xterm.js",
+    "license_files": [
+      "LICENSE"
+    ]
+  },
+  {
     "name": "@xyflow/react",
     "version": "12.11.6",
     "license": "MIT",

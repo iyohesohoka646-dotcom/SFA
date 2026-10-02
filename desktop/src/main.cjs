@@ -16,13 +16,6 @@ else{
   owner=new BackendController(()=>new BackendHost(python,project),(state,error)=>{if(window&&!window.isDestroyed())window.webContents.send('backend-state',{state,message:error?.message||''});});
   const start=async()=>{try{const handle=await owner.start();if(!closing&&handle)await window.loadURL(handle.url);}catch{} };
   ipcMain.handle('retry-backend',event=>{if(event.senderFrame.url===require('node:url').pathToFileURL(path.join(__dirname,'startup.html')).href)return start();});
-  ipcMain.handle('open-terminal',event=>{
-   if(event.sender!==window.webContents||event.senderFrame!==window.webContents.mainFrame||!owner.handle||new URL(event.senderFrame.url).origin!==new URL(owner.handle.url).origin)throw Error('Terminal action requires the current local workbench');
-   if(process.platform!=='win32')throw Error('Desktop terminal launch is currently verified on Windows');
-   const script=app.isPackaged?path.join(process.resourcesPath,'app.asar.unpacked/src/terminal.ps1'):path.join(__dirname,'terminal.ps1');
-   const child=require('node:child_process').spawn('powershell.exe',['-NoProfile','-NoExit','-File',script,'-Python',python,'-Project',project],{detached:true,windowsHide:false,stdio:'ignore'});
-   child.unref();return {opened:true};
-  });
   window.on('close',event=>{if(closing)return;event.preventDefault();closing=true;void owner.close().finally(()=>{window.destroy();app.quit();});});
   window.webContents.on('render-process-gone',()=>{if(!closing)window.close();});
   void start();

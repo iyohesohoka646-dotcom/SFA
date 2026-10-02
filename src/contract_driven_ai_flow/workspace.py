@@ -161,6 +161,7 @@ def create_workspace_app(root: Path, token: str, port: int = 8765, shutdown=None
     app = FastAPI(title="Contract-Driven AI Flow Workspace", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.session_token = token
     app.state.research = research
+    app.state.session_token, app.state.local_port = token, port
     attach_research_routes(app, research)
 
     def cancel_children():

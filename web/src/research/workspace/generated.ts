@@ -762,6 +762,14 @@ export type SourceObjectIds = string[] | null;
 export type RunId5 = string | null;
 export type SnapshotId3 = string | null;
 export type SkillId = string | null;
+export type Id15 = string;
+export type Profile = string;
+export type Cwd = string;
+export type Status4 = string;
+export type Pid = number | null;
+export type Rows = number;
+export type Cols = number;
+export type Error = string | null;
 
 export interface WorkbenchProtocol {
   AnalysisDocument: AnalysisDocument;
@@ -785,6 +793,7 @@ export interface WorkbenchProtocol {
   DataSemantics: DataSemantics;
   PresentationSpec: PresentationSpec;
   HarnessRequest: HarnessRequest;
+  TerminalSession: TerminalSession;
 }
 export interface AnalysisDocument {
   protocol_version: ProtocolVersion;
@@ -1190,4 +1199,14 @@ export interface HarnessRequest {
   snapshot_id: SnapshotId3;
   skill_id: SkillId;
   policy: HarnessPolicy;
+}
+export interface TerminalSession {
+  id: Id15;
+  profile: Profile;
+  cwd: Cwd;
+  status: Status4;
+  pid: Pid;
+  rows: Rows;
+  cols: Cols;
+  error: Error;
 }
