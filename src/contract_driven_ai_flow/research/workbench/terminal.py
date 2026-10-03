@@ -155,16 +155,19 @@ class _PosixPTY:
             # Session identity survives a shell leader's exit and includes jobs
             # in separate foreground/background groups. Never target other sessions.
             rows = subprocess.run(
-                ["ps", "-A", "-o", "pid="],
+                ["ps", "-A", "-o", "pid=,stat="],
                 capture_output=True,
                 text=True,
                 check=True,
                 timeout=2,
-            ).stdout.split()
+            ).stdout.splitlines()
             owned = []
             for row in rows:
+                fields = row.split()
+                if len(fields) != 2 or fields[1].startswith("Z"):
+                    continue
                 try:
-                    pid = int(row)
+                    pid = int(fields[0])
                     if os.getsid(pid) == self.pid:
                         owned.append(pid)
                 except (ProcessLookupError, PermissionError):
@@ -191,10 +194,17 @@ class _PosixPTY:
         send(owned_session(), signal.SIGKILL)
         if self.process.poll() is None:
             self.process.kill()
-        self.process.wait(timeout=2)
-        self.tree.close()
+        # XNU drains the controlling TTY while its session leader exits.
+        # Release the master before waiting, including when no reader remains.
         os.close(self.fd)
         self.fd = -1
+        self.process.wait(timeout=2)
+        deadline = time.monotonic() + 2
+        while owned_session():
+            if time.monotonic() >= deadline:
+                raise TimeoutError("An owned terminal process did not stop")
+            time.sleep(0.01)
+        self.tree.close()
 
 
 class TerminalService:

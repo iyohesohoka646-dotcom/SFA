@@ -48,6 +48,8 @@ def test_posix_controlling_terminal_delivers_interrupt(tmp_path):
         read_until(terminal, "INTERRUPTED")
     finally:
         terminal.close()
+    assert terminal.fd == -1
+    assert terminal.poll() is not None
 
 
 def test_split_utf8_output_is_not_eof(tmp_path):
@@ -151,3 +153,5 @@ def test_interactive_shell_foreground_job_interrupt_and_resume(tmp_path):
         assert terminal.poll() is None
     finally:
         terminal.close()
+    assert terminal.fd == -1
+    assert terminal.poll() is not None

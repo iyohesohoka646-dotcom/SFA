@@ -99,4 +99,4 @@ Interfaces: Consumes completed workbench; produces reproducible 0.5 candidate, p
 - [x] Add and run thousand-object/long-loop/cancel/stale-result/effect checks; expected identified regressions fail until corrected.
 - [x] Run full Python/frontend/browser suites and build/install current package; verify native effects, terminal, original data retained. Expected verified paths recorded separately from unavailable host checks.
 - [x] Do one fresh final review, one RED→GREEN material-fix pass; save ledger to durable review document. Expected final suite green.
-- [ ] Commit, push authorized feature branch, update/attach existing draft PR and inspect cross-platform CI; preserve exact verification limits. Delete only this plan scratch after durable ledger commit.
+- [x] Commit, push authorized feature branch, update/attach existing draft PR and inspect cross-platform CI; preserve exact verification limits. Delete only this plan scratch after durable ledger commit.
