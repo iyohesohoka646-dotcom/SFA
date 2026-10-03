@@ -115,8 +115,14 @@ test('real plotting is explicit and saved artifacts remain independent of comput
 });
 
 test('narrow screens focus one tool document and keep other views reachable',async({page})=>{
+  let release!: () => void;
+  const initialized = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/v1/research/info', async route => { await initialized; await route.continue(); });
   await page.setViewportSize({width:390,height:844});await page.goto('http://127.0.0.1:8879/#session='+session);
-  await page.getByRole('button',{name:'智能助手',exact:true}).click();await expect(page.getByLabel('任务指令')).toBeVisible();
+  await page.getByRole('button',{name:'智能助手',exact:true}).click();
+  release();
+  await expect(page.getByText(/源码已解析 ·/)).toBeVisible();
+  await expect(page.getByLabel('任务指令')).toBeVisible();
   const box=await page.getByLabel('任务指令').boundingBox();expect(box!.width).toBeGreaterThan(240);
   await page.getByRole('button',{name:'探针台',exact:true}).click();await expect(page.getByRole('button',{name:'添加探针',exact:true})).toBeVisible();
   await page.screenshot({path:'../docs/assets/scientific-narrow.png'});

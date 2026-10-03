@@ -29,20 +29,33 @@ export function readStoredLayout(
 export function useWorkspace(storageKey: string) {
   const [state, dispatch] = useReducer(
     (
-      state: { key: string; layout: WorkspaceLayout },
+      state: { key: string; layout: WorkspaceLayout; pending: LayoutAction[] },
       action:
         | LayoutAction
         | { type: "hydrate"; key: string; raw: string | null },
     ) =>
       action.type === "hydrate"
-        ? { key: action.key, layout: restoreLayout(action.raw) }
-        : { ...state, layout: layoutReducer(state.layout, action) },
+        ? {
+            key: action.key,
+            layout: state.pending.reduce(layoutReducer, restoreLayout(action.raw)),
+            pending: [],
+          }
+        : {
+            ...state,
+            layout: layoutReducer(state.layout, action),
+            // Commands issued before the project is identified must survive
+            // loading its saved layout. Dock geometry is not a user command.
+            pending:
+              state.key === "cdaf-workbench-layout:loading" && action.type !== "dock-state"
+                ? [...state.pending, action]
+                : state.pending,
+          },
     storageKey,
     (key) => {
       try {
-        return { key, layout: readStoredLayout(key, localStorage) };
+        return { key, layout: readStoredLayout(key, localStorage), pending: [] };
       } catch {
-        return { key, layout: createLayout() };
+        return { key, layout: createLayout(), pending: [] };
       }
     },
   );
