@@ -17,7 +17,7 @@ cdaf terminal --project .\experiment
 cdaf workbench --help
 ```
 
-Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包位于同一目录。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
+Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包为 `dist/desktop/Scientific Dataflow Inspector Setup 0.5.0.exe`。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
 
 ## 验证与边界
 

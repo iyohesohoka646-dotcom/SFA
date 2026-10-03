@@ -2,204 +2,204 @@
   "paint": [
     1.4000000059604645,
     1.5,
-    1.699999988079071,
-    1.7999999821186066,
-    1.7999999821186066,
-    1.7999999821186066,
-    1.800000011920929,
-    1.800000011920929,
-    1.899999976158142,
-    1.9000000059604645,
-    1.9000000059604645,
-    1.9000000059604645,
-    1.9000000059604645,
-    2,
-    2,
-    2,
-    2.100000023841858,
-    2.199999988079071,
-    2.4000000059604645,
-    2.7000000178813934
-  ],
-  "hiddenPaint": [
-    1.699999988079071,
-    3.0999999940395355,
+    1.5,
     1.5999999940395355,
-    2.2000000178813934,
-    3,
-    1.7999999821186066,
-    1.5,
-    1.800000011920929,
-    1.600000023841858,
-    2.800000011920929,
-    2.600000023841858,
-    1.5,
-    2.0999999940395355,
-    4.0999999940395355,
-    3.899999976158142,
+    1.699999988079071,
+    1.699999988079071,
+    1.699999988079071,
+    1.699999988079071,
     1.7000000178813934,
     1.800000011920929,
-    1.4000000059604645,
+    1.800000011920929,
+    1.800000011920929,
+    1.800000011920929,
+    1.9000000059604645,
     2.0999999940395355,
-    2.800000011920929
+    2.0999999940395355,
+    2.2999999821186066,
+    2.5,
+    2.5,
+    2.5999999940395355
+  ],
+  "hiddenPaint": [
+    2.100000023841858,
+    1.800000011920929,
+    1.800000011920929,
+    2.0999999940395355,
+    1.5,
+    1.699999988079071,
+    1.5,
+    2.5,
+    1.4000000059604645,
+    2.100000023841858,
+    2.2000000178813934,
+    1.7000000178813934,
+    2.7000000178813934,
+    1.2000000178813934,
+    1.300000011920929,
+    1.5,
+    2.199999988079071,
+    1.5999999940395355,
+    1.7999999821186066,
+    1.899999976158142
   ],
   "longTasks": [],
   "api": [
     {
       "url": "/api/v1/research/info",
-      "duration": 7.9000000059604645
-    },
-    {
-      "url": "/api/v1/research/workbench/probe-definitions",
-      "duration": 15.299999982118607
+      "duration": 8.199999988079071
     },
     {
       "url": "/api/v1/research/workbench/configuration",
-      "duration": 24.400000005960464
+      "duration": 18.899999976158142
+    },
+    {
+      "url": "/api/v1/research/workbench/probe-definitions",
+      "duration": 18.900000005960464
     },
     {
       "url": "/api/v1/lifecycle",
-      "duration": 28
+      "duration": 22.099999994039536
     },
     {
       "url": "/api/v1/research/workbench/tasks",
-      "duration": 27.5
+      "duration": 22.900000005960464
     },
     {
       "url": "/api/v1/research/runs",
-      "duration": 27.900000005960464
+      "duration": 23.099999994039536
     },
     {
       "url": "/api/v1/research/runs",
-      "duration": 28.900000005960464
-    },
-    {
-      "url": "/api/v1/research/workbench/outputs?run_id=621fcc75251e43e585a73e8590fa1a95",
-      "duration": 26.799999982118607
+      "duration": 13.100000023841858
     },
     {
       "url": "/api/v1/research/workbench/analyses",
-      "duration": 35.30000001192093
+      "duration": 35.099999994039536
+    },
+    {
+      "url": "/api/v1/research/runs/421748dd6bdb40ca870398f62d7fe465/bootstrap",
+      "duration": 27.099999994039536
     },
     {
       "url": "/api/v1/research/workbench/settings",
-      "duration": 35.69999998807907
+      "duration": 39.5
     },
     {
-      "url": "/api/v1/research/runs/621fcc75251e43e585a73e8590fa1a95/bootstrap",
-      "duration": 87.19999998807907
+      "url": "/api/v1/research/workbench/outputs?run_id=421748dd6bdb40ca870398f62d7fe465",
+      "duration": 87
     },
     {
       "url": "/api/v1/research/workbench/templates",
-      "duration": 41.70000001788139
+      "duration": 40.5
     },
     {
-      "url": "/api/v1/research/workbench/runs/621fcc75251e43e585a73e8590fa1a95/analysis",
-      "duration": 91.80000001192093
+      "url": "/api/v1/research/workbench/runs/421748dd6bdb40ca870398f62d7fe465/analysis",
+      "duration": 108.89999997615814
     },
     {
-      "url": "/api/v1/research/workbench/analyses/270f76a01e284273b0d9540bae67b625/source",
-      "duration": 14.599999994039536
+      "url": "/api/v1/research/runs/421748dd6bdb40ca870398f62d7fe465/events?after=10225",
+      "duration": 13.900000005960464
     },
     {
-      "url": "/api/v1/research/runs/621fcc75251e43e585a73e8590fa1a95/events?after=10225",
-      "duration": 12
-    },
-    {
-      "url": "/api/v1/research/workbench/analyses/270f76a01e284273b0d9540bae67b625/source",
-      "duration": 9.300000011920929
-    },
-    {
-      "url": "/api/v1/research/workbench/outputs?run_id=15210f62cda446b29ed235ff4fd57557",
-      "duration": 25.19999998807907
-    },
-    {
-      "url": "/api/v1/research/workbench/runs/15210f62cda446b29ed235ff4fd57557/analysis",
-      "duration": 329.5
-    },
-    {
-      "url": "/api/v1/research/runs/15210f62cda446b29ed235ff4fd57557/bootstrap",
-      "duration": 475.5
-    },
-    {
-      "url": "/api/v1/research/runs/15210f62cda446b29ed235ff4fd57557/events?after=10001",
-      "duration": 14.599999994039536
-    },
-    {
-      "url": "/api/v1/research/workbench/runs/15210f62cda446b29ed235ff4fd57557/analysis",
-      "duration": 384.69999998807907
-    },
-    {
-      "url": "/api/v1/research/snapshots/s7-10",
-      "duration": 11.800000011920929
-    },
-    {
-      "url": "/api/v1/research/runs/15210f62cda446b29ed235ff4fd57557/source",
-      "duration": 26.099999994039536
-    },
-    {
-      "url": "/api/v1/research/workbench/outputs?snapshot_id=s7-10",
-      "duration": 22.19999998807907
-    },
-    {
-      "url": "/api/v1/research/workbench/snapshots/s7-10/semantics",
+      "url": "/api/v1/research/workbench/analyses/39db56ab066946ddb7b2c601bc89502a/source",
       "duration": 22
     },
     {
-      "url": "/api/v1/research/runs/15210f62cda446b29ed235ff4fd57557/history?binding=main%3AX7",
-      "duration": 22.80000001192093
+      "url": "/api/v1/research/workbench/analyses/39db56ab066946ddb7b2c601bc89502a/source",
+      "duration": 12.199999988079071
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?run_id=2b7c1d0d76d64ba2993309064846a2ba",
+      "duration": 24.700000017881393
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/2b7c1d0d76d64ba2993309064846a2ba/analysis",
+      "duration": 333.7000000178814
+    },
+    {
+      "url": "/api/v1/research/runs/2b7c1d0d76d64ba2993309064846a2ba/bootstrap",
+      "duration": 491.80000001192093
+    },
+    {
+      "url": "/api/v1/research/runs/2b7c1d0d76d64ba2993309064846a2ba/events?after=10001",
+      "duration": 17.80000001192093
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/2b7c1d0d76d64ba2993309064846a2ba/analysis",
+      "duration": 398.90000000596046
+    },
+    {
+      "url": "/api/v1/research/snapshots/s7-10",
+      "duration": 12.699999988079071
+    },
+    {
+      "url": "/api/v1/research/runs/2b7c1d0d76d64ba2993309064846a2ba/source",
+      "duration": 13.099999994039536
+    },
+    {
+      "url": "/api/v1/research/runs/2b7c1d0d76d64ba2993309064846a2ba/history?binding=main%3AX7",
+      "duration": 14.399999976158142
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?snapshot_id=s7-10",
+      "duration": 14.300000011920929
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s7-10/semantics",
+      "duration": 35
     },
     {
       "url": "/api/v1/research/workbench/snapshots/s7-10/presenters",
-      "duration": 101.2000000178814
+      "duration": 115.40000000596046
     },
     {
       "url": "/api/v1/research/snapshots/s999-10",
-      "duration": 11.5
+      "duration": 15.5
     },
     {
       "url": "/api/v1/research/workbench/snapshots/s999-10/semantics",
-      "duration": 6.9000000059604645
+      "duration": 8
+    },
+    {
+      "url": "/api/v1/research/runs/2b7c1d0d76d64ba2993309064846a2ba/history?binding=main%3AX999",
+      "duration": 10.300000011920929
     },
     {
       "url": "/api/v1/research/workbench/outputs?snapshot_id=s999-10",
-      "duration": 11.5
-    },
-    {
-      "url": "/api/v1/research/runs/15210f62cda446b29ed235ff4fd57557/history?binding=main%3AX999",
-      "duration": 12.299999982118607
+      "duration": 12.900000005960464
     },
     {
       "url": "/api/v1/research/workbench/snapshots/s999-10/presenters",
-      "duration": 149.09999999403954
+      "duration": 143.5
     },
     {
       "url": "/api/v1/research/snapshots/s15-10",
-      "duration": 11
-    },
-    {
-      "url": "/api/v1/research/runs/15210f62cda446b29ed235ff4fd57557/history?binding=main%3AX15",
-      "duration": 8.300000011920929
-    },
-    {
-      "url": "/api/v1/research/workbench/outputs?snapshot_id=s15-10",
-      "duration": 12.599999994039536
+      "duration": 12.099999994039536
     },
     {
       "url": "/api/v1/research/workbench/snapshots/s15-10/semantics",
-      "duration": 14.200000017881393
+      "duration": 10.799999982118607
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?snapshot_id=s15-10",
+      "duration": 20.099999994039536
+    },
+    {
+      "url": "/api/v1/research/runs/2b7c1d0d76d64ba2993309064846a2ba/history?binding=main%3AX15",
+      "duration": 28.30000001192093
     },
     {
       "url": "/api/v1/research/workbench/snapshots/s15-10/presenters",
-      "duration": 153.09999999403954
+      "duration": 163
     }
   ],
   "measuring": false,
   "hidden": true,
-  "p95": 2.4000000059604645,
-  "p50": 1.9000000059604645,
+  "p95": 2.5,
+  "p50": 1.800000011920929,
   "count": 20,
-  "hidden_p95": 3.899999976158142,
+  "hidden_p95": 2.5,
   "hidden_count": 20,
   "fixture": {
     "logical_objects": 1000,
