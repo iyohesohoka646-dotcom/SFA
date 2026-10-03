@@ -3,10 +3,12 @@ import { session } from './session';
 import { chooseValue, chooseExample, runCompute, researchApi, bindProbe, runMode } from './scientific-helpers';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createServer } from 'node:http';
 
 let savedConfiguration: any;
-test.beforeEach(async({request})=>{const r=await request.get('http://127.0.0.1:8879/api/v1/research/workbench/configuration',{headers:{Authorization:'Bearer '+session}});savedConfiguration=await r.json();});
-test.afterEach(async({request})=>{const url='http://127.0.0.1:8879/api/v1/research/workbench/configuration',headers={Authorization:'Bearer '+session};const current=await(await request.get(url,{headers})).json();await request.put(url,{headers,data:{config:{...savedConfiguration,revision:current.revision},expected_revision:current.revision}});});
+const configurationHeaders = { Authorization: 'Bearer ' + session, Connection: 'close' };
+test.beforeEach(async({request})=>{const r=await request.get('http://127.0.0.1:8879/api/v1/research/workbench/configuration',{headers:configurationHeaders});savedConfiguration=await r.json();});
+test.afterEach(async({request})=>{const url='http://127.0.0.1:8879/api/v1/research/workbench/configuration',headers=configurationHeaders;const current=await(await request.get(url,{headers})).json();await request.put(url,{headers,data:{config:{...savedConfiguration,revision:current.revision},expected_revision:current.revision}});});
 
 test('probe configuration is inert and execution produces real views and checks', async ({ page }) => {
   let executions = 0;
@@ -228,7 +230,26 @@ test('heatmap explains its color scale and captured sample without an essay', as
   await page.screenshot({path:'../docs/assets/scientific-matrix.png'});
 });
 
-test('toolbar replot applies configured probes beyond the selected value', async ({page}) => {
+test('toolbar replot applies configured probes beyond the selected value', async ({page, request}) => {
+  const requestsPerSocket = new WeakMap<object, number>();
+  const fixtureServer = createServer((incoming, response) => {
+    const requests = (requestsPerSocket.get(incoming.socket) ?? 0) + 1;
+    requestsPerSocket.set(incoming.socket, requests);
+    if (requests > 1) { incoming.socket.destroy(); return; }
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end('{"ready":true}');
+  });
+  await new Promise<void>(resolve => fixtureServer.listen(0, '127.0.0.1', resolve));
+  const address = fixtureServer.address();
+  if (!address || typeof address === 'string') throw new Error('Fixture transport did not listen');
+  const { Authorization: _authorization, ...transportHeaders } = configurationHeaders;
+  try {
+    for (let read = 0; read < 2; read++)
+      expect((await request.get(`http://127.0.0.1:${address.port}`, { headers: transportHeaders, maxRetries: 0 })).ok()).toBe(true);
+  } finally {
+    fixtureServer.closeAllConnections();
+    await new Promise<void>(resolve => fixtureServer.close(() => resolve()));
+  }
   await page.goto('http://127.0.0.1:8879/#session='+session);
   await chooseExample(page); await runCompute(page); await chooseValue(page,'Z');
   await page.getByRole('button',{name:'探针台',exact:true}).first().click();

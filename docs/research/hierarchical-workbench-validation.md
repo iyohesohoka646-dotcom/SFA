@@ -50,7 +50,7 @@
 
 [机器可读回执](../assets/scientific-release-validation.json)包含包 SHA-256、原生回执和性能范围。[执行账本](hierarchical-workbench-ledger.md)保存逐项门槛、裁决及修复记录；[独立审查原报告](hierarchical-review-report.md)保留修复前结论。本轮只做了一次全分支独立审查，10 项重要或关键发现全部经过同一轮 RED→GREEN 修复，没有暂缓的小项。
 
-千级对象夹具在关系图可见及缩小但仍挂载时分别采集 20 次选择，到下一帧 P95 为 7.2 ms／2.5 ms，检查实际选中样式，均低于 50 ms 目标。该结果不包含科研计算、绘图或冷导入。NSIS 安装包已构建，签名状态为 `NotSigned`；原生检查使用 `win-unpacked`，没有执行安装向导。系统全局缩放没有修改，原生检查使用明确的设备显示密度参数。
+千级对象夹具在关系图可见及缩小但仍挂载时分别采集 20 次选择，到下一帧 P95 为 2.5 ms／2.2 ms，检查实际选中样式，均低于 50 ms 目标。该结果不包含科研计算、绘图或冷导入。NSIS 安装包已构建，签名状态为 `NotSigned`；原生检查使用 `win-unpacked`，没有执行安装向导。系统全局缩放没有修改，原生检查使用明确的设备显示密度参数。
 
 推送后通过[分支最新 CI](https://github.com/iyohesohoka646-dotcom/SFA/actions?query=branch%3Afeat%2Fcontract-driven-ai-flow)检查 Windows、Linux、macOS × Python 3.11–3.13 及 Linux 浏览器。发布回执记录本地验收时状态，CI 以最新提交为准，不沿用 0.4 的旧运行。
 

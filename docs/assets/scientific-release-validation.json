@@ -1,7 +1,7 @@
 {
   "version": "0.5.0",
-  "verified_at": "2026-10-03T01:38:18.139689+00:00",
-  "code_commit": "d503f383b1dee2b16cf882fa61528b9319642b36",
+  "verified_at": "2026-10-03T02:01:09.840348+00:00",
+  "code_commit": "a8454ee03425ded8403b4d76b05732bc0079cbc8",
   "python_tests": 686,
   "python_skipped_on_windows": 8,
   "real_wsl_posix_tests": 8,
@@ -26,8 +26,8 @@
     "source_sha256": "ba9d55ba910be3e825a8cea28e1c8fcf08774dbe8ddc3eb3fa0a3157e6de91c5"
   },
   "selection_performance": {
-    "visible_p95_ms": 7.199999988079071,
-    "hidden_mounted_p95_ms": 2.5,
+    "visible_p95_ms": 2.5,
+    "hidden_mounted_p95_ms": 2.199999988079071,
     "samples_each": 20,
     "fixture": {
       "logical_objects": 1000,
@@ -94,10 +94,10 @@
   "macos_linux_native_desktop": "unverified; Python CI and real WSL terminal checks are separate",
   "cross_platform_ci": {
     "status_at_archive": "awaiting_final_head_checks",
-    "checkpoint_commit": "72a31e6bc98a2a7a4a98f92d054f2c35f4f5b037",
-    "checkpoint_run": 37084137034,
+    "checkpoint_commit": "a8454ee03425ded8403b4d76b05732bc0079cbc8",
+    "checkpoint_run": 37086935183,
     "checkpoint_python_matrix": "9 passed",
-    "checkpoint_browser": "64 passed; tool category reset reproduced and fixed locally; final head must pass",
+    "checkpoint_browser": "64 passed; configuration fixture keep-alive reset reproduced and fixed without retries; final head must pass",
     "latest_branch_required": true,
     "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions?query=branch%3Afeat%2Fcontract-driven-ai-flow"
   },
