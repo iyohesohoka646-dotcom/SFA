@@ -5,7 +5,9 @@ class BackendHost {
  start(){return new Promise((resolve,reject)=>{
   this.child=spawn(this.python,['-u','-X','utf8','-m','contract_driven_ai_flow.application.desktop_host','--project',this.project],{windowsHide:true,stdio:['pipe','pipe','pipe'],env:{...process.env,PYTHONUTF8:'1',PYTHONNOUSERSITE:'1'}});
   this.child.on('error',()=>reject(Error('Python runtime unavailable. Choose an installed tool runtime or reinstall the desktop package.')));
-  this.exited=new Promise(resolve=>this.child.on('exit',resolve));
+  // A failed spawn emits close without exit. Teardown must not wait on an
+  // event that will never arrive and delay the visible error by six seconds.
+  this.exited=new Promise(resolve=>this.child.once('close',resolve));
   this.child.stderr.on('data',()=>{});
   const lines=createInterface({input:this.child.stdout});
   lines.on('line',line=>{try{const state=JSON.parse(line);if(state.state==='ready'){this.handle=state;resolve(state);}else if(state.state==='error')reject(Error(state.message));}catch{reject(Error('Backend returned an invalid startup message'));}});

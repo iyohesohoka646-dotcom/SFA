@@ -1,0 +1,60 @@
+{
+  "version": "0.5.1",
+  "platform": "win32",
+  "basis_commit": "3dad30bb2adc857021cca4a4f409497ceb7e1172",
+  "python": {"passed": 694, "skipped": 8},
+  "frontend_unit": {"passed": 29},
+  "desktop_controller": {"passed": 2},
+  "browser": {"passed": 76, "new_fault_and_management_cases": 11},
+  "desktop": {
+    "actual_original_shortcut_target": true,
+    "installed_version": "0.5.1",
+    "core_version": "0.5.1",
+    "silent_nsis_install": "passed",
+    "interactive_installer_wizard": "not_tested",
+    "installer_signed": false,
+    "source_native_fault_recovery": "passed",
+    "installed_research_journey_scale": 1.25,
+    "installed_real_terminals_scale": 1.5,
+    "python_cli_shell_sessions": 3,
+    "visible_exit_and_process_cleanup": "passed",
+    "original_project_history_and_legacy_graph": "passed"
+  },
+  "preservation": {
+    "desktop_original_runs": 1,
+    "desktop_original_events": 50,
+    "desktop_original_snapshots": 12,
+    "desktop_original_operations": 11,
+    "store_python_separate_runs": 5,
+    "store_python_original_keys_and_source": "preserved",
+    "appdata_redirect_identified": true,
+    "separate_local_backups": true,
+    "histories_automatically_merged": false
+  },
+  "packages": {
+    "wheel_install": "passed",
+    "source_archive_install": "passed",
+    "private_runtime_file_comparison": {"matched_files": 243},
+    "actual_installed_file_comparison": {"matched_files": 243},
+    "wheel": "contract_driven_ai_flow-0.5.1-py3-none-any.whl",
+    "wheel_sha256": "3d1ed0e136940fe79f627fb7ad0913d30810669dbd3f0ca2ca947dc285f24ace",
+    "windows_installer": "Scientific Dataflow Inspector Setup 0.5.1.exe",
+    "windows_installer_sha256": "edf2792a6a1b871b81ec129bbf3e3d63df996331bd5e6aff8a48e7cc4a74c3d1"
+  },
+  "selection_performance": {
+    "logical_objects": 1000,
+    "versions_per_object": 10,
+    "history_events": 10000,
+    "samples": 20,
+    "visible_p95_ms": 3.1,
+    "hidden_graph_p95_ms": 2.3,
+    "excludes": ["scientific_computation", "cold_import", "first_drawing"]
+  },
+  "boundaries": {
+    "persistent_black_screen_on_normal_entry": "not_directly_reproduced",
+    "reproduced_startup_failures": ["entry_resource", "rendering_exception", "renderer_process_crash", "backend_initialization"],
+    "live_remote_model_inference": "not_called",
+    "earlier_library_click_loss_cause": "not_confirmed; unchanged journey passed in final full suite",
+    "native_macos_linux": "not_tested"
+  }
+}

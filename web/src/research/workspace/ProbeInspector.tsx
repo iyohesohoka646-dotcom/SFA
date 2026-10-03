@@ -30,6 +30,7 @@ export function ProbeInspector({
   selection,
   blockScope,
   requested,
+  onRequestedHandled,
 }: {
   config: WorkbenchConfig;
   definitions: ProbeDefinition[];
@@ -43,6 +44,7 @@ export function ProbeInspector({
   selection?: Selection;
   blockScope?: string | null;
   requested?: string;
+  onRequestedHandled?:()=>void;
 }) {
   const [adding, setAdding] = useState(false),
     [type, setType] = useState("view.matrix"),
@@ -71,12 +73,25 @@ export function ProbeInspector({
       .catch((e) => onError(e.message));
   }, []);
   const targets = selection?.targets ?? [];
-  const definition = definitions.find((d) => d.id === type);
+  const compatible = definitions.filter(
+    (d) =>
+      (purpose === "all" || d.capability === purpose) &&
+      (d.label + " " + d.id).toLowerCase().includes(query.toLowerCase()) &&
+      (range !== "selection" || targets.length === 0 ||
+        targets.some((t) => d.supported_targets.includes(t.kind))),
+  );
+  const definition = adding ? compatible.find(d=>d.id===type)??compatible[0] : definitions.find(d=>d.id===type);
+  useEffect(()=>{
+    if(adding && definition && definition.id!==type){setType(definition.id);setParams({});}
+  },[adding,definition?.id,type]);
   useEffect(() => {
     if (requested) {
+      setPurpose('all');setQuery('');
+      setRange(targets.length?'selection':blockScope?'block':'project');
       setType(requested);
       setAdding(true);
       setParams({});
+      onRequestedHandled?.();
     }
   }, [requested]);
   const add = () => {
@@ -96,7 +111,7 @@ export function ProbeInspector({
     }
     const instance: ProbeInstance = {
       id: crypto.randomUUID(),
-      definition_id: type,
+      definition_id: definition.id,
       binding: "*",
       enabled: true,
       parameters: params,
@@ -119,14 +134,6 @@ export function ProbeInspector({
       ...config,
       probes: config.probes.map((p) => (p.id === id ? { ...p, ...patch } : p)),
     });
-  const compatible = definitions.filter(
-    (d) =>
-      (purpose === "all" || d.capability === purpose) &&
-      (d.label + " " + d.id).includes(query) &&
-      (range === "project" ||
-        targets.length === 0 ||
-        targets.some((t) => d.supported_targets.includes(t.kind))),
-  );
   return (
     <div className="wb-inspector">
       <div className="wb-view-toolbar">
@@ -192,7 +199,7 @@ export function ProbeInspector({
               探针
               <select
                 aria-label="探针类型"
-                value={type}
+                value={definition?.id??''}
                 onChange={(e) => {
                   setType(e.target.value);
                   setParams({});

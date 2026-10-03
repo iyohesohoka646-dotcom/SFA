@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { SourcePane } from "../SourcePane";
 import { client, type SourceFile } from "../client";
 import type { SourceRef } from "../generated";
-import type { AnalysisDocument } from "./generated";
+import type { AnalysisDocument, SourceObject } from "./generated";
 import type { WorkspaceDocument } from "./layout";
 import { wb } from "./WorkbenchClient";
 
@@ -16,7 +16,7 @@ export function SourceDocument({
   document: WorkspaceDocument;
   analysis?: AnalysisDocument;
   selection?: SourceRef | null;
-  onSelect: (id: string) => void;
+  onSelect: (object: SourceObject, analysis: AnalysisDocument) => void;
   onError: (message: string) => void;
 }) {
   const [file, setFile] = useState<SourceFile>(),
@@ -66,7 +66,10 @@ export function SourceDocument({
                   "")
                 : ""
             }
-            onChange={(e) => onSelect(e.target.value)}
+            onChange={(e) => {
+              const object = objects.objects.find(o => o.id === e.target.value);
+              if (object) onSelect(object, objects);
+            }}
           >
             <option value="">选择定义</option>
             {objects.objects.slice(0, 256).map((o) => (

@@ -36,7 +36,7 @@ class WorkbenchService:
         self.resources = ResourceManager(self.root, self.catalog, self.tools)
         from .data_semantics import SemanticsService
 
-        self.semantics = SemanticsService(self.root)
+        self.semantics = SemanticsService(self.root, self.catalog)
         from .preferences import PreferenceService
 
         self.preferences = PreferenceService(self.root)
@@ -116,7 +116,43 @@ class WorkbenchService:
         }
 
     def analysis(self, key):
-        return AnalysisDocument.model_validate(self.store.get("analyses", key))
+        raw = self.store.get("analyses", key)
+        legacy = AnalysisDocument.model_validate(raw)
+        if legacy.protocol_version == 3:
+            return legacy
+        archive = self.research.store.state / "sources" / (legacy.source_digest + ".txt")
+        if not archive.is_file():
+            raise LookupError("Legacy analysis source archive is unavailable; re-import its source")
+        upgraded = analyze_source(
+            Path(legacy.path), archived_text=archive.read_bytes().decode("utf-8"),
+            expected_digest=legacy.source_digest,
+        )
+        # Keep IDs referenced by old documents/bindings wherever the original
+        # parser identified a unique symbol. Ambiguous spans retain their backup.
+        from collections import defaultdict
+
+        old_spans, new_spans = defaultdict(list), defaultdict(list)
+        for collection, objects in ((old_spans, legacy.objects), (new_spans, upgraded.objects)):
+            for obj in objects:
+                collection[(obj.scope, obj.name, obj.kind, obj.line, obj.end_line)].append(obj)
+        identities = {}
+        for span, objects in new_spans.items():
+            old = old_spans.get(span, [])
+            if len(old) == len(objects) == 1:
+                identities[objects[0].id] = old[0].id
+                objects[0].id = old[0].id
+            elif old:
+                upgraded.diagnostics.append(f"Legacy object identity is ambiguous at line {span[3]}; original record retained")
+        for relation in upgraded.relations:
+            relation.source = identities.get(relation.source, relation.source)
+            relation.target = identities.get(relation.target, relation.target)
+        for item in [*upgraded.graph.blocks, *upgraded.graph.nodes]:
+            item.source_object_id = identities.get(item.source_object_id, item.source_object_id)
+        upgraded.id, upgraded.imported_at = legacy.id, legacy.imported_at
+        upgraded.diagnostics = list(dict.fromkeys([*legacy.diagnostics, *upgraded.diagnostics]))
+        self.store.put("analysis_backups", legacy.id, raw)
+        self.store.put("analyses", legacy.id, upgraded)
+        return upgraded
 
     def run_analysis(self, run_id):
         run = self.research.store.run(run_id)
@@ -126,7 +162,7 @@ class WorkbenchService:
             if a["source_digest"] == run["source_digest"] and a["path"] == run["script"]
         ]
         if records:
-            return AnalysisDocument.model_validate(records[0])
+            return self.analysis(records[0]["id"])
         source = self.research.source(run_id)
         analysis = analyze_source(
             Path(run["script"]),
@@ -793,17 +829,12 @@ class WorkbenchService:
     def task(self, key):
         return self.jobs.get(key)
 
-    def outputs(self, *, task_id=None, run_id=None, snapshot_id=None):
+    def outputs(self, *, task_id=None, run_id=None, snapshot_id=None, before=None, limit=1000):
         if task_id:
             return [
                 self.store.get("outputs", key) for key in self.task(task_id).output_ids
             ]
-        return [
-            output
-            for output in self.store.list("outputs", limit=1000)
-            if (run_id is None or output["run_id"] == run_id)
-            and (snapshot_id is None or output["snapshot_id"] == snapshot_id)
-        ]
+        return self.store.list_outputs(run_id=run_id, snapshot_id=snapshot_id, before=before, limit=limit)
 
     def relationships(self, snapshot_id):
         return relationship_output(self.research, snapshot_id)
@@ -884,12 +915,14 @@ class WorkbenchService:
                 '    if left.shape != right.shape: raise ValueError("Shape mismatch")'
             )
         if operator == "derive.correlation":
+            if p.get("flatten", False):
+                lines += ["    left = left.reshape(-1)", "    right = right.reshape(-1)"]
             lines.append(
                 '    if left.shape != right.shape: raise ValueError("Shape mismatch")'
             )
             if not p.get("flatten", False):
                 lines.append(
-                    '    if left.ndim != 1: raise ValueError("Flatten must be explicit")'
+                    '    if left.ndim != 1 or right.ndim != 1: raise ValueError("Flatten must be explicit")'
                 )
             if p.get("missing") == "pairwise":
                 lines += [

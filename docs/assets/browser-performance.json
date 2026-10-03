@@ -4,8 +4,8 @@
     "height": 1000
   },
   "nodes": 4,
-  "search_interaction_ms": 38,
+  "search_interaction_ms": 32,
   "reduced_motion": true,
-  "measured_at": "2026-10-03T01:58:09.704Z",
+  "measured_at": "2026-10-03T20:32:33.421Z",
   "note": "See docs/assets/large-graph-performance.json for the separate folded-graph measurement."
 }

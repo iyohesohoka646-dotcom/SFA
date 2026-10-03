@@ -11,6 +11,7 @@ from ..agent.privacy import sanitize_json
 class WorkbenchStore:
     kinds = {
         "analyses",
+        "analysis_backups",
         "plans",
         "tasks",
         "outputs",
@@ -84,6 +85,29 @@ class WorkbenchStore:
             raise ValueError("Unknown workbench record kind")
         with self.connect() as conn:
             conn.execute("DELETE FROM records WHERE kind=? AND id=?", (kind, key))
+
+    def list_outputs(self, *, run_id=None, snapshot_id=None, limit=1000, before=None):
+        conditions = ["kind='outputs'"]
+        parameters = []
+        for field, value in (("run_id", run_id), ("snapshot_id", snapshot_id)):
+            if value is not None:
+                conditions.append(f"json_extract(payload, '$.{field}')=?")
+                parameters.append(value)
+        with self.connect() as conn:
+            if before is not None:
+                cursor = conn.execute(
+                    "SELECT created, rowid FROM records WHERE kind='outputs' AND id=?", (before,)
+                ).fetchone()
+                if cursor is None:
+                    raise KeyError("Output history cursor is unavailable")
+                conditions.append("(created < ? OR (created = ? AND rowid < ?))")
+                parameters.extend((cursor["created"], cursor["created"], cursor["rowid"]))
+            parameters.append(min(max(int(limit), 1), 1000))
+            rows = conn.execute(
+                "SELECT payload FROM records WHERE " + " AND ".join(conditions)
+                + " ORDER BY created DESC, rowid DESC LIMIT ?", parameters,
+            ).fetchall()
+        return [json.loads(row["payload"]) for row in rows]
 
     def recover(self):
         from .ownership import owner_alive

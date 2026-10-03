@@ -38,11 +38,13 @@ const enums: Record<string, string[]> = {
   profile: ["shell", "python", "cli"],
 };
 export function WorkbenchSettings({
+  version,
   onModels,
   onTools,
   onApplied,
   onError,
 }: {
+  version?: string;
   onModels: () => void;
   onTools: () => void;
   onApplied: (p: Preferences, group: string) => void;
@@ -159,6 +161,8 @@ export function WorkbenchSettings({
           )}
           {group === "about" && (
             <dl>
+              <dt>软件</dt>
+              <dd>Scientific Dataflow Inspector {version}</dd>
               <dt>协议</dt>
               <dd>科研工作台 v3</dd>
               <dt>运行方式</dt>
@@ -167,7 +171,9 @@ export function WorkbenchSettings({
           )}
           <div className="wb-form">
             {Object.entries(preferences?.values[group] ?? {})
-              .filter(([k]) => (fields[k] ?? k).includes(query))
+              .filter(([k]) => !query ||
+                (titles[group] ?? group).toLowerCase().includes(query.toLowerCase()) ||
+                ((fields[k] ?? k)+' '+k).toLowerCase().includes(query.toLowerCase()))
               .map(([k, value]) => (
                 <label key={k}>
                   {fields[k] ?? k}

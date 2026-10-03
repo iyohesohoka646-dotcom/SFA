@@ -9,6 +9,23 @@ def analyze(tmp_path, text):
     return analyze_source(path)
 
 
+def test_comprehension_bindings_and_builtin_helpers_are_not_phantom_data(tmp_path):
+    doc = analyze(tmp_path, 'X = [1, 2]\nlabels = [str(i) for i in range(len(X))]\ny = float(X[0])\n')
+    graph = doc.graph
+    assert not [n.label for n in graph.nodes if n.kind == 'unknown'], 'Builtins and scoped iteration variables are not missing input data'
+    labels = next(n for n in graph.nodes if n.kind == 'operation' and n.source.line == 2)
+    assert {e.label for e in graph.edges if e.target == labels.id and e.kind == 'data'} == {'X'}
+    assert not [c for c in graph.coverage if c.code == 'dynamic_call'], 'Known builtin calls need no unknown-call warning'
+
+
+def test_scoped_comprehension_reads_preserve_outer_iterators_and_shadowed_builtins(tmp_path):
+    doc = analyze(tmp_path, 'i = 9\nvalues = [1, 2]\nresult = [i + j for i in values for j in range(i)]\nfloat = 3\ny = float + i\n')
+    operation = next(n for n in doc.graph.nodes if n.kind == 'operation' and n.source.line == 3)
+    assert {e.label for e in doc.graph.edges if e.target == operation.id and e.kind == 'data'} == {'values'}
+    final = next(n for n in doc.graph.nodes if n.kind == 'operation' and n.source.line == 5)
+    assert {e.label for e in doc.graph.edges if e.target == final.id and e.kind == 'data'} == {'float', 'i'}
+
+
 def test_same_line_bindings_have_distinct_identity_and_exact_source(tmp_path):
     doc = analyze(tmp_path, 'x = 1; x = 2\ny = x\n')
     xs = [obj for obj in doc.objects if obj.name == 'x']

@@ -175,6 +175,24 @@ def test_coordinate_lengths_and_parameter_templates_are_validated(tmp_path):
     assert service.templates()[0]['id'] == template['id']
 
 
+@pytest.mark.parametrize('missing', ['error', 'pairwise'])
+def test_flattened_correlation_code_reproduces_the_frozen_kernel(tmp_path, missing):
+    with ResearchService(tmp_path) as research:
+        left = np.array([[1., 2.], [3., 4.]])
+        right = np.array([2., 4., 6., 8.])
+        if missing == 'pairwise':
+            left[0, 1] = np.nan
+        analysis, run_id, snapshots = inputs(research, {'A': left, 'B': right})
+        output = joint(research, analysis, run_id, snapshots, 'derive.correlation', {'flatten': True, 'missing': missing})
+        assert output['status'] == 'ready', output
+        proposal = research.workbench.propose_derived(output['data']['derived_id'])
+        assert proposal.status == 'valid'
+        namespace = {}
+        exec(proposal.candidate, namespace)
+        kernel = next(value for key, value in namespace.items() if key.startswith('derive_'))
+        assert kernel(left, right) == pytest.approx(output['data']['statistics']['coefficient'])
+
+
 def test_configured_joint_roles_can_follow_logical_objects_in_a_new_compute_run(tmp_path):
     from contract_driven_ai_flow.research.workbench.scopes import source_targets
     source = tmp_path/'fresh.py'

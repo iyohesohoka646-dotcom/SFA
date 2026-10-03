@@ -4,7 +4,7 @@ export interface RunRecord {id:string; name:string; script:string; interpreter:s
   status:string; summary:Record<string,unknown>; environment:Record<string,unknown>; owner:number;}
 export interface Bootstrap {run:RunRecord;cursor:number;binding_count:number;parent_bindings:Record<string,string>;snapshots:SnapshotRef[];operations:OperationRecord[];probe_events:ObservationEvent[];}
 export interface Experiment {name:string;script:string;interpreter:string;arguments:string[];capture:Record<string,unknown>;annotations:Record<string,unknown>;adapters:string[];probes:ProbeSpec[];}
-export interface ResearchInfo {root:string;interpreter:string;examples:{id:string;name:string;script:string}[];}
+export interface ResearchInfo {root:string;interpreter:string;software_version:string;examples:{id:string;name:string;script:string}[];}
 export interface SourceFile {path:string;digest:string;code:string;}
 export async function request<T>(path:string, options:{method?:string;body?:unknown;signal?:AbortSignal}={}):Promise<T>{
   let response:Response;

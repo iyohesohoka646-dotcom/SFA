@@ -5,6 +5,7 @@ recursive-include .github *.yml
 recursive-include src/contract_driven_ai_flow/static *
 recursive-include src/contract_driven_ai_flow/schemas *.json
 recursive-include web/src *.ts *.tsx *.css
+recursive-include web/public *
 recursive-include web/scripts *.mjs
 recursive-include web/tests *.ts
 recursive-include desktop/src *.cjs *.js *.html *.ps1

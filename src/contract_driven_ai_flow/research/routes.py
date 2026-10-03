@@ -57,7 +57,8 @@ def attach_research_routes(app, service: ResearchService):
 
     @router.get("/info")
     def info():
-        return {"protocol_version": 1, "root": str(service.root), "interpreter": sys.executable,
+        from .. import __version__
+        return {"protocol_version": 1, "software_version": __version__, "root": str(service.root), "interpreter": sys.executable,
             "examples": [{"id":"analysis", "name":"标准化、协方差与 PCA", "script":str(Path(__file__).parents[1] / "templates/research-analysis/analysis.py")},
                 {"id":"edge-cases", "name":"复数、高维与表格", "script":str(Path(__file__).parents[1] / "templates/research-analysis/edge_cases.py")} ]}
 

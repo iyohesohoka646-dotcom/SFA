@@ -9,7 +9,7 @@ import {
 import { ModelSettings } from "../settings/ModelSettings";
 import { client, downloadReport } from "./client";
 import { ObjectBrowser } from "./workspace/ObjectBrowser";
-import type { TargetRef } from "./workspace/generated";
+import type { TargetRef, SourceObject, AnalysisDocument } from "./workspace/generated";
 import type { SnapshotRef, SourceRef } from "./generated";
 import type { ProbeOutput } from "./workspace/generated";
 import type { DocumentKind, WorkspaceDocument } from "./workspace/layout";
@@ -220,17 +220,15 @@ export default function ResearchWorkbench() {
     },
     [c.selectSnapshot, c.open, c.layout],
   );
-  const selectObject = (id: string) => {
-    const obj = c.analysis?.objects.find((o) => o.id === id);
-    if (obj)
+  const selectObject = (obj: SourceObject, analysis: AnalysisDocument) => {
       c.chooseTargets({
         targets: [
           {
             kind: obj.kind === "function" ? "function" : "data",
             logical_key: obj.logical_key,
-            object_id: id,
+            object_id: obj.id,
             block_id: obj.block_id,
-            analysis_id: c.analysis!.id,
+            analysis_id: analysis.id,
           } as TargetRef,
         ],
         anchor: null,
@@ -294,6 +292,7 @@ export default function ResearchWorkbench() {
       case "settings":
         return (
           <WorkbenchSettings
+            version={c.info?.software_version}
             onModels={() => setModelsVisible(true)}
             onTools={() => showView("tools")}
             onError={error}
@@ -381,6 +380,7 @@ export default function ResearchWorkbench() {
             selection={c.selection}
             blockScope={c.blockScope}
             requested={requestedProbe}
+            onRequestedHandled={()=>setRequestedProbe('')}
             config={c.config}
             definitions={c.definitions}
             selected={c.focusSnapshot}
@@ -839,7 +839,11 @@ export default function ResearchWorkbench() {
               onOpen={() => setViewMenu(true)}
             />
           ) : (
-            <div className="wb-empty">加载工作区…</div>
+            c.startupError ? <div className="render-recovery" role="alert">
+              <strong>项目未能加载</strong>
+              <span>{c.startupError}</span>
+              <div><button onClick={c.retryInitialization}>重试连接</button></div>
+            </div> : <div className="wb-empty">加载工作区…</div>
           )}
         </Suspense>
       </div>

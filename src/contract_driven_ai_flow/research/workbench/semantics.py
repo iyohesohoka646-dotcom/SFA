@@ -7,6 +7,7 @@ authority to read source. SourceObject relations remain the separate read graph.
 from __future__ import annotations
 
 import ast
+import builtins
 import hashlib
 from collections import defaultdict
 from typing import Protocol
@@ -66,17 +67,36 @@ def lexical_bindings(function: ast.AST) -> set[str]:
 
 
 def read_names(expression: ast.AST | None) -> list[str]:
-    return (
-        list(
-            dict.fromkeys(
-                part.id
-                for part in ast.walk(expression)
-                if isinstance(part, ast.Name) and isinstance(part.ctx, ast.Load)
-            )
-        )
-        if expression
-        else []
-    )
+    reads = []
+
+    def visit(node, bound):
+        if isinstance(node, ast.Name):
+            if isinstance(node.ctx, ast.Load) and node.id not in bound:
+                reads.append(node.id)
+        elif isinstance(node, (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)):
+            local = set(bound)
+            for generator in node.generators:
+                # The iterator is evaluated before introducing this binding.
+                visit(generator.iter, local)
+                local.update(write_names(generator.target))
+                for condition in generator.ifs:
+                    visit(condition, local)
+            for value in ((node.key, node.value) if isinstance(node, ast.DictComp) else (node.elt,)):
+                visit(value, local)
+        elif isinstance(node, ast.Lambda):
+            for value in (*node.args.defaults, *node.args.kw_defaults):
+                if value is not None:
+                    visit(value, bound)
+            local = bound | {a.arg for a in (*node.args.posonlyargs, *node.args.args, *node.args.kwonlyargs)}
+            local |= {a.arg for a in (node.args.vararg, node.args.kwarg) if a}
+            visit(node.body, local)
+        else:
+            for child in ast.iter_child_nodes(node):
+                visit(child, bound)
+
+    if expression is not None:
+        visit(expression, set())
+    return list(dict.fromkeys(reads))
 
 
 def write_names(target: ast.AST) -> list[str]:
@@ -245,6 +265,8 @@ class GraphBuilder:
         for name in read_names(expression):
             dep = env.get(name)
             if dep is None:
+                if name in vars(builtins):
+                    continue
                 dep = self.node(
                     expression, "unknown", name, block, scope, suffix="read:" + name
                 )
@@ -691,6 +713,8 @@ class GraphBuilder:
                     call,
                     scope,
                 )
+                continue
+            if call.func.id in vars(builtins) and call.func.id not in env:
                 continue
             current = scope
             function = None

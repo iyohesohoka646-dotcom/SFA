@@ -1,5 +1,6 @@
 import {
   createContext,
+  Suspense,
   useContext,
   useEffect,
   useRef,
@@ -29,6 +30,7 @@ import {
 } from "./layout";
 import { Icon } from "./icons";
 import "dockview/dist/styles/dockview.css";
+import {RenderBoundary} from '../../runtime/RenderBoundary';
 const Host = createContext<{
   layout: WorkspaceLayout;
   dispatch: Dispatch<LayoutAction>;
@@ -46,6 +48,9 @@ const retainedPanels = new Set<DocumentKind>([
   "tasks",
   "settings",
 ]);
+function DocumentContent({document}:{document:WorkspaceDocument}) {
+  return useContext(Host)!.render(document);
+}
 function Panel({ api, params }: IDockviewPanelProps) {
   const host = useContext(Host)!,
     [visible, setVisible] = useState(api.isVisible);
@@ -63,7 +68,11 @@ function Panel({ api, params }: IDockviewPanelProps) {
     >
       {(visible || (doc && retainedPanels.has(doc.kind))) &&
         (doc ? (
-          host.render(doc)
+          <RenderBoundary view key={doc.id} onClose={()=>host.dispatch({type:'close',documentId:doc.id})}>
+            <Suspense fallback={<div className="workspace-empty" role="status">打开视图…</div>}>
+              <DocumentContent document={doc}/>
+            </Suspense>
+          </RenderBoundary>
         ) : (
           <div className="workspace-empty">
             <button onClick={host.onOpen}>

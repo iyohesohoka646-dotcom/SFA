@@ -49,6 +49,8 @@ export function useWorkbench() {
     [outputs, setOutputs] = useState<ProbeOutput[]>([]),
     [notice, setNotice] = useState(""),
     [dirty, setDirty] = useState(false);
+  const [startupError,setStartupError]=useState(''),
+    [initialization,setInitialization]=useState(0);
   const changed = useRef(new Set<string>()),
     importVersion = useRef(0),
     runRef = useRef(runId),
@@ -174,6 +176,7 @@ export function useWorkbench() {
 
   useEffect(() => {
     const abort = new AbortController();
+    setStartupError('');
     void Promise.all([
       client.info(abort.signal),
       wb.configuration(abort.signal),
@@ -201,10 +204,13 @@ export function useWorkbench() {
         setRunIdRaw((id) => id || runs[0]?.id || "");
       })
       .catch((error) => {
-        if (!abort.signal.aborted) setNotice(error.message);
+        if (!abort.signal.aborted) {
+          setNotice(error.message);
+          setStartupError(error.message);
+        }
       });
     return () => abort.abort();
-  }, [imported, open]);
+  }, [imported, open, initialization]);
 
   useEffect(() => {
     if (!info || !workspace.ready) return;
@@ -515,6 +521,8 @@ export function useWorkbench() {
     tasks,
     outputs,
     notice,
+    startupError,
+    retryInitialization:()=>setInitialization(n=>n+1),
     setNotice,
     dirty,
     loading,

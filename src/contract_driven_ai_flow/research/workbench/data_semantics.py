@@ -75,8 +75,11 @@ class PresentationSpec(WireModel):
 
 
 class SemanticsService:
-    def __init__(self, root):
+    def __init__(self, root, catalog=None):
+        from .catalog import ProbeCatalog
+
         self.store = WorkbenchStore(root)
+        self.catalog = catalog if catalog is not None else ProbeCatalog()
 
     @staticmethod
     def key(logical_key):
@@ -110,9 +113,8 @@ class SemanticsService:
 
     def save_template(self, key, label, definition_id, parameters, semantics=None):
         import jsonschema
-        from .catalog import ProbeCatalog
 
-        definition = ProbeCatalog().resolve(definition_id)
+        definition = self.catalog.resolve(definition_id)
         jsonschema.validate(parameters, definition.parameter_schema)
         template = {
             "id": key,

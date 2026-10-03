@@ -214,7 +214,7 @@ export const wb = {
   output: (id: string) =>
     call<ProbeOutput>("/outputs/" + encodeURIComponent(id)),
   outputs: (
-    query: { task_id?: string; run_id?: string; snapshot_id?: string },
+    query: { task_id?: string; run_id?: string; snapshot_id?: string; before?: string },
     signal?: AbortSignal,
   ) =>
     call<ProbeOutput[]>(

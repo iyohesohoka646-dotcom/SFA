@@ -12,11 +12,12 @@ npm start --prefix desktop -- --project .\experiment
 
 ## Installer
 
-Build the frontend and wheel first. Supply a relocatable standalone Python distribution with this wheel and `[research,tables,views]` installed under `.work/desktop-python`. A normal venv is not a relocatable distribution. This candidate uses a privately copied official uv-managed CPython 3.13 runtime; the original runtime is preserved.
+Build the frontend and wheel from a clean checkout; a reused setuptools `build/lib` can retain obsolete hashed assets. Verify the wheel before packaging. Supply a relocatable standalone Python distribution with this wheel and `[research,tables,views]` installed under `.work/desktop-python`. A normal venv is not a relocatable distribution. This candidate uses a privately copied official uv-managed CPython 3.13 runtime; the original runtime is preserved.
 
 ```powershell
 npm run build --prefix web
 python -m build --wheel
+python scripts/verify_wheel.py
 python scripts/prepare_desktop_runtime.py
 npm ci --prefix desktop
 npm run package --prefix desktop
@@ -26,4 +27,4 @@ The lockfile fixes Electron/builder versions. The NSIS installer in `dist/deskto
 
 If binary downloads fail, builder accepts an already-verified local distribution through `--config.electronDist=ABSOLUTE_PATH_TO_ELECTRON_DIST`; retain TLS and checksum checks.
 
-Run `npm test --prefix desktop`, then set `CDAF_DESKTOP_TEST_EXE` to the installed executable and run `node desktop/tests/lifecycle.cjs`. This opens the native window and verifies owned state removal and port release. macOS/Linux desktop installers remain unvalidated.
+Run `npm test --prefix desktop` and `npm run test:startup --prefix desktop` (the latter requires the private runtime). Then set `CDAF_DESKTOP_TEST_EXE` to the installed executable and run `node desktop/tests/lifecycle.cjs`, `node desktop/tests/terminal.cjs`, and `node desktop/tests/shutdown.cjs`. These check the real window, embedded PTYs, visible exit action, owned state removal and port release. Startup faults cover missing Python, a crashed renderer and an unavailable service. macOS/Linux desktop installers remain unvalidated.

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import type { ProbeOutput, TaskRecord, AnalysisDocument } from "./generated";
 import { wb } from "./WorkbenchClient";
 import { RunTimeline } from "../RunTimeline";
@@ -29,6 +29,34 @@ export function TaskPanel({
   onError: (message: string) => void;
 }) {
   const [loaded, setLoaded] = useState<Map<string, ProbeOutput>>(new Map());
+  const [page, setPage] = useState<{run: string; cursor: string; more: boolean; loading: boolean}>();
+  const currentRun = useRef(state.runId);
+  const pageRequest = useRef(0);
+  currentRun.current = state.runId;
+  useEffect(() => {
+    pageRequest.current++;
+    setPage(undefined);
+  }, [state.runId]);
+  const initialPage = outputs.filter(o => o.run_id === state.runId);
+  const more = state.runId && (page?.run === state.runId ? page.more : initialPage.length >= 1000);
+  const loadMore = async () => {
+    const run = state.runId;
+    const cursor = page?.run === run ? page.cursor : initialPage.at(-1)?.id;
+    if (!run || !cursor) return;
+    const request = ++pageRequest.current;
+    setPage({run, cursor, more: true, loading: true});
+    try {
+      const results = await wb.outputs({run_id: run, before: cursor});
+      if (currentRun.current !== run || pageRequest.current !== request) return;
+      setLoaded(old => new Map([...old, ...results.map(o => [o.id, o] as const)]));
+      setPage({run, cursor: results.at(-1)?.id ?? cursor, more: results.length === 1000, loading: false});
+    } catch (error) {
+      if (currentRun.current === run && pageRequest.current === request) {
+        setPage({run, cursor, more: true, loading: false});
+        onError((error as Error).message);
+      }
+    }
+  };
   const allOutputs = [
     ...new Map([...outputs, ...loaded.values()].map((o) => [o.id, o])).values(),
   ];
@@ -102,6 +130,7 @@ export function TaskPanel({
       </div>
       {mode === "outputs" && (
         <div className="result-filters">
+          {more && <button disabled={page?.run === state.runId && page.loading} onClick={() => void loadMore()}>{page?.run === state.runId && page.loading ? '加载中…' : '读取更多结果'}</button>}
           <select
             aria-label="结果目标"
             value={target}

@@ -73,7 +73,7 @@ cdaf studio --project .\experiment
 
 自动插桩有[明确覆盖边界](docs/research/instrumentation.md)，关系区分实际观察、源码推断与用户声明。代码和插件具有用户本身的文件／网络权限，见[限制](docs/research/limitations.md)。
 
-产品工作名称为 Scientific Dataflow Inspector。发行包 `contract-driven-ai-flow`、导入 `contract_driven_ai_flow`、命令 `cdaf`、仓库 `SFA` 保持兼容。当前是 **0.5.0 本地候选版本**，没有更名远端或发布 PyPI。`sfa` 保留别名。契约工作流从“旧版架构”进入，见[旧工作流](docs/workflow.md)。[迁移](docs/research/migration.md)保留原文件和历史 ID，不补造矩阵证据。
+产品工作名称为 Scientific Dataflow Inspector。发行包 `contract-driven-ai-flow`、导入 `contract_driven_ai_flow`、命令 `cdaf`、仓库 `SFA` 保持兼容。当前是 **0.5.1 本地候选版本**，没有更名远端或发布 PyPI；启动恢复与管理修复见[本次审查记录](docs/research/workbench-audit-0.5.1.md)。`sfa` 保留别名。契约工作流从“旧版架构”进入，见[旧工作流](docs/workflow.md)。[迁移](docs/research/migration.md)保留原文件和历史 ID，不补造矩阵证据。
 
 ## 设计与开发
 

@@ -308,6 +308,96 @@ def test_historical_graph_uses_run_source_version_even_after_source_edit(tmp_pat
         assert {obj.name for obj in historical.objects} == {"X", "Y"}
 
 
+def test_v2_analysis_recovers_archived_graph_and_keeps_existing_identities(tmp_path):
+    script = tmp_path / "analysis.py"
+    script.write_text("def double(x):\n return x * 2\nX=1\nY=double(X)\n")
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        analysis = wb.import_source(script)
+        legacy = analysis.model_dump(mode="json")
+        legacy["protocol_version"] = 2
+        legacy.pop("graph")
+        identities = {}
+        for i, obj in enumerate(legacy["objects"]):
+            identities[obj["id"]] = obj["id"] = f"legacy-object-{i}"
+            for key in ("column", "end_column", "logical_key", "block_id"):
+                obj.pop(key)
+        for edge in legacy["relations"]:
+            edge["source"] = identities[edge["source"]]
+            edge["target"] = identities[edge["target"]]
+        wb.store.put("analyses", analysis.id, legacy)
+        run = research.store.create_run(
+            str(script), interpreter=sys.executable, source_digest=analysis.source_digest
+        )
+        script.write_text("NEW=100\n")
+        historical = wb.run_analysis(run["id"])
+        assert historical.protocol_version == 3
+        assert historical.id == analysis.id
+        assert historical.imported_at == analysis.imported_at
+        assert {obj.id for obj in historical.objects} == set(identities.values())
+        assert historical.graph.blocks and historical.graph.nodes
+        assert all(obj.block_id and obj.logical_key for obj in historical.objects)
+        assert all(
+            node.source_object_id in identities.values()
+            for node in historical.graph.nodes if node.source_object_id
+        )
+        assert {obj.name for obj in historical.objects} == {"double", "x", "X", "Y"}
+        assert wb.analysis(analysis.id).model_dump() == historical.model_dump()
+        assert wb.store.get("analysis_backups", analysis.id) == legacy
+
+
+def test_custom_probe_templates_use_the_live_resource_catalog(tmp_path):
+    import pytest
+    from jsonschema import ValidationError
+
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        custom = manifest()
+        definition = custom["definitions"][0]
+        definition.update(id="lab.view", capability="view", execution="builtin", renderer="matrix")
+        definition.pop("entrypoint")
+        wb.resources.import_manifest(custom)
+        wb.resources.enable("lab")
+        template = wb.semantics.save_template("lab-default", "实验室视图", "lab.view", {"minimum": 2})
+        assert template in wb.semantics.templates()
+        with pytest.raises(ValidationError):
+            wb.semantics.save_template("invalid", "无效模板", "lab.view", {"minimum": "invalid"})
+        wb.resources.disable("lab")
+        with pytest.raises(ValueError, match="registered"):
+            wb.semantics.save_template("disabled", "禁用资源", "lab.view", {})
+
+
+def test_output_filters_are_applied_before_the_global_page_limit(tmp_path):
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        old = {"id": "old-result", "run_id": "old-run", "snapshot_id": "old-snapshot"}
+        wb.store.put("outputs", old["id"], old)
+        with wb.store.connect() as db:
+            db.executemany(
+                "INSERT INTO records(kind,id,payload) VALUES('outputs',?,?)",
+                [(f"new-{i}", json.dumps({"id": f"new-{i}", "run_id": "new-run", "snapshot_id": "new-snapshot"})) for i in range(1000)],
+            )
+        assert wb.outputs(run_id="old-run") == [old]
+        assert wb.outputs(snapshot_id="old-snapshot") == [old]
+        assert wb.outputs(run_id="old-run", snapshot_id="new-snapshot") == []
+        assert len(wb.outputs(run_id="new-run")) == 1000
+
+
+def test_output_history_can_continue_with_a_stable_cursor(tmp_path):
+    with ResearchService(tmp_path) as research:
+        wb = research.workbench
+        with wb.store.connect() as db:
+            db.executemany(
+                "INSERT INTO records(kind,id,payload) VALUES('outputs',?,?)",
+                [(f"result-{i}", json.dumps({"id": f"result-{i}", "run_id": "run", "snapshot_id": "snapshot"})) for i in range(1002)],
+            )
+        first = wb.outputs(run_id="run")
+        second = wb.outputs(run_id="run", before=first[-1]["id"])
+        assert len(first) == 1000 and len(second) == 2
+        assert len({output["id"] for output in [*first, *second]}) == 1002
+        assert wb.outputs(snapshot_id="snapshot", before=second[-1]["id"]) == []
+
+
 def test_selected_existing_evidence_retargets_logical_object_in_new_compute_run(
     tmp_path,
 ):

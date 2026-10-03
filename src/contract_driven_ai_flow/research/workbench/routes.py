@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from fastapi.responses import FileResponse
 from pydantic import Field
 
@@ -230,8 +230,10 @@ def attach_workbench_routes(app, research):
         task_id: str | None = None,
         run_id: str | None = None,
         snapshot_id: str | None = None,
+        before: str | None = None,
+        limit: int = Query(default=1000, ge=1, le=1000),
     ):
-        return service.outputs(task_id=task_id, run_id=run_id, snapshot_id=snapshot_id)
+        return service.outputs(task_id=task_id, run_id=run_id, snapshot_id=snapshot_id, before=before, limit=limit)
 
     @router.get("/outputs/{key}")
     def output(key: str):

@@ -9,6 +9,7 @@ from pathlib import Path
 from ..agent.privacy import clean_text
 from ..agent.source import read_source, cached_source_segment
 from .models import AnalysisDocument, Relation, SourceObject
+from .semantics import read_names
 
 
 def digest(text: str) -> str:
@@ -167,12 +168,7 @@ def analyze_source(
                             name,
                             scope,
                             "assignment",
-                            reads=[
-                                p.id
-                                for p in ast.walk(node.iter)
-                                if isinstance(p, ast.Name)
-                                and isinstance(p.ctx, ast.Load)
-                            ],
+                            reads=read_names(node.iter),
                         )
                 visit(node.body, scope)
                 for key, value in before.items():
@@ -190,25 +186,12 @@ def analyze_source(
                                 name,
                                 scope,
                                 "assignment",
-                                reads=[
-                                    part.id
-                                    for part in ast.walk(item.context_expr)
-                                    if isinstance(part, ast.Name)
-                                    and isinstance(part.ctx, ast.Load)
-                                ],
+                                reads=read_names(item.context_expr),
                             )
                 visit(node.body, scope)
             elif isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
                 writes = node.targets if isinstance(node, ast.Assign) else [node.target]
-                reads = (
-                    [
-                        part.id
-                        for part in ast.walk(node.value)
-                        if isinstance(part, ast.Name) and isinstance(part.ctx, ast.Load)
-                    ]
-                    if node.value
-                    else []
-                )
+                reads = read_names(node.value)
                 for target in writes:
                     mutating = isinstance(node, ast.AugAssign) or isinstance(
                         target, (ast.Attribute, ast.Subscript)

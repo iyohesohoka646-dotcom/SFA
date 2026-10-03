@@ -29,11 +29,13 @@ test("resize, maximize, locked slots and named layouts change and preserve actua
   await page.goto("http://127.0.0.1:8879/#session=" + session);
   const panel = page.locator('[data-group="main"]');
   await expect(panel).toBeVisible();
-  const before = (await panel.boundingBox())!;
+  await expect(page.getByRole('button', {name: '运行', exact: true})).toBeEnabled();
   const sash = page
     .locator(".dv-horizontal > .dv-sash-container > .dv-sash.dv-enabled")
     .filter({ visible: true })
     .first();
+  await sash.hover();
+  const before = (await panel.boundingBox())!;
   const box = (await sash.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
@@ -103,11 +105,15 @@ for (const scale of [1.25, 1.5])
       expect(await page.evaluate(() => devicePixelRatio)).toBe(scale);
       const panel = page.locator('[data-group="main"]');
       await expect(panel).toBeVisible();
-      const before = (await panel.boundingBox())!;
+      await expect(page.getByRole('button', {name: '运行', exact: true})).toBeEnabled();
       const sash = page
         .locator(".dv-horizontal > .dv-sash-container > .dv-sash.dv-enabled")
         .filter({ visible: true })
         .first();
+      // Wait for the actual handle to receive pointer events after project
+      // hydration. Coordinates measured during startup can already be stale.
+      await sash.hover();
+      const before = (await panel.boundingBox())!;
       const box = (await sash.boundingBox())!;
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       await page.mouse.down();

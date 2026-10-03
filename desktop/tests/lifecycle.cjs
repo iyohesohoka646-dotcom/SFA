@@ -37,7 +37,8 @@ const { spawnSync } = require('node:child_process');
     await window.getByRole('button', { name: '打开终端', exact: true }).waitFor({ timeout: 5000 });
     const version = spawnSync(python, ['-c', 'import contract_driven_ai_flow; print(contract_driven_ai_flow.__version__)'],
       { cwd: root, env: environment, encoding: 'utf8', windowsHide: true, timeout: 10000 }).stdout.trim();
-    assert.equal(version, '0.5.0', 'The installed desktop must contain the same scientific Python release');
+    const release = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8')).version;
+    assert.equal(version, release, 'The installed desktop must contain the same scientific Python release');
     await window.getByRole('button', { name: '打开源码配置' }).click();
     await window.getByLabel('分析脚本', { exact: true }).fill(script);
     const imported = window.waitForResponse(response => response.url().endsWith('/workbench/analyses') && response.request().method() === 'POST' && response.request().postDataJSON().path === script);

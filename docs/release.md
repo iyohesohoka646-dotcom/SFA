@@ -1,4 +1,6 @@
-# Scientific Dataflow Inspector 0.5.0 本地候选版
+# Scientific Dataflow Inspector 0.5.1 本地候选版
+
+0.5.1 修复启动恢复、单视图错误隔离、探针筛选与重复绑定、旧版计算图迁移、历史源码选择、自定义模板、历史结果查询及展平相关运算的代码提案。桌面“退出并停止”会结束应用及其所属服务；“设置 → 版本信息”显示实际软件版本。[本次审查与验证](research/workbench-audit-0.5.1.md) 单独记录安装入口、迁移和回归证据。
 
 0.5 将研究范围、探针和运行证据连成完整工作台：对象树与分层计算图共享选择；函数、条件和循环用可折叠底板表达；呈现、检验、解释和推导探针分别绑定到明确目标；多对象可以并排比较、计算派生数据并追溯输入。Web、Windows 桌面和 CLI 使用同一套服务。发行包继续使用 `contract-driven-ai-flow`，导入名和旧架构入口保留。[草稿 PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1) 用于审查，尚未合并 master 或发布 PyPI。
 
@@ -17,11 +19,11 @@ cdaf terminal --project .\experiment
 cdaf workbench --help
 ```
 
-Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包为 `dist/desktop/Scientific Dataflow Inspector Setup 0.5.0.exe`。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
+Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包为 `dist/desktop/Scientific Dataflow Inspector Setup 0.5.1.exe`。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
 
 ## 验证与边界
 
-本轮最终检查、包摘要、原生回执和审查裁决统一记录在[验收记录](research/hierarchical-workbench-validation.md)。测试区分结构解析、真实计算、浏览器操作、隔离安装和原生程序；性能记录注明夹具与测量范围。真实 Windows 桌面验收包含中文脚本、矩阵异常、配置绘图后重绘、共享 CLI 历史、内嵌多会话终端及关窗后的端口和进程释放。
+0.5.0 的检查、包摘要和审查裁决记录在[此前验收记录](research/hierarchical-workbench-validation.md)，本次修复按上方 0.5.1 记录核对。测试区分结构解析、真实计算、浏览器操作、隔离安装和原生程序；性能记录注明夹具与测量范围。真实 Windows 桌面验收包含中文脚本、矩阵异常、配置绘图后重绘、共享 CLI 历史、内嵌多会话终端及关窗后的端口和进程释放。
 
 [选择性能](assets/scientific-performance.json) 使用 1000 个对象、10000 条历史事件的夹具，检查选中样式实际变化并测量到下一帧的延迟；它不包含科学计算或冷导入。[解析性能](assets/scientific-parser-performance.json) 单独记录千级中文对象的静态解析。[运行开销](research/performance.md) 保留原有实验条件，不能推广成任意程序的速度保证。
 

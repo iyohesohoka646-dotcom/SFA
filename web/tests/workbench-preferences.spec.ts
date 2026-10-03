@@ -63,8 +63,8 @@ test("saving graph preferences preserves authored capture and intelligence setti
   const before = await researchApi(page, "research/workbench/configuration");
   await page.getByRole("button", { name: "设置", exact: true }).click();
   await page
+    .getByRole("navigation", { name: "设置分类", exact: true })
     .getByRole("button", { name: "计算关系图", exact: true })
-    .last()
     .click();
   await page.getByLabel("淡化无关对象", { exact: true }).check();
   await page.getByRole("button", { name: "保存此组设置", exact: true }).click();
