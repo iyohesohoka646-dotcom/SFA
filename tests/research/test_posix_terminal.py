@@ -64,6 +64,30 @@ def test_split_utf8_output_is_not_eof(tmp_path):
         terminal.close()
 
 
+def test_close_targets_owned_pids_without_a_redundant_group_signal(
+    tmp_path, monkeypatch
+):
+    terminal = open_terminal(
+        tmp_path, "import time; print('READY',flush=True); time.sleep(30)"
+    )
+    read_until(terminal, "READY")
+
+    def redundant_group_signal():
+        raise PermissionError("A previously terminated group cannot be signaled")
+
+    monkeypatch.setattr(terminal.tree, "terminate", redundant_group_signal)
+    try:
+        terminal.close()
+        assert terminal.poll() is not None
+        assert terminal.fd == -1
+    finally:
+        if terminal.fd >= 0:
+            terminal.process.kill()
+            terminal.process.wait(timeout=2)
+            os.close(terminal.fd)
+            terminal.fd = -1
+
+
 def alive(pid):
     try:
         os.kill(pid, 0)

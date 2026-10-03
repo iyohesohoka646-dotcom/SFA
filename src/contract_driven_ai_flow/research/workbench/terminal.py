@@ -155,7 +155,7 @@ class _PosixPTY:
             # Session identity survives a shell leader's exit and includes jobs
             # in separate foreground/background groups. Never target other sessions.
             rows = subprocess.run(
-                ["ps", "-axo", "pid="],
+                ["ps", "-A", "-o", "pid="],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -180,7 +180,8 @@ class _PosixPTY:
                     pass
 
         send(owned_session(), signal.SIGTERM)
-        self.tree.terminate()
+        if self.process.poll() is None:
+            self.process.terminate()
         try:
             self.process.wait(timeout=0.3)
         except subprocess.TimeoutExpired:
@@ -188,6 +189,8 @@ class _PosixPTY:
         # Escalate independently of leader state; descendants may ignore TERM.
         time.sleep(0.05)
         send(owned_session(), signal.SIGKILL)
+        if self.process.poll() is None:
+            self.process.kill()
         self.process.wait(timeout=2)
         self.tree.close()
         os.close(self.fd)
