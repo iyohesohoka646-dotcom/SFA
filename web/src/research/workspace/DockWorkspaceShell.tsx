@@ -22,6 +22,7 @@ import {
 import {
   groups,
   type LayoutAction,
+  type DocumentKind,
   type WorkspaceDocument,
   type WorkspaceLayout,
   type LayoutNode,
@@ -34,6 +35,17 @@ const Host = createContext<{
   render: (d: WorkspaceDocument) => ReactNode;
   onOpen: () => void;
 } | null>(null);
+const retainedPanels = new Set<DocumentKind>([
+  "source",
+  "graph",
+  "probes",
+  "tools",
+  "intelligence",
+  "changes",
+  "context",
+  "tasks",
+  "settings",
+]);
 function Panel({ api, params }: IDockviewPanelProps) {
   const host = useContext(Host)!,
     [visible, setVisible] = useState(api.isVisible);
@@ -49,7 +61,7 @@ function Panel({ api, params }: IDockviewPanelProps) {
       aria-hidden={!visible}
       aria-label={doc?.title ?? "空视图"}
     >
-      {(visible || doc?.kind === "graph") &&
+      {(visible || (doc && retainedPanels.has(doc.kind))) &&
         (doc ? (
           host.render(doc)
         ) : (
@@ -266,7 +278,7 @@ export function DockWorkspaceShell(props: {
     [restoreError, setRestoreError] = useState("");
   useEffect(() => {
     const dock = api.current;
-    if (!dock) return;
+    if (!ready || !dock) return;
     updating.current = true;
     try {
       dock.fromJSON(
@@ -286,7 +298,7 @@ export function DockWorkspaceShell(props: {
   }, [ready, props.layout.dockRevision]);
   useEffect(() => {
     const dock = api.current;
-    if (!dock) return;
+    if (!ready || !dock) return;
     updating.current = true;
     try {
       const layout = props.layout;

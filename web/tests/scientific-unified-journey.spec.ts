@@ -81,6 +81,10 @@ test('tool catalog and automatic intelligence context remain independently acces
   await page.getByRole('button',{name:'可获取资源',exact:true}).click();await expect(page.getByRole('cell', { name: 'PyVista', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '检测工具', exact: true }).click();
   await expect(page.getByTestId('task-record').first()).toContainText('completed', { timeout: 30000 });
+  await page.getByRole('button', { name: '计算关系图', exact: true }).first().click();
+  await page.getByRole('button', { name: '探针库', exact: true }).first().click();
+  await expect(page.getByRole('button', { name: '可获取资源', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('cell', { name: 'PyVista', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '智能助手', exact: true }).first().click();
   await expect(page.getByLabel('任务指令')).toBeVisible();
   await expect(page.getByRole('button', { name: '模型设置', exact: true }).first()).toBeVisible();
