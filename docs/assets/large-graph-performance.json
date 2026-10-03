@@ -2,11 +2,11 @@
   "total_modules": 630,
   "composite_groups": 30,
   "folded_visible_nodes": 30,
-  "folded_load_and_layout_ms": 3531,
-  "expanded_load_and_layout_ms": 3305,
-  "search_interaction_ms": 166,
-  "expanded_footer": "Connected to local runtime\n630 modules · 0 bindings · ELK 281 ms\nView changes preserve execution semantics",
+  "folded_load_and_layout_ms": 3541,
+  "expanded_load_and_layout_ms": 3608,
+  "search_interaction_ms": 147,
+  "expanded_footer": "Connected to local runtime\n630 modules · 0 bindings · ELK 358 ms\nView changes preserve execution semantics",
   "browser": "Playwright",
   "reduced_motion": true,
-  "measured_at": "2026-10-03T20:33:07.506Z"
+  "measured_at": "2026-10-03T21:36:19.382Z"
 }

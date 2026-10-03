@@ -47,6 +47,7 @@ const retainedPanels = new Set<DocumentKind>([
   "context",
   "tasks",
   "settings",
+  "terminal",
 ]);
 function DocumentContent({document}:{document:WorkspaceDocument}) {
   return useContext(Host)!.render(document);
@@ -352,7 +353,10 @@ export function DockWorkspaceShell(props: {
           });
         if (group.active) {
           const active = dock.getPanel(group.active);
-          if (active && !active.api.isActive) active.api.setActive();
+          // isActive includes the globally focused group. Reactivating an
+          // already displayed tab detaches its content and cancels a pressed
+          // control when another group finishes opening in the background.
+          if (active && dg.activePanel?.id !== group.active) active.api.setActive();
         }
         dg.api.setVisible(!group.minimized);
         const element =
@@ -369,6 +373,9 @@ export function DockWorkspaceShell(props: {
       } else
         for (const g of dock.groups)
           if (g.api.isMaximized()) g.api.exitMaximized();
+      const activeGroup = dock.getGroup(layout.activeGroup);
+      if (activeGroup?.api.isVisible && dock.activeGroup?.id !== activeGroup.id)
+        activeGroup.api.setActive();
     } finally {
       updating.current = false;
     }

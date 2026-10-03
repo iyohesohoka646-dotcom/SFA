@@ -7,6 +7,8 @@
   "real_cli": true,
   "real_shell": true,
   "concurrent_sessions": 3,
+  "minimize_restore_state": true,
+  "explicit_reconnect_history": true,
   "owner_exit_cleanup": true,
   "port_released": true,
   "result": "passed"

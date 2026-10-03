@@ -4,6 +4,45 @@ import {researchApi,runCompute,selectObject,chooseExample} from './scientific-he
 import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 
+test('background source import preserves a pressed settings control',async({page})=>{
+ let release!:()=>void,requested!:()=>void;
+ const pending=new Promise<void>(resolve=>release=resolve);
+ const sourceRequested=new Promise<void>(resolve=>requested=resolve);
+ let first=true;
+ await page.route('**/workbench/analyses/*/source',async route=>{
+  if(first){first=false;requested();await pending;}
+  await route.continue();
+ });
+ try{
+  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await sourceRequested;
+  await page.getByRole('button',{name:'设置',exact:true}).click();
+  await expect(page.getByLabel('主题',{exact:true})).toBeVisible();
+  const category=page.getByRole('navigation',{name:'设置分类'}).getByRole('button',{name:'计算关系图',exact:true});
+  const main=page.locator('.dv-groupview[data-group="main"]');
+  await expect(main).toHaveClass(/dv-active-group/);
+  const point=(await category.boundingBox())!;
+  // Complete the actual background import between press and release.
+  // Reactivating a visible tab used to detach it and suppress its click.
+  await page.mouse.move(point.x+point.width/2,point.y+point.height/2);
+  await page.mouse.down();
+  const sourceResponse=page.waitForResponse(r=>r.url().includes('/workbench/analyses/')&&r.url().endsWith('/source'));
+  release();
+  await sourceResponse;
+  await expect(page.getByText('已解析',{exact:true})).toBeVisible();
+  await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+  await expect(main).toHaveClass(/dv-active-group/);
+  await page.mouse.up();
+  await expect(category).toHaveAttribute('aria-pressed','true');
+  await expect(page.getByLabel('淡化无关对象',{exact:true})).toBeVisible();
+  await expect(page.getByLabel('源码对象')).toBeVisible();
+  await page.getByRole('navigation',{name:'工作区'}).getByRole('button',{name:'源码',exact:true}).click();
+  await expect(page.locator('.dv-groupview[data-group="source"]')).toHaveClass(/dv-active-group/);
+  await page.getByRole('button',{name:'设置',exact:true}).click();
+  await expect(main).toHaveClass(/dv-active-group/);
+ }finally{release();}
+});
+
 test('a slow graph view keeps the existing probe panel usable',async({page})=>{
  let release!:()=>void,requested!:()=>void;
  const pending=new Promise<void>(resolve=>release=resolve);
