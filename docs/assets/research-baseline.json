@@ -1,0 +1,161 @@
+{
+  "measured_at": "2026-10-01T10:20:50.032Z",
+  "browser": "Edge",
+  "reports": [
+    {
+      "name": "small",
+      "visible_nodes": 4,
+      "load_and_layout_ms": 873.7932000000001,
+      "search_ms": [
+        48.641599999999926,
+        68.9381000000003,
+        20.20400000000018,
+        20.78150000000005
+      ],
+      "requests": [
+        {
+          "path": "/p/7655a48c470849d7a24addceaccd69ab/api/v1/project",
+          "status": 200,
+          "timing": {
+            "startTime": 1790850039564.515,
+            "domainLookupStart": -1,
+            "domainLookupEnd": -1,
+            "connectStart": -1,
+            "secureConnectionStart": -1,
+            "connectEnd": -1,
+            "requestStart": 0.134,
+            "responseStart": 84.005,
+            "responseEnd": 85.435
+          }
+        },
+        {
+          "path": "/p/7655a48c470849d7a24addceaccd69ab/api/v1/runs",
+          "status": 200,
+          "timing": {
+            "startTime": 1790850039564.2979,
+            "domainLookupStart": -1,
+            "domainLookupEnd": -1,
+            "connectStart": -1,
+            "secureConnectionStart": -1,
+            "connectEnd": -1,
+            "requestStart": 0.077,
+            "responseStart": 85.037,
+            "responseEnd": 93.475
+          }
+        },
+        {
+          "path": "/p/7655a48c470849d7a24addceaccd69ab/api/v1/changes",
+          "status": 200,
+          "timing": {
+            "startTime": 1790850039564.509,
+            "domainLookupStart": 0.047,
+            "domainLookupEnd": 0.059,
+            "connectStart": 0.059,
+            "secureConnectionStart": -1,
+            "connectEnd": 0.748,
+            "requestStart": 0.8,
+            "responseStart": 125.746,
+            "responseEnd": 126.61
+          }
+        },
+        {
+          "path": "/p/7655a48c470849d7a24addceaccd69ab/api/v1/providers",
+          "status": 200,
+          "timing": {
+            "startTime": 1790850039564.922,
+            "domainLookupStart": 0.044,
+            "domainLookupEnd": 0.049,
+            "connectStart": 0.049,
+            "secureConnectionStart": -1,
+            "connectEnd": 0.333,
+            "requestStart": 0.479,
+            "responseStart": 131.019,
+            "responseEnd": 131.898
+          }
+        }
+      ]
+    },
+    {
+      "name": "large-folded",
+      "visible_nodes": 30,
+      "load_and_layout_ms": 8012.9324,
+      "search_ms": [
+        136.59470000000147,
+        94.70459999999912,
+        117.6319999999996,
+        131.64080000000104
+      ],
+      "requests": [
+        {
+          "path": "/p/77c2122e5d124f9faa4ca346d12a2708/api/v1/runs",
+          "status": 200,
+          "timing": {
+            "startTime": 1790850042621.493,
+            "domainLookupStart": -1,
+            "domainLookupEnd": -1,
+            "connectStart": -1,
+            "secureConnectionStart": -1,
+            "connectEnd": -1,
+            "requestStart": 0.642,
+            "responseStart": 93.337,
+            "responseEnd": 96.686
+          }
+        },
+        {
+          "path": "/p/77c2122e5d124f9faa4ca346d12a2708/api/v1/providers",
+          "status": 200,
+          "timing": {
+            "startTime": 1790850042628.257,
+            "domainLookupStart": -1,
+            "domainLookupEnd": -1,
+            "connectStart": -1,
+            "secureConnectionStart": -1,
+            "connectEnd": -1,
+            "requestStart": 0.349,
+            "responseStart": 269.909,
+            "responseEnd": 294.213
+          }
+        },
+        {
+          "path": "/p/77c2122e5d124f9faa4ca346d12a2708/api/v1/project",
+          "status": 200,
+          "timing": {
+            "startTime": 1790850042619.611,
+            "domainLookupStart": -1,
+            "domainLookupEnd": -1,
+            "connectStart": -1,
+            "secureConnectionStart": -1,
+            "connectEnd": -1,
+            "requestStart": 0.251,
+            "responseStart": 2763.749,
+            "responseEnd": 2885.756
+          }
+        },
+        {
+          "path": "/p/77c2122e5d124f9faa4ca346d12a2708/api/v1/changes",
+          "status": 200,
+          "timing": {
+            "startTime": 1790850042623.435,
+            "domainLookupStart": -1,
+            "domainLookupEnd": -1,
+            "connectStart": -1,
+            "secureConnectionStart": -1,
+            "connectEnd": -1,
+            "requestStart": 0.387,
+            "responseStart": 4828.745,
+            "responseEnd": 4834.082
+          }
+        }
+      ]
+    },
+    {
+      "name": "context-request-race",
+      "selected": "normalize",
+      "response_status": 200,
+      "previous_response_displayed": false,
+      "response_not_displayed": true,
+      "generation_blocked_by_unrelated_context": true,
+      "error": []
+    }
+  ]
+}

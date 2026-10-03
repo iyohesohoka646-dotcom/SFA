@@ -83,7 +83,7 @@ def clean(
     project: Path = typer.Option(None, "--project", "-p", help="项目根目录（默认自动检测）。"),
     yes: bool = typer.Option(False, "--yes", "-y", help="跳过确认，直接清理。"),
 ) -> None:
-    """清空 .sfa/ 元数据（保留 sfa.yml），使项目回到初始状态。"""
+    """清理提取缓存，保留架构、契约、探针与历史记录。"""
     from . import init as init_mod
 
     try:
@@ -91,11 +91,11 @@ def clean(
     except SFAError:
         typer.echo("未找到 SFA 项目根目录（缺少 .sfa/ 或 sfa.yml）。请先运行 `sfa init`。")
         raise typer.Exit(code=0)
-    if not (yes or typer.confirm("将清空 .sfa/ 下全部生成物（保留 sfa.yml），确认？", default=False)):
+    if not (yes or typer.confirm("将清理提取缓存，保留架构、契约、探针与历史记录，确认？", default=False)):
         typer.echo("已取消。")
         return
     _run_m2(init_mod.clean_project, root)
-    typer.echo(f"已清理 .sfa/ 元数据（保留 sfa.yml）：{root / '.sfa'}")
+    typer.echo(f"已清理提取缓存，架构与记录已保留：{root / '.sfa'}")
 
 
 @app.command()

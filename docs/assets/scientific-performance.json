@@ -1,0 +1,210 @@
+{
+  "paint": [
+    1.5,
+    1.5,
+    1.5999999642372131,
+    1.5999999642372131,
+    1.600000023841858,
+    1.600000023841858,
+    1.699999988079071,
+    1.699999988079071,
+    1.699999988079071,
+    1.699999988079071,
+    1.7000000476837158,
+    1.899999976158142,
+    1.899999976158142,
+    1.9000000357627869,
+    1.9000000357627869,
+    2.199999988079071,
+    2.300000011920929,
+    2.399999976158142,
+    2.799999952316284,
+    6.199999988079071
+  ],
+  "hiddenPaint": [
+    1.600000023841858,
+    2,
+    1.4000000357627869,
+    1.300000011920929,
+    1.5,
+    1.7999999523162842,
+    2.100000023841858,
+    1.800000011920929,
+    1.800000011920929,
+    2,
+    1.600000023841858,
+    2.400000035762787,
+    1.5,
+    1.5,
+    1.5,
+    1.5999999642372131,
+    1.800000011920929,
+    1.699999988079071,
+    1.5,
+    1.5999999642372131
+  ],
+  "longTasks": [],
+  "api": [
+    {
+      "url": "/api/v1/research/info",
+      "duration": 5.699999988079071
+    },
+    {
+      "url": "/api/v1/research/workbench/configuration",
+      "duration": 11
+    },
+    {
+      "url": "/api/v1/research/workbench/probe-definitions",
+      "duration": 15.400000035762787
+    },
+    {
+      "url": "/api/v1/lifecycle",
+      "duration": 19.900000035762787
+    },
+    {
+      "url": "/api/v1/research/workbench/tasks",
+      "duration": 17.100000023841858
+    },
+    {
+      "url": "/api/v1/research/runs",
+      "duration": 19.5
+    },
+    {
+      "url": "/api/v1/research/runs",
+      "duration": 20.19999998807907
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?run_id=9421179360d046d8aa4481c90c2bdc83",
+      "duration": 12.099999964237213
+    },
+    {
+      "url": "/api/v1/research/workbench/settings",
+      "duration": 15
+    },
+    {
+      "url": "/api/v1/research/runs/9421179360d046d8aa4481c90c2bdc83/bootstrap",
+      "duration": 28.100000023841858
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses",
+      "duration": 34.10000002384186
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/9421179360d046d8aa4481c90c2bdc83/analysis",
+      "duration": 90.40000003576279
+    },
+    {
+      "url": "/api/v1/research/runs/9421179360d046d8aa4481c90c2bdc83/events?after=10225",
+      "duration": 31.100000023841858
+    },
+    {
+      "url": "/api/v1/research/workbench/templates",
+      "duration": 113.30000001192093
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/c0e6d30241764baaba8bc55a09d3e786/source",
+      "duration": 91.69999998807907
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?run_id=9edf7a462af54a01a44ef0492f24c5af",
+      "duration": 64.69999998807907
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/c0e6d30241764baaba8bc55a09d3e786/source",
+      "duration": 5.5
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/9edf7a462af54a01a44ef0492f24c5af/analysis",
+      "duration": 421.7999999523163
+    },
+    {
+      "url": "/api/v1/research/runs/9edf7a462af54a01a44ef0492f24c5af/bootstrap",
+      "duration": 578
+    },
+    {
+      "url": "/api/v1/research/runs/9edf7a462af54a01a44ef0492f24c5af/events?after=10001",
+      "duration": 19.80000001192093
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/9edf7a462af54a01a44ef0492f24c5af/analysis",
+      "duration": 325.80000001192093
+    },
+    {
+      "url": "/api/v1/research/runs/9edf7a462af54a01a44ef0492f24c5af/source",
+      "duration": 7.199999988079071
+    },
+    {
+      "url": "/api/v1/research/snapshots/s7-10",
+      "duration": 7
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?snapshot_id=s7-10",
+      "duration": 9.699999988079071
+    },
+    {
+      "url": "/api/v1/research/runs/9edf7a462af54a01a44ef0492f24c5af/history?binding=main%3AX7",
+      "duration": 11.300000011920929
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s7-10/semantics",
+      "duration": 38.10000002384186
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s7-10/presenters",
+      "duration": 153.80000001192093
+    },
+    {
+      "url": "/api/v1/research/snapshots/s999-10",
+      "duration": 5.800000011920929
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?snapshot_id=s999-10",
+      "duration": 14.099999964237213
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s999-10/semantics",
+      "duration": 14.400000035762787
+    },
+    {
+      "url": "/api/v1/research/runs/9edf7a462af54a01a44ef0492f24c5af/history?binding=main%3AX999",
+      "duration": 21.200000047683716
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s999-10/presenters",
+      "duration": 160.5
+    },
+    {
+      "url": "/api/v1/research/snapshots/s15-10",
+      "duration": 8.600000023841858
+    },
+    {
+      "url": "/api/v1/research/runs/9edf7a462af54a01a44ef0492f24c5af/history?binding=main%3AX15",
+      "duration": 15.699999988079071
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?snapshot_id=s15-10",
+      "duration": 15.400000035762787
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s15-10/semantics",
+      "duration": 31.900000035762787
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s15-10/presenters",
+      "duration": 155.39999997615814
+    }
+  ],
+  "measuring": false,
+  "hidden": true,
+  "p95": 2.799999952316284,
+  "p50": 1.7000000476837158,
+  "count": 20,
+  "hidden_p95": 2.100000023841858,
+  "hidden_count": 20,
+  "fixture": {
+    "logical_objects": 1000,
+    "versions": 10,
+    "events": 10000
+  },
+  "scope": "Synthetic saved-history fixture; selection event to next animation frame, with DOM effects checked. Excludes scientific computation and cold import."
+}

@@ -1,0 +1,19 @@
+{
+  "platform": "win32",
+  "installed": true,
+  "device_scale_factor": 1.25,
+  "core_version": "0.5.1",
+  "window_close": true,
+  "port_released": true,
+  "backend_pid": 17332,
+  "own_script": true,
+  "source_preserved": true,
+  "matrix_and_anomaly": true,
+  "configured_probe_and_replot": true,
+  "automatic_harness_scope": true,
+  "shared_cli_history": true,
+  "offline_models": true,
+  "offline_report_privacy": true,
+  "run_id": "1d1a58d3d5cf4e43a32ab4497637ca70",
+  "result": "passed"
+}

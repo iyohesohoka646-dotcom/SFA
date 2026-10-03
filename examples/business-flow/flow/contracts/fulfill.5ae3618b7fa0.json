@@ -1,0 +1,27 @@
+{
+  "input": {
+    "type": "object",
+    "properties": {
+      "amount": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "amount"
+    ],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "total": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "total"
+    ],
+    "additionalProperties": false
+  },
+  "examples": []
+}

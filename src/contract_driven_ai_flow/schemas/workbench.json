@@ -1,0 +1,3042 @@
+{
+  "$defs": {
+    "AnalysisDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "default": 3,
+          "enum": [
+            2,
+            3
+          ],
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "source_digest": {
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "objects": {
+          "items": {
+            "$ref": "#/$defs/SourceObject"
+          },
+          "title": "Objects",
+          "type": "array"
+        },
+        "relations": {
+          "items": {
+            "$ref": "#/$defs/Relation"
+          },
+          "title": "Relations",
+          "type": "array"
+        },
+        "graph": {
+          "$ref": "#/$defs/SemanticGraph"
+        },
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        },
+        "imported_at": {
+          "title": "Imported At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "path",
+        "source_digest",
+        "objects",
+        "relations",
+        "graph",
+        "diagnostics",
+        "imported_at"
+      ],
+      "title": "AnalysisDocument",
+      "type": "object"
+    },
+    "AxisSemantics": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "meaning": {
+          "default": "",
+          "title": "Meaning",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "coordinates": {
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxItems": 100000,
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "labels": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100000,
+          "title": "Labels",
+          "type": "array"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "program",
+            "user",
+            "model"
+          ],
+          "title": "Origin",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "meaning",
+        "unit",
+        "coordinates",
+        "labels",
+        "origin"
+      ],
+      "title": "AxisSemantics",
+      "type": "object"
+    },
+    "CodeProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 2,
+          "default": 2,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "analysis_id": {
+          "title": "Analysis Id",
+          "type": "string"
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Id"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "source_digest": {
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "candidate": {
+          "maxLength": 16384,
+          "title": "Candidate",
+          "type": "string"
+        },
+        "original_fragment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Fragment"
+        },
+        "diff": {
+          "default": "",
+          "title": "Diff",
+          "type": "string"
+        },
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        },
+        "status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "valid",
+            "invalid",
+            "accepted",
+            "rejected",
+            "conflict"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "behavior": {
+          "default": "unverified",
+          "enum": [
+            "unverified",
+            "verified"
+          ],
+          "title": "Behavior",
+          "type": "string"
+        },
+        "accepted_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accepted Digest"
+        },
+        "validation_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Validation Run Id"
+        },
+        "validation_output_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Output Ids",
+          "type": "array"
+        },
+        "rollback_of": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rollback Of"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "analysis_id",
+        "object_id",
+        "path",
+        "source_digest",
+        "candidate",
+        "original_fragment",
+        "diff",
+        "diagnostics",
+        "status",
+        "behavior",
+        "accepted_digest",
+        "validation_run_id",
+        "validation_output_ids",
+        "rollback_of",
+        "created_at"
+      ],
+      "title": "CodeProposal",
+      "type": "object"
+    },
+    "ColumnSemantics": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "meaning": {
+          "default": "",
+          "title": "Meaning",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "format": {
+          "default": "",
+          "title": "Format",
+          "type": "string"
+        },
+        "missing": {
+          "default": "—",
+          "title": "Missing",
+          "type": "string"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "program",
+            "user",
+            "model"
+          ],
+          "title": "Origin",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "meaning",
+        "unit",
+        "format",
+        "missing",
+        "origin"
+      ],
+      "title": "ColumnSemantics",
+      "type": "object"
+    },
+    "ControlSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "title": "Node Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "branch",
+            "loop",
+            "function"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "true_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "True Count",
+          "type": "integer"
+        },
+        "false_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "False Count",
+          "type": "integer"
+        },
+        "body_entries": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Body Entries",
+          "type": "integer"
+        },
+        "activations": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Activations",
+          "type": "integer"
+        },
+        "natural_exits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Natural Exits",
+          "type": "integer"
+        },
+        "break_exits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Break Exits",
+          "type": "integer"
+        },
+        "nonlocal_exits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Nonlocal Exits",
+          "type": "integer"
+        },
+        "exception_exits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Exception Exits",
+          "type": "integer"
+        },
+        "complete": {
+          "default": false,
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "activation_samples": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxItems": 16,
+          "title": "Activation Samples",
+          "type": "array"
+        },
+        "omitted_activations": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Omitted Activations",
+          "type": "integer"
+        },
+        "total_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Ms",
+          "type": "number"
+        },
+        "minimum_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Minimum Ms",
+          "type": "number"
+        },
+        "maximum_ms": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Maximum Ms",
+          "type": "number"
+        },
+        "timing": {
+          "default": "",
+          "title": "Timing",
+          "type": "string"
+        }
+      },
+      "required": [
+        "node_id",
+        "kind",
+        "source",
+        "true_count",
+        "false_count",
+        "body_entries",
+        "activations",
+        "natural_exits",
+        "break_exits",
+        "nonlocal_exits",
+        "exception_exits",
+        "complete",
+        "revision",
+        "activation_samples",
+        "omitted_activations",
+        "total_ms",
+        "minimum_ms",
+        "maximum_ms",
+        "timing"
+      ],
+      "title": "ControlSummary",
+      "type": "object"
+    },
+    "DataSemantics": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 3,
+          "default": 3,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "logical_key": {
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "kind": {
+          "default": "generic",
+          "enum": [
+            "matrix",
+            "table",
+            "series",
+            "scatter",
+            "points",
+            "graph",
+            "generic"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "axes": {
+          "items": {
+            "$ref": "#/$defs/AxisSemantics"
+          },
+          "maxItems": 32,
+          "title": "Axes",
+          "type": "array"
+        },
+        "columns": {
+          "items": {
+            "$ref": "#/$defs/ColumnSemantics"
+          },
+          "maxItems": 4096,
+          "title": "Columns",
+          "type": "array"
+        },
+        "element_meaning": {
+          "default": "",
+          "title": "Element Meaning",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "mappings": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Mappings",
+          "type": "object"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "program",
+            "user",
+            "model"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "accepted": {
+          "default": true,
+          "title": "Accepted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "logical_key",
+        "kind",
+        "axes",
+        "columns",
+        "element_meaning",
+        "unit",
+        "mappings",
+        "origin",
+        "revision",
+        "accepted"
+      ],
+      "title": "DataSemantics",
+      "type": "object"
+    },
+    "DerivedData": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 3,
+          "default": 3,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "invocation_id": {
+          "title": "Invocation Id",
+          "type": "string"
+        },
+        "operator": {
+          "title": "Operator",
+          "type": "string"
+        },
+        "parents": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Parents",
+          "type": "array"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Inputs",
+          "type": "object"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "input_digests": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Input Digests",
+          "type": "object"
+        },
+        "semantics": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Semantics",
+          "type": "object"
+        },
+        "retained": {
+          "default": true,
+          "title": "Retained",
+          "type": "boolean"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "snapshot_id",
+        "run_id",
+        "invocation_id",
+        "operator",
+        "parents",
+        "inputs",
+        "parameters",
+        "input_digests",
+        "semantics",
+        "retained",
+        "created_at"
+      ],
+      "title": "DerivedData",
+      "type": "object"
+    },
+    "ExecutionPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "default": 3,
+          "enum": [
+            2,
+            3
+          ],
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "analysis_id": {
+          "title": "Analysis Id",
+          "type": "string"
+        },
+        "source_digest": {
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "config_digest": {
+          "title": "Config Digest",
+          "type": "string"
+        },
+        "environment_digest": {
+          "default": "",
+          "title": "Environment Digest",
+          "type": "string"
+        },
+        "config": {
+          "$ref": "#/$defs/WorkbenchConfig"
+        },
+        "definitions": {
+          "items": {
+            "$ref": "#/$defs/ProbeDefinition"
+          },
+          "title": "Definitions",
+          "type": "array"
+        },
+        "scope": {
+          "default": "compute",
+          "enum": [
+            "compute",
+            "probes",
+            "replot"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "snapshot_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Snapshot Ids",
+          "type": "array"
+        },
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        },
+        "target_scope": {
+          "$ref": "#/$defs/ScopeSelector"
+        },
+        "resolved_targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Resolved Targets",
+          "type": "array"
+        },
+        "invocations": {
+          "items": {
+            "$ref": "#/$defs/ResolvedProbeCall"
+          },
+          "title": "Invocations",
+          "type": "array"
+        },
+        "preferences": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Preferences",
+          "type": "object"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "created_at",
+        "analysis_id",
+        "source_digest",
+        "config_digest",
+        "environment_digest",
+        "config",
+        "definitions",
+        "scope",
+        "run_id",
+        "snapshot_ids",
+        "diagnostics",
+        "target_scope",
+        "resolved_targets",
+        "invocations",
+        "preferences"
+      ],
+      "title": "ExecutionPlan",
+      "type": "object"
+    },
+    "GraphBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "logical_key": {
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "file",
+            "function",
+            "class",
+            "condition",
+            "loop",
+            "try",
+            "with",
+            "folder",
+            "project",
+            "stream"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Id"
+        },
+        "members": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Members",
+          "type": "array"
+        },
+        "runtime_coverage": {
+          "default": "supported",
+          "enum": [
+            "supported",
+            "partial",
+            "unsupported"
+          ],
+          "title": "Runtime Coverage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "logical_key",
+        "kind",
+        "label",
+        "parent_id",
+        "source",
+        "source_object_id",
+        "members",
+        "runtime_coverage"
+      ],
+      "title": "GraphBlock",
+      "type": "object"
+    },
+    "GraphCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "runtime": {
+          "default": "partial",
+          "enum": [
+            "supported",
+            "partial",
+            "unsupported"
+          ],
+          "title": "Runtime",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "source",
+        "runtime"
+      ],
+      "title": "GraphCoverage",
+      "type": "object"
+    },
+    "GraphEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "data",
+            "control",
+            "call",
+            "argument",
+            "return",
+            "merge",
+            "backedge",
+            "contains",
+            "block"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "source_port": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Port"
+        },
+        "target_port": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Port"
+        },
+        "branch": {
+          "anyOf": [
+            {
+              "enum": [
+                "true",
+                "false",
+                "body",
+                "exit",
+                "exception"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Branch"
+        },
+        "provenance": {
+          "default": "inferred",
+          "enum": [
+            "inferred",
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        },
+        "original_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Original Ids",
+          "type": "array"
+        },
+        "count": {
+          "default": 1,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target",
+        "kind",
+        "label",
+        "source_port",
+        "target_port",
+        "branch",
+        "provenance",
+        "original_ids",
+        "count"
+      ],
+      "title": "GraphEdge",
+      "type": "object"
+    },
+    "GraphNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "operation",
+            "data",
+            "parameter",
+            "condition",
+            "loop_header",
+            "merge",
+            "return",
+            "call",
+            "entry",
+            "exit",
+            "unknown"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "block_id": {
+          "title": "Block Id",
+          "type": "string"
+        },
+        "logical_key": {
+          "default": "",
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Id"
+        },
+        "ports": {
+          "items": {
+            "$ref": "#/$defs/GraphPort"
+          },
+          "title": "Ports",
+          "type": "array"
+        },
+        "version": {
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "block_id",
+        "logical_key",
+        "source",
+        "source_object_id",
+        "ports",
+        "version"
+      ],
+      "title": "GraphNode",
+      "type": "object"
+    },
+    "GraphPort": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "input",
+            "output"
+          ],
+          "title": "Direction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "direction"
+      ],
+      "title": "GraphPort",
+      "type": "object"
+    },
+    "HarnessPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "default": "explain",
+          "enum": [
+            "parse",
+            "explain",
+            "probe",
+            "code"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "provider_id": {
+          "default": "offline",
+          "title": "Provider Id",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "input_tokens": {
+          "default": 12000,
+          "maximum": 128000,
+          "minimum": 512,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "default": 2048,
+          "maximum": 16384,
+          "minimum": 128,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "max_steps": {
+          "default": 6,
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Max Steps",
+          "type": "integer"
+        },
+        "max_calls": {
+          "default": 6,
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Max Calls",
+          "type": "integer"
+        },
+        "include_samples": {
+          "default": false,
+          "title": "Include Samples",
+          "type": "boolean"
+        },
+        "allow_execute": {
+          "default": false,
+          "title": "Allow Execute",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "role",
+        "provider_id",
+        "model",
+        "input_tokens",
+        "output_tokens",
+        "max_steps",
+        "max_calls",
+        "include_samples",
+        "allow_execute"
+      ],
+      "title": "HarnessPolicy",
+      "type": "object"
+    },
+    "HarnessRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "maxLength": 32768,
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "analysis_id": {
+          "title": "Analysis Id",
+          "type": "string"
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Id"
+        },
+        "source_object_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Ids"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        },
+        "skill_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Skill Id"
+        },
+        "policy": {
+          "$ref": "#/$defs/HarnessPolicy"
+        }
+      },
+      "required": [
+        "question",
+        "analysis_id",
+        "object_id",
+        "source_object_ids",
+        "run_id",
+        "snapshot_id",
+        "skill_id",
+        "policy"
+      ],
+      "title": "HarnessRequest",
+      "type": "object"
+    },
+    "InputRole": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "supported_kinds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supported Kinds",
+          "type": "array"
+        },
+        "supported_targets": {
+          "items": {
+            "enum": [
+              "data",
+              "operation",
+              "function",
+              "control",
+              "file",
+              "project",
+              "folder",
+              "stream"
+            ],
+            "type": "string"
+          },
+          "title": "Supported Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "required",
+        "supported_kinds",
+        "supported_targets"
+      ],
+      "title": "InputRole",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "PresentationSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "precision": {
+          "default": 3,
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Precision",
+          "type": "integer"
+        },
+        "show_values": {
+          "default": false,
+          "title": "Show Values",
+          "type": "boolean"
+        },
+        "show_coordinates": {
+          "default": true,
+          "title": "Show Coordinates",
+          "type": "boolean"
+        },
+        "palette": {
+          "default": "diverging",
+          "enum": [
+            "diverging",
+            "sequential",
+            "gray"
+          ],
+          "title": "Palette",
+          "type": "string"
+        },
+        "scale": {
+          "default": "linear",
+          "enum": [
+            "linear",
+            "log",
+            "symmetric"
+          ],
+          "title": "Scale",
+          "type": "string"
+        },
+        "row_labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Row Labels",
+          "type": "array"
+        },
+        "column_labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Column Labels",
+          "type": "array"
+        },
+        "semantics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataSemantics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "precision",
+        "show_values",
+        "show_coordinates",
+        "palette",
+        "scale",
+        "row_labels",
+        "column_labels",
+        "semantics"
+      ],
+      "title": "PresentationSpec",
+      "type": "object"
+    },
+    "ProbeDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "capability": {
+          "enum": [
+            "view",
+            "check",
+            "interpret",
+            "derive"
+          ],
+          "title": "Capability",
+          "type": "string"
+        },
+        "execution": {
+          "enum": [
+            "builtin",
+            "program",
+            "model",
+            "skill",
+            "manual"
+          ],
+          "title": "Execution",
+          "type": "string"
+        },
+        "supported_kinds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supported Kinds",
+          "type": "array"
+        },
+        "tool_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Id"
+        },
+        "parameter_schema": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameter Schema",
+          "type": "object"
+        },
+        "version": {
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        },
+        "supported_targets": {
+          "items": {
+            "enum": [
+              "data",
+              "operation",
+              "function",
+              "control",
+              "file",
+              "project",
+              "folder",
+              "stream"
+            ],
+            "type": "string"
+          },
+          "title": "Supported Targets",
+          "type": "array"
+        },
+        "input_mode": {
+          "default": "per_target",
+          "enum": [
+            "single",
+            "per_target",
+            "joint"
+          ],
+          "title": "Input Mode",
+          "type": "string"
+        },
+        "input_roles": {
+          "items": {
+            "$ref": "#/$defs/InputRole"
+          },
+          "title": "Input Roles",
+          "type": "array"
+        },
+        "evidence": {
+          "default": "sample",
+          "enum": [
+            "metadata",
+            "sample",
+            "full",
+            "full_coordinates"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "output_kinds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Output Kinds",
+          "type": "array"
+        },
+        "renderer": {
+          "anyOf": [
+            {
+              "enum": [
+                "auto",
+                "matrix",
+                "table",
+                "scalar",
+                "raw",
+                "relationships",
+                "compare"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Renderer"
+        },
+        "resource_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Id"
+        },
+        "resource_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource Version"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "entrypoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entrypoint"
+        },
+        "implementation_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementation Digest"
+        },
+        "examples": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Examples",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "capability",
+        "execution",
+        "supported_kinds",
+        "tool_id",
+        "parameter_schema",
+        "version",
+        "supported_targets",
+        "input_mode",
+        "input_roles",
+        "evidence",
+        "output_kinds",
+        "renderer",
+        "resource_id",
+        "resource_version",
+        "dependencies",
+        "entrypoint",
+        "implementation_digest",
+        "examples"
+      ],
+      "title": "ProbeDefinition",
+      "type": "object"
+    },
+    "ProbeInstance": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "definition_id": {
+          "title": "Definition Id",
+          "type": "string"
+        },
+        "binding": {
+          "default": "*",
+          "title": "Binding",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "policy": {
+          "default": "continue",
+          "enum": [
+            "continue",
+            "pause",
+            "cancel"
+          ],
+          "title": "Policy",
+          "type": "string"
+        },
+        "budget_ms": {
+          "default": 5000,
+          "maximum": 120000,
+          "minimum": 1,
+          "title": "Budget Ms",
+          "type": "integer"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScopeSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Inputs",
+          "type": "object"
+        },
+        "origin": {
+          "default": "manual",
+          "enum": [
+            "project_default",
+            "local",
+            "manual"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TargetOverride"
+          },
+          "title": "Overrides",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "definition_id",
+        "binding",
+        "enabled",
+        "parameters",
+        "policy",
+        "budget_ms",
+        "selector",
+        "inputs",
+        "origin",
+        "overrides"
+      ],
+      "title": "ProbeInstance",
+      "type": "object"
+    },
+    "ProbeOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "default": 3,
+          "enum": [
+            2,
+            3
+          ],
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "instance_id": {
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "definition_id": {
+          "title": "Definition Id",
+          "type": "string"
+        },
+        "capability": {
+          "enum": [
+            "view",
+            "check",
+            "interpret",
+            "derive"
+          ],
+          "title": "Capability",
+          "type": "string"
+        },
+        "execution": {
+          "enum": [
+            "builtin",
+            "program",
+            "model",
+            "skill",
+            "manual"
+          ],
+          "title": "Execution",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "pass",
+            "fail",
+            "error",
+            "skipped",
+            "unknown",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        },
+        "analysis_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Analysis Id"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "fidelity": {
+          "default": "metadata_only",
+          "title": "Fidelity",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        },
+        "data": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Data",
+          "type": "object"
+        },
+        "artifact_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact Id"
+        },
+        "cache_key": {
+          "default": "",
+          "title": "Cache Key",
+          "type": "string"
+        },
+        "duration_ms": {
+          "default": 0,
+          "title": "Duration Ms",
+          "type": "number"
+        },
+        "provenance": {
+          "default": "observed",
+          "enum": [
+            "observed",
+            "inferred",
+            "declared",
+            "manual",
+            "model",
+            "skill",
+            "unknown"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        },
+        "invocation_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Invocation Id"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "parent_snapshot_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Parent Snapshot Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "instance_id",
+        "definition_id",
+        "capability",
+        "execution",
+        "status",
+        "run_id",
+        "snapshot_id",
+        "analysis_id",
+        "created_at",
+        "fidelity",
+        "message",
+        "data",
+        "artifact_id",
+        "cache_key",
+        "duration_ms",
+        "provenance",
+        "invocation_id",
+        "targets",
+        "parent_snapshot_ids"
+      ],
+      "title": "ProbeOutput",
+      "type": "object"
+    },
+    "ProbeResource": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,127}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 256,
+          "title": "Label",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 128,
+          "title": "Version",
+          "type": "string"
+        },
+        "source": {
+          "default": "local",
+          "enum": [
+            "builtin",
+            "public",
+            "local",
+            "model",
+            "skill"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "kind": {
+          "default": "definition",
+          "enum": [
+            "definition",
+            "adapter",
+            "skill"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "default": "draft",
+          "enum": [
+            "available",
+            "installed",
+            "draft",
+            "disabled",
+            "error"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "definitions": {
+          "items": {
+            "$ref": "#/$defs/ProbeDefinition"
+          },
+          "maxItems": 128,
+          "title": "Definitions",
+          "type": "array"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        },
+        "pending_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pending Version"
+        },
+        "review_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Digest"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "version",
+        "source",
+        "kind",
+        "status",
+        "definitions",
+        "dependencies",
+        "url",
+        "diagnostics",
+        "pending_version",
+        "review_digest"
+      ],
+      "title": "ProbeResource",
+      "type": "object"
+    },
+    "Relation": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "label": {
+          "default": "depends on",
+          "title": "Label",
+          "type": "string"
+        },
+        "provenance": {
+          "default": "inferred",
+          "enum": [
+            "observed",
+            "inferred",
+            "declared",
+            "unknown"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "label",
+        "provenance",
+        "evidence"
+      ],
+      "title": "Relation",
+      "type": "object"
+    },
+    "ResolvedProbeCall": {
+      "additionalProperties": false,
+      "properties": {
+        "semantics": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Semantics",
+          "type": "object"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "definition": {
+          "$ref": "#/$defs/ProbeDefinition"
+        },
+        "instance": {
+          "$ref": "#/$defs/ProbeInstance"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Inputs",
+          "type": "object"
+        },
+        "resource_versions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Resource Versions",
+          "type": "object"
+        },
+        "input_digest": {
+          "default": "",
+          "title": "Input Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "id",
+        "definition",
+        "instance",
+        "targets",
+        "inputs",
+        "resource_versions",
+        "input_digest"
+      ],
+      "title": "ResolvedProbeCall",
+      "type": "object"
+    },
+    "ScopeSelector": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "default": "project",
+          "enum": [
+            "selection",
+            "block",
+            "project"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "block_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Id"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "excluded_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Excluded Keys",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "block_id",
+        "targets",
+        "excluded_keys"
+      ],
+      "title": "ScopeSelector",
+      "type": "object"
+    },
+    "SemanticGraph": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 3,
+          "default": 3,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "source_digest": {
+          "default": "",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "roots": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Roots",
+          "type": "array"
+        },
+        "blocks": {
+          "items": {
+            "$ref": "#/$defs/GraphBlock"
+          },
+          "title": "Blocks",
+          "type": "array"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/GraphNode"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/GraphEdge"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "coverage": {
+          "items": {
+            "$ref": "#/$defs/GraphCoverage"
+          },
+          "title": "Coverage",
+          "type": "array"
+        },
+        "omitted_count": {
+          "default": 0,
+          "title": "Omitted Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "source_digest",
+        "roots",
+        "blocks",
+        "nodes",
+        "edges",
+        "coverage",
+        "omitted_count"
+      ],
+      "title": "SemanticGraph",
+      "type": "object"
+    },
+    "SourceObject": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "qualname": {
+          "title": "Qualname",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "scope": {
+          "default": "<module>",
+          "title": "Scope",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "function",
+            "class",
+            "assignment",
+            "parameter",
+            "import",
+            "step"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "title": "End Line",
+          "type": "integer"
+        },
+        "column": {
+          "default": 0,
+          "title": "Column",
+          "type": "integer"
+        },
+        "end_column": {
+          "default": 0,
+          "title": "End Column",
+          "type": "integer"
+        },
+        "logical_key": {
+          "default": "",
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "block_id": {
+          "default": "",
+          "title": "Block Id",
+          "type": "string"
+        },
+        "source_digest": {
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "code": {
+          "default": "",
+          "title": "Code",
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inputs",
+          "type": "array"
+        },
+        "mutation": {
+          "default": false,
+          "title": "Mutation",
+          "type": "boolean"
+        },
+        "provenance": {
+          "default": "inferred",
+          "enum": [
+            "inferred",
+            "declared"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "qualname",
+        "name",
+        "scope",
+        "kind",
+        "line",
+        "end_line",
+        "column",
+        "end_column",
+        "logical_key",
+        "block_id",
+        "source_digest",
+        "code",
+        "inputs",
+        "mutation",
+        "provenance"
+      ],
+      "title": "SourceObject",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "qualname": {
+          "default": "",
+          "title": "Qualname",
+          "type": "string"
+        },
+        "line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Line",
+          "type": "integer"
+        },
+        "digest": {
+          "default": "",
+          "title": "Digest",
+          "type": "string"
+        },
+        "code": {
+          "default": "",
+          "title": "Code",
+          "type": "string"
+        },
+        "column": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Column",
+          "type": "integer"
+        },
+        "end_column": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Column",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "qualname",
+        "line",
+        "end_line",
+        "digest",
+        "code",
+        "column",
+        "end_column"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    },
+    "TargetOverride": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enabled"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        }
+      },
+      "required": [
+        "enabled",
+        "parameters"
+      ],
+      "title": "TargetOverride",
+      "type": "object"
+    },
+    "TargetRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "default": "data",
+          "enum": [
+            "data",
+            "operation",
+            "function",
+            "control",
+            "file",
+            "project",
+            "folder",
+            "stream"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "logical_key": {
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Id"
+        },
+        "block_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Id"
+        },
+        "analysis_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Analysis Id"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        },
+        "exact_evidence": {
+          "default": false,
+          "title": "Exact Evidence",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "logical_key",
+        "object_id",
+        "block_id",
+        "analysis_id",
+        "run_id",
+        "snapshot_id",
+        "exact_evidence"
+      ],
+      "title": "TargetRef",
+      "type": "object"
+    },
+    "TaskRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 2,
+          "default": 2,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "default": "queued",
+          "enum": [
+            "queued",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "updated_at": {
+          "title": "Updated At",
+          "type": "string"
+        },
+        "plan_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plan Id"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "calculation_status": {
+          "default": "not_requested",
+          "title": "Calculation Status",
+          "type": "string"
+        },
+        "progress": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Progress",
+          "type": "number"
+        },
+        "output_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Output Ids",
+          "type": "array"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        },
+        "receipt": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Receipt",
+          "type": "object"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "kind",
+        "status",
+        "created_at",
+        "updated_at",
+        "plan_id",
+        "run_id",
+        "calculation_status",
+        "progress",
+        "output_ids",
+        "message",
+        "receipt"
+      ],
+      "title": "TaskRecord",
+      "type": "object"
+    },
+    "TerminalSession": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "profile": {
+          "title": "Profile",
+          "type": "string"
+        },
+        "cwd": {
+          "title": "Cwd",
+          "type": "string"
+        },
+        "status": {
+          "default": "running",
+          "title": "Status",
+          "type": "string"
+        },
+        "pid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pid"
+        },
+        "rows": {
+          "default": 24,
+          "title": "Rows",
+          "type": "integer"
+        },
+        "cols": {
+          "default": 80,
+          "title": "Cols",
+          "type": "integer"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        }
+      },
+      "required": [
+        "id",
+        "profile",
+        "cwd",
+        "status",
+        "pid",
+        "rows",
+        "cols",
+        "error"
+      ],
+      "title": "TerminalSession",
+      "type": "object"
+    },
+    "WorkbenchConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "default": 3,
+          "enum": [
+            2,
+            3
+          ],
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "script": {
+          "default": "",
+          "title": "Script",
+          "type": "string"
+        },
+        "interpreter": {
+          "default": "",
+          "title": "Interpreter",
+          "type": "string"
+        },
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "capture": {
+          "default": "summary",
+          "enum": [
+            "metadata",
+            "summary",
+            "sample",
+            "full"
+          ],
+          "title": "Capture",
+          "type": "string"
+        },
+        "probes": {
+          "items": {
+            "$ref": "#/$defs/ProbeInstance"
+          },
+          "maxItems": 128,
+          "title": "Probes",
+          "type": "array"
+        },
+        "adapters": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Adapters",
+          "type": "array"
+        },
+        "harness": {
+          "items": {
+            "$ref": "#/$defs/HarnessPolicy"
+          },
+          "title": "Harness",
+          "type": "array"
+        },
+        "max_outputs": {
+          "default": 128,
+          "maximum": 512,
+          "minimum": 1,
+          "title": "Max Outputs",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "revision",
+        "script",
+        "interpreter",
+        "arguments",
+        "capture",
+        "probes",
+        "adapters",
+        "harness",
+        "max_outputs"
+      ],
+      "title": "WorkbenchConfig",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "AnalysisDocument": {
+      "$ref": "#/$defs/AnalysisDocument"
+    },
+    "SourceObject": {
+      "$ref": "#/$defs/SourceObject"
+    },
+    "Relation": {
+      "$ref": "#/$defs/Relation"
+    },
+    "ProbeDefinition": {
+      "$ref": "#/$defs/ProbeDefinition"
+    },
+    "ProbeInstance": {
+      "$ref": "#/$defs/ProbeInstance"
+    },
+    "ProbeOutput": {
+      "$ref": "#/$defs/ProbeOutput"
+    },
+    "WorkbenchConfig": {
+      "$ref": "#/$defs/WorkbenchConfig"
+    },
+    "ExecutionPlan": {
+      "$ref": "#/$defs/ExecutionPlan"
+    },
+    "TaskRecord": {
+      "$ref": "#/$defs/TaskRecord"
+    },
+    "HarnessPolicy": {
+      "$ref": "#/$defs/HarnessPolicy"
+    },
+    "CodeProposal": {
+      "$ref": "#/$defs/CodeProposal"
+    },
+    "SemanticGraph": {
+      "$ref": "#/$defs/SemanticGraph"
+    },
+    "TargetRef": {
+      "$ref": "#/$defs/TargetRef"
+    },
+    "ScopeSelector": {
+      "$ref": "#/$defs/ScopeSelector"
+    },
+    "ControlSummary": {
+      "$ref": "#/$defs/ControlSummary"
+    },
+    "ProbeResource": {
+      "$ref": "#/$defs/ProbeResource"
+    },
+    "ResolvedProbeCall": {
+      "$ref": "#/$defs/ResolvedProbeCall"
+    },
+    "DerivedData": {
+      "$ref": "#/$defs/DerivedData"
+    },
+    "DataSemantics": {
+      "$ref": "#/$defs/DataSemantics"
+    },
+    "PresentationSpec": {
+      "$ref": "#/$defs/PresentationSpec"
+    },
+    "HarnessRequest": {
+      "$ref": "#/$defs/HarnessRequest"
+    },
+    "TerminalSession": {
+      "$ref": "#/$defs/TerminalSession"
+    }
+  },
+  "required": [
+    "AnalysisDocument",
+    "SourceObject",
+    "Relation",
+    "ProbeDefinition",
+    "ProbeInstance",
+    "ProbeOutput",
+    "WorkbenchConfig",
+    "ExecutionPlan",
+    "TaskRecord",
+    "HarnessPolicy",
+    "CodeProposal",
+    "SemanticGraph",
+    "TargetRef",
+    "ScopeSelector",
+    "ControlSummary",
+    "ProbeResource",
+    "ResolvedProbeCall",
+    "DerivedData",
+    "DataSemantics",
+    "PresentationSpec",
+    "HarnessRequest",
+    "TerminalSession"
+  ],
+  "title": "WorkbenchProtocol",
+  "type": "object"
+}

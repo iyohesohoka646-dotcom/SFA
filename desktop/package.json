@@ -1,0 +1,52 @@
+{
+  "name": "scientific-dataflow-inspector-desktop",
+  "productName": "Scientific Dataflow Inspector",
+  "version": "0.5.1",
+  "private": true,
+  "description": "Local scientific dataflow inspection workbench",
+  "author": "Scientific Dataflow Inspector contributors",
+  "license": "MIT",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/controller.test.cjs",
+    "test:desktop": "node tests/lifecycle.cjs",
+    "package": "electron-builder --win nsis --x64",
+    "test:startup": "node tests/startup.cjs && node tests/shutdown.cjs"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "org.scientific-dataflow.inspector",
+    "directories": {
+      "output": "../dist/desktop"
+    },
+    "files": [
+      "src/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "src/terminal.ps1"
+    ],
+    "extraResources": [
+      {
+        "from": "../.work/desktop-python",
+        "to": "python"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Scientific Dataflow Inspector"
+    }
+  }
+}

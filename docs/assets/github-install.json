@@ -1,0 +1,27 @@
+{
+  "installer": "uv tool install",
+  "isolated_tools": true,
+  "ordinary_install_needs_node": false,
+  "cli": "passed",
+  "bundled_studio": "passed",
+  "first_use_workspace": "passed",
+  "native_shortcuts": "passed",
+  "gui_entry_installed": true,
+  "example": [
+    {
+      "case": "success",
+      "id": "1f24010891b34c05a9f8f0846bb98544",
+      "execution": "completed",
+      "quality": "passed"
+    },
+    {
+      "case": "failure",
+      "id": "1a2e1f47fc6d4ddeb7d744dc7f048635",
+      "execution": "completed",
+      "quality": "failed"
+    }
+  ],
+  "result": "passed",
+  "source_url": "https://github.com/iyohesohoka646-dotcom/SFA/archive/47409193a872175f3902d7a52104a2d9be4d619a.zip",
+  "source_archive_hashes": {}
+}

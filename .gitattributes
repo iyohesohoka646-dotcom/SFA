@@ -1,0 +1,16 @@
+* text=auto
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.mjs text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.svg text eol=lf
+*.png binary
+*.cmd text eol=crlf
+*.ps1 text eol=lf
+src/contract_driven_ai_flow/static/assets/elk-worker*.js -whitespace

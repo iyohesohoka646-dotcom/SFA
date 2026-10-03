@@ -1,0 +1,881 @@
+{
+  "format": "cdaf.export.v1",
+  "project": {
+    "bindings": [
+      {
+        "dynamic": false,
+        "id": "input_pipeline_value",
+        "port": "value",
+        "provenance": "designed",
+        "source": {
+          "kind": "project",
+          "module": null,
+          "pointer": "/value",
+          "value": null
+        },
+        "target": "pipeline",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "pipeline_stage_value",
+        "port": "value",
+        "provenance": "designed",
+        "source": {
+          "kind": "module",
+          "module": "pipeline",
+          "pointer": "/value",
+          "value": null
+        },
+        "target": "stage",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "stage_double_value",
+        "port": "value",
+        "provenance": "designed",
+        "source": {
+          "kind": "module",
+          "module": "stage",
+          "pointer": "/value",
+          "value": null
+        },
+        "target": "double",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "pipeline_display_result",
+        "port": "result",
+        "provenance": "designed",
+        "source": {
+          "kind": "module",
+          "module": "pipeline",
+          "pointer": "/result",
+          "value": null
+        },
+        "target": "display",
+        "visibility": "L2"
+      }
+    ],
+    "capture": {
+      "level": "summary",
+      "max_bytes": 16384,
+      "retention_days": 7,
+      "sample_items": 5,
+      "sensitive_fields": [
+        "password",
+        "token",
+        "secret",
+        "api_key",
+        "authorization",
+        "email"
+      ]
+    },
+    "concurrency": 1,
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "type": "object"
+    },
+    "metadata": {
+      "description": "Reproducible local example; failure demonstrates a completed execution with failed quality.",
+      "example": "nested-composite",
+      "inputs": {
+        "failure": {
+          "value": 80
+        },
+        "success": {
+          "value": 12
+        }
+      }
+    },
+    "modules": [
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "additionalProperties": false,
+            "properties": {
+              "result": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "type": "object"
+          }
+        },
+        "dependencies": [],
+        "description": "",
+        "guard": null,
+        "id": "pipeline",
+        "idempotent": false,
+        "kind": "composite",
+        "name": "Transform pipeline",
+        "outputs": {
+          "result": {
+            "kind": "module",
+            "module": "stage",
+            "pointer": "/result",
+            "value": null
+          }
+        },
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": null,
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "additionalProperties": false,
+            "properties": {
+              "result": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "type": "object"
+          }
+        },
+        "dependencies": [],
+        "description": "",
+        "guard": null,
+        "id": "stage",
+        "idempotent": false,
+        "kind": "composite",
+        "name": "Inner stage",
+        "outputs": {
+          "result": {
+            "kind": "module",
+            "module": "double",
+            "pointer": "",
+            "value": null
+          }
+        },
+        "parent": "pipeline",
+        "retries": 0,
+        "side_effects": false,
+        "symbol": null,
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "type": "number"
+          }
+        },
+        "dependencies": [],
+        "description": "",
+        "guard": null,
+        "id": "double",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Double",
+        "outputs": {},
+        "parent": "stage",
+        "retries": 0,
+        "side_effects": false,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "double"
+        },
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "result": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "type": "number"
+          }
+        },
+        "dependencies": [],
+        "description": "",
+        "guard": null,
+        "id": "display",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Display",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "display"
+        },
+        "timeout_seconds": 30.0
+      }
+    ],
+    "name": "Nested transforms · 复合模块",
+    "probes": [
+      {
+        "binding": null,
+        "boundary": "output",
+        "enabled": true,
+        "expression": "$output < 100",
+        "false_target": null,
+        "id": "result_limit",
+        "kind": "assertion",
+        "language_version": 1,
+        "module": "display",
+        "pointer": "",
+        "policy": "continue",
+        "true_target": null
+      }
+    ],
+    "schema_version": 1
+  },
+  "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+  "run": {
+    "id": "f8f76cb6b7494dcaa6bc381730dc5532",
+    "started": "2026-10-01T08:29:22.883792+00:00",
+    "finished": "2026-10-01T08:29:25.830533+00:00",
+    "status": "completed",
+    "quality": "failed",
+    "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+    "environment": {
+      "dependencies": {
+        "contract-driven-ai-flow": "0.2.0",
+        "jsonschema": "4.26.0",
+        "pydantic": "2.13.4"
+      },
+      "input_digest": "5b856e401a8c299226c0059693c52354df0565176a831e7ed24173598285c455",
+      "platform": "Windows-10-10.0.26200-SP0",
+      "python": "3.11.9",
+      "sources": {
+        "display": "bb7451127d0254108fe1340f30341f378ad9161d6c87ffacd57dfc074c1db902",
+        "double": "bb7451127d0254108fe1340f30341f378ad9161d6c87ffacd57dfc074c1db902"
+      }
+    },
+    "owner": 2104
+  },
+  "events": [
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 148,
+      "time": "2026-10-01T08:29:22.888796+00:00",
+      "kind": "run.started",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": null,
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": null,
+      "links": [],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "value": {
+                "type": "int",
+                "value": 80
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 12,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "environment": {
+          "python": "3.11.9",
+          "platform": "Windows-10-10.0.26200-SP0",
+          "sources": {
+            "double": "bb7451127d0254108fe1340f30341f378ad9161d6c87ffacd57dfc074c1db902",
+            "display": "bb7451127d0254108fe1340f30341f378ad9161d6c87ffacd57dfc074c1db902"
+          },
+          "dependencies": {
+            "contract-driven-ai-flow": "0.2.0",
+            "jsonschema": "4.26.0",
+            "pydantic": "2.13.4"
+          },
+          "input_digest": "5b856e401a8c299226c0059693c52354df0565176a831e7ed24173598285c455"
+        }
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 149,
+      "time": "2026-10-01T08:29:22.900976+00:00",
+      "kind": "contract.checked",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "pipeline",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "c55d9b23a908cbb08a479c7939810e7258eaa1627f0b118ff180b6ef67380e4d",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 150,
+      "time": "2026-10-01T08:29:22.909486+00:00",
+      "kind": "composite.input",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "pipeline",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "c55d9b23a908cbb08a479c7939810e7258eaa1627f0b118ff180b6ef67380e4d",
+      "links": [],
+      "data": {
+        "capture": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "value": {
+                "type": "int",
+                "value": 80
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 12,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 151,
+      "time": "2026-10-01T08:29:22.917703+00:00",
+      "kind": "contract.checked",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "stage",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "c55d9b23a908cbb08a479c7939810e7258eaa1627f0b118ff180b6ef67380e4d",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 152,
+      "time": "2026-10-01T08:29:22.925755+00:00",
+      "kind": "composite.input",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "stage",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "c55d9b23a908cbb08a479c7939810e7258eaa1627f0b118ff180b6ef67380e4d",
+      "links": [],
+      "data": {
+        "capture": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "value": {
+                "type": "int",
+                "value": 80
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 12,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 153,
+      "time": "2026-10-01T08:29:22.934832+00:00",
+      "kind": "binding.transferred",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "double",
+      "binding": "stage_double_value",
+      "attempt": 0,
+      "contract_revision": "f7cc360fa211fcc36a290388b5b8216d23a311531299ab507bc4906a92b390c8",
+      "links": [
+        {
+          "binding": "stage_double_value",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "port": "value"
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 154,
+      "time": "2026-10-01T08:29:22.943819+00:00",
+      "kind": "module.started",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "double",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "f7cc360fa211fcc36a290388b5b8216d23a311531299ab507bc4906a92b390c8",
+      "links": [
+        {
+          "binding": "stage_double_value",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "value": {
+                "type": "int",
+                "value": 80
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 12,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 155,
+      "time": "2026-10-01T08:29:22.951117+00:00",
+      "kind": "contract.checked",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "double",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "f7cc360fa211fcc36a290388b5b8216d23a311531299ab507bc4906a92b390c8",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 156,
+      "time": "2026-10-01T08:29:24.320540+00:00",
+      "kind": "contract.checked",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "double",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "f7cc360fa211fcc36a290388b5b8216d23a311531299ab507bc4906a92b390c8",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 157,
+      "time": "2026-10-01T08:29:24.331587+00:00",
+      "kind": "module.completed",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "double",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "f7cc360fa211fcc36a290388b5b8216d23a311531299ab507bc4906a92b390c8",
+      "links": [],
+      "data": {
+        "duration_ms": 1358.9999999967404,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "int",
+            "value": 160
+          },
+          "bytes": 3,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 158,
+      "time": "2026-10-01T08:29:24.350917+00:00",
+      "kind": "contract.checked",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "stage",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "c55d9b23a908cbb08a479c7939810e7258eaa1627f0b118ff180b6ef67380e4d",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 159,
+      "time": "2026-10-01T08:29:24.360530+00:00",
+      "kind": "composite.output",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "stage",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "c55d9b23a908cbb08a479c7939810e7258eaa1627f0b118ff180b6ef67380e4d",
+      "links": [],
+      "data": {
+        "capture": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "result": {
+                "type": "int",
+                "value": 160
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 14,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 160,
+      "time": "2026-10-01T08:29:24.371377+00:00",
+      "kind": "contract.checked",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "pipeline",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "c55d9b23a908cbb08a479c7939810e7258eaa1627f0b118ff180b6ef67380e4d",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 161,
+      "time": "2026-10-01T08:29:24.387481+00:00",
+      "kind": "composite.output",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "pipeline",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "c55d9b23a908cbb08a479c7939810e7258eaa1627f0b118ff180b6ef67380e4d",
+      "links": [],
+      "data": {
+        "capture": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "result": {
+                "type": "int",
+                "value": 160
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 14,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 162,
+      "time": "2026-10-01T08:29:24.397542+00:00",
+      "kind": "binding.transferred",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "display",
+      "binding": "pipeline_display_result",
+      "attempt": 0,
+      "contract_revision": "bccbb03788219ba594b4302833434d8200eefa247ac7de373c85bcd453fbd539",
+      "links": [
+        {
+          "binding": "pipeline_display_result",
+          "module": "double",
+          "sequence": 157
+        }
+      ],
+      "data": {
+        "port": "result"
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 163,
+      "time": "2026-10-01T08:29:24.407511+00:00",
+      "kind": "module.started",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "display",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "bccbb03788219ba594b4302833434d8200eefa247ac7de373c85bcd453fbd539",
+      "links": [
+        {
+          "binding": "pipeline_display_result",
+          "module": "double",
+          "sequence": 157
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "result": {
+                "type": "int",
+                "value": 160
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 14,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 164,
+      "time": "2026-10-01T08:29:24.414568+00:00",
+      "kind": "contract.checked",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "display",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "bccbb03788219ba594b4302833434d8200eefa247ac7de373c85bcd453fbd539",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 165,
+      "time": "2026-10-01T08:29:25.780375+00:00",
+      "kind": "contract.checked",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "display",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "bccbb03788219ba594b4302833434d8200eefa247ac7de373c85bcd453fbd539",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 166,
+      "time": "2026-10-01T08:29:25.791126+00:00",
+      "kind": "probe.result",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "display",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "bccbb03788219ba594b4302833434d8200eefa247ac7de373c85bcd453fbd539",
+      "links": [],
+      "data": {
+        "probe": "result_limit",
+        "status": "fail",
+        "kind": "assertion",
+        "value": false,
+        "message": "",
+        "policy": "continue",
+        "redacted": []
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 167,
+      "time": "2026-10-01T08:29:25.801205+00:00",
+      "kind": "module.completed",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": "display",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "bccbb03788219ba594b4302833434d8200eefa247ac7de373c85bcd453fbd539",
+      "links": [],
+      "data": {
+        "duration_ms": 1327.9999999940628,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "int",
+            "value": 160
+          },
+          "bytes": 3,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "f8f76cb6b7494dcaa6bc381730dc5532",
+      "sequence": 168,
+      "time": "2026-10-01T08:29:25.812691+00:00",
+      "kind": "run.finished",
+      "revision": "4d1caaf8731d3d587d5766a2bd7bc1735340d3c0624b48a5a6938379e81ab4a1",
+      "module": null,
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": null,
+      "links": [],
+      "data": {
+        "status": "completed",
+        "quality": "failed",
+        "modules": {
+          "double": "completed",
+          "display": "completed"
+        }
+      }
+    }
+  ],
+  "view": {
+    "positions": {},
+    "collapsed": [],
+    "theme": "dark"
+  },
+  "evidence": "Observed events are historical execution evidence. Design links alone express static reachability."
+}

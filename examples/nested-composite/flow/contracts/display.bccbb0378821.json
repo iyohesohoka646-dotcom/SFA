@@ -1,0 +1,18 @@
+{
+  "input": {
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "result"
+    ],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "number"
+  },
+  "examples": []
+}
