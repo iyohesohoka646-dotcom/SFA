@@ -59,7 +59,7 @@ test('model-settings: automatic evidence tools and slow harness stay independent
   await researchApi(page,'settings/models/browser-lab',{profile:{id:'browser-lab',protocol:'openai-compatible',base_url:'http://127.0.0.1:8879/fake-model/v1',default_model:'harness-model'}},'PUT');
   await chooseExample(page);await runCompute(page);
   await chooseValue(page,'Z');
-  await page.getByRole('button',{name:'智能助手',exact:true}).click();await page.getByRole('button',{name:'任务设置'}).click();
+  await page.getByRole('button',{name:'智能助手',exact:true}).click();await page.getByRole('button',{name:'任务设置',exact:true}).click();
   await page.getByLabel('任务模型服务').selectOption('browser-lab');await page.getByLabel('任务模型',{exact:true}).fill('harness-model');
   await expect(page.getByLabel('允许读取脱敏样例')).not.toBeChecked();
   await page.getByLabel('任务指令').fill('解读标准化定义。');await page.getByRole('button',{name:'执行智能任务'}).click();
@@ -68,7 +68,9 @@ test('model-settings: automatic evidence tools and slow harness stay independent
   await page.getByRole('button',{name:'查看智能结果'}).first().click();
   await expect(page.locator('.wb-ai-answer')).toContainText('真实定义');await expect(page.locator('.wb-context-view')).toContainText('source.read');
   await page.screenshot({path:'../docs/assets/research-model-explanation.png'});
-  await page.getByRole('button',{name:'智能助手',exact:true}).click();await page.getByRole('button',{name:'任务设置'}).click();
+  await page.getByRole('button',{name:'智能助手',exact:true}).click();
+  await expect(page.getByRole('button',{name:'任务设置',exact:true})).toHaveAttribute('aria-expanded','true');
+  await expect(page.getByLabel('任务模型',{exact:true})).toBeVisible();
   await page.getByLabel('任务模型',{exact:true}).fill('slow-model');await page.getByLabel('任务指令').fill('慢请求期间继续查看数据。');
   await page.getByRole('button',{name:'执行智能任务'}).click();await expect(page.getByRole('button',{name:'取消任务'}).first()).toBeVisible();
   await chooseValue(page,'X');
