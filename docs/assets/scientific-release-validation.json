@@ -1,7 +1,7 @@
 {
   "version": "0.5.0",
-  "verified_at": "2026-10-03T00:55:47.663000+00:00",
-  "code_commit": "e1947479a216bcd162b2ba83f1f13d232dcdfc2d",
+  "verified_at": "2026-10-03T01:38:18.139689+00:00",
+  "code_commit": "d503f383b1dee2b16cf882fa61528b9319642b36",
   "python_tests": 686,
   "python_skipped_on_windows": 8,
   "real_wsl_posix_tests": 8,
@@ -22,11 +22,11 @@
       "packaged_win_unpacked"
     ],
     "exact_static_file_set": 124,
-    "wheel_sha256": "e18017bbe6772e95b432bc79ca90c42276981e61cc5530ae471a8d33c161dc17",
-    "source_sha256": "2cff09678167a0124374a9737afa680106066730fc8a03185826a7c42a1c4115"
+    "wheel_sha256": "18977d82bfe72a2f63f6c1a79b83a22c678712f065a7add6988e5ed461e37081",
+    "source_sha256": "ba9d55ba910be3e825a8cea28e1c8fcf08774dbe8ddc3eb3fa0a3157e6de91c5"
   },
   "selection_performance": {
-    "visible_p95_ms": 2.5,
+    "visible_p95_ms": 7.199999988079071,
     "hidden_mounted_p95_ms": 2.5,
     "samples_each": 20,
     "fixture": {
@@ -55,7 +55,7 @@
     "core_version": "0.5.0",
     "window_close": true,
     "port_released": true,
-    "backend_pid": 49644,
+    "backend_pid": 30844,
     "own_script": true,
     "source_preserved": true,
     "matrix_and_anomaly": true,
@@ -64,7 +64,7 @@
     "shared_cli_history": true,
     "offline_models": true,
     "offline_report_privacy": true,
-    "run_id": "3de2965a170843f79bc51b43dc34025a",
+    "run_id": "2c55a86f96e7492b82a5fb9622360bcc",
     "result": "passed",
     "mode": "packaged_win_unpacked",
     "nsis_wizard_executed": false
@@ -85,8 +85,8 @@
   },
   "installer": {
     "filename": "Scientific Dataflow Inspector Setup 0.5.0.exe",
-    "bytes": 240275579,
-    "sha256": "f2a1be929e6624f1309549622bc48b8888ca0f256de5f385ba30f680dfad5416",
+    "bytes": 240275661,
+    "sha256": "3b551cabed02fd58ba254a939657d6d2abe3015f4b6809e652ce368eeb6893c5",
     "wizard_executed": false,
     "signed": false
   },
@@ -94,10 +94,10 @@
   "macos_linux_native_desktop": "unverified; Python CI and real WSL terminal checks are separate",
   "cross_platform_ci": {
     "status_at_archive": "awaiting_final_head_checks",
-    "checkpoint_commit": "84c619431ac1b07547b226e3f49056edd4128da9",
-    "checkpoint_run": 37081484451,
+    "checkpoint_commit": "72a31e6bc98a2a7a4a98f92d054f2c35f4f5b037",
+    "checkpoint_run": 37084137034,
     "checkpoint_python_matrix": "9 passed",
-    "checkpoint_browser": "64 passed; startup layout race reproduced and fixed locally",
+    "checkpoint_browser": "64 passed; tool category reset reproduced and fixed locally; final head must pass",
     "latest_branch_required": true,
     "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions?query=branch%3Afeat%2Fcontract-driven-ai-flow"
   },
