@@ -1,4 +1,6 @@
-# Scientific Dataflow Inspector 0.5.3 本地候选版
+# Scientific Dataflow Inspector 0.5.4 本地候选版
+
+0.5.4 恢复 Code 图中的计算依赖和条件连接，使用圆形判断与菱形运算、换行标签和连续分层排线；修复块拖动、源码范围高亮及运行信息重叠。探针台改为三种操作模式，探针库新增组合模板，数据页严格按有效绑定呈现。通用模型服务从空白配置开始，预设可选。[本轮改进与验证](research/process-probes-0.5.4.md)。
 
 0.5.3 简化为逻辑变量表与 Code／Data 两种关系图，每个启用的呈现探针对应独立可折叠视图。修复下拉选择、重复变量历史、保存后立即执行的版本冲突、异步任务抢占放大视图、数值表坐标和嵌套循环纵向布局。网格、统一单元尺寸、正交排线与 Back／Root 提供紧凑导航。[本轮改进与验证](research/compact-workbench-0.5.3.md)。
 
@@ -10,9 +12,9 @@
 
 ## 操作
 
-选择 Python 脚本后点击“导入解析”；这一步不运行用户代码。单击对象或图节点只选择，Ctrl/Cmd 和 Shift 支持多选；双击、Enter 或右键菜单才打开数据、源码或进入块。关系图默认为 Code，Data 只显示变量依赖。保留完整背景，淡化可单独开启；Arrange 使用 ELK Worker 的对齐与正交排线，选择、数值更新和淡化不重新布局。每个有效呈现探针有独立可折叠区域，下拉可单看一个。
+选择 Python 脚本后点击“导入解析”；这一步不运行用户代码。单击对象或图节点只选择，Ctrl/Cmd 和 Shift 支持多选；双击、Enter 或右键菜单才打开数据、源码或进入块。关系图默认为 Code，Data 只显示变量依赖。保留完整背景，淡化可单独开启；Arrange 使用 ELK Worker 的对齐与正交排线，选择、数值更新和淡化不重新布局。每个有效呈现探针有独立可折叠区域，可以设置或固定为独立标签。
 
-新项目提供可见、可停用和可删除的“自动数据视图”探针。对象名称、类型、形状和来源始终可见，表格、热图和其他图形由有效呈现探针提供。探针库分别管理公开资源、已安装扩展、自定义程序和 Skill；参数修改先保存绑定，计算、绘图和模型调用都需要明确点击执行。联合计算需要完整输入，缺少完整数据或坐标会给出诊断，补采集产生新运行。
+新项目应用可管理的“自动数据视图”探针模板；成员按数据类型提供基础呈现，没有有效探针时仅保留变量名和探针台入口。表格、热图和其他图形由有效呈现探针提供。探针库分别管理公开资源、已安装扩展、自定义程序和 Skill；参数修改先保存绑定，计算、绘图和模型调用都需要明确点击执行。联合计算需要完整输入，缺少完整数据或坐标会给出诊断，补采集产生新运行。
 
 “设置”管理工作区、关系图、默认探针、采集、智能模型、扩展环境、终端和存储。模型设置保留顶部直接入口。Dockview 支持横纵分屏、标签拖动、缩小恢复、放大还原、命名布局和锁定。任务、结果和事件按运行、阶段、目标与探针筛选。内嵌终端支持 Python、应用 CLI 和系统 Shell；隐藏保留进程，显式结束或关闭拥有服务的应用时清理进程。
 
@@ -23,9 +25,11 @@ cdaf terminal --project .\experiment
 cdaf workbench --help
 ```
 
-Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包为 `dist/desktop/Scientific Dataflow Inspector Setup 0.5.3.exe`。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
+Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包为 `dist/desktop/Scientific Dataflow Inspector Setup 0.5.4.exe`。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
 
 ## 验证与边界
+
+0.5.4 的[机器可读验收记录](assets/workbench-process-validation.json)核对 783 项 Python 检查及 8 项平台条件跳过、111 项前端单元检查。92 个浏览器场景通过全套首轮和失败项修复复测核对；最后变更的 5 个交互场景另行全部通过，涵盖文件范围模板展开、关闭所有呈现后空白、块拖动与源码高亮、证据布局和通用服务配置。实际桌面、包安装及原项目保留情况分别记入同一记录，避免与静态构建检查混用。千对象选择 P95 为 5.2 ms，隐藏图时为 5.3 ms；此测量仅覆盖夹具中的选中到下一帧。
 
 0.5.3 的[机器可读验收记录](assets/workbench-compact-validation.json)核对 87 个浏览器场景、103 个前端单元检查、773 项 Python 检查及 8 个平台条件跳过。Python 首轮唯一失败是本地 editable 安装元数据仍为 0.5.2，刷新安装后该项补测通过。原桌面快捷方式实际打开 0.5.3，原 3 次运行和数据库记录保留；248 个核心包文件与经过隔离安装检查的 wheel 逐字节一致。Windows 125% 原生使用和 150% 三种真实终端、重连、启动恢复与退出清理通过。类型与生产构建、wheel 和源归档隔离安装均通过。当前千对象选择 P95 为 6.1 ms，隐藏图时为 6.2 ms。[详细结果](research/compact-workbench-0.5.3.md)。
 

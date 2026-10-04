@@ -43,9 +43,15 @@ export function semanticLayoutBounds(nodes: readonly Node[], layout: SemanticLay
 }
 
 const labelWidth = (label: string) => [...label].reduce((size, c) => size + (c.charCodeAt(0) > 255 ? 11 : 6.3), 0);
-export function semanticDimensions({ label, plate, handles, collapsed = false, compact = false }: { label: string; plate: boolean; handles: LayoutHandle[]; collapsed?: boolean; compact?: boolean }) {
+export function semanticDimensions({ label, plate, handles, collapsed = false, compact = false, expression = "", kind = "" }: { label: string; plate: boolean; handles: LayoutHandle[]; collapsed?: boolean; compact?: boolean; expression?: string; kind?: string }) {
   const inputs = handles.filter(p => p.direction === "input"), outputs = handles.filter(p => p.direction === "output");
-  if (compact) return { width: plate ? 288 : 192, height: Math.max(80, 64 + Math.max(inputs.length, outputs.length) * 16) };
+  if (compact) {
+    const width = plate ? 288 : kind === "operation" ? 240 : 208;
+    const textWidth = width - (plate ? 100 : kind === "operation" ? 108 : 48);
+    const lines = Math.max(1, Math.ceil(labelWidth(label) / textWidth));
+    const expressionLines = expression ? Math.ceil(labelWidth(expression) / textWidth) : 0;
+    return { width, height: Math.max(kind === "operation" ? 144 : 104, 66 + lines * 17 + expressionLines * 15 + Math.max(inputs.length, outputs.length) * 12) };
+  }
   const columnWidth = (column: LayoutHandle[]) => column.length ? Math.min(178, Math.max(88, ...column.map(p => labelWidth(p.name)))) : 0;
   const width = Math.ceil(Math.min(440, Math.max(plate ? 300 : 228, labelWidth(label) + (plate ? 118 : 40), columnWidth(inputs) + columnWidth(outputs) + 38)));
   const height = (plate ? 64 : 62) + Math.max(inputs.length, outputs.length) * 20 + (plate && collapsed ? 30 : 28);
@@ -67,8 +73,9 @@ const layoutOptions = (direction: string): LayoutOptions => ({
   "elk.layered.spacing.edgeNodeBetweenLayers": "20",
   "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
   "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
-  "elk.layered.wrapping.strategy": "MULTI_EDGE",
-  "elk.layered.wrapping.additionalEdgeSpacing": "20",
+  // Wrapping a dependency chain into rows sends later values back across the
+  // earlier row. Keep causal layers monotone; pan/focus supply the overview.
+  "elk.layered.wrapping.strategy": "OFF",
   "elk.aspectRatio": "1.7",
   "elk.randomSeed": "1",
   // Extra scanline compaction rejects nested loops with fixed vertical ports
@@ -89,7 +96,7 @@ export function buildSemanticLayout(nodes: Node[], edges: Edge[], direction = "R
       const row = columnRows.get(p.direction) ?? 0;
       columnRows.set(p.direction, row + 1);
       const count = handles.filter(h => h.direction === p.direction).length;
-      const y = p.y ?? (n.data.compact ? 48 + row * 16 : (n.type === "plate" ? 64 : 62) + row * 20 + 10);
+      const y = p.y ?? (n.data.compact ? height / 2 + (row - (count - 1) / 2) * 16 : (n.type === "plate" ? 64 : 62) + row * 20 + 10);
       const vertical = direction === "DOWN";
       const side = vertical ? p.direction === "input" ? "NORTH" : "SOUTH" : p.direction === "input" ? "WEST" : "EAST";
       return {

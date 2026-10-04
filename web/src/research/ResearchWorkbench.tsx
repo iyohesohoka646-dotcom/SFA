@@ -20,6 +20,8 @@ import { Icon } from "./workspace/icons";
 import { wb, type Preferences } from "./workspace/WorkbenchClient";
 import { SourceDocument } from "./workspace/SourceDocument";
 import { ProbeWorkspace } from "./workspace/ProbeWorkspace";
+import { snapshotProbeTarget } from "./workspace/probe-configuration";
+import { selectionKey } from "./workspace/selection";
 import { WorkbenchSettings } from "./workspace/WorkbenchSettings";
 import { ComparisonView } from "./workspace/ComparisonView";
 import { ProbeInspector } from "./workspace/ProbeInspector";
@@ -325,6 +327,11 @@ export default function ResearchWorkbench() {
             definitions={c.definitions}
             onConfig={c.editConfig}
             onSave={c.saveConfig}
+            onOpenInspector={(snapshot, analysis) => {
+              const target = snapshotProbeTarget(snapshot, analysis);
+              c.chooseTargets({ targets: [target], anchor: selectionKey(target) });
+              showView("probes");
+            }}
             onOpenPresenter={(s, id) =>
               c.open(
                 "data",

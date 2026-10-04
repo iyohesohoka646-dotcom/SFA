@@ -10,7 +10,8 @@ export const models={
   list:(signal?:AbortSignal)=>request<PublicProviderProfile[]>('/models',{signal}),
   vault:(signal?:AbortSignal)=>request<{available:boolean;plaintext_fallback:boolean}>('/credential-store',{signal}),
   save:(profile:ProviderProfile,secret?:string,signal?:AbortSignal)=>request<PublicProviderProfile>('/models/'+encodeURIComponent(profile.id),{method:'PUT',body:{profile,...(secret?{secret}:{})},signal}),
+  remove:(id:string,signal?:AbortSignal)=>request<{deleted:string}>('/models/'+encodeURIComponent(id),{method:'DELETE',signal}),
   test:(id:string,body:{inference:boolean;model?:string;operation_id:string},signal?:AbortSignal)=>request<ConnectionResult>('/models/'+encodeURIComponent(id)+'/test',{method:'POST',body,signal}),
   cancel:(id:string)=>request<{cancelled:boolean}>('/operations/'+encodeURIComponent(id)+'/cancel',{method:'POST'}),
 };
-export const newProfile=():ProviderProfile=>({id:'',protocol:'openai-compatible',base_url:'http://127.0.0.1:11434/v1',models:[],default_model:'',timeout_seconds:60,credential_ref:null});
+export { newProfile } from './service-presets';

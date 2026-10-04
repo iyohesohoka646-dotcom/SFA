@@ -6,7 +6,7 @@
 
 [English](README.md) · [快速使用](docs/research/quickstart.md) · [交互 CLI](docs/research/cli.md) · [扩展协议](docs/research/adapter-api.md) · [发行验证](docs/release.md)
 
-![逻辑变量、源码与独立探针视图](docs/assets/compact-probes.png)
+![逻辑变量、源码与独立探针视图](docs/assets/process-probe-templates.png)
 
 在同一界面查看变量在哪里定义、维度与类型是什么、运算怎样改变数据、异常首先在哪里出现。基础观察与规则解释不需要密钥。核心协议支持可扩展数据类型，NumPy／pandas 是首批内置适配器。
 
@@ -14,7 +14,7 @@
 
 计算关系图只保留 Code／Data：Code 显示代码计算结构，Data 显示变量依赖，重复版本合并。统一单元宽度、网格和正交连线，按需展开函数、条件和循环；运行证据是可选叠加。对象浏览器按目录、文件和源码顺序列出逻辑变量，只附类型、形状及探针数量。单击只选择，双击或右键菜单显式打开数据、源码；淡化无关对象默认关闭。标签和分屏可拖动、调整、缩小、放大、固定和保存。
 
-探针按作用对象、呈现／检验／解释／推导用途和实现方式分类。探针库管理资源，探针台管理绑定；每个有效呈现探针对应独立可折叠视图，下拉可单看一个，停用或删除立即改变视图数量。矩阵可定义数值、坐标、轴与单位，多对象可比较或生成带父输入引用的派生数据。公开绘图库、声明式自定义程序、Skill 和模型均保留独立接入接口。导入及配置不执行，运行、重绘和模型调用均由明确动作触发。Web 与 Windows 桌面内嵌真实 Python、Shell 和应用 CLI 终端。
+探针按作用对象、呈现／检验／解释／推导用途和实现方式分类。探针库管理资源，探针台管理绑定；每个有效呈现探针对应独立可折叠视图，停用或删除立即改变视图数量。“自动数据视图”是可编辑模板；探针库可创建组合模板，应用后生成独立绑定。没有有效探针时，数据页仅保留变量名和探针台入口。矩阵可定义数值、坐标、轴与单位，多对象可比较或生成带父输入引用的派生数据。公开绘图库、声明式自定义程序、Skill 和模型均保留独立接入接口。导入及配置不执行，运行、重绘和模型调用均由明确动作触发。Web 与 Windows 桌面内嵌真实 Python、Shell 和应用 CLI 终端。
 
 智能助手自动构建环境、对象、工具、任务和预算上下文。用户配置模型与任务权限，实际发送内容、工具调用和引用可查看；源码和数据样例按范围读取。AI 可以生成函数体、稳定赋值或新分析文件提案，差异验证后仍须人工接受；接受后重新解析，计算仍需显式运行。[完整工作台说明](docs/research/workbench.md)
 
@@ -73,7 +73,7 @@ cdaf studio --project .\experiment
 
 自动插桩有[明确覆盖边界](docs/research/instrumentation.md)，关系区分实际观察、源码推断与用户声明。代码和插件具有用户本身的文件／网络权限，见[限制](docs/research/limitations.md)。
 
-产品工作名称为 Scientific Dataflow Inspector。发行包 `contract-driven-ai-flow`、导入 `contract_driven_ai_flow`、命令 `cdaf`、仓库 `SFA` 保持兼容。当前是 **0.5.3 本地候选版本**，没有更名远端或发布 PyPI；简化对象、探针及图谱见[本轮改进记录](docs/research/compact-workbench-0.5.3.md)，启动恢复见[此前审查记录](docs/research/workbench-audit-0.5.1.md)。`sfa` 保留别名。契约工作流从“旧版架构”进入，见[旧工作流](docs/workflow.md)。[迁移](docs/research/migration.md)保留原文件和历史 ID，不补造矩阵证据。
+产品工作名称为 Scientific Dataflow Inspector。发行包 `contract-driven-ai-flow`、导入 `contract_driven_ai_flow`、命令 `cdaf`、仓库 `SFA` 保持兼容。当前是 **0.5.4 本地候选版本**，没有更名远端或发布 PyPI；简化对象、探针及图谱见[本轮改进记录](docs/research/process-probes-0.5.4.md)，启动恢复见[此前审查记录](docs/research/workbench-audit-0.5.1.md)。`sfa` 保留别名。契约工作流从“旧版架构”进入，见[旧工作流](docs/workflow.md)。[迁移](docs/research/migration.md)保留原文件和历史 ID，不补造矩阵证据。
 
 ## 设计与开发
 

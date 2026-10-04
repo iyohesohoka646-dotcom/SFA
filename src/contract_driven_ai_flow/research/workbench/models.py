@@ -138,6 +138,36 @@ class ProbeInstance(WireModel):
     inputs: dict[str, TargetRef] = Field(default_factory=dict)
     origin: Literal["project_default", "local", "manual"] = "manual"
     overrides: dict[str, TargetOverride] = Field(default_factory=dict)
+    template_id: str | None = None
+    template_label: str | None = None
+    template_application_id: str | None = None
+
+
+class ProbeTemplateMember(WireModel):
+    id: str = Field(min_length=1, max_length=128)
+    definition_id: str = Field(min_length=1, max_length=256)
+    parameters: dict[str, JsonValue] = Field(default_factory=dict)
+    enabled: bool = True
+    budget_ms: int = Field(default=5000, ge=1, le=120000)
+
+
+class ProbeTemplate(WireModel):
+    """A reusable recipe; applied bindings freeze their own member parameters."""
+    id: str = Field(min_length=1, max_length=128)
+    label: str = Field(min_length=1, max_length=128)
+    version: int = Field(default=1, ge=1)
+    members: list[ProbeTemplateMember] = Field(min_length=1, max_length=32)
+
+    @model_validator(mode="after")
+    def unique_members(self):
+        if len({m.id for m in self.members}) != len(self.members):
+            raise ValueError("Template member IDs must be unique")
+        return self
+
+
+def default_probe_templates():
+    return [ProbeTemplate(id="auto-data", label="自动数据视图", members=[
+        ProbeTemplateMember(id="data", definition_id="view.auto")])]
 
 
 class ResolvedProbeCall(WireModel):
@@ -219,8 +249,10 @@ class WorkbenchConfig(WireModel):
                 definition_id="view.auto",
                 origin="project_default",
                 selector=ScopeSelector(),
+                template_id="auto-data",
+                template_label="自动数据视图",
+                template_application_id="auto-view",
             ),
-            ProbeInstance(id="finite-check", definition_id="check.finite"),
         ],
         max_length=128,
     )
@@ -232,6 +264,31 @@ class WorkbenchConfig(WireModel):
     )
     max_outputs: int = Field(default=128, ge=1, le=512)
     probe_defaults: dict[str, dict[str, JsonValue]] = Field(default_factory=dict)
+    probe_templates: list[ProbeTemplate] = Field(default_factory=default_probe_templates, max_length=128)
+
+    @model_validator(mode="before")
+    @classmethod
+    def legacy_auto_template(cls, value):
+        if not isinstance(value, dict) or "probe_templates" in value:
+            return value
+        import copy
+        result = copy.deepcopy(value)
+        if "probes" not in result:
+            return result
+        result["probes"] = [p.model_dump() if isinstance(p, ProbeInstance) else p for p in result["probes"]]
+        for probe in result.get("probes", []):
+            if isinstance(probe, dict) and probe.get("definition_id") == "view.auto":
+                probe["template_id"] = probe.get("template_id") or "auto-data"
+                probe["template_label"] = probe.get("template_label") or "自动数据视图"
+                probe["template_application_id"] = probe.get("template_application_id") or probe.get("id", "auto-view")
+        return result
+
+    @field_validator("probe_templates")
+    @classmethod
+    def unique_templates(cls, value):
+        if len({t.id for t in value}) != len(value):
+            raise ValueError("Template IDs must be unique")
+        return value
 
     @field_validator("harness")
     @classmethod

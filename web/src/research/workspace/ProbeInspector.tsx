@@ -8,6 +8,7 @@ import { ProbeBindingRow } from "./ProbeBindingRow";
 import { purposeNames, targetNames } from "./probe-taxonomy";
 import { scopeSelector, selectionKey, type Selection } from "./selection";
 import { compatibleProbes, currentProbeBlock, initialProbeParameters, probeScopeSelector, probeTargetLabel, removeLogicalProbeTarget, scopeProbeTargets, targetOverrideKey, targetProbeEntries } from "./probe-configuration";
+import { applyProbeTemplate } from "./probe-templates";
 import "./probe-management.css";
 
 export function ProbeInspector({ config, definitions, selected, analysis, outputs, onChange, onSave, onError,
@@ -27,8 +28,10 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
   onRequestedHandled?: () => void;
   onModelSettings?: () => void;
 }) {
+  const [tab, setTab] = useState<"inspect" | "apply" | "templates">("inspect");
+  const [templateId, setTemplateId] = useState("");
   const [adding, setAdding] = useState(false), [type, setType] = useState("view.matrix");
-  const [range, setRange] = useState<"selection" | "block" | "project">("selection");
+  const [range, setRange] = useState<"selection" | "project">("selection");
   const [purpose, setPurpose] = useState("all"), [query, setQuery] = useState("");
   const [editing, setEditing] = useState<string>(), [params, setParams] = useState<Record<string, unknown>>({});
   const [note, setNote] = useState(""), [verdict, setVerdict] = useState("unknown");
@@ -40,19 +43,14 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
   }, []);
   const targets = selection?.targets ?? [];
   const currentBlock = currentProbeBlock(analysis, blockScope);
-  const scopeLabel = currentBlock ? (blockScope === currentBlock.id ? "当前块 · " : "当前文件 · ") + currentBlock.label : "当前文件";
   const modelPolicy = config.harness.find((policy) => policy.role === "probe");
   const defaultsFor = (definition: ProbeDefinition) => initialProbeParameters(definition, config.probe_defaults?.[definition.id], selected);
   const prospectiveScope = probeScopeSelector(analysis, currentBlock?.id ?? null, targets, range);
   const scopedTargets = scopeProbeTargets(analysis, prospectiveScope);
-  const compatible = compatibleProbes(definitions, purpose, query, scopedTargets);
+  const compatible = compatibleProbes(definitions, purpose, query, scopedTargets).filter(d => d.id !== "view.auto");
   const definition = compatible.find((item) => item.id === type) ?? compatible[0];
   const roleTargets = scopedTargets;
-  const displayTargets = targets.length ? targets : currentBlock && analysis ? [{
-    kind: currentBlock.kind === "file" ? "file" : currentBlock.kind === "function" || currentBlock.kind === "class" ? "function" : "control",
-    logical_key: currentBlock.logical_key, block_id: currentBlock.id, object_id: currentBlock.source_object_id,
-    analysis_id: analysis.id, run_id: null, snapshot_id: null, exact_evidence: false,
-  } as TargetRef] : [];
+  const displayTargets = targets;
   const groups = useMemo(() => displayTargets.map((target) => ({
     target, entries: targetProbeEntries(config.probes, definitions, target, analysis),
   })), [config.probes, definitions, analysis, selection, currentBlock]);
@@ -72,9 +70,10 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
     if (!chosen) { onError("探针定义不可用，请刷新探针库"); onRequestedHandled?.(); return; }
     setPurpose(chosen.capability);
     setQuery("");
-    setRange(targets.length ? "selection" : currentBlock ? "block" : "project");
+    setRange(targets.length ? "selection" : "project");
     setType(chosen.id);
     setAdding(true);
+    setTab("apply");
     setParams(defaultsFor(chosen));
     setRoles({});
     onRequestedHandled?.();
@@ -84,13 +83,14 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
   });
   const remove = (id: string) => onChange({ ...config, probes: config.probes.filter((probe) => probe.id !== id) });
   const startAdding = () => {
-    const nextRange = targets.length ? "selection" : currentBlock ? "block" : "project";
-    const choices = compatibleProbes(definitions, purpose, query, scopeProbeTargets(analysis, probeScopeSelector(analysis, currentBlock?.id ?? null, targets, nextRange)));
+    const nextRange = targets.length ? "selection" : "project";
+    const choices = compatibleProbes(definitions, purpose, query, scopeProbeTargets(analysis, probeScopeSelector(analysis, currentBlock?.id ?? null, targets, nextRange))).filter(d => d.id !== "view.auto");
     const chosen = choices.find((item) => item.id === type) ?? choices[0];
     setRange(nextRange);
     if (chosen) { setType(chosen.id); setParams(defaultsFor(chosen)); }
     setRoles({});
     setAdding(true);
+    setTab("apply");
   };
   const add = () => {
     if (!definition) return;
@@ -108,16 +108,19 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
       parameters: params, policy: "continue", budget_ms: definition.tool_id ? 30000 : 5000,
       selector: definition.input_mode === "joint" ? scopeSelector(null, Object.values(inputs), "selection") : prospectiveScope,
       inputs, origin: range === "project" && definition.input_mode !== "joint" ? "project_default" : "local", overrides: {},
+      template_id: null, template_label: null, template_application_id: null,
     };
     onChange({ ...config, probes: [...config.probes, instance] });
     setAdding(false);
+    setTab("inspect");
     const first = displayTargets.find((target) => targetProbeEntries([instance], definitions, target, analysis).length);
     if (first) {
       setExpanded((current) => new Set([...current, selectionKey(first)]));
       setEditing(selectionKey(first) + "::" + instance.id);
     } else { setGlobalOpen(true); setEditing(instance.id); }
   };
-  const matchingOutputs = outputs.filter((output) => !selected || output.snapshot_id === selected.id || output.parent_snapshot_ids.includes(selected.id));
+  const manualProbe = config.probes.find(probe => probe.id === editing?.split("::").at(-1)
+    && definitions.find(d => d.id === probe.definition_id)?.execution === "manual");
   return (
     <div className="wb-inspector">
       <div className="wb-view-toolbar">
@@ -125,7 +128,12 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
         <button aria-label="添加探针" onClick={() => adding ? setAdding(false) : startAdding()}><Icon name="add" /></button>
         <button onClick={() => void onSave().catch((error) => onError(error.message))}>保存</button>
       </div>
-      <div className="probe-object-list">
+      <div className="wb-local-tabs" role="tablist" aria-label="探针台模式">
+        {([["inspect", "选中对象"], ["apply", "新探针"], ["templates", "应用模板"]] as const).map(([id, label]) =>
+          <button key={id} role="tab" aria-selected={tab === id} onClick={() => { setTab(id); if (id === "apply") startAdding(); if (id === "templates" && !targets.length) setRange("project"); }}>{label}</button>)}
+      </div>
+      {tab === "inspect" && <div className="probe-object-list">
+        {!groups.length && <div className="probe-empty">选择对象后查看绑定</div>}
         {groups.map(({ target, entries }) => {
           const key = selectionKey(target), label = probeTargetLabel(target, analysis);
           return (
@@ -171,35 +179,27 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
                     })}
                   </div> : null;
                 })}
-                {!entries.length && <div className="probe-empty">此对象没有匹配的探针，可在下方添加绑定。</div>}
+                {!entries.length && <div className="probe-empty">此对象没有绑定探针。</div>}
               </div>}
             </details>
           );
         })}
-      </div>
-      <details className="probe-project-bindings" open={globalOpen || !displayTargets.length} onToggle={(event) => setGlobalOpen(event.currentTarget.open)}>
-        <summary>项目与其他绑定 ({config.probes.length})</summary>
-        {(globalOpen || !displayTargets.length) && <div className="wb-probe-list">
-          {config.probes.map((probe) => <ProbeBindingRow key={probe.id} probe={probe} definition={definitions.find((item) => item.id === probe.definition_id)}
-            open={editing === probe.id} onToggle={() => setEditing(editing === probe.id ? undefined : probe.id)}
-            onUpdate={(patch) => update(probe.id, patch)} onRemove={() => remove(probe.id)} onError={onError}
+      </div>}
+      {tab === "inspect" && globalOpen && config.probes.some(probe => probe.id === editing) && <details className="probe-project-bindings" open onToggle={(event) => setGlobalOpen(event.currentTarget.open)}>
+        <summary>编辑源绑定</summary>
+        <div className="wb-probe-list">
+          {config.probes.filter(probe => probe.id === editing).map(probe => <ProbeBindingRow key={probe.id} probe={probe} definition={definitions.find(item => item.id === probe.definition_id)}
+            open onToggle={() => setGlobalOpen(false)} onUpdate={patch => update(probe.id, patch)} onRemove={() => { remove(probe.id); setGlobalOpen(false); }} onError={onError}
             modelPolicy={modelPolicy} onModelSettings={onModelSettings} />)}
-        </div>}
-        {!config.probes.some((probe) => probe.id === "auto-view") && <button onClick={() => {
-          const auto = definitions.find((item) => item.id === "view.auto");
-          if (auto) onChange({ ...config, probes: [...config.probes, {
-            id: "auto-view", definition_id: auto.id, binding: "*", enabled: true, parameters: defaultsFor(auto), policy: "continue", budget_ms: 5000,
-            selector: scopeSelector(null, [], "project"), inputs: {}, origin: "project_default", overrides: {},
-          }] });
-        }}>恢复项目默认</button>}
-      </details>
-      <section className="probe-new-section">
-        <div className="wb-view-toolbar"><strong>新建探针绑定</strong>{adding && <button onClick={() => setAdding(false)}>收起</button>}</div>
+        </div>
+      </details>}
+      {tab === "apply" && <section className="probe-new-section">
+        <div className="wb-view-toolbar"><strong>应用新探针</strong></div>
         {!adding ? <button onClick={startAdding}>添加探针绑定</button> : <div className="probe-binding-form">
           <div className="wb-form compact">
             <label>作用范围<select aria-label="探针绑定范围" value={range} onChange={(event) => setRange(event.target.value as typeof range)}>
               <option value="selection" disabled={!targets.length}>当前选择 ({targets.length})</option>
-              <option value="block" disabled={!currentBlock}>{scopeLabel}</option><option value="project">整个项目</option>
+              <option value="project">整个项目</option>
             </select></label>
             <label>功能用途<select aria-label="新探针用途" value={purpose} onChange={(event) => setPurpose(event.target.value)}>
               <option value="all">全部用途</option>{Object.entries(purposeNames).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
@@ -231,20 +231,36 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
           {templates.some((template) => template.definition_id === definition?.id) && <select aria-label="探针参数模板" onChange={(event) => {
             const template = templates.find((item) => item.id === event.target.value);
             if (template && definition) setParams({ ...defaultsFor(definition), ...template.parameters });
-          }}><option value="">选择参数模板</option>{templates.filter((template) => template.definition_id === definition?.id).map((template) => <option key={template.id} value={template.id}>{template.label}</option>)}</select>}
+          }}><option value="">选择参数预设</option>{templates.filter((template) => template.definition_id === definition?.id).map((template) => <option key={template.id} value={template.id}>{template.label}</option>)}</select>}
           {definition && <ParameterForm key={definition.id} schema={definition.parameter_schema} value={params} onChange={setParams} modelPolicy={modelPolicy} onModelSettings={onModelSettings} />}
-          <button className="wb-primary" aria-label="确认添加探针" disabled={!definition || range === "selection" && !targets.length || range === "block" && !currentBlock} onClick={add}>保存绑定</button>
+          <button className="wb-primary" aria-label="确认添加探针" disabled={!definition || range === "selection" && !targets.length} onClick={add}>保存绑定</button>
         </div>}
-      </section>
-      <details className="probe-project-bindings"><summary>人工判断</summary><div className="wb-form compact">
+      </section>}
+      {tab === "templates" && <section className="probe-new-section wb-form compact">
+        <label>作用范围<select aria-label="模板应用范围" value={range === "project" ? "project" : "selection"} onChange={e => setRange(e.target.value as "project" | "selection")}>
+          <option value="selection" disabled={!targets.length}>当前选择 ({targets.length})</option><option value="project">整个项目</option>
+        </select></label>
+        <label>探针模板<select aria-label="应用探针模板" value={templateId || config.probe_templates[0]?.id || ""} onChange={e => setTemplateId(e.target.value)}>
+          {!config.probe_templates.length && <option value="">请先在探针库创建模板</option>}
+          {config.probe_templates.map(t => <option key={t.id} value={t.id}>{t.label} · {t.members.length} 个探针</option>)}
+        </select></label>
+        {(config.probe_templates.find(t => t.id === templateId) ?? config.probe_templates[0])?.members.map(m => <div key={m.id} className="template-member-preview">{definitions.find(d => d.id === m.definition_id)?.label ?? m.definition_id}</div>)}
+        <button className="wb-primary" disabled={!config.probe_templates.length || range !== "project" && !targets.length} onClick={() => {
+          const template = config.probe_templates.find(t => t.id === templateId) ?? config.probe_templates[0];
+          if (!template) return;
+          try {
+            const selector = probeScopeSelector(analysis, null, targets, range === "project" ? "project" : "selection");
+            onChange(applyProbeTemplate(config, template, definitions, selector, undefined, scopeProbeTargets(analysis, selector)));
+            setTab("inspect");
+          }
+          catch (error) { onError((error as Error).message); }
+        }}>应用模板</button>
+      </section>}
+      {tab === "inspect" && manualProbe && <details className="probe-manual-entry"><summary>记录判断</summary><div className="wb-form compact">
         <textarea aria-label="人工判断记录" value={note} onChange={(event) => setNote(event.target.value)} />
         <select aria-label="人工判断结果" value={verdict} onChange={(event) => setVerdict(event.target.value)}><option value="unknown">待判断</option><option value="pass">通过</option><option value="fail">失败</option></select>
-        <button disabled={!analysis || !note} onClick={() => void wb.manual({ instance_id: editing?.split("::").at(-1) ?? "manual", analysis_id: analysis!.id, snapshot_id: selected?.id, note, verdict }).then(onRecorded).catch((error) => onError(error.message))}>记录判断</button>
-      </div></details>
-      <div className="wb-section-label">此范围的结果 <span>{matchingOutputs.length}</span></div>
-      {matchingOutputs.slice(0, 50).map((output) => <div className={"wb-probe-output " + output.status} data-testid="probe-output" key={output.id}>
-        <strong>{definitions.find((item) => item.id === output.definition_id)?.label ?? output.definition_id}</strong><span>{output.status}</span><p>{output.message}</p>
-      </div>)}
+        <button disabled={!analysis || !note} onClick={() => void wb.manual({ instance_id: manualProbe.id, analysis_id: analysis!.id, snapshot_id: selected?.id, note, verdict }).then(onRecorded).catch((error) => onError(error.message))}>记录判断</button>
+      </div></details>}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import {session} from './session';
 import {test,expect} from '@playwright/test';
-import {chooseExample,runCompute,chooseValue} from './scientific-helpers';
+import {chooseExample,runCompute,chooseValue,bindProbe} from './scientific-helpers';
 test.use({baseURL:'http://127.0.0.1:8879'});
 
 test('research-workbench: real matrix, source, checks and NaN journey',async({page})=>{
@@ -9,12 +9,13 @@ test('research-workbench: real matrix, source, checks and NaN journey',async({pa
   await expect(page.getByTestId('matrix-definition')).toContainText('120 × 8');
   await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
   await expect(page.getByTestId('source-selection')).toContainText('Z = (X - mu) / sigma');
-  await page.getByText('计算定义与解释',{exact:true}).click();
-  await expect(page.getByTestId('operation-explanation')).toContainText('标准化');
+  await expect(page.getByTestId('operation-explanation')).toHaveCount(0);
   await page.screenshot({path:'../docs/assets/research-workbench.png'});
   await chooseExample(page,'analysis','summary',['--failure','nan']);await runCompute(page);await chooseValue(page,'X');
-  await page.getByRole('button',{name:'探针台',exact:true}).click();
-  await expect(page.getByTestId('probe-output').filter({hasText:'fail'}).first()).toBeVisible();
+  await bindProbe(page,'check.finite','X');
+  await page.locator('.wb-inspector').filter({visible:true}).getByRole('button',{name:'保存',exact:true}).click();
+  await page.locator('.wb-data-pane').filter({has:page.getByTestId('current-variable').filter({hasText:/^X$/})}).getByRole('button',{name:'执行探针',exact:true}).click();
+  await expect(page.getByTestId('data-probe-result').filter({hasText:'fail'}).first()).toBeVisible();
   await expect(page.getByTestId('source-selection')).toContainText('np.nan');
   await page.getByRole('button',{name:'查看变量历史'}).click();await page.getByRole('button',{name:'版本 1',exact:true}).click();
   await page.getByRole('button',{name:'读取此版本切片',exact:true}).click();

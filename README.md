@@ -6,14 +6,14 @@ Open existing analysis code. Observe real values. Follow transformations. Find n
 
 [简体中文](README.zh-CN.md) · [Quick start](docs/research/quickstart.md) · [CLI](docs/research/cli.md) · [Extensions](docs/research/adapter-api.md) · [Release evidence](docs/release.md)
 
-![Logical variables, source and independent probe views](docs/assets/compact-probes.png)
+![Logical variables, source and independent probe views](docs/assets/process-probe-templates.png)
 
 A local research workbench for understanding what an experiment computed. Source lines, variable versions, matrix previews, transformations and probe results share one screen. Basic inspection and rule explanations work without a key. The observation protocol supports multiple data types; NumPy and pandas are the first built-in adapters.
 ## Workbench 0.5
 
 The workbench offers compact **Code** and **Data** graphs, collapsible function/control plates, orthogonal routing and optional execution summaries. Code shows computations; Data shows variable dependencies with repeated versions merged. The object browser lists logical variables with type, shape and probe count. Click selects; double-click or the context menu opens evidence. Unrelated objects stay visible by default. Dockview groups support resizing, minimize/maximize, fixed slots and saved layouts.
 
-Probes determine the data presentation: each enabled presentation binding has its own collapsible view, with a working selector for individual views. Manage resources independently from bindings, with target categories, **present / check / interpret / derive** purposes and builtin/program/model/Skill/manual implementations. Matrix numbers, axes and units are editable. Joint probes compare or derive immutable data with exact parent references. Import and configuration remain inert; Run, probe execution and Replot are explicit actions. Windows/Web terminals use real PTYs.
+Probes determine the data presentation: each enabled presentation binding has its own collapsible view, with no duplicate view selector. Reusable probe templates freeze member parameters into independently managed bindings; the default automatic data view is a template. Disabling every probe leaves the variable name and inspector entry. Manage resources independently from bindings, with target categories, **present / check / interpret / derive** purposes and builtin/program/model/Skill/manual implementations. Matrix numbers, axes and units are editable. Joint probes compare or derive immutable data with exact parent references. Import and configuration remain inert; Run, probe execution and Replot are explicit actions. Windows/Web terminals use real PTYs.
 
 The automatic task harness discovers the selected environment and registered tools, reads scoped evidence, records actual messages/tool calls and proposes bounded code changes for human review. Web, desktop and `cdaf research import/plan/run/probes/tools/ask/changes` use common services. See [workbench guide](docs/research/workbench.md) and [CLI](docs/research/cli.md).
 
@@ -73,7 +73,7 @@ Plugins are explicitly enabled. The [point-cloud adapter](examples/research/cust
 
 Instrumentation has [explicit limits](docs/research/instrumentation.md); observed, inferred and declared relations are distinct. Code and plugins retain user file/network permissions. [Limitations](docs/research/limitations.md).
 
-Scientific Dataflow Inspector is the working display name. Package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, command `cdaf` and repository `SFA` stay compatible. This is a **0.5.3 local candidate**; no remote rename or PyPI publication. See the [compact workbench changes](docs/research/compact-workbench-0.5.3.md) and the [earlier startup repair](docs/research/workbench-audit-0.5.1.md). `sfa` remains an alias. Contract workflows remain in **旧版架构 / Legacy architecture** and [their reference](docs/workflow.md). [Migration](docs/research/migration.md) preserves originals and IDs without inventing scientific evidence.
+Scientific Dataflow Inspector is the working display name. Package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, command `cdaf` and repository `SFA` stay compatible. This is a **0.5.4 local candidate**; no remote rename or PyPI publication. See the [compact workbench changes](docs/research/process-probes-0.5.4.md) and the [earlier startup repair](docs/research/workbench-audit-0.5.1.md). `sfa` remains an alias. Contract workflows remain in **旧版架构 / Legacy architecture** and [their reference](docs/workflow.md). [Migration](docs/research/migration.md) preserves originals and IDs without inventing scientific evidence.
 
 ## Development
 

@@ -24,7 +24,7 @@ class ProbeCatalog:
         self.registry = registry or ProbeRegistry()
         self._definitions = {}
         for kind, label in [
-            ("auto", "自动数据视图"),
+            ("auto", "自适应数据呈现"),
             ("matrix", "矩阵 / 热图"),
             ("table", "数据表"),
             ("scalar", "数值"),

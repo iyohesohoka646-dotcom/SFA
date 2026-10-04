@@ -25,6 +25,8 @@ def test_import_configure_run_and_replot_do_not_repeat_side_effects(tmp_path):
     with ResearchService(tmp_path) as research:
         workbench = research.workbench
         analysis, config = configure(workbench, source)
+        config.probes.append(ProbeInstance(id='explicit-finite', definition_id='check.finite'))
+        config = workbench.configure(config, expected_revision=config.revision)
         assert not counter.exists()
         plan = workbench.plan(analysis.id)
         task = workbench.execute(plan.id)

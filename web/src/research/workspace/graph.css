@@ -163,3 +163,35 @@
 .wb-graph-pane .graph-toolbar > strong { min-width: 0; }
 .wb-graph-pane .graph-toolbar > input { width: 94px; }
 .wb-graph-pane .graph-toolbar > button { min-height: 26px; padding: 3px 7px; }
+.wb-graph-pane .semantic-heading { height: auto; min-height: 52px; align-items: flex-start; padding: 9px 10px 36px; }
+.wb-graph-pane .semantic-heading strong { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 17px; }
+.wb-graph-pane .graph-expression { display: block; margin-top: 4px; font: 11px/15px Consolas, monospace; overflow-wrap: anywhere; white-space: normal; }
+.wb-graph-pane .semantic-plate header { height: auto; min-height: 38px; padding: 7px 9px; align-items: flex-start; }
+.wb-graph-pane .semantic-plate header strong { white-space: normal; overflow: visible; overflow-wrap: anywhere; line-height: 17px; }
+.wb-graph-pane .semantic-plate header small { align-self: center; }
+.wb-graph-pane .semantic-plate header button { align-self: flex-start; }
+.wb-graph-pane .semantic-plate.is-collapsed { cursor: move; }
+.wb-graph-pane .semantic-plate.is-collapsed.kind-condition,
+.wb-graph-pane .semantic-plate.is-collapsed.kind-loop { border-radius: 26px; }
+.wb-graph-pane .semantic-plate.is-collapsed.kind-condition header,
+.wb-graph-pane .semantic-plate.is-collapsed.kind-loop header { background: transparent; border: 0; border-radius: 26px; padding: 12px 15px; }
+.wb-graph-pane .semantic-node.kind-condition,
+.wb-graph-pane .semantic-node.kind-loop_header { border-radius: 50%; }
+.wb-graph-pane .semantic-node.kind-condition .semantic-heading,
+.wb-graph-pane .semantic-node.kind-loop_header .semantic-heading { padding: 13px 25px 24px; }
+.wb-graph-pane .glyph-condition::before { transform: none; border-radius: 50%; }
+.wb-graph-pane .semantic-node.kind-operation { background: transparent; border: 0; border-radius: 0; }
+.wb-graph-pane .graph-compute-outline { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.wb-graph-pane .graph-compute-outline polygon { fill: color-mix(in srgb, var(--node-color) 9%, var(--ri-panel)); stroke: var(--node-color); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.wb-graph-pane .semantic-node.kind-operation .semantic-heading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 0; min-height: 0; width: 55%; text-align: center; }
+.wb-graph-pane .semantic-node.kind-operation .graph-glyph { display: none; }
+.wb-graph-pane .semantic-node.kind-operation .semantic-heading small { font-size: 9px; }
+.wb-graph-pane .semantic-node.kind-operation .graph-expression { font-size: 10px; }
+.wb-graph-pane .graph-node-footer { position: absolute; bottom: 7px; left: 12px; right: 12px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; }
+.wb-graph-pane .graph-data-detail { position: static; line-height: 12px; }
+.wb-graph-pane .graph-node-footer .graph-node-receipt { position: static; line-height: 12px; }
+.wb-graph-pane .semantic-node.kind-operation .graph-node-footer { left: 36%; right: 10%; bottom: 8px; }
+.wb-graph-pane .semantic-node.kind-condition .graph-node-footer,
+.wb-graph-pane .semantic-node.kind-loop_header .graph-node-footer { left: 25%; bottom: 12px; }
+.wb-graph-pane .react-flow__node.selected > .semantic-node.kind-operation { background: transparent; outline: none; }
+.wb-graph-pane .react-flow__node.selected .graph-compute-outline polygon { stroke: var(--accent); stroke-width: 2.5; fill: color-mix(in srgb, var(--accent) 12%, var(--ri-panel)); }

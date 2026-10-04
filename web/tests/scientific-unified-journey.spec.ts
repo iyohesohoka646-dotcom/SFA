@@ -21,11 +21,12 @@ test('probe configuration is inert and execution produces real views and checks'
   await page.getByRole('button', { name: '打开源码配置' }).click();
   await page.getByRole('button', { name: '探针台', exact: true }).first().click();
   await bindProbe(page,'view.relationships');
+  await bindProbe(page,'check.finite');
   expect(executions).toBe(0);
   await page.getByRole('button', { name: '运行', exact: true }).click();
   await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed', { timeout: 60000 });
-  await page.getByRole('button', { name: '探针台', exact: true }).first().click();
-  await expect(page.getByTestId('probe-output').first()).toBeVisible();
+  await chooseValue(page,'X');
+  await expect(page.getByTestId('data-probe-result').first()).toBeVisible();
   await page.getByRole('button', { name: '计算关系图', exact: true }).first().click();
   await expect(page.locator('.wb-graph-pane')).toHaveAttribute('data-layout-state','ready');
   await page.getByRole('button', { name: '适应画布', exact: true }).click();
@@ -122,7 +123,7 @@ test('real plotting is explicit and saved artifacts remain independent of comput
   await bindProbe(page,'view.matplotlib','C');
   const old=await page.getByLabel('运行记录').inputValue();await page.getByRole('button',{name:'运行',exact:true}).click();await expect(page.getByLabel('运行记录')).not.toHaveValue(old);
   await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed',{timeout:60000});
-  await chooseValue(page,'C');await page.getByLabel('数据呈现探针').selectOption({label:'Matplotlib'});
+  await chooseValue(page,'C');
   await expect(page.getByRole('img',{name:'绘图探针产物'})).toBeVisible();
   const run=await page.getByLabel('运行记录').inputValue();await runMode(page,'replot');
   await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed');
@@ -164,10 +165,12 @@ test('manual verdict appears immediately and graph camera survives tab changes',
   await page.getByRole('button',{name:'添加探针',exact:true}).click();
   await page.getByLabel('探针类型').selectOption('check.manual');
   await page.getByRole('button',{name:'确认添加探针',exact:true}).click();
-  await page.getByText('人工判断',{exact:true}).last().click();await page.getByLabel('人工判断结果',{exact:true}).selectOption('pass');
+  await page.locator('.wb-inspector').filter({visible:true}).getByRole('button',{name:'保存',exact:true}).click();
+  await page.locator('.probe-manual-entry > summary').click();await page.getByLabel('人工判断结果',{exact:true}).selectOption('pass');
   await page.getByLabel('人工判断记录').fill('人工核对数值一致');
   await page.getByRole('button',{name:'记录判断',exact:true}).click();
-  await expect(page.getByTestId('probe-output').filter({hasText:'人工判断'})).toContainText('人工核对数值一致');
+  await chooseValue(page,'X');
+  await expect(page.getByTestId('data-probe-result').filter({hasText:'人工判断'})).toContainText('人工核对数值一致');
 });
 
 test('a pinned data probe executes its own historical run', async ({page}) => {
@@ -209,7 +212,10 @@ test('pinned relation graph keeps its nodes and camera after switching global ru
   await expect(page.locator('.wb-graph-canvas .react-flow__viewport')).toHaveAttribute('style',camera!);
   await expect(page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first()).toBeVisible();
   await page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first().click({button:'right'});await page.getByRole('button',{name:'Open data',exact:true}).click();
-  await expect(page.locator('.wb-data-pane .wb-evidence-bar')).toContainText(runA.slice(0,8));
+  const historicalData=page.locator('.wb-data-pane').filter({has:page.getByTestId('current-variable').filter({hasText:/^X$/})});
+  const request=page.waitForRequest(r=>r.url().endsWith('/workbench/evaluate'));
+  await historicalData.getByRole('button',{name:'执行探针',exact:true}).click();
+  expect((await request).postDataJSON().run_id).toBe(runA);
 });
 
 test('pause gate shows a continuation control and resumes once', async ({page}) => {

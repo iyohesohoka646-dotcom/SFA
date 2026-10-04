@@ -29,7 +29,9 @@ test('presentation is governed by default probe, disabling persists, local contr
  await expect(page.getByRole('img',{name:'矩阵热图',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'探针台',exact:true}).first().click();
  const inspector=page.locator('.wb-inspector').filter({visible:true}).filter({has:page.locator('.wb-view-toolbar > strong').filter({hasText:/^探针台$/})}).first();
- const projectBindings=inspector.locator('.probe-project-bindings').filter({has:page.locator('summary',{hasText:'项目与其他绑定'})});
+ await inspector.getByRole('button',{name:'自动数据视图',exact:true}).click();
+ await inspector.getByRole('button',{name:'编辑源绑定',exact:true}).click();
+ const projectBindings=inspector.locator('.probe-project-bindings').filter({has:page.locator('summary',{hasText:'编辑源绑定'})});
  await expect(projectBindings).toBeVisible();
  if(await projectBindings.getAttribute('open')===null)await projectBindings.locator('summary').click();
  await expect(projectBindings).toHaveJSProperty('open',true);
@@ -41,8 +43,8 @@ test('presentation is governed by default probe, disabling persists, local contr
  expect(defaultProbe).toBeDefined();
  expect(disabled.probes.find((probe:any)=>probe.id===defaultProbe.id).enabled).toBe(false);
  await expect(page.getByRole('img',{name:'矩阵热图',exact:true})).not.toBeVisible();
- await expect(page.getByText('没有有效呈现探针',{exact:true})).toBeVisible();
- await page.reload();await expect(page.getByText('没有有效呈现探针',{exact:true})).toBeVisible();expect(errors).toEqual([]);
+ await expect(page.locator('.wb-data-content')).toBeEmpty();
+ await page.reload();await expect(page.locator('.wb-data-content')).toBeEmpty();expect(errors).toEqual([]);
  const persisted=await researchApi(page,'research/workbench/configuration');
  expect(persisted.probes.find((probe:any)=>probe.id===defaultProbe.id).enabled).toBe(false);
  await page.getByRole('button',{name:'探针库',exact:true}).first().click();

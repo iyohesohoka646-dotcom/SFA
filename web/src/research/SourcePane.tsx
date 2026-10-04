@@ -5,10 +5,11 @@ import { sourceLineParts, type SourceOccurrence } from "./workspace/sourceOccurr
 import "./workspace/source-occurrences.css";
 
 const lineHeight = 22;
-export const SourcePane = memo(function SourcePane({ file, selection, occurrences = [] }: {
+export const SourcePane = memo(function SourcePane({ file, selection, occurrences = [], ranges = [] }: {
   file?: SourceFile;
   selection?: SourceRef | null;
   occurrences?: SourceOccurrence[];
+  ranges?: SourceRef[];
 }) {
   const lines = useMemo(() => file?.code.split("\n") || [], [file?.digest, file?.code]);
   const line = selection?.line || 1, code = useRef<HTMLDivElement>(null);
@@ -37,7 +38,7 @@ export const SourcePane = memo(function SourcePane({ file, selection, occurrence
         <div className="ri-code-window" style={{ height: lines.length * lineHeight }}>
           {lines.slice(start, end).map((text, index) => {
             const number = start + index + 1, spans = spansByLine.get(number) ?? [];
-            const active = occurrences.length ? spans.length > 0 : Boolean(selection && number >= line && number <= (selection.end_line || line));
+            const active = ranges.some(r => number >= r.line && number <= r.end_line) || (occurrences.length ? spans.length > 0 : Boolean(selection && number >= line && number <= (selection.end_line || line)));
             return <div key={number} className={"ri-code-line" + (active ? " active" : "")} style={{ top: (number - 1) * lineHeight }} aria-label={`源码第 ${number} 行`}>
               <span>{number}</span><code>{sourceLineParts(text, number, spans).map((part, partIndex) => part.role
                 ? <mark key={partIndex} className={"source-occurrence " + part.role} data-source-occurrence={part.role}>{part.text}</mark> : part.text)}</code>

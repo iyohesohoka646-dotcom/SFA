@@ -11,7 +11,7 @@ import type {
 import type { WorkspaceDocument } from "./layout";
 import { useSnapshot } from "./evidence";
 import { wb } from "./WorkbenchClient";
-import { OperationView } from "../OperationView";
+import { probeDisplayName } from "./probe-templates";
 import type { ResearchState } from "../state";
 import { ParameterForm } from "./ParameterForm";
 import { snapshotProbeTarget, targetOverrideError, targetOverrideKey, targetProbeEntries } from "./probe-configuration";
@@ -28,6 +28,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   onConfig,
   onSave,
   onOpenPresenter,
+  onOpenInspector,
   runAnalysis,
 }: {
   document: WorkspaceDocument;
@@ -40,6 +41,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   onConfig: (c: WorkbenchConfig) => void;
   onSave: () => Promise<unknown>;
   onOpenPresenter: (s: SnapshotRef, id: string) => void;
+  onOpenInspector: (s: SnapshotRef, analysis: AnalysisDocument) => void;
   runAnalysis?: { runId: string; analysis: AnalysisDocument };
 }) {
   const { snapshot, error } = useSnapshot(document.reference.snapshot_id);
@@ -48,7 +50,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   const [history, setHistory] = useState<SnapshotRef[]>([]),
     [outputs, setOutputs] = useState<ProbeOutput[]>([]),
     [historyOpen, setHistoryOpen] = useState(false),
-    [mode, setMode] = useState(document.reference.instance_id ?? "all"),
+    [settingsId, setSettingsId] = useState<string>(),
     [closedViews, setClosedViews] = useState(new Set<string>()),
     [settings, setSettings] = useState(false),
     [semantics, setSemantics] = useState<DataSemantics | null>(null),
@@ -100,10 +102,9 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   const entries = targetProbeEntries(config?.probes ?? [], definitions, target, analysis).filter(entry => entry.enabled);
   const enabled = entries.map(entry => ({ ...entry.probe, parameters: entry.parameters }));
   const effective = enabled.filter(p => definitions.some(d => d.id === p.definition_id && d.capability === "view"));
-  const instance = effective.find(p => p.id === mode) ?? effective[0];
-  const activeMode = mode === "all" || effective.some(p => p.id === mode) ? mode : "all";
+  const instance = effective.find(p => p.id === settingsId) ?? effective[0];
   const definition = definitions.find(d => d.id === instance?.definition_id);
-  const shown = activeMode === "all" ? effective : effective.filter(p => p.id === activeMode);
+  const shown = document.reference.instance_id ? effective.filter(p => p.id === document.reference.instance_id) : effective;
   const currentOutputs = latestProbeOutputs(outputs, snapshot, enabled);
   const checks = enabled.filter(p => definitions.find(d => d.id === p.definition_id)?.capability !== "view");
   const updateParameters = (parameters: Record<string, unknown>) => {
@@ -163,26 +164,15 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
       <div className="wb-view-toolbar">
         <strong data-testid="matrix-definition">
           <span data-testid="current-variable">{snapshot.name}</span>
-          <small>
+          {entries.length > 0 && <small>
             {" "}
             v{snapshot.version} ·{" "}
             {snapshot.descriptor.dtype ?? snapshot.descriptor.kind} ·{" "}
             {snapshot.descriptor.shape?.join(" × ")}
-          </small>
+          </small>}
         </strong>
-        <select
-          aria-label="数据呈现探针"
-          value={activeMode}
-          onChange={(e) => setMode(e.target.value)}
-        >
-          <option value="all">全部呈现探针 ({effective.length})</option>
-          {effective.map((p) => (
-            <option value={p.id} key={p.id}>
-              {definitions.find((d) => d.id === p.definition_id)?.label ??
-                p.definition_id}
-            </option>
-          ))}
-        </select>
+        <button onClick={() => onOpenInspector(snapshot, analysis)}>打开探针台</button>
+        {entries.length > 0 && <>
         <button
           aria-label="查看变量历史"
           aria-expanded={historyOpen}
@@ -191,9 +181,9 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
           版本
         </button>
         <button disabled={!instance} onClick={() => setSettings(!settings)}>呈现设置</button>
-        <button onClick={() => onEvaluate(snapshot)}>执行探针</button>
+        <button onClick={() => onEvaluate(snapshot)}>执行探针</button></>}
       </div>
-      <div className="data-metadata">
+      {entries.length > 0 && <div className="data-metadata">
         <span title={snapshot.source?.path}>
           {snapshot.source?.path.split(/[\\/]/).at(-1) ?? "派生数据"}
           {snapshot.source?.line ? " · L" + snapshot.source.line : ""}
@@ -210,8 +200,8 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
             固定此探针视图
           </button>
         )}
-      </div>
-      {historyOpen && (
+      </div>}
+      {entries.length > 0 && historyOpen && (
         <div className="wb-version-strip">
           {history.map((v) => (
             <button
@@ -228,7 +218,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
           </button>
         </div>
       )}
-      {settings && (
+      {entries.length > 0 && settings && (
         <div className="data-presentation-settings">
           {instance && definition && (
             <>
@@ -436,15 +426,15 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
         </div>
       )}
       <div className="wb-data-content">
-        {!shown.length && <div className="wb-empty">没有有效呈现探针</div>}
         {shown.map(p => {
           const d = definitions.find(item => item.id === p.definition_id), result = currentOutputs.get(p.id), open = !closedViews.has(p.id);
           return <details className="probe-presentation" data-testid="probe-view" data-instance-id={p.id} key={p.id} open={open} onToggle={e => {
             const isOpen = e.currentTarget.open;
             setClosedViews(old => { if (old.has(p.id) === !isOpen) return old; const next = new Set(old); isOpen ? next.delete(p.id) : next.add(p.id); return next; });
           }}>
-            <summary><strong>{d?.label ?? p.definition_id}</strong><small>{p.origin === "project_default" ? "默认" : "局部"}</small>
+            <summary><strong>{probeDisplayName(p, d)}</strong><small>{p.origin === "project_default" ? "默认" : "局部"}</small>
               {result && <span className={"wb-kind " + result.status}>{result.status}</span>}
+              <button className="probe-view-settings" aria-label={"配置视图 " + probeDisplayName(p, d)} onClick={e => { e.preventDefault(); e.stopPropagation(); setSettingsId(p.id); setSettings(true); }}>设置</button>
             </summary>
             {open && <ProbePresentation snapshot={snapshot} instance={p} definition={d} output={result} semantics={selectedSemantic} />}
           </details>;
@@ -452,61 +442,12 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
         {checks.length > 0 && <div className="data-probe-results">{checks.map(p => {
           const d = definitions.find(item => item.id === p.definition_id), result = currentOutputs.get(p.id);
           return <details className={"data-probe-result " + (result?.status ?? "pending")} data-testid="data-probe-result" key={p.id}>
-            <summary><strong>{d?.label ?? p.definition_id}</strong><span className={"wb-kind " + (result?.status ?? "pending")}>{result?.status ?? "待执行"}</span></summary>
+            <summary><strong>{probeDisplayName(p, d)}</strong><span className={"wb-kind " + (result?.status ?? "pending")}>{result?.status ?? "待执行"}</span></summary>
             {result ? <><p>{result.message}</p><pre className="wb-json">{JSON.stringify(result.data, null, 2)}</pre></> : <p>执行探针后显示结果</p>}
           </details>;
         })}</div>}
       </div>
-      {snapshot.run_id === state.runId &&
-        snapshot.operation_id &&
-        state.operations.has(snapshot.operation_id) && (
-          <details className="wb-operation-details">
-            <summary>计算定义与解释</summary>
-            <OperationView
-              operation={state.operations.get(snapshot.operation_id)}
-              snapshots={state.snapshots}
-              model={false}
-            />
-          </details>
-        )}
-      {instance && (
-        <details className="wb-operation-details">
-          <summary>统计与采集</summary>
-          <div className="wb-form compact">
-            <small>
-              {snapshot.fidelity} · {snapshot.truncation.join(" · ")}
-            </small>
-            <dl>
-              {Object.entries(snapshot.statistics)
-                .filter(
-                  ([, v]) => typeof v === "number" || typeof v === "string",
-                )
-                .map(([k, v]) => (
-                  <div key={k}>
-                    <dt>{k}</dt>
-                    <dd>{String(v)}</dd>
-                  </div>
-                ))}
-            </dl>
-            <details>
-              <summary>采集详情</summary>
-              <pre className="wb-json">
-                {JSON.stringify(snapshot.coverage, null, 2)}
-              </pre>
-            </details>
-          </div>
-        </details>
-      )}
       {(overrideNotice || notice) && <span role={overrideNotice ? "alert" : "status"}>{overrideNotice || notice}</span>}
-      <div className="wb-evidence-bar">
-        <span>
-          {snapshot.fidelity} · {snapshot.descriptor.backend}
-        </span>
-        <span>
-          {snapshot.redacted.length ? "已脱敏" : "已保存证据"} ·{" "}
-          {snapshot.run_id.slice(0, 8)}
-        </span>
-      </div>
     </div>
   );
 });

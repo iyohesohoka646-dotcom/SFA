@@ -1,5 +1,18 @@
 import type { SourceRef } from "../generated";
-import type { TargetRef } from "./generated";
+import type { TargetRef, AnalysisDocument } from "./generated";
+
+/** Block/operation selection has a source range even without a variable token. */
+export function selectedStructureSources(analysis: AnalysisDocument | undefined, targets: TargetRef[], path: string, digest: string): SourceRef[] {
+  if (!analysis || analysis.source_digest !== digest || analysis.path !== path) return [];
+  return targets.filter(t => t.kind !== "data" && (!t.analysis_id || t.analysis_id === analysis.id)).flatMap(t => {
+    const item = t.kind === "operation" ? analysis.graph.nodes.find(n => Boolean(t.logical_key && n.logical_key === t.logical_key || t.object_id && (n.id === t.object_id || n.source_object_id === t.object_id)))
+      : analysis.graph.blocks.find(b => Boolean(t.block_id && b.id === t.block_id || t.object_id && b.source_object_id === t.object_id || t.logical_key && b.logical_key === t.logical_key));
+    if (item?.source) return [item.source];
+    const object = analysis.objects.find(o => o.id === t.object_id);
+    return object ? [{ path: object.path, digest: object.source_digest, qualname: object.qualname, line: object.line, end_line: object.end_line,
+      column: object.column, end_column: object.end_column, code: object.code }] : [];
+  });
+}
 
 export interface SourceOccurrence {
   line: number;

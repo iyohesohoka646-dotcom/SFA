@@ -45,9 +45,18 @@ class ConfigurationStore:
                         "include_samples"
                     ]
                 return config
-            return WorkbenchConfig.model_validate(
-                yaml.safe_load(self.path.read_text(encoding="utf-8"))
-            )
+            raw = yaml.safe_load(self.path.read_text(encoding="utf-8"))
+            config = WorkbenchConfig.model_validate(raw)
+            if isinstance(raw, dict) and "probe_templates" not in raw:
+                # Only current authored configuration adopts the new defaults.
+                # Deserializing an archived plan must retain its exact probes.
+                config.probes = [p for p in config.probes if not (
+                    p.id == "finite-check" and p.definition_id == "check.finite"
+                    and p.enabled and not p.parameters and not p.overrides
+                    and p.selector is None and p.binding == "*"
+                    and p.policy == "continue" and p.budget_ms == 5000
+                    and not p.inputs and p.origin == "manual")]
+            return config
 
     def save(
         self, config: WorkbenchConfig, *, expected_revision: int

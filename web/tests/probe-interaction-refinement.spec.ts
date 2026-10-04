@@ -108,23 +108,24 @@ function expectSourceInvocations(plan: any, analysis: any, target: any, instance
 
 test("current file is a usable block scope; selected objects expose collapsible inherited and local bindings", async ({ page }) => {
   const analysis = await prepareSource(page);
+  await page.getByLabel("对象类型").selectOption("all");
+  await page.getByRole('searchbox',{name:'搜索对象',exact:true}).fill('analysis.py');
+  await page.locator('.object-row-name').filter({hasText:/^analysis\.py$/}).first().locator('..').click();
   await openInspector(page);
   await inspector(page).getByRole("button", { name: "添加探针", exact: true }).click();
   const form = newBinding(page);
-  await expect(form.getByLabel("探针绑定范围")).toHaveValue("block");
-  await expect(form.getByLabel("探针绑定范围").locator('option[value="block"]')).toContainText("当前文件");
+  await expect(form.getByLabel("探针绑定范围")).toHaveValue("selection");
   await form.getByLabel("探针绑定范围").selectOption("project");
-  await form.getByLabel("探针绑定范围").selectOption("block");
+  await form.getByLabel("探针绑定范围").selectOption("selection");
   await form.getByLabel("新探针用途").selectOption("view");
   await form.getByLabel("探针类型").selectOption("view.matrix");
   await form.getByRole("button", { name: "确认添加探针", exact: true }).click();
   const saved = await saveFromInspector(page);
   const blockProbe = saved.probes.find((probe: any) => probe.definition_id === "view.matrix");
-  expect(blockProbe.selector.mode).toBe("block");
-  expect(analysis.graph.roots).toContain(blockProbe.selector.block_id);
+  expect(blockProbe.selector.mode).toBe("selection");
   expect(blockProbe.selector.targets).toHaveLength(1);
-  expect(blockProbe.selector.targets[0]).toMatchObject({ kind: "file", block_id: blockProbe.selector.block_id,
-    logical_key: analysis.graph.blocks.find((block: any) => block.id === blockProbe.selector.block_id).logical_key });
+  expect(blockProbe.selector.targets[0]).toMatchObject({ kind: "file", block_id: analysis.graph.roots[0],
+    logical_key: analysis.graph.blocks.find((block: any) => block.id === analysis.graph.roots[0]).logical_key });
 
   await selectObject(page, "X");
   await selectObject(page, "Z", true);
@@ -132,8 +133,8 @@ test("current file is a usable block scope; selected objects expose collapsible 
   const xSection = objectSection(page, "X"), zSection = objectSection(page, "Z");
   await expect(xSection).toBeVisible();
   await expect(zSection).toBeVisible();
-  expect(await inspector(page).locator(".probe-object-section").evaluateAll((elements) => elements.every((element) =>
-    Boolean(element.compareDocumentPosition(element.closest(".wb-inspector")!.querySelector(".probe-new-section")!) & Node.DOCUMENT_POSITION_FOLLOWING)))).toBe(true);
+  await expect(inspector(page).getByRole('tab',{name:'选中对象'})).toHaveAttribute('aria-selected','true');
+  await expect(inspector(page).locator('.probe-new-section')).toHaveCount(0);
   await expect(xSection.getByText("继承与项目默认", { exact: true })).toBeVisible();
   await expect(xSection.getByText("本地绑定", { exact: true })).toBeVisible();
   await xSection.locator("summary").first().click();
@@ -164,7 +165,7 @@ test("the chosen purpose lists only compatible probes and never leaves empty opt
   const definitions = await researchApi(page, "research/workbench/probe-definitions");
   for (const purpose of ["view", "interpret", "check"]) {
     await form.getByLabel("新探针用途").selectOption(purpose);
-    const expected = definitions.filter((definition: any) => definition.capability === purpose && definition.supported_targets.includes("data"))
+    const expected = definitions.filter((definition: any) => definition.id !== 'view.auto' && definition.capability === purpose && definition.supported_targets.includes("data"))
       .map((definition: any) => definition.id).sort();
     await expect.poll(async () => (await selector.locator("option").evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))).sort()).toEqual(expected);
     await expect(selector.locator("optgroup")).toHaveCount(0);

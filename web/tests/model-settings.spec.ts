@@ -12,6 +12,8 @@ test('model-settings: late initial catalog cannot hide a just-saved profile',asy
   await page.getByRole('button',{name:'模型设置',exact:true}).click();
   await page.getByRole('button',{name:'新增模型服务',exact:true}).click();
   await page.getByLabel('模型服务 ID').fill('late-catalog');
+  await page.getByLabel('服务地址').fill('http://127.0.0.1:8879/fake-model/v1');
+  await page.getByLabel('默认模型 ID').fill('manual-model');
   await page.getByRole('button',{name:'保存模型配置',exact:true}).click();
   await expect(page.getByRole('status').filter({hasText:'模型配置已保存'})).toBeVisible();
   const response=page.waitForResponse(r=>r.url().endsWith('/api/v1/settings/models')&&r.request().method()==='GET');release();await response;

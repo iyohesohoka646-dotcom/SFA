@@ -87,14 +87,14 @@ function SemanticNode({ id, data }: NodeProps) {
       className={"semantic-node kind-" + data.kind + " execution-" + (receipt?.status ?? "static") + (badge ? " data-shape-" + badge.kind : "") + (data.searchMatch ? " graph-search-match" : "")}
       data-testid="relation-node"
     >
+      {data.kind === "operation" && <svg className="graph-compute-outline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polygon points="1,50 50,1 99,50 50,99" /></svg>}
       <div className="semantic-heading graph-node-drag-handle">
         <GraphGlyph kind={badge?.kind ?? String(data.kind)} />
-        <div><small>{badge ? badge.kind === "unknown" ? "Variable" : badge.kind : names[String(data.kind)] ?? String(data.kind)}</small><strong title={String(data.label)}>{String(data.label)}</strong></div>
+        <div><small>{badge ? badge.kind === "unknown" ? "Variable" : badge.kind : names[String(data.kind)] ?? String(data.kind)}</small><strong title={String(data.label)}>{String(data.label)}</strong>{Boolean(data.expression) && <code className="graph-expression">{String(data.expression)}</code>}</div>
         {Boolean(data.pinned) && <span className="graph-pin"><Icon name="pin" size={12} /></span>}
       </div>
       <GraphPorts handles={handles} plate={false} />
-      {badge && <small className="graph-data-detail" title={badge.detail}>{badge.detail}</small>}
-      <NodeReceipt receipt={receipt} />
+      <div className="graph-node-footer">{badge && <small className="graph-data-detail" title={badge.detail}>{badge.detail}</small>}<NodeReceipt receipt={receipt} /></div>
     </div>
   );
 }
@@ -416,17 +416,18 @@ function GraphInner({
         id: n.id,
         type: n.plate ? "plate" : "semantic",
         parentId: parent,
-        extent: parent ? "parent" : undefined,
-        dragHandle: ".graph-node-drag-handle",
-        selectable: !n.plate || n.collapsed,
+        expandParent: Boolean(parent),
+        dragHandle: n.plate && !n.collapsed ? ".graph-node-drag-handle" : undefined,
+        selectable: true,
         zIndex: n.plate ? 0 : 2,
         position: positions.current.get(n.id) ?? { x: i * 200, y: 0 },
         style: {
-          ...semanticDimensions({ plate: n.plate, label: n.label, handles: n.handles, collapsed: n.collapsed, compact: true }),
-          pointerEvents: n.plate && !n.collapsed ? "none" : "auto",
+          ...semanticDimensions({ plate: n.plate, label: n.label, handles: n.handles, collapsed: n.collapsed, compact: true, kind: n.kind, expression: n.expression }),
+          pointerEvents: "auto",
         },
         data: {
           label: n.label,
+          expression: n.expression,
           compact: true,
           kind: n.kind,
           handles: n.handles,
@@ -622,8 +623,8 @@ function GraphInner({
         <button aria-label="总览" disabled={!scope} onClick={() => onEnter(null)}>Root</button>
         <input type="search" aria-label="搜索计算对象" placeholder="Find" value={query} onChange={e => setQuery(e.target.value)} />
         <div className="graph-interaction-switch" role="group" aria-label="画布操作">
-          <button aria-label="平移" aria-pressed={interaction === "pan"} title="Drag canvas; Shift to select" onClick={() => setInteraction("pan")}>Pan</button>
-          <button aria-label="框选" aria-pressed={interaction === "select"} title="Drag to select; Space to pan" onClick={() => setInteraction("select")}>Select</button>
+          <button aria-label="平移" aria-pressed={interaction === "pan"} title="Drag canvas; Shift to box-select. Blocks always drag." onClick={() => setInteraction("pan")}>Move canvas</button>
+          <button aria-label="框选" aria-pressed={interaction === "select"} title="Drag empty canvas to box-select; Space to pan. Blocks always drag." onClick={() => setInteraction("select")}>Box select</button>
         </div>
         <button aria-label="自动对齐排线" disabled={!layoutReady || !projection.nodes.length} onClick={() => {
           for (const n of projection.nodes) if (!pinned.current.has(n.id)) positions.current.delete(n.id);
@@ -638,9 +639,9 @@ function GraphInner({
           <fieldset><legend>Relations</legend>
             <label><input type="checkbox" checked={dim} aria-label="淡化无关对象" onChange={e => { setDim(e.target.checked); preference("dim_unrelated", e.target.checked); }} />Dim unrelated</label>
             <label><input type="checkbox" checked={showExecution} aria-label="运行证据" onChange={e => setShowExecution(e.target.checked)} />Run evidence</label>
-            <div className="graph-relationship-filters">{(view === "data" ? ["data"] : ["control", "call", "block"]).map(k => <label key={k}>
+            <div className="graph-relationship-filters">{(view === "data" ? ["data"] : ["data", "control", "call", "block"]).map(k => <label key={k}>
               <input type="checkbox" checked={relations.has(k)} onChange={() => setRelations(old => { const next = new Set(old); next.has(k) ? next.delete(k) : next.add(k); return next; })} />
-              {{ data: "Dependencies", control: "Flow", call: "Calls", block: "Blocks" }[k]}
+              {{ data: "Dependencies", control: "Guards", call: "Calls", block: "Blocks" }[k]}
             </label>)}</div>
           </fieldset>
           <fieldset><legend>Layout</legend><label>Direction<select aria-label="布局方向" value={direction} onChange={e => { setDirection(e.target.value); preference("direction", e.target.value); }}>
@@ -664,6 +665,7 @@ function GraphInner({
           edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
           nodesConnectable={false}
+          nodesDraggable
           minZoom={0.01}
           maxZoom={2}
           onlyRenderVisibleElements
@@ -718,7 +720,7 @@ function GraphInner({
         </ReactFlow>
       </div>
       <div className="wb-graph-legend">
-        {view === "data" ? <span style={{ color: edgeColors.data }}>Variable dependencies</span> : <><span style={{ color: edgeColors.control }}>Flow</span><span style={{ color: edgeColors.call }}>Call</span><span style={{ color: edgeColors.backedge }}>Loop</span></>}
+        {view === "data" ? <span style={{ color: edgeColors.data }}>Variable dependencies</span> : <><span style={{ color: edgeColors.data }}>Data</span><span style={{ color: edgeColors.control }}>Guard</span><span style={{ color: edgeColors.call }}>Call</span><span style={{ color: edgeColors.backedge }}>Loop</span></>}
         {showExecution && <span>Run evidence</span>}
         <span data-testid="graph-layout-metric">{projection.nodes.length} nodes · {projection.omitted} folded · {!layoutReady ? layoutState.status === "error" ? "Layout error" : "Arranging…" : `${time.toFixed(0)} ms`}</span>
       </div>

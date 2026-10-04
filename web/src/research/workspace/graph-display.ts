@@ -6,7 +6,7 @@ import type { OccurrenceGroup } from "./sourceOccurrences";
 
 export type GraphMode = "code" | "data";
 export const normalizeGraphMode = (value: unknown): GraphMode => value === "data" ? "data" : "code";
-const short = (s: string) => s.replace(/\s+/g, " ").trim().slice(0, 40);
+const short = (s: string) => s.replace(/\s+/g, " ").trim();
 const latin = (s: string, fallback: string) => /[\u3400-\u9fff]/.test(s) ? fallback : short(s);
 const values = new Set(["data", "parameter"]);
 const containers = new Set(["file", "function", "class", "folder", "project"]);
@@ -26,6 +26,16 @@ export function graphCaption(node: GraphNode | GraphBlock): string {
 }
 
 const isDocstring = (n: GraphNode) => n.kind === "operation" && /^\s*(?:[ru]|br|rb)?['"]/i.test(n.label);
+
+/** Source-grounded expression, separate from output names; no generated prose. */
+export function graphExpression(node: GraphNode): string {
+  if (!["operation", "call"].includes(node.kind)) return "";
+  const text = short(node.label);
+  const rhs = text.replace(/^\s*[\w., ]+(?:\[[^\]]*\])?\s*(?:\+|-|\*|\/)?=(?!=)\s*/u, "");
+  if (/[\u3400-\u9fff]/.test(rhs)) return "";
+  // Call arguments stay in Details. Arithmetic/indexing operators stay visible.
+  return node.kind === "call" ? (rhs.match(/^([\w.]+)\s*\(/)?.[1] ?? rhs) + "(…)" : rhs;
+}
 
 export function projectDisplayGraph(graph: SemanticGraph, collapsed: Set<string>, mode: GraphMode, scope: string | null = null,
   analysis?: AnalysisDocument, occurrences: OccurrenceGroup[] = []): GraphProjection {
@@ -69,13 +79,13 @@ export function projectDisplayGraph(graph: SemanticGraph, collapsed: Set<string>
         original_node_ids: [n.id], original_object_ids: origins.get(key) ?? (n.source_object_id ? [n.source_object_id] : []) };
       dataGroups.set(key, item); nodeRepresentative.set(n.id, item.id); nodes.push(item);
     } else if (!values.has(n.kind) && !["entry", "exit", "merge"].includes(n.kind) && !isDocstring(n)) {
-      const item: ProjectionNode = { ...n, label: graphCaption(n), parent_id: n.block_id, plate: false, collapsed: false, handles: [], original_node_ids: [n.id] };
+      const item: ProjectionNode = { ...n, label: graphCaption(n), expression: graphExpression(n), parent_id: n.block_id, plate: false, collapsed: false, handles: [], original_node_ids: [n.id] };
       nodeRepresentative.set(n.id, n.id); nodes.push(item);
     }
   }
   visibleBlocks.forEach(b => nodeRepresentative.set(b.id, b.id));
   const known = new Map(nodes.map(n => [n.id, n]));
-  const allowed = mode === "code" ? new Set(["control", "call", "return", "backedge", "block"]) : new Set(["data", "argument", "return", "merge", "backedge"]);
+  const allowed = mode === "code" ? new Set(["data", "argument", "merge", "call", "return", "backedge", "block"]) : new Set(["data", "argument", "return", "merge", "backedge"]);
   const outgoing = new Map<string, GraphEdge[]>();
   for (const e of graph.edges) if (allowed.has(e.kind)) {
     const list = outgoing.get(e.source) ?? []; list.push(e); outgoing.set(e.source, list);
@@ -93,9 +103,9 @@ export function projectDisplayGraph(graph: SemanticGraph, collapsed: Set<string>
         if (source === target) continue;
         const condition = all.get(start);
         const branch = path.branch;
-        const label = mode === "data" ? "" : branch === "true" || branch === "false" ? `${condition?.kind === "condition" ? graphCaption(condition) + " / " : ""}${branch}`
-          : branch === "body" ? "body" : branch === "exit" ? "exit" : branch === "exception" ? "exception" : e.kind === "backedge" ? "repeat" : e.kind === "call" ? "call" : e.kind === "return" ? "return" : "";
-        const kind = mode === "data" ? "data" : e.kind;
+        const label = mode === "data" ? "" : branch === "true" || branch === "false" ? branch
+          : branch === "body" ? "body" : branch === "exit" ? "exit" : branch === "exception" ? "exception" : e.kind === "backedge" ? "repeat" : e.kind === "call" ? "call" : e.kind === "return" ? "return" : e.label;
+        const kind = mode === "data" || ["data", "argument", "merge"].includes(e.kind) ? "data" : e.kind;
         const signature = JSON.stringify([source, target, kind, branch, label]);
         const existing = grouped.get(signature);
         if (existing) existing.original_ids = [...new Set([...existing.original_ids, ...path.ids])];
@@ -107,6 +117,33 @@ export function projectDisplayGraph(graph: SemanticGraph, collapsed: Set<string>
       if (visited.has(e.target)) continue;
       visited.add(e.target);
       for (const next of outgoing.get(e.target) ?? []) queue.push({ edge: next, ids: [...path.ids, ...(next.original_ids.length ? next.original_ids : [next.id])], branch: path.branch ?? next.branch });
+    }
+  }
+  if (mode === "code") {
+    // Control dependence: a branch guards its computations. The CFG's plain
+    // next-statement edges are deliberately not a display relation.
+    const flow = new Map<string, GraphEdge[]>();
+    for (const e of graph.edges.filter(e => e.kind === "control")) flow.set(e.source, [...(flow.get(e.source) ?? []), e]);
+    for (const first of graph.edges.filter(e => e.kind === "control" && e.branch)) {
+      const source = nodeRepresentative.get(first.source), predicate = all.get(first.source);
+      if (!source || !known.has(source)) continue;
+      const owner = parents.get(first.source), seen = new Set<string>();
+      const queue = [{ edge: first, ids: [first.id] }];
+      for (let i = 0; i < queue.length; i++) {
+        const { edge, ids } = queue[i], raw = all.get(edge.target);
+        if (seen.has(edge.target) || !inScope(edge.target) || owner && !under(edge.target, owner) || raw?.kind === "exit") continue;
+        seen.add(edge.target);
+        const target = nodeRepresentative.get(edge.target);
+        if (target && known.has(target) && target !== source) {
+          const label = first.branch === "true" || first.branch === "false" ? first.branch : first.branch ?? "";
+          const signature = JSON.stringify([source, target, "control", first.branch, label]);
+          grouped.set(signature, { ...first, id: "display:" + encodeURIComponent(signature), source, target, kind: "control", label, displayLabel: label,
+            original_ids: ids, count: 1, source_port: null, target_port: null, source_boundary: source !== first.source, target_boundary: target !== edge.target });
+        }
+        // An inner predicate introduces its own guard; do not flatten guards.
+        if (raw?.kind === "condition" || raw?.kind === "loop_header") continue;
+        for (const next of flow.get(edge.target) ?? []) queue.push({ edge: next, ids: [...ids, next.id] });
+      }
     }
   }
   const edges = [...grouped.values()].sort((a, b) => a.id.localeCompare(b.id));

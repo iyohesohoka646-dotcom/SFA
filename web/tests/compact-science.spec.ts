@@ -30,12 +30,7 @@ test('each bound presentation probe has a real independently selectable and coll
   const table = data.getByTestId('probe-view').filter({ has: page.locator('summary > strong').filter({ hasText: /^数据表$/ }) });
   await expect(table.locator('table')).toBeVisible();
   await expect(table.locator('thead th')).toHaveText(['行号', '0', '1', '2', '3', '4', '5', '6', '7']);
-  const chooser = data.getByLabel('数据呈现探针');
-  await chooser.click(); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
-  await expect(chooser).not.toHaveValue('all');
-  await expect(data.getByTestId('probe-view')).toHaveCount(1);
-  await chooser.focus(); await page.keyboard.press('Home'); await page.keyboard.press('Enter');
-  await expect(chooser).toHaveValue('all');
+  await expect(data.getByLabel('数据呈现探针')).toHaveCount(0);
   await expect(data.getByTestId('probe-view')).toHaveCount(3);
   await table.locator('summary').click();
   await expect(table.locator('table')).toHaveCount(0);
@@ -58,6 +53,8 @@ test('each bound presentation probe has a real independently selectable and coll
 test('probe state filters and compact English Code/Data views keep selection and block navigation explicit', async ({ page }) => {
   await page.goto('http://127.0.0.1:8879/#session=' + session);
   await chooseExample(page, 'analysis', 'summary', ['--failure', 'nan']); await runCompute(page); await chooseValue(page, 'X');
+  await bindProbe(page, 'check.finite', 'X');
+  await page.locator('.wb-inspector').filter({visible:true}).getByRole('button',{name:'保存',exact:true}).click();
   const data = page.locator('.wb-data-pane').filter({ has: page.getByTestId('current-variable').filter({ hasText: /^X$/ }) }).last();
   await data.getByRole('button', { name: '执行探针', exact: true }).click();
   await expect(data.getByTestId('data-probe-result').filter({ hasText: 'fail' }).first()).toBeVisible();

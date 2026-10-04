@@ -6,7 +6,7 @@ import type { AnalysisDocument, SourceObject, TargetRef } from "./generated";
 import type { WorkspaceDocument } from "./layout";
 import { wb } from "./WorkbenchClient";
 import { logicalObjectGroups } from "./objectTree";
-import { selectedOccurrenceGroups, sourceFocus, type OccurrenceGroup } from "./sourceOccurrences";
+import { selectedOccurrenceGroups, selectedStructureSources, sourceFocus, type OccurrenceGroup } from "./sourceOccurrences";
 
 export function SourceDocument({
   document,
@@ -77,7 +77,8 @@ export function SourceDocument({
     || target.object_id && objects?.objects.some(object => object.id === target.object_id)) : fallback;
   const selectedGroups = selectedOccurrenceGroups(occurrences, activeTargets);
   const spans = selectedGroups.flatMap(group => group.occurrences);
-  const focus = file ? sourceFocus(matched, selectedGroups, file.path, file.digest) : null;
+  const ranges = file ? selectedStructureSources(objects, activeTargets, file.path, file.digest) : [];
+  const focus = ranges[0] ?? (file ? sourceFocus(activeTargets.length && !matchedObject ? null : matched, selectedGroups, file.path, file.digest) : null);
   const logicalGroups = objects ? logicalObjectGroups(objects, occurrences) : [];
   const selectedGroup = logicalGroups.find(group => activeTargets.some(target => target.object_id && group.objectIds.includes(target.object_id)));
   return (
@@ -104,7 +105,7 @@ export function SourceDocument({
           </select>
         )}
       </div>
-      <SourcePane file={file} selection={focus} occurrences={spans} />
+      <SourcePane file={file} selection={focus} occurrences={spans} ranges={ranges} />
     </div>
   );
 }

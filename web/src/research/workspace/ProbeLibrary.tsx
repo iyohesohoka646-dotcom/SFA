@@ -3,6 +3,7 @@ import { wb } from "./WorkbenchClient";
 import { ToolLibrary } from "./ToolLibrary";
 import type { ProbeDefinition, ProbeResource, TaskRecord, WorkbenchConfig } from "./generated";
 import { ParameterForm } from "./ParameterForm";
+import { ProbeTemplateLibrary } from "./ProbeTemplateLibrary";
 import { initialProbeParameters } from "./probe-configuration";
 import "./probe-management.css";
 import {
@@ -48,7 +49,7 @@ export function ProbeLibrary({
     [savingDefaults, setSavingDefaults] = useState(false),
     [notice, setNotice] = useState("");
   const visibleDefinitions = definitions.filter((definition) =>
-    (target === "all" || definition.supported_targets.includes(target as never))
+    definition.id !== "view.auto" && (target === "all" || definition.supported_targets.includes(target as never))
     && (purpose === "all" || definition.capability === purpose)
     && (implementation === "all" || definition.execution === implementation)
     && (definition.label + " " + definition.id).toLowerCase().includes(query.trim().toLowerCase()),
@@ -71,6 +72,7 @@ export function ProbeLibrary({
       <div className="wb-local-tabs">
         {[
           ["definitions", "能力目录"],
+          ["templates", "探针模板"],
           ["public", "可获取资源"],
           ["installed", "已安装 / 自定义"],
           ["skills", "Skill"],
@@ -80,7 +82,7 @@ export function ProbeLibrary({
           </button>
         ))}
       </div>
-      {tab === "public" ? (
+      {tab === "templates" && config && onChange && onSave ? <ProbeTemplateLibrary config={config} definitions={definitions} onChange={onChange} onSave={onSave} onError={onError} onModelSettings={onModelSettings} /> : tab === "public" ? (
         <ToolLibrary
           interpreter={interpreter}
           tasks={tasks}

@@ -144,13 +144,17 @@ describe("measured semantic compound layout", () => {
     }
   });
 
-  it("wraps a long computation chain into a legible area without changing edge references", async () => {
+  it("keeps a long dependency chain monotone without introducing folded return wires", async () => {
     const nodes = [node("file", undefined, true, []), ...Array.from({ length: 24 }, (_, i) => node("op" + i, "file"))];
     const edges: Edge[] = nodes.slice(2).map((n, i) => ({ id: "e" + i, source: "op" + i, target: n.id, sourceHandle: "out0", targetHandle: "in0", label: "control" }));
     const elk = new ELK(), input = buildSemanticLayout(nodes, edges);
     const result = readSemanticLayout(await elk.layout(input));
-    const root = result.nodes.get("file")!;
-    expect(root.width / root.height).toBeLessThan(3.5);
+    for (const edge of edges) {
+      const from = result.nodes.get(edge.source)!, to = result.nodes.get(edge.target)!;
+      expect(to.x).toBeGreaterThan(from.x + from.width);
+      const points = result.edges.get(edge.id)!.points;
+      for (let i = 1; i < points.length; i++) expect(points[i].x).toBeGreaterThanOrEqual(points[i - 1].x);
+    }
     expect(result.edges.size).toBe(edges.length);
     const repeat = readSemanticLayout(await elk.layout(buildSemanticLayout(nodes, edges)));
     expect([...repeat.nodes]).toEqual([...result.nodes]);
@@ -167,7 +171,7 @@ describe("measured semantic compound layout", () => {
     for (const bounds of output.nodes.values()) expect([bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite)).toBe(true);
     for (const route of output.edges.values()) expect(route.points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true);
     const root = output.nodes.get("file")!;
-    expect(root.width / root.height).toBeLessThan(3.5);
+    expect(buildSemanticLayout(nodes, edges).layoutOptions!['elk.layered.wrapping.strategy']).toBe('OFF');
     expect(semanticLayoutBounds(nodes, output)).toEqual({ x: root.x, y: root.y, width: root.width, height: root.height });
     const viewport = readableGraphViewport(root, { width: 1333, height: 798 })!;
     expect(viewport.zoom).toBeGreaterThanOrEqual(0.75);

@@ -3,6 +3,7 @@ import { Icon } from "./icons";
 import { wb } from "./WorkbenchClient";
 import { purposeNames, implementationNames } from "./probe-taxonomy";
 import type { ProbeDefinition, ProbeInstance } from "./generated";
+import { probeDisplayName } from "./probe-templates";
 
 export function ProbeBindingRow({ probe, definition, open, onToggle, onUpdate, onRemove, onError,
   parameters = probe.parameters, enabled = probe.enabled, onParameters, onEnabled, inherited, targetCount,
@@ -39,7 +40,7 @@ export function ProbeBindingRow({ probe, definition, open, onToggle, onUpdate, o
           ref={(element) => { if (element) element.indeterminate = Boolean(enabledCount && targetCount && enabledCount < targetCount); }}
           disabled={targetScoped && !probe.enabled}
           onChange={(event) => onEnabled ? onEnabled(event.target.checked) : onUpdate({ enabled: event.target.checked })} />
-        <button className="wb-probe-name" aria-expanded={open} onClick={onToggle}>{definition?.label ?? probe.definition_id}</button>
+        <button className="wb-probe-name" aria-expanded={open} onClick={onToggle}>{probeDisplayName(probe, definition)}</button>
         {onRemove && <button aria-label={"删除 " + probe.definition_id} onClick={onRemove}><Icon name="close" size={12} /></button>}
       </div>
       <small>
@@ -47,6 +48,7 @@ export function ProbeBindingRow({ probe, definition, open, onToggle, onUpdate, o
         {definition ? implementationNames[definition.execution] + " · " : ""}
         {targetScoped ? inherited ? "继承绑定" : "本地绑定" : description}
         {probe.origin === "project_default" ? " · 项目默认" : ""}
+        {probe.template_label && probe.definition_id !== "view.auto" ? " · " + probe.template_label : ""}
         {targetCount && targetCount > 1 ? " · " + enabledCount + "/" + targetCount + " 个对象启用" : ""}
         {!probe.enabled ? " · 全局停用" : !enabled ? " · 此对象停用" : ""}
       </small>
@@ -68,7 +70,7 @@ export function ProbeBindingRow({ probe, definition, open, onToggle, onUpdate, o
             <label>预算 ms<input type="number" value={probe.budget_ms} min={1} max={120000}
               onChange={(event) => onUpdate({ budget_ms: Number(event.target.value) })} /></label>
             <button onClick={() => void wb.saveTemplate(crypto.randomUUID(), definition?.label ?? probe.id, probe.definition_id, probe.parameters)
-              .catch((error) => onError(error.message))}>保存为模板</button>
+              .catch((error) => onError(error.message))}>保存参数预设</button>
           </div>
         )}
       </>}

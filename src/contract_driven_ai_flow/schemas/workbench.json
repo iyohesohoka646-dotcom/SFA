@@ -1810,6 +1810,42 @@
           },
           "title": "Overrides",
           "type": "object"
+        },
+        "template_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Template Id"
+        },
+        "template_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Template Label"
+        },
+        "template_application_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Template Application Id"
         }
       },
       "required": [
@@ -1823,7 +1859,10 @@
         "selector",
         "inputs",
         "origin",
-        "overrides"
+        "overrides",
+        "template_id",
+        "template_label",
+        "template_application_id"
       ],
       "title": "ProbeInstance",
       "type": "object"
@@ -2159,6 +2198,92 @@
         "review_digest"
       ],
       "title": "ProbeResource",
+      "type": "object"
+    },
+    "ProbeTemplate": {
+      "additionalProperties": false,
+      "description": "A reusable recipe; applied bindings freeze their own member parameters.",
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "version": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "members": {
+          "items": {
+            "$ref": "#/$defs/ProbeTemplateMember"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Members",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "version",
+        "members"
+      ],
+      "title": "ProbeTemplate",
+      "type": "object"
+    },
+    "ProbeTemplateMember": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "definition_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Definition Id",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "budget_ms": {
+          "default": 5000,
+          "maximum": 120000,
+          "minimum": 1,
+          "title": "Budget Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "definition_id",
+        "parameters",
+        "enabled",
+        "budget_ms"
+      ],
+      "title": "ProbeTemplateMember",
       "type": "object"
     },
     "Relation": {
@@ -2957,6 +3082,14 @@
           },
           "title": "Probe Defaults",
           "type": "object"
+        },
+        "probe_templates": {
+          "items": {
+            "$ref": "#/$defs/ProbeTemplate"
+          },
+          "maxItems": 128,
+          "title": "Probe Templates",
+          "type": "array"
         }
       },
       "required": [
@@ -2970,7 +3103,8 @@
         "adapters",
         "harness",
         "max_outputs",
-        "probe_defaults"
+        "probe_defaults",
+        "probe_templates"
       ],
       "title": "WorkbenchConfig",
       "type": "object"

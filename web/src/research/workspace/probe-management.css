@@ -40,3 +40,13 @@
 .probe-library .library-default-editor .parameter-form { padding: 4px 0 8px; }
 .probe-library .library-default-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 6px 0; }
 .probe-library .library-default-actions small { margin-right: auto; }
+.probe-template-library { padding: 0 10px 12px; }
+.template-row { display: flex; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--ri-line); }
+.template-row > span { flex: 1; min-width: 0; }
+.template-row small { display: block; color: var(--ri-muted); margin-top: 4px; overflow-wrap: anywhere; }
+.template-member { border-bottom: 1px solid var(--ri-line); padding: 8px 0; }
+.template-member > div:first-child, .template-member-add, .template-actions { display: flex; gap: 6px; align-items: center; }
+.template-member > div:first-child > button:first-child { flex: 1; text-align: left; }
+.template-member-add select { flex: 1; min-width: 0; }
+.template-member-preview { padding: 6px 0; color: var(--ri-muted); }
+.wb-local-tabs [role="tab"][aria-selected="true"] { color: var(--ri-accent, var(--accent)); background: color-mix(in srgb, var(--accent) 12%, var(--ri-panel)); }

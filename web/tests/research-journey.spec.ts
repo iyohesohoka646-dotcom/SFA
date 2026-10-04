@@ -1,4 +1,4 @@
-import {chooseValue,selectObject,runCompute,researchApi} from './scientific-helpers';
+import {chooseValue,selectObject,runCompute,researchApi,bindProbe} from './scientific-helpers';
 import {session} from './session';
 import {test,expect} from '@playwright/test';
 import {mkdtempSync,writeFileSync,readFileSync} from 'node:fs';
@@ -18,16 +18,15 @@ test('research-journey: own code, numerical failure, saved probe, explanation sc
   await page.getByRole('button',{name:'导入解析',exact:true}).click();
   await expect(page.getByLabel('源码第 5 行',{exact:true})).toContainText('Z = X - mu');
   await page.getByRole('button',{name:'打开源码配置'}).click();
+  await bindProbe(page,'check.finite','Z');
+  await page.locator('.wb-inspector').filter({visible:true}).getByRole('button',{name:'保存',exact:true}).click();
   await runCompute(page);
   await expect(page.getByTestId('run-status')).toHaveText('completed',{timeout:20000});
   await chooseValue(page,'Z');
-  await expect(page.getByTestId('probe-output').filter({hasText:'fail'}).first()).toBeVisible();
+  await expect(page.getByTestId('data-probe-result').filter({hasText:'fail'}).first()).toBeVisible();
   await chooseValue(page,'Z');
   await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
   await expect(page.getByTestId('source-selection')).toContainText('Z[1,2] = np.nan');
-  await page.getByRole('button',{name:'探针台',exact:true}).click();
-  await page.getByRole('button',{name:'添加探针',exact:true}).click();await page.getByLabel('探针类型').selectOption('check.finite');
-  await page.getByRole('button',{name:'确认添加探针'}).click();await page.getByRole('button',{name:'保存',exact:true}).click();
   const configuration=await researchApi(page,'research/workbench/configuration');expect(configuration.probes.some((p:{definition_id:string})=>p.definition_id==='check.finite')).toBe(true);
   await page.getByRole('button',{name:'智能助手',exact:true}).click();await page.getByRole('button',{name:'任务设置'}).click();
   await expect(page.getByLabel('允许读取脱敏样例')).not.toBeChecked();

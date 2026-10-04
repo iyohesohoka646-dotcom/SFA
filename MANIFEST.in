@@ -20,6 +20,7 @@ recursive-include docs *.md *.html *.json *.svg *.png
 # Embedding the archive's own digest would make the receipt self-referential.
 exclude docs/assets/scientific-release-validation.json
 exclude docs/assets/workbench-refinement-validation.json
+exclude docs/assets/workbench-process-validation.json
 recursive-include tests *.py
 recursive-include examples *.py *.json *.yaml *.yml *.md
 prune examples/*/.cdaf

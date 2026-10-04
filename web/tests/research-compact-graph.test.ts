@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { projectDisplayGraph, graphCaption, normalizeGraphMode } from "../src/research/workspace/graph-display";
+import { projectDisplayGraph, graphCaption, graphExpression, normalizeGraphMode } from "../src/research/workspace/graph-display";
 import type { GraphBlock, GraphEdge, GraphNode, SemanticGraph } from "../src/research/workspace/generated";
 const block = (id: string, parent_id: string | null = null, kind = "file"): GraphBlock => ({ id, parent_id, kind,
   label: id + ".py", logical_key: id, source: null, source_object_id: null, members: [], runtime_coverage: "supported" } as GraphBlock);
@@ -41,11 +41,34 @@ describe("two concise graph surfaces", () => {
   it("coalesces equal folded boundary relations, retaining all original references and one shared port", () => {
     const g = fixture(); g.blocks.push(block("fn", "file", "function"));
     g.nodes.push(node("c", "operation", "f()", "fn:c", "fn"));
-    g.edges.push(edge("c1", "a", "c", "control"), edge("c2", "b", "c", "control"));
+    g.edges.push(edge("c1", "a", "c", "data"), edge("c2", "b", "c", "data"));
     const p = projectDisplayGraph(g, new Set(["fn"]), "code");
     const fn = p.nodes.find(n => n.id === "fn")!;
     expect(fn.handles.filter(h => h.direction === "input")).toHaveLength(1);
     expect(fn.handles[0].original_ids.sort()).toEqual(["c1", "c2"]);
+  });
+  it("keeps real process dependencies and does not invent order between unrelated calls", () => {
+    const g = fixture(); g.nodes.push(node("c", "call", "q = external()"));
+    g.edges.push(edge("text-order", "b", "c", "control"));
+    const p = projectDisplayGraph(g, new Set(), "code");
+    expect(p.edges.some(e => e.source === "b" && e.target === "c")).toBe(false);
+    expect(p.edges.find(e => e.source === "a" && e.target === "b")).toMatchObject({ kind: "data", label: "" });
+    expect(p.edges.flatMap(e => e.original_ids)).toContain("d3");
+    expect(p.nodes.find(n => n.id === "b")!.expression).toBe("X - mu");
+  });
+  it("retains long conditions and visible math rather than truncating the computation", () => {
+    const text = "options.failure == 'constant' and options.iteration_limit > 100";
+    expect(graphCaption(node("n", "condition", text))).toBe(text);
+    expect(graphExpression(node("n", "operation", "C = Z.T @ Z / (X.shape[0] - 1)"))).toBe("Z.T @ Z / (X.shape[0] - 1)");
+  });
+  it("shows independent computations guarded by a branch, preserving original source relations", () => {
+    const g = fixture(); g.blocks.push(block("if", "file", "condition"));
+    g.nodes.push(node("predicate", "condition", "X.size > 0", "pred", "if"), node("entry", "entry", "true", "entry", "if"), node("one", "operation", "a = 1", "one", "if"), node("two", "operation", "b = 2", "two", "if"));
+    g.edges.push(edge("guard", "predicate", "entry", "control", "true" as never), edge("first", "entry", "one", "control"), edge("next", "one", "two", "control"));
+    const p = projectDisplayGraph(g, new Set(), "code");
+    expect(p.edges.filter(e => e.source === "predicate").map(e => e.target).sort()).toEqual(["one", "two"]);
+    expect(p.edges.some(e => e.source === "one" && e.target === "two")).toBe(false);
+    expect(p.edges.filter(e => e.source === "predicate").every(e => e.displayLabel === "true")).toBe(true);
   });
   it("uses compact English captions and retains exact non-English source only in the source/details surface", () => {
     expect(graphCaption(node("n", "operation", "scores = Z @ components[:, -3:]"))).toBe("scores");

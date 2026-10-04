@@ -71,7 +71,7 @@ test('review: changing fixed axis invalidates pending exact slice',async({page})
  await page.getByLabel('固定 axis 0').fill('1');await page.getByRole('button',{name:'读取此版本切片',exact:true}).click();await entered.promise;
  await page.getByLabel('固定 axis 0').fill('0');pending.resolve();await page.waitForTimeout(250);
  await expect(page.getByTestId('matrix-cell-value')).toHaveText('[0, 0] = 0');
- await expect(page.locator('.wb-evidence-bar').first()).toContainText('sampled');
+ await expect(page.locator('.ri-sample-label').first()).toContainText('抽样');
 });
 
 test('review: legacy run selection discards delayed older responses',async({page})=>{

@@ -176,6 +176,20 @@ class WorkbenchService:
         previous = self.configurations.load().probe_defaults
         changed = {key: value for key, value in config.probe_defaults.items() if key not in previous or previous[key] != value}
         validate_probe_defaults(changed, self.catalog.definitions())
+        templates = {t.id: t for t in self.configurations.load().probe_templates}
+        from jsonschema import Draft202012Validator
+        from .probe_defaults import probe_parameters
+        for template in config.probe_templates:
+            if templates.get(template.id) == template:
+                continue
+            for member in template.members:
+                definition = self.catalog.resolve(member.definition_id)
+                validate_probe_defaults({member.definition_id: member.parameters}, [definition])
+                if definition.input_mode == "joint":
+                    raise ValueError("Joint-input probes require explicit input roles; bind them individually")
+                errors = list(Draft202012Validator(definition.parameter_schema).iter_errors(probe_parameters(definition, member.parameters)))
+                if errors:
+                    raise ValueError("Template member parameters are invalid: " + errors[0].message)
         return self.configurations.save(config, expected_revision=expected_revision)
 
     def plan(

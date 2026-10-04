@@ -21,6 +21,7 @@ export type ProjectionNode = (GraphNode | GraphBlock) & {
   handles: GraphHandle[];
   original_node_ids?: string[];
   original_object_ids?: string[];
+  expression?: string;
 };
 export type ProjectionEdge = GraphEdge & {
   displayLabel: string;
