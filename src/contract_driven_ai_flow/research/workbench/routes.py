@@ -90,6 +90,12 @@ def attach_workbench_routes(app, research):
     def analysis_source(key: str):
         return service.analysis_source(key)
 
+    @router.get("/analyses/{key}/occurrences")
+    def occurrences(key: str):
+        from .source_occurrences import source_occurrences
+
+        return source_occurrences(service.analysis(key), service.analysis_source(key)["code"])
+
     @router.get("/runs/{key}/analysis")
     def run_analysis(key: str):
         return service.run_analysis(key)
@@ -355,6 +361,12 @@ def attach_workbench_routes(app, research):
             body.relative_path or "derived_analysis.py",
             body.candidate,
         )
+
+    @router.post("/changes/format")
+    def format_proposal(body: ProposalRequest):
+        if body.object_id or body.relative_path:
+            raise ValueError("Formatting selects the existing imported file")
+        return service.changes.propose_format(body.analysis_id, body.candidate)
 
     @router.post("/changes/{key}/validate")
     def validate(key: str):

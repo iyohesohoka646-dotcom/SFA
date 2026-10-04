@@ -156,13 +156,11 @@ class WorkbenchService:
 
     def run_analysis(self, run_id):
         run = self.research.store.run(run_id)
-        records = [
-            a
-            for a in self.store.list("analyses", limit=1000)
-            if a["source_digest"] == run["source_digest"] and a["path"] == run["script"]
-        ]
-        if records:
-            return self.analysis(records[0]["id"])
+        analysis_id = self.store.find_analysis_id(
+            source_digest=run["source_digest"], path=run["script"]
+        )
+        if analysis_id is not None:
+            return self.analysis(analysis_id)
         source = self.research.source(run_id)
         analysis = analyze_source(
             Path(run["script"]),
@@ -173,6 +171,11 @@ class WorkbenchService:
         return analysis
 
     def configure(self, config, *, expected_revision):
+        from .probe_defaults import validate_probe_defaults
+
+        previous = self.configurations.load().probe_defaults
+        changed = {key: value for key, value in config.probe_defaults.items() if key not in previous or previous[key] != value}
+        validate_probe_defaults(changed, self.catalog.definitions())
         return self.configurations.save(config, expected_revision=expected_revision)
 
     def plan(
@@ -550,12 +553,14 @@ class WorkbenchService:
         )
         if definition.execution in ("model", "skill"):
             from .intelligence.harness import HarnessRequest
+            from .probe_defaults import compose_probe_prompt
 
             policy = next(
                 policy for policy in plan.config.harness if policy.role == "probe"
             ).model_copy(deep=True)
             if instance.parameters.get("provider_id"):
                 policy.provider_id = instance.parameters["provider_id"]
+                policy.model = instance.parameters.get("model") or None
             if instance.parameters.get("model"):
                 policy.model = instance.parameters["model"]
             source_ids = None
@@ -583,8 +588,7 @@ class WorkbenchService:
                     )
                 )
             request = HarnessRequest(
-                question=instance.parameters.get("prompt")
-                or "Explain the selected scientific evidence, its direct relationships and coverage.",
+                question=compose_probe_prompt(instance.parameters),
                 analysis_id=plan.analysis_id,
                 run_id=run_id,
                 snapshot_id=snapshot.id if snapshot else None,

@@ -245,6 +245,7 @@ def register(app, output):
         run_id: str = typer.Option("", "--run"),
         provider: str = "",
         model: str = "",
+        format_source: bool = typer.Option(False, "--format-source"),
         project: Path = typer.Option(Path("."), "--project", "-p"),
     ):
         """Automatic environment/tool harness; configuration shares model settings."""
@@ -252,8 +253,12 @@ def register(app, output):
         def run():
             from .configuration import ConfigurationStore
 
+            if format_source and (object_id or run_id):
+                raise ValueError("Formatting selects the full imported source; omit --object and --run")
+            task_role = "code" if format_source else role
+
             policy = next(
-                p for p in ConfigurationStore(project).load().harness if p.role == role
+                p for p in ConfigurationStore(project).load().harness if p.role == task_role
             )
             policy = HarnessPolicy.model_validate(
                 {
@@ -271,6 +276,7 @@ def register(app, output):
                     "object_id": object_id or None,
                     "run_id": run_id or None,
                     "policy": policy.model_dump(mode="json"),
+                    "purpose": "format_source" if format_source else "general",
                 },
                 wait=True,
             )

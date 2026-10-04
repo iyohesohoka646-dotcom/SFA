@@ -4,14 +4,14 @@ from .models import ProbeDefinition, InputRole
 VIEW_SCHEMA = {
     "type": "object",
     "properties": {
-        "precision": {"type": "integer", "minimum": 0, "maximum": 12},
-        "show_values": {"type": "boolean"},
-        "show_coordinates": {"type": "boolean"},
-        "row_labels": {"type": "array", "items": {"type": "string"}},
-        "column_labels": {"type": "array", "items": {"type": "string"}},
-        "palette": {"type": "string", "enum": ["diverging", "sequential", "gray"]},
-        "scale": {"type": "string", "enum": ["linear", "log", "symmetric"]},
-        "unit": {"type": "string"},
+        "precision": {"type": "integer", "minimum": 0, "maximum": 12, "default": 3},
+        "show_values": {"type": "boolean", "default": False},
+        "show_coordinates": {"type": "boolean", "default": True},
+        "row_labels": {"type": "array", "items": {"type": "string"}, "default": []},
+        "column_labels": {"type": "array", "items": {"type": "string"}, "default": []},
+        "palette": {"type": "string", "enum": ["diverging", "sequential", "gray"], "default": "diverging"},
+        "scale": {"type": "string", "enum": ["linear", "log", "symmetric"], "default": "linear"},
+        "unit": {"type": "string", "default": ""},
         "semantics": {"type": "object"},
     },
 }
@@ -60,46 +60,51 @@ class ProbeCatalog:
                             "kind": {
                                 "type": "string",
                                 "enum": ["heatmap", "line", "histogram"],
+                                "default": "heatmap",
                             }
                         },
                     },
                 )
             )
         for kind, label in BUILTINS.items():
-            numeric = {"type": "number"}
+            numeric = {"type": ["number", "null"], "default": None}
             fields = {
                 "shape": {
                     "expected": {
                         "type": "array",
-                        "items": {"type": "integer"},
-                        "minItems": 1,
+                        "title": "期望形状",
+                        "items": {"type": ["integer", "null"], "minimum": 0},
+                        "default": [],
+                        "description": "逗号分隔；* 表示任意大小，留空表示标量",
                     }
                 },
-                "dtype": {"expected": {"type": "string"}},
+                "dtype": {"expected": {"type": "string", "title": "期望数据类型", "default": "float64"}},
                 "range": {"min": numeric, "max": numeric},
                 "variance": {"min": numeric, "max": numeric},
                 "missing": {
-                    "max_ratio": {"type": "number", "minimum": 0, "maximum": 1}
+                    "max_ratio": {"type": "number", "minimum": 0, "maximum": 1, "default": 0}
                 },
-                "symmetry": {"tolerance": {"type": "number", "minimum": 0}},
-                "capture_size": {"max_bytes": {"type": "integer", "minimum": 0}},
-                "duration": {"max_ms": {"type": "number", "minimum": 0}},
+                "symmetry": {"tolerance": {"type": "number", "minimum": 0, "default": 1e-8}},
+                "capture_size": {"max_bytes": {"type": "integer", "minimum": 0, "default": 104857600}},
+                "duration": {"max_ms": {"type": "number", "minimum": 0, "default": 1000}},
                 "broadcast": {
                     "other_shape": {
                         "type": "array",
                         "items": {"type": "integer", "minimum": 0},
+                        "default": [],
                     }
                 },
                 "dimensions": {
-                    "operation": {"type": "string", "enum": ["broadcast", "matmul"]},
+                    "operation": {"type": "string", "enum": ["broadcast", "matmul"], "default": "broadcast"},
                     "other_shape": {
                         "type": "array",
                         "items": {"type": "integer", "minimum": 0},
+                        "default": [],
                     },
                 },
-                "rank": {"enable_expensive": {"type": "boolean"}},
-                "condition": {"enable_expensive": {"type": "boolean"}},
-                "eigenvalues": {"enable_expensive": {"type": "boolean"}},
+                "rank": {"enable_expensive": {"type": "boolean", "default": False}},
+                "condition": {"enable_expensive": {"type": "boolean", "default": False}},
+                "eigenvalues": {"enable_expensive": {"type": "boolean", "default": False}},
             }.get(kind, {})
             self.register(
                 ProbeDefinition(
@@ -124,11 +129,17 @@ class ProbeCatalog:
                     parameter_schema={
                         "type": "object",
                         "properties": {
-                            "prompt": {"type": "string"},
-                            "provider_id": {"type": "string"},
-                            "model": {"type": "string"},
+                            "task": {"type": "string", "default": "解读选中对象的计算作用、数据特征及直接关系。"},
+                            "focus": {"type": "string", "default": "关键数值、异常与证据覆盖范围"},
+                            "constraints": {"type": "string", "default": "仅依据提供的证据，明确标注未知项。"},
+                            "output_format": {"type": "string", "default": "用简洁中文给出结论、依据与待确认项。"},
+                            "prompt": {"type": "string", "default": ""},
+                            **({
+                                "provider_id": {"type": "string", "default": ""},
+                                "model": {"type": "string", "default": ""},
+                            } if execution != "manual" else {}),
                             **(
-                                {"skill_id": {"type": "string"}}
+                                {"skill_id": {"type": "string", "default": ""}}
                                 if execution == "skill"
                                 else {}
                             ),
@@ -166,7 +177,7 @@ class ProbeCatalog:
                 output_kinds=["metrics"],
                 parameter_schema={
                     "type": "object",
-                    "properties": {"maximum_ms": {"type": "number", "minimum": 0}},
+                    "properties": {"maximum_ms": {"type": "number", "minimum": 0, "default": 1000}},
                     "additionalProperties": False,
                 },
             )
@@ -195,9 +206,9 @@ class ProbeCatalog:
                     **VIEW_SCHEMA,
                     "properties": {
                         **VIEW_SCHEMA["properties"],
-                        "shared_scale": {"type": "boolean"},
-                        "linked_zoom": {"type": "boolean"},
-                        "allow_cross_run": {"type": "boolean"},
+                        "shared_scale": {"type": "boolean", "default": True},
+                        "linked_zoom": {"type": "boolean", "default": True},
+                        "allow_cross_run": {"type": "boolean", "default": False},
                     },
                 },
             )
@@ -219,9 +230,10 @@ class ProbeCatalog:
                     "type": "string",
                     "enum": ["error", "propagate"]
                     + (["pairwise"] if key == "correlation" else []),
+                    "default": "error",
                 },
-                "alignment": {"type": "string", "enum": ["coordinates", "positional"]},
-                "allow_cross_run": {"type": "boolean"},
+                "alignment": {"type": "string", "enum": ["coordinates", "positional"], "default": "coordinates"},
+                "allow_cross_run": {"type": "boolean", "default": False},
             }
             properties.update(
                 {
@@ -229,17 +241,19 @@ class ProbeCatalog:
                         "operation": {
                             "type": "string",
                             "enum": ["subtract", "add", "multiply", "divide"],
+                            "default": "subtract",
                         },
-                        "broadcast": {"type": "boolean"},
+                        "broadcast": {"type": "boolean", "default": False},
                     },
                     "matmul": {},
-                    "correlation": {"flatten": {"type": "boolean"}},
+                    "correlation": {"flatten": {"type": "boolean", "default": False}},
                     "aggregate": {
                         "method": {
                             "type": "string",
                             "enum": ["mean", "sum", "min", "max", "std", "median"],
+                            "default": "mean",
                         },
-                        "axis": {"type": ["integer", "null"]},
+                        "axis": {"type": ["integer", "null"], "default": None},
                     },
                     "join": {
                         "keys": {
@@ -250,6 +264,7 @@ class ProbeCatalog:
                         "how": {
                             "type": "string",
                             "enum": ["inner", "left", "right", "outer"],
+                            "default": "inner",
                         },
                         "cardinality": {
                             "type": "string",
@@ -259,6 +274,7 @@ class ProbeCatalog:
                                 "many_to_one",
                                 "many_to_many",
                             ],
+                            "default": "one_to_one",
                         },
                     },
                 }[key]

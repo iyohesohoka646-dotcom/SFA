@@ -1,0 +1,31 @@
+.object-browser .tree-toggle {
+  display: inline-flex;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+  cursor: pointer;
+}
+.object-browser .tree-toggle:hover { background: var(--hover); color: var(--accent); }
+.object-browser .tree-toggle svg { display: block; width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.5; }
+.object-browser .tree-chevron { display: block; transform: rotate(-90deg); }
+.object-browser .tree-chevron.open { transform: rotate(0); }
+.object-browser .tree-toggle-spacer { width: 18px; flex: 0 0 18px; }
+.object-browser .object-kind-icon { flex: 0 0 15px; color: var(--muted); }
+.object-browser .object-kind-icon.variable { color: var(--accent); }
+.object-browser .object-kind-icon.folder, .object-browser .object-kind-icon.function { color: var(--text); }
+.object-browser .object-row { gap: 4px; padding-right: 8px; }
+.object-browser .object-row-name { flex: 1; }
+.object-browser .object-row small { flex: 0 1 auto; max-width: 50%; margin-left: 4px; }
+.object-browser .object-row-assignment, .object-browser .object-row-evidence { color: var(--muted); font-size: 11px; }
+.object-browser .object-row.tree-focused { outline: 1px solid var(--line-strong, var(--line)); outline-offset: -1px; }
+.object-browser .object-tree-empty { padding: 12px; color: var(--muted); font-size: 12px; }
+.object-browser .object-tree-notice { padding: 5px 8px; color: var(--muted); }

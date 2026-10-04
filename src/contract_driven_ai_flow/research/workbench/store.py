@@ -37,6 +37,11 @@ class WorkbenchStore:
             conn.execute(
                 "CREATE TABLE IF NOT EXISTS records(kind TEXT, id TEXT, payload TEXT NOT NULL, created INTEGER DEFAULT (unixepoch()), PRIMARY KEY(kind,id))"
             )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS records_analysis_source ON records("
+                "json_extract(payload, '$.source_digest'), json_extract(payload, '$.path'), created DESC) "
+                "WHERE kind='analyses'"
+            )
 
     @contextmanager
     def connect(self):
@@ -79,6 +84,17 @@ class WorkbenchStore:
                 (kind, min(max(int(limit), 1), 1000)),
             ).fetchall()
         return [json.loads(row["payload"]) for row in rows]
+
+    def find_analysis_id(self, *, source_digest, path):
+        """Find the newest exact source identity without decoding unrelated graphs."""
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT id FROM records WHERE kind='analyses' "
+                "AND json_extract(payload, '$.source_digest')=? AND json_extract(payload, '$.path')=? "
+                "ORDER BY created DESC, rowid DESC LIMIT 1",
+                (source_digest, path),
+            ).fetchone()
+        return row["id"] if row else None
 
     def delete(self, kind, key):
         if kind not in self.kinds:

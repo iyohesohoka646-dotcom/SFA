@@ -5,7 +5,8 @@ from __future__ import annotations
 from fnmatch import fnmatchcase
 from .models import ResolvedProbeCall, TargetOverride
 from .semantic_models import TargetRef
-from .scopes import resolve_scope
+from .scopes import resolve_scope, same_logical_target, selection_matches
+from .override_keys import target_override
 
 
 def snapshot_target(snapshot, analysis):
@@ -48,7 +49,7 @@ def snapshot_target(snapshot, analysis):
 def matches_instance(instance, target, analysis, *, snapshot=None):
     if not instance.enabled:
         return False
-    override = instance.overrides.get(target.logical_key)
+    override = target_override(instance, target, analysis.graph)
     if override and override.enabled is False:
         return False
     if instance.selector is not None:
@@ -56,18 +57,7 @@ def matches_instance(instance, target, analysis, *, snapshot=None):
             bool(resolve_scope(analysis.graph, instance.selector, [target]))
             if instance.selector.mode != "selection"
             else any(
-                focus.logical_key == target.logical_key
-                and (not focus.snapshot_id or focus.snapshot_id == target.snapshot_id)
-                or focus.block_id
-                and focus.kind != "data"
-                and target
-                in resolve_scope(
-                    analysis.graph,
-                    instance.selector.model_copy(
-                        update={"mode": "block", "block_id": focus.block_id}
-                    ),
-                    [target],
-                )
+                selection_matches(analysis.graph, focus, target)
                 for focus in instance.selector.targets
             )
             and target.logical_key not in instance.selector.excluded_keys
@@ -88,9 +78,9 @@ def matches_instance(instance, target, analysis, *, snapshot=None):
     )
 
 
-def effective_instance(instance, target):
+def effective_instance(instance, target, analysis):
     result = instance.model_copy(deep=True)
-    override = instance.overrides.get(target.logical_key)
+    override = target_override(instance, target, analysis.graph)
     if override is not None:
         if override.enabled is not None:
             result.enabled = result.enabled and override.enabled
@@ -102,7 +92,7 @@ def effective_presenters(config, definitions, snapshot, analysis):
     known = {definition.id: definition for definition in definitions}
     target = snapshot_target(snapshot, analysis)
     return [
-        effective_instance(instance, target)
+        effective_instance(instance, target, analysis)
         for instance in config.probes
         if instance.definition_id in known
         and known[instance.definition_id].capability == "view"
@@ -178,7 +168,7 @@ def resolve_calls(
                     if (
                         target.snapshot_id == ref.snapshot_id
                         if ref.snapshot_id
-                        else target.logical_key == ref.logical_key
+                        else same_logical_target(analysis.graph, ref, target)
                     )
                 ]
                 if not matches:
@@ -213,7 +203,7 @@ def resolve_calls(
             groups = [([target], {}) for target in eligible]
         for group, inputs in groups:
             resolved = (
-                effective_instance(instance, group[0])
+                effective_instance(instance, group[0], analysis)
                 if len(group) == 1
                 else instance.model_copy(deep=True)
             )

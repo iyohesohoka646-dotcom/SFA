@@ -16,7 +16,7 @@ export const selectionKey = (t: TargetRef) =>
   t.kind +
   ":" +
   t.logical_key +
-  (t.exact_evidence && t.snapshot_id ? ":" + t.snapshot_id : "");
+  (t.exact_evidence && t.snapshot_id ? ":" + t.snapshot_id : t.object_id ? ":" + t.object_id : "");
 export function choose(
   state: Selection,
   target: TargetRef,

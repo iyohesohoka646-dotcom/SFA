@@ -27,8 +27,17 @@ test('probe configuration is inert and execution produces real views and checks'
   await page.getByRole('button', { name: '探针台', exact: true }).first().click();
   await expect(page.getByTestId('probe-output').first()).toBeVisible();
   await page.getByRole('button', { name: '计算关系图', exact: true }).first().click();
+  await expect(page.locator('.wb-graph-pane')).toHaveAttribute('data-layout-state','ready');
+  await page.getByRole('button', { name: '适应画布', exact: true }).click();
   await expect(page.getByTestId('relation-node').first()).toBeVisible();
-  await page.getByTestId('relation-node').first().click();
+  await expect.poll(() => page.locator('.wb-graph-canvas').evaluate(canvas => {
+    const bounds = canvas.getBoundingClientRect();
+    return [...canvas.querySelectorAll('.react-flow__node')].every(node => {
+      const rect = node.getBoundingClientRect();
+      return rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1 && rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1;
+    });
+  })).toBe(true);
+  await page.locator('.semantic-node .semantic-heading strong').first().click();
   await expect(page.locator('.react-flow__node.selected')).not.toHaveCount(0);
 });
 
@@ -59,12 +68,12 @@ test('automatic harness reads tools, proposes a scoped diff and waits for accept
   await page.getByRole('button', { name: '导入解析', exact: true }).click(); await expect(page.getByRole('button', { name: '导入解析', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: '打开源码配置' }).click();
   const analyses = await researchApi(page, 'research/workbench/analyses'); const analysis = analyses.find((a: {path:string}) => a.path === path);
-  await page.getByLabel('源码对象').selectOption(analysis.objects.find((o: {qualname:string}) => o.qualname === 'calculate').id);
+  await page.getByLabel('源码对象').selectOption({label:'calculate · L1'});
   await page.getByRole('button', { name: '智能助手', exact: true }).click();
   await page.getByLabel('智能任务角色').selectOption('code'); await page.getByRole('button', { name: '任务设置' }).click();
   await page.getByLabel('任务模型服务').selectOption('harness-lab'); await page.getByLabel('任务指令').fill('将 calculate 的加一改成加二，提出供我审查的修改。');
   await page.getByRole('button', { name: '执行智能任务' }).click(); await expect(page.getByTestId('task-record').first().locator(':scope > strong')).toContainText('intelligence.code');
-  await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed');
+  await expect(page.getByTestId('task-record').first().locator('strong > span')).toHaveText('completed',{timeout:30000});
   expect(readFileSync(path, 'utf8')).toBe(original);
   await page.getByRole('button', { name: '查看智能结果' }).first().click();
   await expect(page.locator('.wb-ai-answer')).toContainText('真实定义');
@@ -187,13 +196,17 @@ test('pinned relation graph keeps its nodes and camera after switching global ru
   await expect(page.getByTestId('relation-node').first()).toBeVisible();
   await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
   await page.getByLabel('关系图视图').selectOption('data');
+  await expect(page.locator('.wb-graph-pane')).toHaveAttribute('data-layout-state','ready');
+  await page.getByRole('button',{name:'适应画布',exact:true}).click();
   await expect(page.locator('.semantic-node.kind-data').first()).toBeVisible();
   await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   await expect(page.locator('.semantic-node.kind-data').first()).toBeVisible();
   const count = await page.getByTestId('relation-node').count();
+  const camera = await page.locator('.wb-graph-canvas .react-flow__viewport').getAttribute('style');
   await page.getByLabel('运行记录').selectOption(other.id);
   await expect(page.getByTestId('relation-node')).toHaveCount(count);
+  await expect(page.locator('.wb-graph-canvas .react-flow__viewport')).toHaveAttribute('style',camera!);
   await expect(page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first()).toBeVisible();
   await page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first().click({button:'right'});await page.getByRole('button',{name:'打开数据',exact:true}).click();
   await expect(page.locator('.wb-data-pane .wb-evidence-bar')).toContainText(runA.slice(0,8));

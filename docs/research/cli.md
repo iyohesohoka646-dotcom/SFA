@@ -68,6 +68,7 @@ cdaf research probes --run RUN_ID --replot --project .
 cdaf research tools --scan --project .
 cdaf research tools --install plotly --project .
 cdaf research ask ANALYSIS_ID "解释所选对象的数据关系" --role explain --project .
+cdaf research ask ANALYSIS_ID "整理分行、缩进和段落" --format-source --provider local --project .
 cdaf research changes --project .
 cdaf research changes --action accept --proposal PROPOSAL_ID --project .
 cdaf research config --project .
@@ -79,6 +80,8 @@ cdaf research export RUN_ID --output report.html --project .
 探针增加和配置保存均不运行。配置 JSON 保留 `revision`，过期版本会拒绝保存。`ask` 使用角色的自动 harness 与共用模型设置；可用 `--provider` / `--model` 覆盖任务模型，无需配置发送文件清单。离线规则可用，远程模型需要真实服务和凭据。`changes --action propose --input proposal.json` 接收 `analysis_id`、`object_id`、`candidate` 等字段；接受和回滚均是明确操作。
 
 交互终端增加 `/workbench COMMAND JSON`，例如 `/workbench import {"path":"analysis.py"}`、`/workbench tools {}`。与 Web 命令台共用 `workbench.*` 调度，保留原有 `/open /run /probe /model /explain`。
+
+`ask --format-source` 使用代码角色及已保存的模型服务，对当前完整文件创建书写整理提案；不能同时指定对象或运行。模型仅可读取文件并提出候选，随后用 `changes` 查看、接受或生成回滚。AST、注释、类型忽略归属及原编码由同一服务检查，最多 16384 字符；行号可能变化，科学计算结果仍须明确运行验证。
 
 
 0.5 新增 `workbench` 别名和范围、资源、设置、联合绑定、语义及派生管理命令。命令与 Web 使用同一服务。

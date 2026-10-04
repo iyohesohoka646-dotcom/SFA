@@ -20,6 +20,7 @@ import { useWorkspace } from "./useWorkspace";
 import { wb } from "./WorkbenchClient";
 import { scopeSelector, type Selection } from "./selection";
 import { groups, type DocumentKind, type WorkspaceDocument } from "./layout";
+import { currentProbeBlock } from "./probe-configuration";
 
 export function useWorkbench() {
   const [info, setInfo] = useState<ResearchInfo>(),
@@ -30,6 +31,7 @@ export function useWorkbench() {
   const [script, setScriptRaw] = useState(""),
     [interpreter, setInterpreterRaw] = useState(""),
     [analysis, setAnalysis] = useState<AnalysisDocument>(),
+    [analysisInputPath, setAnalysisInputPath] = useState(""),
     [file, setFile] = useState<SourceFile>();
   const [selection, setSelection] = useState<Selection>({
       targets: [],
@@ -39,8 +41,8 @@ export function useWorkbench() {
     [probeRange, setProbeRange] = useState<"selection" | "block" | "project">(
       "project",
     );
-  const [runAnalysis, setRunAnalysis] = useState<AnalysisDocument>();
-  const viewAnalysis = runId ? runAnalysis : analysis;
+  const [runAnalysis, setRunAnalysis] = useState<{ runId: string; analysis: AnalysisDocument }>();
+  const viewAnalysis = runId ? runAnalysis?.runId === runId ? runAnalysis.analysis : undefined : analysis;
   const [state, setState] = useState(() => createState("")),
     [selected, setSelected] = useState(""),
     [focusSnapshot, setFocusSnapshot] = useState<SnapshotRef>(),
@@ -153,6 +155,7 @@ export function useWorkbench() {
       const source = await wb.source(next.id, signal);
       if (signal?.aborted || version !== importVersion.current) return;
       setAnalysis(next);
+      setAnalysisInputPath(path);
       setFile(source);
       setSelectedObject("");
       setSelection({ targets: [], anchor: null });
@@ -238,7 +241,7 @@ export function useWorkbench() {
     void wb
       .runAnalysis(runId, abort.signal)
       .then((a) => {
-        if (!abort.signal.aborted) setRunAnalysis(a);
+        if (!abort.signal.aborted) setRunAnalysis({ runId, analysis: a });
       })
       .catch((e) => {
         if (!abort.signal.aborted) setNotice("历史结构不可用：" + e.message);
@@ -416,6 +419,8 @@ export function useWorkbench() {
     [selectSnapshot],
   );
   const parse = () => loading.run((signal) => imported(script, signal));
+  const sourceReady = Boolean(analysis && (script === analysis.path || script === analysisInputPath));
+  const probeScopeBlock = currentProbeBlock(viewAnalysis, blockScope)?.id ?? null;
   const saveConfig = async (signal?: AbortSignal) => {
     if (!config || !analysis) throw new Error("先导入源码");
     const next = await wb.configure(
@@ -431,9 +436,10 @@ export function useWorkbench() {
   };
   const run = (scope: "compute" | "probes" | "replot" = "compute") =>
     preparing.run(async (signal) => {
-      if (!analysis || (script !== analysis.path && script !== config?.script))
+      if (!analysis || !sourceReady || loading.status === "running")
         throw new Error("先导入当前源码");
       await saveConfig(signal);
+      const scopeBlock = blockScope ?? currentProbeBlock(scope === "compute" ? analysis : viewAnalysis)?.id ?? null;
       const task =
         scope === "compute"
           ? await wb.execute(
@@ -441,7 +447,7 @@ export function useWorkbench() {
                 await wb.plan(
                   analysis.id,
                   signal,
-                  scopeSelector(blockScope, selection.targets, probeRange),
+                  scopeSelector(scopeBlock, selection.targets, probeRange),
                 )
               ).id,
               signal,
@@ -451,13 +457,13 @@ export function useWorkbench() {
                 runId,
                 [],
                 undefined,
-                scopeSelector(blockScope, selection.targets, probeRange),
+                scopeSelector(scopeBlock, selection.targets, probeRange),
               )
             : await wb.replot(
                 runId,
                 [],
                 undefined,
-                scopeSelector(blockScope, selection.targets, probeRange),
+                scopeSelector(scopeBlock, selection.targets, probeRange),
               );
       if (!signal.aborted) track(task);
       return task;
@@ -512,6 +518,8 @@ export function useWorkbench() {
     blockScope,
     enterScope,
     probeRange,
+    probeScopeBlock,
+    sourceReady,
     setProbeRange,
     selected,
     focusSnapshot,

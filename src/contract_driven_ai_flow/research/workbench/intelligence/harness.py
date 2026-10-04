@@ -24,6 +24,7 @@ class HarnessRequest(WireModel):
     snapshot_id: str | None = None
     skill_id: str | None = None
     policy: HarnessPolicy = Field(default_factory=HarnessPolicy)
+    purpose: Literal["general", "format_source"] = "general"
 
 
 class HarnessService:

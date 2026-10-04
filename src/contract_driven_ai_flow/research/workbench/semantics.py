@@ -157,13 +157,19 @@ class GraphBuilder:
 
     def block(self, node, kind, label, parent, scope, obj=None):
         key = identity(self.path, self.digest, node, "block:" + kind)
+        if obj:
+            logical_key = obj.logical_key
+        elif kind == "file":
+            logical_key = f'{self.path}::{scope}::{kind}@{getattr(node, "lineno", 1)}:{getattr(node, "col_offset", 0)}'
+        else:
+            # Canonical labels distinguish structural roles sharing an AST node;
+            # the complete body makes semantic edits require a new binding.
+            structure = repr((kind, label, ast.dump(node, include_attributes=False)))
+            structural_digest = hashlib.sha256(structure.encode("utf-8")).hexdigest()[:24]
+            logical_key = f"{self.path}::{scope}::{kind}@{structural_digest}"
         block = GraphBlock(
             id=key,
-            logical_key=(
-                obj.logical_key
-                if obj
-                else f'{self.path}::{scope}::{kind}@{getattr(node, "lineno", 1)}:{getattr(node, "col_offset", 0)}'
-            ),
+            logical_key=logical_key,
             kind=kind,
             label=clean_text(label, 256),
             parent_id=parent,

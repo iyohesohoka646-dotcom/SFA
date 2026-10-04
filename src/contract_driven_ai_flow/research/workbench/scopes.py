@@ -1,6 +1,58 @@
 """Resolve UI scope once against explicit available targets; no ambient selection."""
 
 from .semantic_models import ScopeSelector, TargetRef
+from .override_keys import lexical_owner, target_owners
+
+
+def same_logical_target(graph, focus, target):
+    if focus.logical_key != target.logical_key:
+        return False
+    if focus.snapshot_id and focus.snapshot_id != target.snapshot_id:
+        return False
+    blocks = {block.id: block for block in graph.blocks}
+    if focus.kind == "function" and target.kind == "function" and focus.object_id:
+        known = {block.source_object_id for block in graph.blocks}
+        if focus.object_id in known:
+            return focus.object_id == target.object_id
+        choices = [block for block in graph.blocks if block.logical_key == focus.logical_key]
+        if len(choices) > 1:
+            raise ValueError("Saved function scope is ambiguous after source revision; bind it again")
+        return len(choices) == 1
+
+    if focus.object_id and target.object_id:
+        left = lexical_owner(graph, focus, function_parent=True)
+        right = lexical_owner(graph, target, function_parent=True)
+        if left is not None and right is not None:
+            return left == right
+        if focus.kind == "data" and left is None:
+            owners = target_owners(graph, target)
+            if len(owners) > 1:
+                raise ValueError("Saved data scope is ambiguous after source revision; bind it again")
+            return len(owners) == 1 and right in owners
+    return True
+
+
+def selection_matches(graph, focus, target):
+    if same_logical_target(graph, focus, target):
+        return True
+    if focus.kind not in ("function", "control", "file", "folder", "project", "stream"):
+        return False
+    blocks = {block.id: block for block in graph.blocks}
+    ancestor = focus.block_id
+    if ancestor not in blocks:
+        choices = [block.id for block in graph.blocks if block.logical_key == focus.logical_key]
+        if len(choices) > 1:
+            raise ValueError("Saved block scope is ambiguous after source revision; bind it again")
+        ancestor = choices[0] if choices else None
+    if not ancestor:
+        return False
+    block, seen = target.block_id, set()
+    while block in blocks and block not in seen:
+        if block == ancestor:
+            return True
+        seen.add(block)
+        block = blocks[block].parent_id
+    return False
 
 
 def source_targets(analysis):
@@ -58,8 +110,18 @@ def resolve_scope(
             block = parents.get(block)
         return False
 
-    if selector.mode == "block" and selector.block_id not in known_blocks:
-        raise ValueError("Scope block does not belong to this analysis")
+    block_id = selector.block_id
+    if selector.mode == "block" and block_id not in known_blocks:
+        keys = {
+            ref.logical_key for ref in selector.targets
+            if ref.kind in ("function", "control", "file", "folder", "project", "stream")
+        }
+        choices = [block.id for block in graph.blocks if block.logical_key in keys]
+        if len(choices) > 1:
+            raise ValueError("Saved block scope is ambiguous after source revision; bind it again")
+        if not choices:
+            raise ValueError("Scope block does not belong to this analysis")
+        block_id = choices[0]
     selected = selector.targets
     available_keys = {(target.kind, target.logical_key) for target in available}
     if selector.mode == "selection" and any(
@@ -79,20 +141,11 @@ def resolve_scope(
         include = (
             selector.mode == "project"
             or selector.mode == "block"
-            and inside(target.block_id, selector.block_id)
+            and inside(target.block_id, block_id)
         )
         if selector.mode == "selection":
             include = any(
-                (
-                    focus.logical_key == target.logical_key
-                    and (
-                        not focus.snapshot_id or focus.snapshot_id == target.snapshot_id
-                    )
-                )
-                or focus.kind
-                in ("function", "control", "file", "folder", "project", "stream")
-                and focus.block_id
-                and inside(target.block_id, focus.block_id)
+                selection_matches(graph, focus, target)
                 for focus in selected
             )
         identity = (

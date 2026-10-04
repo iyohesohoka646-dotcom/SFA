@@ -43,9 +43,19 @@ class HarnessToolRegistry:
 
     def describe(self, request):
         definitions = dict(READ_TOOLS)
+        if request.purpose == "format_source":
+            if request.policy.role != "code":
+                raise ValueError("Formatting requires the code task role")
+            definitions = {
+                "source.read_file": ("Read the explicitly selected full file for formatting; never executes it", {}),
+                "code.propose_format": (
+                    "Stage a full-file formatting proposal preserving AST, comments and statement order; never applies it",
+                    {"candidate": "string"},
+                ),
+            }
         if not request.policy.include_samples:
-            definitions.pop("sample.read")
-        if request.policy.role in ("parse", "probe", "code"):
+            definitions.pop("sample.read", None)
+        if request.purpose == "general" and request.policy.role in ("parse", "probe", "code"):
             definitions["plan.prepare"] = (
                 "Prepare a frozen plan without running it",
                 {},
@@ -54,12 +64,12 @@ class HarnessToolRegistry:
                 "Stage a validated declarative probe/adapter manifest for human review; cannot enable or execute it",
                 {"manifest": "string"},
             )
-        if request.policy.allow_execute and request.policy.role in ("probe", "code"):
+        if request.purpose == "general" and request.policy.allow_execute and request.policy.role in ("probe", "code"):
             definitions["plan.execute"] = (
                 "Execute one prepared frozen plan and record its task",
                 {"plan_id": "string"},
             )
-        if request.policy.role == "code":
+        if request.purpose == "general" and request.policy.role == "code":
             definitions["code.propose"] = (
                 "Propose a scoped inert code fragment for human review",
                 {"object_id": "string", "candidate": "string"},
@@ -77,12 +87,14 @@ class HarnessToolRegistry:
             }
             for name, (description, fields) in definitions.items()
         ]
-        next(d for d in result if d["name"] == "analysis.list")["arguments"][
-            "properties"
-        ] = {
-            "offset": {"type": "integer", "minimum": 0},
-            "limit": {"type": "integer", "minimum": 1, "maximum": 32},
-        }
+        inventory = next((d for d in result if d["name"] == "analysis.list"), None)
+        if inventory:
+            inventory["arguments"][
+                "properties"
+            ] = {
+                "offset": {"type": "integer", "minimum": 0},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 32},
+            }
         return result
 
     def call(self, name, arguments, request):
@@ -94,7 +106,24 @@ class HarnessToolRegistry:
         jsonschema.validate(arguments, definitions[name]["arguments"])
         analysis = self.context.validate_source(request.analysis_id)
         reference = name
-        if name == "source.read":
+        if name in ("source.read_file", "code.propose_format"):
+            if request.object_id or request.source_object_ids is not None or request.snapshot_id:
+                raise ValueError("Formatting requires explicit whole-file source scope")
+            if name == "source.read_file":
+                from ...agent.source import read_source
+                from ...agent.privacy import clean_text
+
+                source = read_source(Path(analysis.path))
+                if len(source.text) > 16384:
+                    raise ValueError("Formatting file exceeds the 16384-character proposal limit")
+                if clean_text(source.text, 16384) != source.text:
+                    raise ValueError("Full-file formatting cannot send secret-bearing source; use credential references first")
+                data = {"path": analysis.path, "digest": source.digest, "code": source.text}
+                reference = "source-file:" + analysis.source_digest
+            else:
+                data = self.workbench.changes.propose_format(analysis.id, arguments["candidate"]).model_dump(mode="json")
+                reference = "proposal:" + data["id"]
+        elif name == "source.read":
             key = arguments["object_id"]
             if key not in self.context.authorized_objects(analysis, request):
                 raise ValueError("Object is outside this task’s source scope")

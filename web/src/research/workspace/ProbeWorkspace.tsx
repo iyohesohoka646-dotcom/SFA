@@ -11,6 +11,7 @@ import type {
   ProbeInstance,
   WorkbenchConfig,
   DataSemantics,
+  AnalysisDocument,
 } from "./generated";
 import type { WorkspaceDocument } from "./layout";
 import { useSnapshot } from "./evidence";
@@ -19,6 +20,7 @@ import { ArtifactView } from "./ArtifactView";
 import { OperationView } from "../OperationView";
 import type { ResearchState } from "../state";
 import { ParameterForm } from "./ParameterForm";
+import { snapshotProbeTarget, targetOverride, targetOverrideError, targetOverrideKey } from "./probe-configuration";
 export const ProbeWorkspace = memo(function ProbeWorkspace({
   document,
   state,
@@ -30,6 +32,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   onConfig,
   onSave,
   onOpenPresenter,
+  runAnalysis,
 }: {
   document: WorkspaceDocument;
   state: ResearchState;
@@ -41,8 +44,11 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   onConfig: (c: WorkbenchConfig) => void;
   onSave: () => Promise<unknown>;
   onOpenPresenter: (s: SnapshotRef, id: string) => void;
+  runAnalysis?: { runId: string; analysis: AnalysisDocument };
 }) {
   const { snapshot, error } = useSnapshot(document.reference.snapshot_id);
+  const [scope, setScope] = useState<{ runId: string; analysis: AnalysisDocument }>();
+  const providedScope = snapshot && runAnalysis?.runId === snapshot.run_id ? runAnalysis : undefined;
   const [history, setHistory] = useState<SnapshotRef[]>([]),
     [outputs, setOutputs] = useState<ProbeOutput[]>([]),
     [presenters, setPresenters] = useState<ProbeInstance[]>([]),
@@ -53,8 +59,17 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
     [semanticEdit, setSemanticEdit] = useState<DataSemantics>(),
     [notice, setNotice] = useState("");
   useEffect(() => {
+    if (!snapshot || providedScope || scope?.runId === snapshot.run_id) return;
+    const abort = new AbortController();
+    void wb.runAnalysis(snapshot.run_id, abort.signal)
+      .then(analysis => { if (!abort.signal.aborted) setScope({ runId: snapshot.run_id, analysis }); })
+      .catch(error => { if (!abort.signal.aborted) setNotice(error.message); });
+    return () => abort.abort();
+  }, [snapshot?.run_id, providedScope?.analysis.id]);
+  useEffect(() => {
     const abort = new AbortController();
     if (snapshot) {
+      setNotice("");
       void Promise.all([
         client.history(
           snapshot.run_id,
@@ -87,13 +102,20 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
       </div>
     );
   if (!snapshot) return <div className="wb-empty">读取此版本数据…</div>;
+  const analysis = providedScope?.analysis ?? (scope?.runId === snapshot.run_id ? scope.analysis : undefined);
+  if (!analysis) return <div className="wb-empty" role={notice ? "alert" : undefined}>{notice || "读取此版本的作用域…"}</div>;
+  const target = snapshotProbeTarget(snapshot, analysis);
+  const overrideKey = targetOverrideKey(target, analysis);
+  const overrideNotice = config?.probes.filter((probe) => probe.enabled)
+    .map((probe) => targetOverrideError(probe, target, analysis)).find(Boolean);
   const effective = presenters
     .filter((p) => {
       const live = config?.probes.find((i) => i.id === p.id);
       return (
         live &&
         live.enabled !== false &&
-        live.overrides[snapshot.logical_key ?? ""]?.enabled !== false
+        !targetOverrideError(live, target, analysis) &&
+        targetOverride(live, target, analysis)?.enabled !== false
       );
     })
     .map((p) => {
@@ -102,7 +124,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
         ...p,
         parameters: {
           ...live.parameters,
-          ...live.overrides[snapshot.logical_key ?? ""]?.parameters,
+          ...targetOverride(live, target, analysis)?.parameters,
         },
       };
     });
@@ -130,8 +152,8 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
         JSON.stringify(instance?.parameters ?? {}),
   );
   const updateParameters = (parameters: Record<string, unknown>) => {
-    if (!config || !instance) return;
-    const key = snapshot.logical_key ?? snapshot.binding_id;
+    if (!config || !instance || !overrideKey) return;
+    const key = overrideKey;
     onConfig({
       ...config,
       probes: config.probes.map((p) =>
@@ -151,8 +173,8 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
     });
   };
   const localDisable = () => {
-    if (!config || !instance) return;
-    const key = snapshot.logical_key ?? snapshot.binding_id;
+    if (!config || !instance || !overrideKey) return;
+    const key = overrideKey;
     onConfig({
       ...config,
       probes: config.probes.map((p) =>
@@ -169,8 +191,8 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
     });
   };
   const restoreLocal = () => {
-    if (!config) return;
-    const key = snapshot.logical_key ?? snapshot.binding_id;
+    if (!config || !overrideKey) return;
+    const key = overrideKey;
     onConfig({
       ...config,
       probes: config.probes.map((p) => {
@@ -544,7 +566,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
           </div>
         </details>
       )}
-      {notice && <span role="status">{notice}</span>}
+      {(overrideNotice || notice) && <span role={overrideNotice ? "alert" : "status"}>{overrideNotice || notice}</span>}
       <div className="wb-evidence-bar">
         <span>
           {snapshot.fidelity} · {snapshot.descriptor.backend}

@@ -231,6 +231,7 @@ class WorkbenchConfig(WireModel):
         ]
     )
     max_outputs: int = Field(default=128, ge=1, le=512)
+    probe_defaults: dict[str, dict[str, JsonValue]] = Field(default_factory=dict)
 
     @field_validator("harness")
     @classmethod
@@ -289,6 +290,7 @@ class CodeProposal(WireModel):
     protocol_version: Literal[2] = 2
     id: str = Field(default_factory=uid)
     analysis_id: str
+    operation: Literal["edit", "format"] = "edit"
     object_id: str | None = None
     path: str
     source_digest: str

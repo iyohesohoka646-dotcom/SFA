@@ -140,6 +140,15 @@
           "title": "Analysis Id",
           "type": "string"
         },
+        "operation": {
+          "default": "edit",
+          "enum": [
+            "edit",
+            "format"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
         "object_id": {
           "anyOf": [
             {
@@ -263,6 +272,7 @@
         "protocol_version",
         "id",
         "analysis_id",
+        "operation",
         "object_id",
         "path",
         "source_digest",
@@ -1343,6 +1353,15 @@
         },
         "policy": {
           "$ref": "#/$defs/HarnessPolicy"
+        },
+        "purpose": {
+          "default": "general",
+          "enum": [
+            "general",
+            "format_source"
+          ],
+          "title": "Purpose",
+          "type": "string"
         }
       },
       "required": [
@@ -1353,7 +1372,8 @@
         "run_id",
         "snapshot_id",
         "skill_id",
-        "policy"
+        "policy",
+        "purpose"
       ],
       "title": "HarnessRequest",
       "type": "object"
@@ -2927,6 +2947,16 @@
           "minimum": 1,
           "title": "Max Outputs",
           "type": "integer"
+        },
+        "probe_defaults": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Probe Defaults",
+          "type": "object"
         }
       },
       "required": [
@@ -2939,7 +2969,8 @@
         "probes",
         "adapters",
         "harness",
-        "max_outputs"
+        "max_outputs",
+        "probe_defaults"
       ],
       "title": "WorkbenchConfig",
       "type": "object"

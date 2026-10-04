@@ -285,7 +285,7 @@ export default function ResearchWorkbench() {
   };
   const accepted = (path: string) => {
     c.setScript(path);
-    void c.imported(path).catch((e) => error(e.message));
+    void c.loading.run((signal) => c.imported(path, signal));
   };
   const render = (doc: WorkspaceDocument) => {
     switch (doc.kind) {
@@ -306,6 +306,7 @@ export default function ResearchWorkbench() {
             document={doc}
             analysis={c.analysis}
             selection={selection}
+            targets={c.selection.targets}
             onSelect={selectObject}
             onError={error}
           />
@@ -316,6 +317,7 @@ export default function ResearchWorkbench() {
             key={doc.id}
             document={doc}
             state={c.state}
+            runAnalysis={c.runId && c.viewAnalysis ? { runId: c.runId, analysis: c.viewAnalysis } : undefined}
             outputVersion={refreshKey}
             onSelectVersion={selectVersion}
             onEvaluate={evaluateSnapshot}
@@ -390,12 +392,17 @@ export default function ResearchWorkbench() {
             onSave={c.saveConfig}
             onError={error}
             onRecorded={c.recordOutput}
+            onModelSettings={() => setModelsVisible(true)}
           />
         ) : null;
       case "tools":
         return (
           <ProbeLibrary
             definitions={c.definitions}
+            config={c.config}
+            onChange={c.editConfig}
+            onSave={c.saveConfig}
+            onModelSettings={() => setModelsVisible(true)}
             interpreter={c.interpreter}
             tasks={c.tasks}
             onTask={c.track}
@@ -423,7 +430,7 @@ export default function ResearchWorkbench() {
           />
         ) : null;
       case "context":
-        return <ContextView id={doc.reference.context_id!} onError={error} />;
+        return <ContextView id={doc.reference.context_id!} onError={error} onProposal={(id) => c.open("changes", {proposal_id: id})} />;
       case "changes":
         return (
           <ChangeReview
@@ -625,7 +632,7 @@ export default function ResearchWorkbench() {
         </button>
         <button
           className="wb-primary"
-          disabled={!c.analysis || c.preparing.status === "running"}
+          disabled={!c.sourceReady || c.loading.status === "running" || c.preparing.status === "running"}
           onClick={() => void c.run(runMode)}
         >
           <Icon name="run" />
@@ -652,7 +659,7 @@ export default function ResearchWorkbench() {
           }
         >
           <option value="project">整个项目</option>
-          <option value="block" disabled={!c.blockScope}>
+          <option value="block" disabled={!c.probeScopeBlock}>
             当前块
           </option>
           <option value="selection" disabled={!c.selection.targets.length}>

@@ -26,11 +26,16 @@ class ConfigurationStore:
         with self._lock:
             if not self.path.exists():
                 from .preferences import PreferenceService
+                from .catalog import ProbeCatalog
+                from .probe_defaults import probe_parameters
 
                 preferences = PreferenceService(self.root).load()["values"]
                 config = WorkbenchConfig(
                     interpreter=sys.executable, capture=preferences["capture"]["level"]
                 )
+                catalog = ProbeCatalog()
+                for probe in config.probes:
+                    probe.parameters = probe_parameters(catalog.resolve(probe.definition_id))
                 config.probes[0].parameters["precision"] = preferences["probes"][
                     "precision"
                 ]

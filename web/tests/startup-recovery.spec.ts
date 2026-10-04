@@ -4,6 +4,18 @@ import {researchApi,runCompute,selectObject,chooseExample} from './scientific-he
 import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 
+let savedConfiguration:unknown;
+const configurationUrl='http://127.0.0.1:8879/api/v1/research/workbench/configuration';
+const configurationHeaders={Authorization:'Bearer '+session};
+test.beforeEach(async({request})=>{
+ savedConfiguration=await(await request.get(configurationUrl,{headers:configurationHeaders})).json();
+});
+test.afterEach(async({request})=>{
+ const current=await(await request.get(configurationUrl,{headers:configurationHeaders})).json();
+ const restored=await request.put(configurationUrl,{headers:configurationHeaders,data:{config:{...(savedConfiguration as Record<string,unknown>),revision:current.revision},expected_revision:current.revision}});
+ expect(restored.ok()).toBe(true);
+});
+
 test('background source import preserves a pressed settings control',async({page})=>{
  let release!:()=>void,requested!:()=>void;
  const pending=new Promise<void>(resolve=>release=resolve);
@@ -118,9 +130,14 @@ test('the library can request the same probe twice and opens an actionable bindi
  await page.getByRole('button',{name:'探针库',exact:true}).first().click();
  const auto=page.locator('.library-definition').filter({hasText:'自动数据视图'});
  await auto.getByRole('button',{name:'绑定',exact:true}).click();
- await expect(page.getByLabel('探针绑定范围')).toHaveValue('project');
+ await expect(page.getByLabel('探针绑定范围')).toHaveValue('block');
  await expect(page.getByRole('button',{name:'确认添加探针',exact:true})).toBeEnabled();
  await page.getByRole('button',{name:'确认添加探针',exact:true}).click();
+ const written=page.waitForResponse(r=>r.url().endsWith('/workbench/configuration')&&r.request().method()==='PUT');
+ await page.getByRole('button',{name:'保存',exact:true}).click();
+ expect((await written).ok()).toBe(true);
+ const saved=await researchApi(page,'research/workbench/configuration');
+ expect(saved.probes.at(-1).selector).toMatchObject({mode:'block',targets:[{kind:'file'}]});
  await page.getByRole('button',{name:'探针库',exact:true}).first().click();
  await auto.getByRole('button',{name:'绑定',exact:true}).click();
  await expect(page.getByRole('button',{name:'确认添加探针',exact:true})).toBeEnabled();
@@ -173,10 +190,10 @@ test('historical source definitions select their own analysis after a new import
  await page.getByLabel('运行记录').selectOption(run);
  const row=await selectObject(page,'X');
  await row.click({button:'right'});
- await page.getByRole('button',{name:'定位源码',exact:true}).click();
+ await page.getByRole('menuitem',{name:'定位源码',exact:true}).click();
  const dropdown=page.getByLabel('源码对象').filter({has:page.locator('option',{hasText:'Y · L2'})});
  await expect(dropdown).toBeVisible();
- await dropdown.selectOption(previous.objects.find((o:any)=>o.name==='Y').id);
+ await dropdown.selectOption({label:'Y · L2'});
  await expect(page.getByTestId('source-selection').last()).toContainText('Y=X+1');
  await page.getByRole('searchbox',{name:'搜索对象',exact:true}).fill('Y');
  const selected=page.locator('[role="treeitem"][aria-selected="true"]').filter({hasText:'Y'});

@@ -97,7 +97,7 @@ export function ChangeReview({
             >
               {p.path.split(/[\\/]/).at(-1)}
               <small>
-                {p.status} ·{" "}
+                {p.operation === "format" ? "书写整理 · " : "代码修改 · "}{p.status} ·{" "}
                 {p.behavior === "verified" ? "已验证所选检查" : "行为未验证"}
               </small>
             </button>
@@ -106,6 +106,7 @@ export function ChangeReview({
         {proposal ? (
           <>
             <div className="wb-section-label">
+              {proposal.operation === "format" && <span>书写整理 · 计算结构保持</span>}
               {proposal.status} ·{" "}
               {proposal.behavior === "verified"
                 ? "已验证所选检查"
@@ -141,7 +142,7 @@ export function ChangeReview({
                 }
                 onClick={() => void apply("validate")}
               >
-                验证修改范围
+                {proposal.operation === "format" ? "复核计算结构" : "验证修改范围"}
               </button>
               <button
                 className="wb-primary"

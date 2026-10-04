@@ -218,6 +218,7 @@ export type Message2 = string;
 export type ProtocolVersion6 = 2;
 export type Id12 = string;
 export type AnalysisId3 = string;
+export type Operation = "edit" | "format";
 export type ObjectId1 = string | null;
 export type Path3 = string;
 export type SourceDigest4 = string;
@@ -770,6 +771,7 @@ export type SourceObjectIds = string[] | null;
 export type RunId5 = string | null;
 export type SnapshotId3 = string | null;
 export type SkillId = string | null;
+export type Purpose = "general" | "format_source";
 export type Id15 = string;
 export type Profile = string;
 export type Cwd = string;
@@ -1019,6 +1021,7 @@ export interface WorkbenchConfig {
   adapters: Adapters;
   harness: Harness;
   max_outputs: MaxOutputs;
+  probe_defaults: ProbeDefaults;
 }
 export interface HarnessPolicy {
   role: Role;
@@ -1030,6 +1033,11 @@ export interface HarnessPolicy {
   max_calls: MaxCalls;
   include_samples: IncludeSamples;
   allow_execute: AllowExecute;
+}
+export interface ProbeDefaults {
+  [k: string]: {
+    [k: string]: JsonValue;
+  };
 }
 export interface ExecutionPlan {
   protocol_version: ProtocolVersion4;
@@ -1094,6 +1102,7 @@ export interface CodeProposal {
   protocol_version: ProtocolVersion6;
   id: Id12;
   analysis_id: AnalysisId3;
+  operation: Operation;
   object_id: ObjectId1;
   path: Path3;
   source_digest: SourceDigest4;
@@ -1223,6 +1232,7 @@ export interface HarnessRequest {
   snapshot_id: SnapshotId3;
   skill_id: SkillId;
   policy: HarnessPolicy;
+  purpose: Purpose;
 }
 export interface TerminalSession {
   id: Id15;

@@ -66,16 +66,28 @@ if __name__ == "__main__":
             await asyncio.sleep(30)
         if body.get('model')=='error-model':
             return JSONResponse({'message':'synthetic-private-error'},status_code=401)
-        if body.get('model')=='harness-model':
+        if body.get('model') in ('harness-model', 'format-model'):
             import json
             manifest = json.loads(body['messages'][0]['content'].split('\n', 1)[1])
-            obj = manifest['focus']['object_id'] or next(o['id'] for o in manifest['objects'] if o['kind'] == 'function')
             last = body['messages'][-1]['content']
-            if not last.startswith('Tool result'):
+            if manifest.get('purpose') == 'format_source':
+                if not last.startswith('Tool result'):
+                    action = {'tool': 'source.read_file', 'arguments': {}}
+                else:
+                    result = json.loads(last.split('\n', 1)[1])
+                    if result['reference'].startswith('source-file:'):
+                        source = result['result']['code']
+                        candidate = source.replace('X=2', 'X = 2').replace('x+1', 'x + 1').replace('\ndef ', '\n\ndef ')
+                        action = {'tool': 'code.propose_format', 'arguments': {'candidate': candidate}}
+                    else:
+                        action = {'answer': '已生成保留计算结构的书写整理提案。', 'citations': [result['reference']]}
+            elif not last.startswith('Tool result'):
+                obj = manifest['focus']['object_id'] or next(o['id'] for o in manifest['objects'] if o['kind'] == 'function')
                 action = {'tool': 'source.read', 'arguments': {'object_id': obj}}
             else:
                 result = json.loads(last.split('\n', 1)[1])
                 if manifest['role'] == 'code' and result['reference'].startswith('source:'):
+                    obj = manifest['focus']['object_id'] or next(o['id'] for o in manifest['objects'] if o['kind'] == 'function')
                     action = {'tool': 'code.propose', 'arguments': {'object_id': obj, 'candidate': 'def calculate(x):\n    return x + 2\n'}}
                 else:
                     action = {'answer': '已读取真实定义并记录证据。', 'citations': [result['reference']]}

@@ -102,6 +102,7 @@ test("real tree function and graph operation selections resolve to distinct froz
   await runCompute(page);
   const tabs = await page.locator(".workspace-tab").count();
   const tree = page.getByRole("tree", { name: "计算对象树" });
+  await page.getByRole("searchbox", { name: "搜索对象", exact: true }).fill("calculate");
   const functionRow = tree
     .locator(".object-row-name")
     .filter({ hasText: /^calculate$/ })
@@ -127,6 +128,9 @@ test("real tree function and graph operation selections resolve to distinct froz
   await expect(page.getByTestId("graph-layout-metric")).toHaveText(
     /· [1-9]\d* ms$/,
   );
+  await page.getByRole("button", { name: "展开 calculate", exact: true }).click();
+  await expect(page.locator(".wb-graph-pane")).toHaveAttribute("data-layout-state", "ready");
+  await page.getByRole("button", { name: "适应画布", exact: true }).click();
   await page
     .locator(".semantic-node .semantic-heading strong")
     .filter({ hasText: /^a = x \+ 1$/ })
@@ -157,10 +161,12 @@ test("selecting v1 and replotting through the toolbar evaluates that exact histo
   ]);
   await runCompute(page);
   const tree = page.getByRole("tree", { name: "计算对象树" });
+  await page.getByRole("searchbox", { name: "搜索对象", exact: true }).fill("X");
   await tree.getByRole("button", { name: "展开 X", exact: true }).click();
+  await tree.getByRole("button", { name: "展开 赋值 #1", exact: true }).click();
   const old = tree
     .locator(".object-row-name")
-    .filter({ hasText: /^v1$/ })
+    .filter({ hasText: /^观测 v1$/ })
     .locator("..");
   await expect(old).toBeVisible();
   await old.click();

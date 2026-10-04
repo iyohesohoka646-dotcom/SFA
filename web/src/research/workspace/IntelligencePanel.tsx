@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { models } from "../../settings/client";
-import type { PublicProviderProfile } from "../../settings/generated";
+import { ProbeModelFields } from "./ProbeModelFields";
 import type {
   AnalysisDocument,
   HarnessPolicy,
@@ -35,10 +34,10 @@ export function IntelligencePanel({
   onError: (message: string) => void;
 }) {
   const [role, setRole] = useState<HarnessPolicy["role"]>("explain"),
+    [purpose, setPurpose] = useState<"general" | "format_source">("general"),
     [question, setQuestion] = useState(""),
     [settings, setSettings] = useState(false);
-  const [profiles, setProfiles] = useState<PublicProviderProfile[]>([]),
-    [skills, setSkills] = useState<SkillRecord[]>([]),
+  const [skills, setSkills] = useState<SkillRecord[]>([]),
     [skill, setSkill] = useState(""),
     [skillPath, setSkillPath] = useState("");
   const [contexts, setContexts] = useState<
@@ -54,10 +53,6 @@ export function IntelligencePanel({
     });
   useEffect(() => {
     const abort = new AbortController();
-    void models
-      .list(abort.signal)
-      .then(setProfiles)
-      .catch(() => {});
     void wb
       .skills(abort.signal)
       .then(setSkills)
@@ -75,13 +70,14 @@ export function IntelligencePanel({
       .then(() =>
         wb.ask({
           source_object_ids: null,
-          question,
+          question: question.trim() || "整理源码的间距、缩进、分行和段落，保留全部计算与研究说明。",
+          purpose,
           analysis_id: analysis.id,
-          object_id: object?.id ?? null,
-          run_id: matched ? snapshot!.run_id : null,
-          snapshot_id: matched ? snapshot!.id : null,
-          skill_id: skill || null,
-          policy,
+          object_id: purpose === "format_source" ? null : object?.id ?? null,
+          run_id: purpose === "format_source" ? null : matched ? snapshot!.run_id : null,
+          snapshot_id: purpose === "format_source" ? null : matched ? snapshot!.id : null,
+          skill_id: purpose === "format_source" ? null : skill || null,
+          policy: purpose === "format_source" ? {...policy, allow_execute: false} : policy,
         }),
       )
       .then(onTask)
@@ -93,59 +89,33 @@ export function IntelligencePanel({
         <strong>智能助手</strong>
         <select
           aria-label="智能任务角色"
-          value={role}
-          onChange={(e) => setRole(e.target.value as HarnessPolicy["role"])}
+          value={purpose === "format_source" ? "format" : role}
+          onChange={(e) => {
+            setPurpose(e.target.value === "format" ? "format_source" : "general");
+            setRole(e.target.value === "format" ? "code" : e.target.value as HarnessPolicy["role"]);
+          }}
         >
           <option value="explain">解读</option>
           <option value="parse">解析</option>
           <option value="probe">探针</option>
           <option value="code">代码修改</option>
+          <option value="format">整理代码书写</option>
         </select>
         <button onClick={() => setSettings(!settings)} aria-expanded={settings}>
           任务设置
         </button>
-        <button onClick={onModels}>模型设置</button>
       </div>
       <div className="wb-scroll wb-ai-content">
+        <div className="wb-form wb-model-picker">
+          <ProbeModelFields
+            labelPrefix="任务"
+            value={{provider_id: policy.provider_id, model: policy.model ?? ""}}
+            onChange={(value) => update({provider_id: String(value.provider_id || "offline"), model: value.model ? String(value.model) : null})}
+            onModelSettings={onModels}
+          />
+        </div>
         {settings && (
           <div className="wb-form wb-role-settings">
-            <label>
-              模型服务
-              <select
-                aria-label="任务模型服务"
-                value={policy.provider_id}
-                onChange={(e) =>
-                  update({
-                    provider_id: e.target.value,
-                    model:
-                      profiles.find((p) => p.id === e.target.value)
-                        ?.default_model ?? null,
-                  })
-                }
-              >
-                {profiles.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.id} · {p.protocol}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              模型
-              <input
-                aria-label="任务模型"
-                value={policy.model ?? ""}
-                onChange={(e) => update({ model: e.target.value || null })}
-                list="harness-model-list"
-              />
-            </label>
-            <datalist id="harness-model-list">
-              {profiles
-                .find((p) => p.id === policy.provider_id)
-                ?.models.map((id) => (
-                  <option value={id} key={id} />
-                ))}
-            </datalist>
             <label>
               输入预算
               <input
@@ -225,12 +195,12 @@ export function IntelligencePanel({
         <textarea
           className="wb-task-input"
           aria-label="任务指令"
-          placeholder="描述要理解、检查或修改的计算…"
+          placeholder={purpose === "format_source" ? "可选：分行、缩进、段落等书写要求" : "描述要理解、检查或修改的计算…"}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
         <div className="wb-ai-actions">
-          <select
+          {purpose === "general" && <select
             aria-label="使用 Skill"
             value={skill}
             onChange={(e) => setSkill(e.target.value)}
@@ -241,16 +211,16 @@ export function IntelligencePanel({
                 {s.title}
               </option>
             ))}
-          </select>
+          </select>}
           <button
             className="wb-primary"
-            disabled={!analysis || !question.trim()}
+            disabled={!analysis || (purpose === "general" && !question.trim())}
             onClick={ask}
           >
-            执行智能任务
+            {purpose === "format_source" ? "创建整理提案" : "执行智能任务"}
           </button>
         </div>
-        <details className="wb-skill-import">
+        {purpose === "general" && <details className="wb-skill-import">
           <summary>导入 Skill</summary>
           <input
             aria-label="Skill 路径"
@@ -275,7 +245,7 @@ export function IntelligencePanel({
           >
             导入
           </button>
-        </details>
+        </details>}
         <div className="wb-section-label">
           调用记录{" "}
           <button
@@ -311,9 +281,11 @@ export function IntelligencePanel({
 export function ContextView({
   id,
   onError,
+  onProposal,
 }: {
   id: string;
   onError: (message: string) => void;
+  onProposal?: (id: string) => void;
 }) {
   const [record, setRecord] = useState<ContextRecord>();
   useEffect(() => {
@@ -337,6 +309,9 @@ export function ContextView({
       </div>
       <div className="wb-scroll wb-context-view">
         <div className="wb-ai-answer">{record.answer || record.message}</div>
+        {record.citations.filter(c => c.startsWith("proposal:")).map(c => (
+          <button key={c} onClick={() => onProposal?.(c.slice("proposal:".length))}>查看代码提案</button>
+        ))}
         {record.citations.map((c) => (
           <code key={c}>{c}</code>
         ))}

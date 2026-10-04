@@ -73,10 +73,12 @@ async def execute_command(command, arguments, service, settings):
             ]
         if command == "bind":
             from .models import ProbeInstance
+            from .probe_defaults import probe_parameters
 
             instance = ProbeInstance.model_validate(arguments["instance"])
-            service.catalog.resolve(instance.definition_id)
+            definition = service.catalog.resolve(instance.definition_id)
             config = service.configurations.load()
+            instance.parameters = {**probe_parameters(definition, config.probe_defaults.get(definition.id)), **instance.parameters}
             probes = [probe for probe in config.probes if probe.id != instance.id] + [
                 instance
             ]
@@ -125,6 +127,8 @@ async def execute_command(command, arguments, service, settings):
             return service.store.list("proposals")
         if command == "propose":
             return service.changes.propose(**arguments).model_dump(mode="json")
+        if command == "propose-format":
+            return service.changes.propose_format(**arguments).model_dump(mode="json")
         if command in ("accept", "reject", "rollback", "validate"):
             return getattr(service.changes, command)(
                 arguments["proposal_id"]

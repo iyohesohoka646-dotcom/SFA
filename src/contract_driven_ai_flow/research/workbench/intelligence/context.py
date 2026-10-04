@@ -177,10 +177,14 @@ class HarnessContextBuilder:
                 "objects": inventory,
                 "inventory_partial": len(analysis.objects) > 16,
                 "inventory_total": len(analysis.objects),
-                "inventory_tool": "analysis.list(offset, limit)",
+                "inventory_tool": (
+                    "source.read_file" if request.purpose == "format_source"
+                    else "analysis.list(offset, limit)"
+                ),
                 "project_guidance": instructions,
                 "skills": skills.list(),
                 "role": request.policy.role,
+                "purpose": request.purpose,
                 "samples_allowed": request.policy.include_samples,
             }
         )
@@ -193,6 +197,15 @@ class HarnessContextBuilder:
             + json.dumps(manifest, ensure_ascii=False)
         )
         user = clean_text(request.question, 32768)
+        if request.purpose == "format_source":
+            user = (
+                "Improve only this file's writing structure: spacing, indentation, line breaks and separation between sections. "
+                "First read source.read_file, then submit the complete file via code.propose_format. "
+                "Preserve every calculation, name, literal value, declaration, comment and statement order. "
+                "Do not execute code or claim numerical equivalence; the service checks AST and comments. "
+                "If no valid formatting is possible, explain the limitation. Human review is required.\n"
+                + user
+            )
         if request.skill_id:
             skill = skills.load(request.skill_id)
             user += (

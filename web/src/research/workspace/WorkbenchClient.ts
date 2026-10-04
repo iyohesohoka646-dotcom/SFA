@@ -90,6 +90,8 @@ export const wb = {
       undefined,
       signal,
     ),
+  occurrences: (id: string, signal?: AbortSignal) =>
+    call<import("./sourceOccurrences").OccurrenceGroup[]>("/analyses/" + encodeURIComponent(id) + "/occurrences", undefined, signal),
   runAnalysis: (id: string, signal?: AbortSignal) =>
     call<AnalysisDocument>(
       "/runs/" + encodeURIComponent(id) + "/analysis",
@@ -277,6 +279,8 @@ export const wb = {
       candidate,
       relative_path,
     }),
+  proposeFormat: (analysis_id: string, candidate: string) =>
+    call<CodeProposal>("/changes/format", {analysis_id, candidate}),
   change: (id: string, action: "validate" | "accept" | "reject" | "rollback") =>
     call<CodeProposal>("/changes/" + encodeURIComponent(id) + "/" + action, {}),
   validation: (id: string, run_id: string, output_ids: string[]) =>

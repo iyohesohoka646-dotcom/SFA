@@ -148,6 +148,21 @@ class ScientificChangeService:
         return result
 
     def _patched(self, proposal):
+        if proposal.operation == "format":
+            from .source_format import verify_format
+
+            analysis = self.workbench.analysis(proposal.analysis_id)
+            if Path(proposal.path).resolve() != Path(analysis.path).resolve():
+                raise ValueError("Formatting path must match the imported file")
+            source = read_source(Path(proposal.path))
+            if source.digest != proposal.source_digest:
+                raise ValueError("Source changed since this proposal was created")
+            verify_format(source.text, proposal.candidate)
+            compile(proposal.candidate, proposal.path, "exec")
+            raw = Path(proposal.path).read_bytes()
+            encoding, _ = tokenize.detect_encoding(io.BytesIO(raw).readline)
+            proposal.candidate.encode(encoding)
+            return proposal.candidate, source.text, encoding
         if proposal.object_id is None:
             path = Path(proposal.path).resolve()
             if (
@@ -206,6 +221,7 @@ class ScientificChangeService:
         compile(patched, proposal.path, "exec")
         raw = Path(proposal.path).read_bytes()
         encoding, _ = tokenize.detect_encoding(io.BytesIO(raw).readline)
+        patched.encode(encoding)
         return patched, original, encoding
 
     def propose(self, analysis_id, object_id, candidate):
@@ -241,6 +257,17 @@ class ScientificChangeService:
         )
         return self._validate(proposal)
 
+    def propose_format(self, analysis_id, candidate):
+        analysis = self.workbench.analysis(analysis_id)
+        proposal = CodeProposal(
+            analysis_id=analysis_id,
+            operation="format",
+            path=analysis.path,
+            source_digest=analysis.source_digest,
+            candidate=candidate,
+        )
+        return self._validate(proposal)
+
     def _validate(self, proposal):
         try:
             if clean_text(proposal.candidate, 16384) != proposal.candidate:
@@ -264,7 +291,9 @@ class ScientificChangeService:
             )
             proposal.status = "valid"
             proposal.diagnostics = [
-                "Syntax and modification boundary verified; numerical behavior remains unverified"
+                "计算语法树、研究注释及语句顺序保持一致；源码行号会更新，接受前查看差异。"
+                if proposal.operation == "format"
+                else "Syntax and modification boundary verified; numerical behavior remains unverified"
             ]
         except Exception as error:
             proposal.status = "invalid"
@@ -359,6 +388,16 @@ class ScientificChangeService:
 
     def rollback(self, key):
         original = self.get(key)
+        if original.operation == "format":
+            if original.status != "accepted" or original.original_fragment is None:
+                raise ValueError("No accepted formatting source is available for rollback")
+            if read_source(Path(original.path)).digest != original.accepted_digest:
+                raise ValueError("Source changed after acceptance; review a new rollback")
+            analysis = self.workbench.import_source(original.path)
+            proposal = self.propose_format(analysis.id, original.original_fragment)
+            proposal.rollback_of = original.id
+            self.store.put("proposals", proposal.id, proposal)
+            return proposal
         if (
             original.status != "accepted"
             or original.object_id is None

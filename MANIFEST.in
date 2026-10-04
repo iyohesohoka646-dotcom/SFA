@@ -7,7 +7,7 @@ recursive-include src/contract_driven_ai_flow/schemas *.json
 recursive-include web/src *.ts *.tsx *.css
 recursive-include web/public *
 recursive-include web/scripts *.mjs
-recursive-include web/tests *.ts
+recursive-include web/tests *.ts *.json
 recursive-include desktop/src *.cjs *.js *.html *.ps1
 recursive-include desktop/tests *.cjs
 include desktop/package.json desktop/package-lock.json desktop/README.md
@@ -19,6 +19,7 @@ recursive-include docs *.md *.html *.json *.svg *.png
 # Artifact digests are recorded alongside the archives in the repository.
 # Embedding the archive's own digest would make the receipt self-referential.
 exclude docs/assets/scientific-release-validation.json
+exclude docs/assets/workbench-refinement-validation.json
 recursive-include tests *.py
 recursive-include examples *.py *.json *.yaml *.yml *.md
 prune examples/*/.cdaf
