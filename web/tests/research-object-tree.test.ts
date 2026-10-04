@@ -50,8 +50,9 @@ describe("source-ordered object explorer", () => {
     const row = rows.find(row => row.label === "x");
     expect(row?.snapshot?.id).toBe("latest");
     expect(row?.objectId).toBe("b");
-    expect(row?.detail).toContain("观测 v4");
-    expect(row?.detail).toContain("3 处定义");
+    expect(row?.snapshot?.version).toBe(4);
+    expect(row?.objectIds).toHaveLength(3);
+    expect(row?.detail).not.toMatch(/观测|定义/);
   });
 
   it("keeps a logical variable at its first definition when later observations arrive", () => {
@@ -76,15 +77,15 @@ describe("source-ordered object explorer", () => {
     expect(buildObjectTree(doc, [], null, initialObjectExpansion(doc, null), "needle").map(row => row.label)).toEqual(["lab", "analysis.py", "f", "needle"]);
   });
 
-  it("keeps static assignments separate from repeated runtime observation versions", () => {
+  it("keeps one selectable variable while older observations remain available to the data history", () => {
     const doc = analysis([object("x-a", "x", 1), object("x-b", "x", 3)], [block("file", "file", "analysis.py", 1)]);
     const history = [snapshot("a1", 1, 1, "2026-10-04T00:01:00Z"), snapshot("b2", 2, 3, "2026-10-04T00:02:00Z"), snapshot("b3", 3, 3, "2026-10-04T00:03:00Z")];
     const expanded = new Set(["folder:D:/lab", "file", "data:" + key("<module>", "x"), "assignment:x-b"]);
     const rows = buildObjectTree(doc, [history[2]], null, expanded, "", "all", new Map([["data:" + key("<module>", "x"), history]]));
-    expect(rows.filter(row => row.rowKind === "assignment").map(row => row.label)).toEqual(["赋值 #1", "赋值 #2"]);
-    expect(rows.filter(row => row.rowKind === "evidence").map(row => row.label)).toEqual(["观测 v3", "观测 v2"]);
-    expect(rows.filter(row => row.rowKind === "evidence").every(row => row.target.exact_evidence)).toBe(true);
-    expect(selectableObjectOrder(rows).map(target => target.object_id)).toEqual([null, "x-b", "x-b", "x-b"]);
+    expect(rows.filter(row => ["assignment", "evidence"].includes(row.rowKind))).toEqual([]);
+    expect(rows.find(row => row.label === "x")?.snapshot?.id).toBe("b3");
+    expect(rows.find(row => row.label === "x")?.expandable).toBe(false);
+    expect(selectableObjectOrder(rows).map(target => target.object_id)).toEqual([null, "x-b"]);
   });
 
   it("highlights every same-scope assignment without selecting a shadowed function variable", () => {

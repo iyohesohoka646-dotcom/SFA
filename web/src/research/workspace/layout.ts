@@ -128,7 +128,7 @@ export function createLayout(): WorkspaceLayout {
     activeGroup: "main",
     locked: false,
     presets: {},
-    explorerWidth: 218,
+    explorerWidth: 276,
   };
 }
 export const groups = (node: LayoutNode): Group[] =>
@@ -186,6 +186,8 @@ function baseReducer(
         action.group && groups(state.tree).some((g) => g.id === action.group)
           ? action.group
           : null,
+      activeGroup: action.group && groups(state.tree).some((g) => g.id === action.group)
+        ? action.group : state.activeGroup,
     };
   if (action.type === "resize")
     return state.locked
@@ -229,7 +231,7 @@ function baseReducer(
     );
     const target =
       existing?.id ??
-      state.focused ??
+      (action.background ? null : state.focused) ??
       (groups(state.tree).some((g) => g.id === action.group)
         ? action.group!
         : state.activeGroup);

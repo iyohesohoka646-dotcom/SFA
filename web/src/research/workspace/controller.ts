@@ -20,13 +20,13 @@ import { useWorkspace } from "./useWorkspace";
 import { wb } from "./WorkbenchClient";
 import { scopeSelector, type Selection } from "./selection";
 import { groups, type DocumentKind, type WorkspaceDocument } from "./layout";
-import { currentProbeBlock } from "./probe-configuration";
+import { currentProbeBlock, snapshotProbeTarget } from "./probe-configuration";
 
 export function useWorkbench() {
   const [info, setInfo] = useState<ResearchInfo>(),
     [runs, setRuns] = useState<RunRecord[]>([]),
     [runId, setRunIdRaw] = useState("");
-  const [config, setConfig] = useState<WorkbenchConfig>(),
+  const [config, setConfigRaw] = useState<WorkbenchConfig>(),
     [definitions, setDefinitions] = useState<ProbeDefinition[]>([]);
   const [script, setScriptRaw] = useState(""),
     [interpreter, setInterpreterRaw] = useState(""),
@@ -57,6 +57,11 @@ export function useWorkbench() {
     importVersion = useRef(0),
     runRef = useRef(runId),
     stateRef = useRef(state);
+  const configurationRef = useRef<WorkbenchConfig | undefined>(undefined), configurationQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const setConfig = useCallback((next: WorkbenchConfig | undefined) => {
+    configurationRef.current = next;
+    setConfigRaw(next);
+  }, []);
   const followedTask = useRef<string | null>(null);
   const setRunId = useCallback((id: string) => {
     followedTask.current = null;
@@ -139,7 +144,9 @@ export function useWorkbench() {
       setTasks((current) =>
         [task, ...current.filter((t) => t.id !== task.id)].slice(0, 64),
       );
-      open("tasks", {}, "任务与结果", true, "bottom");
+      // An asynchronously created task must not switch a maximized view away
+      // from the graph/data controls the user has already started using.
+      open("tasks", {}, "任务与结果", true, "bottom", true);
     },
     [open],
   );
@@ -368,9 +375,13 @@ export function useWorkbench() {
   }, [tasks, runId, state.status]);
 
   const selectSnapshot = useCallback(
-    (value: SnapshotRef, group = "main") => {
+    (value: SnapshotRef, group = "main", exactEvidence = false) => {
       setSelected(value.binding_id);
       setFocusSnapshot(value);
+      if (exactEvidence && (viewAnalysis ?? analysis)) {
+        const target = { ...snapshotProbeTarget(value, (viewAnalysis ?? analysis)!), exact_evidence: true };
+        setSelection({ targets: [target], anchor: null });
+      }
       if (analysis && value.source?.digest === analysis.source_digest) {
         const object =
           analysis.objects.find(
@@ -409,7 +420,7 @@ export function useWorkbench() {
         group,
       );
     },
-    [open, analysis],
+    [open, analysis, viewAnalysis],
   );
   const selectBinding = useCallback(
     (id: string) => {
@@ -421,18 +432,22 @@ export function useWorkbench() {
   const parse = () => loading.run((signal) => imported(script, signal));
   const sourceReady = Boolean(analysis && (script === analysis.path || script === analysisInputPath));
   const probeScopeBlock = currentProbeBlock(viewAnalysis, blockScope)?.id ?? null;
-  const saveConfig = async (signal?: AbortSignal) => {
-    if (!config || !analysis) throw new Error("先导入源码");
-    const next = await wb.configure(
-      { ...config, script: analysis.path, interpreter },
-      signal,
-    );
-    if (!signal?.aborted) {
-      setConfig(next);
-      setDirty(false);
-      setNotice("配置已保存");
-    }
-    return next;
+  const saveConfig = (signal?: AbortSignal) => {
+    const save = async () => {
+      const current = configurationRef.current;
+      if (!current || !analysis) throw new Error("先导入源码");
+      const next = await wb.configure({ ...current, script: analysis.path, interpreter }, signal);
+      if (!signal?.aborted) {
+        const latest = configurationRef.current, unchanged = latest === current;
+        setConfig(unchanged ? next : { ...latest!, revision: next.revision });
+        setDirty(!unchanged);
+        setNotice(unchanged ? "配置已保存" : "还有未保存的修改");
+      }
+      return next;
+    };
+    const pending = configurationQueue.current.then(save, save);
+    configurationQueue.current = pending.then(() => undefined, () => undefined);
+    return pending;
   };
   const run = (scope: "compute" | "probes" | "replot" = "compute") =>
     preparing.run(async (signal) => {

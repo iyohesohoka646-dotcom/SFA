@@ -18,7 +18,7 @@
 .object-browser .tree-toggle svg { display: block; width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.5; }
 .object-browser .tree-chevron { display: block; transform: rotate(-90deg); }
 .object-browser .tree-chevron.open { transform: rotate(0); }
-.object-browser .tree-toggle-spacer { width: 18px; flex: 0 0 18px; }
+.object-browser .tree-toggle-spacer { width: 6px; flex: 0 0 6px; }
 .object-browser .object-kind-icon { flex: 0 0 15px; color: var(--muted); }
 .object-browser .object-kind-icon.variable { color: var(--accent); }
 .object-browser .object-kind-icon.folder, .object-browser .object-kind-icon.function { color: var(--text); }
@@ -29,3 +29,19 @@
 .object-browser .object-row.tree-focused { outline: 1px solid var(--line-strong, var(--line)); outline-offset: -1px; }
 .object-browser .object-tree-empty { padding: 12px; color: var(--muted); font-size: 12px; }
 .object-browser .object-tree-notice { padding: 5px 8px; color: var(--muted); }
+.object-browser .object-row-name { flex: 1 1 auto; min-width: 20px; }
+.object-browser .object-metadata { display: grid; grid-template-columns: 48px 52px 24px; align-items: center; flex: 0 0 124px; gap: 0; }
+.object-browser .object-metadata small { max-width: none; margin: 0; text-align: right; padding-right: 4px; }
+.object-browser .object-probe-count { width: 24px; min-height: 22px; padding: 0; border: 0; background: transparent; color: var(--accent); font-size: 10px; border-radius: 3px; }
+.object-browser .object-probe-count:hover { background: var(--hover); }
+.object-browser .object-column-headings { display: grid; grid-template-columns: minmax(30px,1fr) 48px 52px 24px; gap: 0; padding: 4px 8px 4px 11px; color: var(--muted); font-size: 10px; border-bottom: 1px solid var(--line); }
+.object-browser .object-column-headings span:not(:first-child) { text-align: right; padding-right: 4px; }
+.object-browser .object-filters { display: flex; }
+.object-browser .object-filters > input { width: 100%; }
+.object-browser .object-filters > select { flex: 1; min-width: 0; width: auto; }
+.object-browser { container-type: inline-size; }
+@container (max-width: 250px) {
+  .object-browser .object-metadata { grid-template-columns: 40px 43px 20px; flex-basis: 103px; }
+  .object-browser .object-column-headings { grid-template-columns: minmax(30px,1fr) 40px 43px 20px; }
+  .object-browser .object-probe-count { width: 20px; }
+}

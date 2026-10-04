@@ -3,6 +3,7 @@ import ELK from "elkjs/lib/elk.bundled.js";
 import type { Edge, Node } from "@xyflow/react";
 import { buildSemanticLayout, readSemanticLayout, semanticDimensions, semanticLayoutBounds, readableGraphViewport, type SemanticLayout } from "../src/graph-semantic-layout";
 import browserDataFolded from "./fixtures/graph-browser-data-folded.json";
+import compactLoop from "./fixtures/compact-loop-elk.json";
 
 const handles = (input: number, output: number) => [
   ...Array.from({ length: input }, (_, i) => ({ id: "in" + i, direction: "input", name: "input " + i, kind: "data", boundary: false, original_ids: [] })),
@@ -11,6 +12,52 @@ const handles = (input: number, output: number) => [
 const node = (id: string, parentId?: string, plate = false, ports = handles(1, 1)): Node => ({ id, parentId, type: plate ? "plate" : "semantic", position: { x: 0, y: 0 }, style: semanticDimensions({ plate, label: id, handles: ports }), data: { label: id, handles: ports, collapsed: false } });
 
 describe("measured semantic compound layout", () => {
+  it("routes the actual nested loop projection vertically without experimental scanline compaction", async () => {
+    const graph = structuredClone(compactLoop.graph) as ReturnType<typeof buildSemanticLayout>;
+    const options = buildSemanticLayout([], [], 'DOWN').layoutOptions!;
+    const update = (item: typeof graph) => {
+      const constraints = item.layoutOptions?.['elk.portConstraints'];
+      item.layoutOptions = { ...options, ...(constraints ? { 'elk.portConstraints': constraints } : {}) };
+      item.children?.forEach(update);
+    };
+    update(graph);
+    const layout = readSemanticLayout(await new ELK().layout(graph));
+    expect(layout.nodes.size).toBe(12);
+    expect(layout.edges.size).toBe(graph.edges!.length);
+    for (const b of layout.nodes.values()) expect([b.x, b.y, b.width, b.height].every(Number.isFinite)).toBe(true);
+    for (const route of layout.edges.values()) for (let i = 1; i < route.points.length; i++) {
+      const a = route.points[i - 1], b = route.points[i];
+      expect(a.x === b.x || a.y === b.y).toBe(true);
+    }
+  });
+  it("uses compact aligned nodes and orthogonal channels with matching ports in both directions", async () => {
+    for (const direction of ['RIGHT', 'DOWN']) {
+      const nodes = ['a', 'b', 'c'].map(id => {
+        const n = node(id);
+        n.style = semanticDimensions({ label: id, plate: false, handles: handles(1, 1), compact: true });
+        n.data.compact = true;
+        return n;
+      });
+      const edges: Edge[] = ['b', 'c'].map(target => ({ id: 'a-' + target, source: 'a', target, sourceHandle: 'out0', targetHandle: 'in0' }));
+      const input = buildSemanticLayout(nodes, edges, direction);
+      const ports = input.children![0].ports!;
+      expect(ports[0].layoutOptions!['elk.port.side']).toBe(direction === 'DOWN' ? 'NORTH' : 'WEST');
+      expect(ports[1].layoutOptions!['elk.port.side']).toBe(direction === 'DOWN' ? 'SOUTH' : 'EAST');
+      const layout = readSemanticLayout(await new ELK().layout(input));
+      const b = layout.nodes.get('b')!, c = layout.nodes.get('c')!;
+      expect(direction === 'DOWN' ? b.y : b.x).toBe(direction === 'DOWN' ? c.y : c.x);
+      for (const e of edges) {
+        const route = layout.edges.get(e.id)!, from = layout.nodes.get(e.source)!, to = layout.nodes.get(e.target)!;
+        // ELK connects the outer faces of the 8 px handles, not their centers.
+        expect(route.points[0]).toEqual({ x: from.x + from.ports.get('out0')!.x + (direction === 'RIGHT' ? 4 : 0), y: from.y + from.ports.get('out0')!.y + (direction === 'DOWN' ? 4 : 0) });
+        expect(route.points.at(-1)).toEqual({ x: to.x + to.ports.get('in0')!.x - (direction === 'RIGHT' ? 4 : 0), y: to.y + to.ports.get('in0')!.y - (direction === 'DOWN' ? 4 : 0) });
+        for (let i = 1; i < route.points.length; i++) {
+          const p = route.points[i - 1], q = route.points[i];
+          expect(p.x === q.x || p.y === q.y).toBe(true);
+        }
+      }
+    }
+  });
   it("measures input and output columns independently and reserves a real footer", () => {
     const both = semanticDimensions({ label: "normalize", plate: false, handles: handles(5, 4) });
     const inputOnly = semanticDimensions({ label: "normalize", plate: false, handles: handles(5, 0) });
@@ -75,7 +122,7 @@ describe("measured semantic compound layout", () => {
       expect(p.width).toBeGreaterThan(0); expect(p.height).toBeGreaterThan(0);
       if (n.parentId) {
         const parent = layout.nodes.get(n.parentId)!;
-        expect(p.x).toBeGreaterThanOrEqual(20); expect(p.y).toBeGreaterThanOrEqual(64);
+        expect(p.x).toBeGreaterThanOrEqual(20); expect(p.y).toBeGreaterThanOrEqual(48);
         expect(p.x + p.width).toBeLessThanOrEqual(parent.width - 18);
         expect(p.y + p.height).toBeLessThanOrEqual(parent.height - 18);
       }

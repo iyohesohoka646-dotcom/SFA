@@ -1,4 +1,6 @@
-# Scientific Dataflow Inspector 0.5.2 本地候选版
+# Scientific Dataflow Inspector 0.5.3 本地候选版
+
+0.5.3 简化为逻辑变量表与 Code／Data 两种关系图，每个启用的呈现探针对应独立可折叠视图。修复下拉选择、重复变量历史、保存后立即执行的版本冲突、异步任务抢占放大视图、数值表坐标和嵌套循环纵向布局。网格、统一单元尺寸、正交排线与 Back／Root 提供紧凑导航。[本轮改进与验证](research/compact-workbench-0.5.3.md)。
 
 0.5.2 按截图反馈更新对象浏览器、探针绑定、模型选择和计算图：重复赋值按词法作用域合并并显示最后实际观测值，选中后标出同作用域内全部源码引用；探针台分对象列出已有绑定，探针库保存新实例的默认参数；图设置浮在画布上，结构、数据和执行视图区分语义，支持拖动画布、标记折叠端口及嵌套布局。智能助手增加书写整理提案，在语法树、注释和编码校验后供用户审查。[本轮改进与验证](research/interaction-refinement-0.5.2.md)。
 
@@ -8,7 +10,7 @@
 
 ## 操作
 
-选择 Python 脚本后点击“导入解析”；这一步不运行用户代码。单击对象或图节点只选择，Ctrl/Cmd 和 Shift 支持多选；双击、Enter 或右键菜单才打开数据、源码或进入块。关系图默认为结构总览，保留完整背景；“淡化无关对象”可单独开启。首次导入和结构变化使用 ELK Worker 布局，选择、数值更新和虚化不重新布局。
+选择 Python 脚本后点击“导入解析”；这一步不运行用户代码。单击对象或图节点只选择，Ctrl/Cmd 和 Shift 支持多选；双击、Enter 或右键菜单才打开数据、源码或进入块。关系图默认为 Code，Data 只显示变量依赖。保留完整背景，淡化可单独开启；Arrange 使用 ELK Worker 的对齐与正交排线，选择、数值更新和淡化不重新布局。每个有效呈现探针有独立可折叠区域，下拉可单看一个。
 
 新项目提供可见、可停用和可删除的“自动数据视图”探针。对象名称、类型、形状和来源始终可见，表格、热图和其他图形由有效呈现探针提供。探针库分别管理公开资源、已安装扩展、自定义程序和 Skill；参数修改先保存绑定，计算、绘图和模型调用都需要明确点击执行。联合计算需要完整输入，缺少完整数据或坐标会给出诊断，补采集产生新运行。
 
@@ -21,11 +23,13 @@ cdaf terminal --project .\experiment
 cdaf workbench --help
 ```
 
-Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包为 `dist/desktop/Scientific Dataflow Inspector Setup 0.5.2.exe`。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
+Windows 本地程序为 `dist/desktop/win-unpacked/Scientific Dataflow Inspector.exe`；NSIS 安装包为 `dist/desktop/Scientific Dataflow Inspector Setup 0.5.3.exe`。关闭最后一个拥有服务的浏览器标签后服务停止，刷新有宽限；需要持续服务时使用 `cdaf serve`。[工作台使用](research/workbench.md) · [CLI](research/cli.md) · [桌面构建](../desktop/README.md)。
 
 ## 验证与边界
 
-0.5.0 的检查、包摘要和审查裁决记录在[此前验收记录](research/hierarchical-workbench-validation.md)，0.5.1 的启动与管理修复保留原记录，本次按上方 0.5.2 记录核对。测试区分结构解析、真实计算、浏览器操作、隔离安装和原生程序；性能记录注明夹具与测量范围。真实 Windows 桌面验收包含中文脚本、矩阵异常、配置绘图后重绘、共享 CLI 历史、内嵌多会话终端及关窗后的端口和进程释放。
+0.5.3 的[机器可读验收记录](assets/workbench-compact-validation.json)核对 87 个浏览器场景、103 个前端单元检查、773 项 Python 检查及 8 个平台条件跳过。Python 首轮唯一失败是本地 editable 安装元数据仍为 0.5.2，刷新安装后该项补测通过。原桌面快捷方式实际打开 0.5.3，原 3 次运行和数据库记录保留；248 个核心包文件与经过隔离安装检查的 wheel 逐字节一致。Windows 125% 原生使用和 150% 三种真实终端、重连、启动恢复与退出清理通过。类型与生产构建、wheel 和源归档隔离安装均通过。当前千对象选择 P95 为 6.1 ms，隐藏图时为 6.2 ms。[详细结果](research/compact-workbench-0.5.3.md)。
+
+0.5.0 的检查、包摘要和审查裁决记录在[此前验收记录](research/hierarchical-workbench-validation.md)，0.5.1、0.5.2 保留原记录。测试区分结构解析、真实计算、浏览器操作、隔离安装和原生程序；性能记录注明夹具与测量范围。Windows 原生使用检查涵盖中文脚本、矩阵异常、配置绘图后重绘、共享 CLI 历史、内嵌多会话终端及关窗后的端口和进程释放。
 
 [选择性能](assets/scientific-performance.json) 使用 1000 个对象、10000 条历史事件的夹具，检查选中样式实际变化并测量到下一帧的延迟；它不包含科学计算或冷导入。[解析性能](assets/scientific-parser-performance.json) 单独记录千级中文对象的静态解析。[运行开销](research/performance.md) 保留原有实验条件，不能推广成任意程序的速度保证。
 

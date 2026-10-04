@@ -102,6 +102,7 @@ test("real tree function and graph operation selections resolve to distinct froz
   await runCompute(page);
   const tabs = await page.locator(".workspace-tab").count();
   const tree = page.getByRole("tree", { name: "计算对象树" });
+  await page.getByLabel("对象类型").selectOption("all");
   await page.getByRole("searchbox", { name: "搜索对象", exact: true }).fill("calculate");
   const functionRow = tree
     .locator(".object-row-name")
@@ -128,16 +129,16 @@ test("real tree function and graph operation selections resolve to distinct froz
   await expect(page.getByTestId("graph-layout-metric")).toHaveText(
     /· [1-9]\d* ms$/,
   );
-  await page.getByRole("button", { name: "展开 calculate", exact: true }).click();
+  await page.getByRole("button", { name: "Expand calculate", exact: true }).click();
   await expect(page.locator(".wb-graph-pane")).toHaveAttribute("data-layout-state", "ready");
   await page.getByRole("button", { name: "适应画布", exact: true }).click();
   await page
     .locator(".semantic-node .semantic-heading strong")
-    .filter({ hasText: /^a = x \+ 1$/ })
+    .filter({ hasText: /^a$/ })
     .click();
   await page
     .locator(".semantic-node .semantic-heading strong")
-    .filter({ hasText: /^b = a \* 2$/ })
+    .filter({ hasText: /^b$/ })
     .click({ modifiers: ["Control"] });
   await expect(page.locator(".object-selection")).toContainText("2 项选中");
   const second = await runSelected(page, "probes");
@@ -162,15 +163,14 @@ test("selecting v1 and replotting through the toolbar evaluates that exact histo
   await runCompute(page);
   const tree = page.getByRole("tree", { name: "计算对象树" });
   await page.getByRole("searchbox", { name: "搜索对象", exact: true }).fill("X");
-  await tree.getByRole("button", { name: "展开 X", exact: true }).click();
-  await tree.getByRole("button", { name: "展开 赋值 #1", exact: true }).click();
-  const old = tree
+  const variable = tree
     .locator(".object-row-name")
-    .filter({ hasText: /^观测 v1$/ })
+    .filter({ hasText: /^X$/ })
     .locator("..");
-  await expect(old).toBeVisible();
-  await old.click();
-  await expect(old).toHaveAttribute("aria-selected", "true");
+  await variable.dblclick();
+  await page.getByRole("button", { name: "查看变量历史", exact: true }).click();
+  await page.getByRole("button", {name: "版本 1", exact: true}).click();
+  await expect(page.getByTestId("matrix-definition")).toContainText("v1");
   const result = await runSelected(page, "replot");
   const selected = result.plan.target_scope.targets[0];
   expect(selected.exact_evidence).toBe(true);

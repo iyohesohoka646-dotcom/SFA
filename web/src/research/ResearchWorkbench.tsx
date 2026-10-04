@@ -194,7 +194,7 @@ export default function ResearchWorkbench() {
   };
   const selectVersion = useCallback(
     (value: SnapshotRef, pinned = false) => {
-      if (!pinned) return c.selectSnapshot(value);
+      if (!pinned) return c.selectSnapshot(value, "main", true);
       const id = "data:" + value.id;
       const currentGroup = groups(c.layout.tree).find((g) =>
         g.tabs.includes(id),
@@ -769,6 +769,8 @@ export default function ResearchWorkbench() {
           <>
             <aside className="wb-explorer" style={{ width }}>
               <ObjectBrowser
+                config={c.config}
+                definitions={c.definitions}
                 outputs={c.outputs}
                 analysis={c.viewAnalysis}
                 values={c.values}

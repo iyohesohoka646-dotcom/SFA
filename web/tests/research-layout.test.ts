@@ -64,6 +64,21 @@ describe('scientific document geometry and immutable references', () => {
     state = layoutReducer(state, { type: 'focus', group: null });
     expect(JSON.stringify(state.tree)).toBe(tree);
   });
+  it('maximizing a different group activates its own controls', () => {
+    let state = layoutReducer(createLayout(), { type: 'open', document: { ...data('probe'), kind: 'probes' }, group: 'detail' });
+    expect(state.activeGroup).toBe('detail');
+    state = layoutReducer(state, { type: 'focus', group: 'main' });
+    expect(state.activeGroup).toBe('main');
+    expect(state.focused).toBe('main');
+  });
+  it('a delayed task stays in the results slot without interrupting a maximized graph', () => {
+    let state = layoutReducer(createLayout(), { type: 'focus', group: 'main' });
+    state = layoutReducer(state, { type: 'open', document: { ...data('tasks'), kind: 'tasks' }, group: 'bottom', background: true });
+    expect(state.focused).toBe('main');
+    expect(state.activeGroup).toBe('main');
+    expect(groups(state.tree).find(g => g.id === 'bottom')?.tabs).toContain('tasks');
+    expect(groups(state.tree).find(g => g.id === 'main')?.tabs).not.toContain('tasks');
+  });
   it('a late preview cannot replace a pinned snapshot or a different run', () => {
     let state = layoutReducer(createLayout(), { type: 'open', document: data('s1', true), group: 'main' });
     state = layoutReducer(state, { type: 'open', document: data('s2'), group: 'main' });

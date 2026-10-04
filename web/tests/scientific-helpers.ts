@@ -31,7 +31,7 @@ export async function selectObject(page:Page,name:string,toggle=false) {
 }
 export async function chooseValue(page: Page, name: string) {
   const row=await selectObject(page,name);
-  await expect(row.locator('small')).toContainText(/v\d+/);
+  await expect(row.locator('.object-dtype')).not.toHaveText('—');
   await row.dblclick();
   await expect(page.getByTestId('current-variable').last()).toHaveText(name);
 }

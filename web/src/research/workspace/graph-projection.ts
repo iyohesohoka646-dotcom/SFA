@@ -11,12 +11,16 @@ export interface GraphHandle {
   boundary: boolean;
   original_ids: string[];
   y?: number;
+  x?: number;
+  side?: "WEST" | "EAST" | "NORTH" | "SOUTH";
 }
 export type ProjectionNode = (GraphNode | GraphBlock) & {
   parent_id: string | null;
   plate: boolean;
   collapsed: boolean;
   handles: GraphHandle[];
+  original_node_ids?: string[];
+  original_object_ids?: string[];
 };
 export type ProjectionEdge = GraphEdge & {
   displayLabel: string;

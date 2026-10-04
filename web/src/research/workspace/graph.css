@@ -28,11 +28,17 @@
 .wb-graph-pane .graph-settings-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
 .wb-graph-pane .graph-settings-actions button { min-height: 26px; padding: 4px 8px; font-size: 11px; }
 .wb-graph-pane .graph-settings p { margin: 8px 0 0; color: var(--ri-muted); font-size: 10px; line-height: 1.5; }
-.wb-graph-pane .semantic-node { --node-color: #397dab; position: relative; width: 100%; height: 100%; border: 1px solid color-mix(in srgb, var(--node-color) 66%, var(--ri-line)); border-left: 4px solid var(--node-color); border-radius: 5px; background: color-mix(in srgb, var(--node-color) 7%, var(--ri-panel)); color: var(--ri-text); font-size: 12px; box-sizing: border-box; }
+.wb-graph-pane .semantic-node { --node-color: #397dab; position: relative; width: 100%; height: 100%; border: 1px solid color-mix(in srgb, var(--node-color) 66%, var(--ri-line)); border-left: 2px solid var(--node-color); border-radius: 5px; background: color-mix(in srgb, var(--node-color) 7%, var(--ri-panel)); color: var(--ri-text); font-size: 12px; box-sizing: border-box; }
 .wb-graph-pane .semantic-node.kind-data,
-.wb-graph-pane .semantic-node.kind-parameter { --node-color: #247c68; border-left-width: 1px; border-radius: 13px; background: color-mix(in srgb, #247c68 11%, var(--ri-panel)); }
+.wb-graph-pane .semantic-node.kind-parameter { --node-color: #247c68; border-left-width: 1px; border-radius: 13px; background: color-mix(in srgb, var(--node-color) 11%, var(--ri-panel)); }
+.wb-graph-pane .semantic-node.kind-data.data-shape-vector { --node-color: #327c9b; }
+.wb-graph-pane .semantic-node.kind-data.data-shape-table { --node-color: #725eaa; }
+.wb-graph-pane .semantic-node.kind-data.data-shape-scalar { --node-color: #9a7134; }
+.wb-graph-pane .semantic-node.kind-data.data-shape-object,
+.wb-graph-pane .semantic-node.kind-data.data-shape-mapping,
+.wb-graph-pane .semantic-node.kind-data.data-shape-text { --node-color: #687887; }
 .wb-graph-pane .semantic-node.data-shape-scalar { border-radius: 24px; }
-.wb-graph-pane .semantic-node.data-shape-table { border-radius: 3px; border-top: 4px solid var(--node-color); }
+.wb-graph-pane .semantic-node.data-shape-table { border-radius: 3px; border-top: 2px solid var(--node-color); }
 .wb-graph-pane .semantic-node.data-shape-tensor { border-radius: 13px 3px 13px 3px; }
 .wb-graph-pane .semantic-node.kind-condition { --node-color: #a58429; border-radius: 2px; }
 .wb-graph-pane .semantic-node.kind-loop_header { --node-color: #ad7042; border-radius: 9px; }
@@ -57,7 +63,7 @@
 .wb-graph-pane .semantic-plate.kind-condition { --plate-color: #ac923f; }
 .wb-graph-pane .semantic-plate.kind-loop { --plate-color: #af7b52; }
 .wb-graph-pane .semantic-plate.kind-try { --plate-color: #af737b; }
-.wb-graph-pane .semantic-plate.is-collapsed { background: color-mix(in srgb, var(--plate-color) 11%, var(--ri-panel)); border-style: solid; border-top: 3px solid var(--plate-color); }
+.wb-graph-pane .semantic-plate.is-collapsed { background: color-mix(in srgb, var(--plate-color) 11%, var(--ri-panel)); border-style: solid; border-top: 2px solid var(--plate-color); }
 .wb-graph-pane .semantic-plate header { height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 10px; border-bottom: 1px solid color-mix(in srgb, var(--plate-color) 24%, var(--ri-line)); background: color-mix(in srgb, var(--plate-color) 5%, var(--ri-panel)); border-radius: 7px 7px 0 0; font-size: 12px; pointer-events: auto; cursor: move; }
 .wb-graph-pane .semantic-plate header strong { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .wb-graph-pane .semantic-plate header small { color: var(--plate-color); margin-left: auto; flex: none; font-size: 10px; }
@@ -102,6 +108,12 @@
 .scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node { --node-color: #7fbfe8; }
 .scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-data,
 .scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-parameter { --node-color: #6fd1b5; }
+.scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-data.data-shape-vector { --node-color: #7fbfe1; }
+.scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-data.data-shape-table { --node-color: #b6a4e4; }
+.scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-data.data-shape-scalar { --node-color: #dec471; }
+.scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-data.data-shape-object,
+.scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-data.data-shape-mapping,
+.scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-data.data-shape-text { --node-color: #a8becd; }
 .scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-condition,
 .scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-merge { --node-color: #dec471; }
 .scientific-workspace[data-theme="dark"] .wb-graph-pane .semantic-node.kind-loop_header { --node-color: #dfaa7e; }
@@ -132,3 +144,22 @@
   .wb-graph-pane .graph-toolbar > input { min-width: 76px; width: 90px; }
   .wb-graph-pane .graph-mode-note { font-size: 9px; }
 }
+.wb-graph-pane .semantic-heading { height: 42px; padding: 5px 9px; }
+.wb-graph-pane .semantic-heading small { margin-bottom: 1px; }
+.wb-graph-pane .semantic-plate header { height: 34px; padding: 0 7px; }
+.wb-graph-pane .semantic-plate.is-expanded { background: color-mix(in srgb, var(--plate-color) 6%, var(--ri-panel)); border-style: solid; }
+.wb-graph-pane .semantic-plate.is-collapsed .plate-summary { position: absolute; bottom: 4px; right: 6px; padding: 0; font-size: 9px; }
+.wb-graph-pane .graph-port-label { font-size: 9px; padding: 0 7px; }
+.wb-graph-pane .semantic-node .graph-port-label { display: none; }
+.wb-graph-pane .vertical-port { width: 0; height: 0; transform: none; }
+.wb-graph-pane .vertical-port .react-flow__handle { left: 50%; top: 50%; right: auto; transform: translate(-50%,-50%); }
+.wb-graph-pane .vertical-port .graph-port-label { display: none; }
+.wb-graph-pane .graph-detail { position: absolute; top: 48px; right: 10px; width: 340px; max-width: calc(100% - 20px); max-height: calc(100% - 82px); overflow: auto; z-index: 21; border: 1px solid var(--ri-line); border-radius: 5px; background: var(--ri-panel); padding: 10px; }
+.wb-graph-pane .graph-detail header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.wb-graph-pane .graph-detail dl div { display: flex; gap: 8px; margin: 3px 0; font-size: 11px; }
+.wb-graph-pane .graph-detail dd { margin: 0; }
+.wb-graph-pane .graph-detail pre { white-space: pre-wrap; overflow: auto; background: var(--canvas); padding: 8px; font: 11px/1.5 Consolas,monospace; }
+.wb-graph-pane .graph-toolbar { gap: 4px; }
+.wb-graph-pane .graph-toolbar > strong { min-width: 0; }
+.wb-graph-pane .graph-toolbar > input { width: 94px; }
+.wb-graph-pane .graph-toolbar > button { min-height: 26px; padding: 3px 7px; }

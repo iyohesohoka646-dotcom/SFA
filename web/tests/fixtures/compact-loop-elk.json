@@ -1,0 +1,633 @@
+{
+  "cmd": "layout",
+  "graph": {
+    "id": "semantic",
+    "layoutOptions": {
+      "elk.algorithm": "layered",
+      "elk.direction": "DOWN",
+      "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+      "elk.edgeRouting": "ORTHOGONAL",
+      "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+      "elk.spacing.nodeNode": "24",
+      "elk.spacing.edgeNode": "16",
+      "elk.spacing.edgeEdge": "12",
+      "elk.spacing.labelNode": "10",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+      "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+      "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+      "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+      "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+      "elk.layered.wrapping.strategy": "MULTI_EDGE",
+      "elk.layered.wrapping.additionalEdgeSpacing": "20",
+      "elk.aspectRatio": "1.7",
+      "elk.randomSeed": "1"
+    },
+    "children": [
+      {
+        "id": "a482e5583257e440184d0208",
+        "width": 288,
+        "height": 80,
+        "children": [
+          {
+            "id": "9b45e79e4093db59d69bde33",
+            "width": 288,
+            "height": 80,
+            "children": [
+              {
+                "id": "a4b43bbc1791e868ced8f10a",
+                "width": 288,
+                "height": 80,
+                "ports": [
+                  {
+                    "id": "a4b43bbc1791e868ced8f10a::handle::output:backedge:repeat",
+                    "x": 140,
+                    "y": 76,
+                    "width": 8,
+                    "height": 8,
+                    "layoutOptions": {
+                      "elk.port.side": "SOUTH",
+                      "elk.port.index": "0"
+                    }
+                  },
+                  {
+                    "id": "a4b43bbc1791e868ced8f10a::handle::input:control:body",
+                    "x": 140,
+                    "y": -4,
+                    "width": 8,
+                    "height": 8,
+                    "layoutOptions": {
+                      "elk.port.side": "NORTH",
+                      "elk.port.index": "0"
+                    }
+                  }
+                ],
+                "layoutOptions": {
+                  "elk.algorithm": "layered",
+                  "elk.direction": "DOWN",
+                  "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+                  "elk.edgeRouting": "ORTHOGONAL",
+                  "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+                  "elk.spacing.nodeNode": "24",
+                  "elk.spacing.edgeNode": "16",
+                  "elk.spacing.edgeEdge": "12",
+                  "elk.spacing.labelNode": "10",
+                  "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+                  "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+                  "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+                  "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+                  "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+                  "elk.layered.wrapping.strategy": "MULTI_EDGE",
+                  "elk.layered.wrapping.additionalEdgeSpacing": "20",
+                  "elk.aspectRatio": "1.7",
+                  "elk.randomSeed": "1",
+                  "elk.portConstraints": "FIXED_POS"
+                }
+              },
+              {
+                "id": "b5d2c980be2b61a60971df08",
+                "width": 192,
+                "height": 96,
+                "ports": [
+                  {
+                    "id": "b5d2c980be2b61a60971df08::handle::input:control:",
+                    "x": 84,
+                    "y": -4,
+                    "width": 8,
+                    "height": 8,
+                    "layoutOptions": {
+                      "elk.port.side": "NORTH",
+                      "elk.port.index": "0"
+                    }
+                  },
+                  {
+                    "id": "b5d2c980be2b61a60971df08::handle::input:backedge:repeat",
+                    "x": 100,
+                    "y": -4,
+                    "width": 8,
+                    "height": 8,
+                    "layoutOptions": {
+                      "elk.port.side": "NORTH",
+                      "elk.port.index": "1"
+                    }
+                  },
+                  {
+                    "id": "b5d2c980be2b61a60971df08::handle::output:control:body",
+                    "x": 84,
+                    "y": 92,
+                    "width": 8,
+                    "height": 8,
+                    "layoutOptions": {
+                      "elk.port.side": "SOUTH",
+                      "elk.port.index": "0"
+                    }
+                  },
+                  {
+                    "id": "b5d2c980be2b61a60971df08::handle::output:control:exit",
+                    "x": 100,
+                    "y": 92,
+                    "width": 8,
+                    "height": 8,
+                    "layoutOptions": {
+                      "elk.port.side": "SOUTH",
+                      "elk.port.index": "1"
+                    }
+                  }
+                ],
+                "layoutOptions": {
+                  "elk.algorithm": "layered",
+                  "elk.direction": "DOWN",
+                  "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+                  "elk.edgeRouting": "ORTHOGONAL",
+                  "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+                  "elk.spacing.nodeNode": "24",
+                  "elk.spacing.edgeNode": "16",
+                  "elk.spacing.edgeEdge": "12",
+                  "elk.spacing.labelNode": "10",
+                  "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+                  "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+                  "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+                  "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+                  "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+                  "elk.layered.wrapping.strategy": "MULTI_EDGE",
+                  "elk.layered.wrapping.additionalEdgeSpacing": "20",
+                  "elk.aspectRatio": "1.7",
+                  "elk.randomSeed": "1",
+                  "elk.portConstraints": "FIXED_POS"
+                }
+              }
+            ],
+            "ports": [],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_SIDE"
+            }
+          },
+          {
+            "id": "4ad97f2d732fb27d9cb2d08c",
+            "width": 192,
+            "height": 80,
+            "ports": [],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_POS"
+            }
+          },
+          {
+            "id": "9c6129dbe9c3d64648483557",
+            "width": 192,
+            "height": 80,
+            "ports": [],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_POS"
+            }
+          },
+          {
+            "id": "72727724c02b19df09e5eb7c",
+            "width": 192,
+            "height": 80,
+            "ports": [],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_POS"
+            }
+          },
+          {
+            "id": "3804e2f72cf8a1706274248f",
+            "width": 192,
+            "height": 80,
+            "ports": [],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_POS"
+            }
+          },
+          {
+            "id": "b1e5239466bd09c28cbf745a",
+            "width": 192,
+            "height": 80,
+            "ports": [
+              {
+                "id": "b1e5239466bd09c28cbf745a::handle::output:control:",
+                "x": 92,
+                "y": 76,
+                "width": 8,
+                "height": 8,
+                "layoutOptions": {
+                  "elk.port.side": "SOUTH",
+                  "elk.port.index": "0"
+                }
+              }
+            ],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_POS"
+            }
+          },
+          {
+            "id": "51d74fbd73e7c228807defef",
+            "width": 192,
+            "height": 80,
+            "ports": [
+              {
+                "id": "51d74fbd73e7c228807defef::handle::output:control:",
+                "x": 92,
+                "y": 76,
+                "width": 8,
+                "height": 8,
+                "layoutOptions": {
+                  "elk.port.side": "SOUTH",
+                  "elk.port.index": "0"
+                }
+              },
+              {
+                "id": "51d74fbd73e7c228807defef::handle::input:control:",
+                "x": 92,
+                "y": -4,
+                "width": 8,
+                "height": 8,
+                "layoutOptions": {
+                  "elk.port.side": "NORTH",
+                  "elk.port.index": "0"
+                }
+              }
+            ],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_POS"
+            }
+          },
+          {
+            "id": "e94e16561bcef3c5f44c0f4e",
+            "width": 192,
+            "height": 80,
+            "ports": [
+              {
+                "id": "e94e16561bcef3c5f44c0f4e::handle::input:control:exit",
+                "x": 92,
+                "y": -4,
+                "width": 8,
+                "height": 8,
+                "layoutOptions": {
+                  "elk.port.side": "NORTH",
+                  "elk.port.index": "0"
+                }
+              },
+              {
+                "id": "e94e16561bcef3c5f44c0f4e::handle::output:control:",
+                "x": 92,
+                "y": 76,
+                "width": 8,
+                "height": 8,
+                "layoutOptions": {
+                  "elk.port.side": "SOUTH",
+                  "elk.port.index": "0"
+                }
+              }
+            ],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_POS"
+            }
+          },
+          {
+            "id": "3b5b8bef7f4e85f537795c6f",
+            "width": 192,
+            "height": 80,
+            "ports": [
+              {
+                "id": "3b5b8bef7f4e85f537795c6f::handle::output:return:return",
+                "x": 92,
+                "y": 76,
+                "width": 8,
+                "height": 8,
+                "layoutOptions": {
+                  "elk.port.side": "SOUTH",
+                  "elk.port.index": "0"
+                }
+              },
+              {
+                "id": "3b5b8bef7f4e85f537795c6f::handle::input:control:",
+                "x": 92,
+                "y": -4,
+                "width": 8,
+                "height": 8,
+                "layoutOptions": {
+                  "elk.port.side": "NORTH",
+                  "elk.port.index": "0"
+                }
+              }
+            ],
+            "layoutOptions": {
+              "elk.algorithm": "layered",
+              "elk.direction": "DOWN",
+              "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+              "elk.edgeRouting": "ORTHOGONAL",
+              "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+              "elk.spacing.nodeNode": "24",
+              "elk.spacing.edgeNode": "16",
+              "elk.spacing.edgeEdge": "12",
+              "elk.spacing.labelNode": "10",
+              "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+              "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+              "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+              "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+              "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+              "elk.layered.wrapping.strategy": "MULTI_EDGE",
+              "elk.layered.wrapping.additionalEdgeSpacing": "20",
+              "elk.aspectRatio": "1.7",
+              "elk.randomSeed": "1",
+              "elk.portConstraints": "FIXED_POS"
+            }
+          }
+        ],
+        "ports": [
+          {
+            "id": "a482e5583257e440184d0208::handle::input:return:return",
+            "width": 8,
+            "height": 8,
+            "layoutOptions": {
+              "elk.port.side": "NORTH",
+              "elk.port.index": "0"
+            }
+          }
+        ],
+        "layoutOptions": {
+          "elk.algorithm": "layered",
+          "elk.direction": "DOWN",
+          "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+          "elk.edgeRouting": "ORTHOGONAL",
+          "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+          "elk.spacing.nodeNode": "24",
+          "elk.spacing.edgeNode": "16",
+          "elk.spacing.edgeEdge": "12",
+          "elk.spacing.labelNode": "10",
+          "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+          "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+          "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+          "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+          "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+          "elk.layered.wrapping.strategy": "MULTI_EDGE",
+          "elk.layered.wrapping.additionalEdgeSpacing": "20",
+          "elk.aspectRatio": "1.7",
+          "elk.randomSeed": "1",
+          "elk.portConstraints": "FIXED_SIDE"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "display:%5B%223b5b8bef7f4e85f537795c6f%22%2C%22a482e5583257e440184d0208%22%2C%22return%22%2Cnull%2C%22return%22%5D",
+        "sources": [
+          "3b5b8bef7f4e85f537795c6f::handle::output:return:return"
+        ],
+        "targets": [
+          "a482e5583257e440184d0208::handle::input:return:return"
+        ],
+        "labels": [
+          {
+            "text": "return",
+            "width": 77.8,
+            "height": 18,
+            "layoutOptions": {
+              "elk.edgeLabels.placement": "CENTER",
+              "elk.edgeLabels.inline": "true"
+            }
+          }
+        ]
+      },
+      {
+        "id": "display:%5B%2251d74fbd73e7c228807defef%22%2C%22b5d2c980be2b61a60971df08%22%2C%22control%22%2Cnull%2C%22%22%5D",
+        "sources": [
+          "51d74fbd73e7c228807defef::handle::output:control:"
+        ],
+        "targets": [
+          "b5d2c980be2b61a60971df08::handle::input:control:"
+        ],
+        "labels": []
+      },
+      {
+        "id": "display:%5B%22a4b43bbc1791e868ced8f10a%22%2C%22b5d2c980be2b61a60971df08%22%2C%22backedge%22%2Cnull%2C%22repeat%22%5D",
+        "sources": [
+          "a4b43bbc1791e868ced8f10a::handle::output:backedge:repeat"
+        ],
+        "targets": [
+          "b5d2c980be2b61a60971df08::handle::input:backedge:repeat"
+        ],
+        "labels": [
+          {
+            "text": "repeat",
+            "width": 77.8,
+            "height": 18,
+            "layoutOptions": {
+              "elk.edgeLabels.placement": "CENTER",
+              "elk.edgeLabels.inline": "true"
+            }
+          }
+        ]
+      },
+      {
+        "id": "display:%5B%22b1e5239466bd09c28cbf745a%22%2C%2251d74fbd73e7c228807defef%22%2C%22control%22%2Cnull%2C%22%22%5D",
+        "sources": [
+          "b1e5239466bd09c28cbf745a::handle::output:control:"
+        ],
+        "targets": [
+          "51d74fbd73e7c228807defef::handle::input:control:"
+        ],
+        "labels": []
+      },
+      {
+        "id": "display:%5B%22b5d2c980be2b61a60971df08%22%2C%22a4b43bbc1791e868ced8f10a%22%2C%22control%22%2C%22body%22%2C%22body%22%5D",
+        "sources": [
+          "b5d2c980be2b61a60971df08::handle::output:control:body"
+        ],
+        "targets": [
+          "a4b43bbc1791e868ced8f10a::handle::input:control:body"
+        ],
+        "labels": [
+          {
+            "text": "body",
+            "width": 65.2,
+            "height": 18,
+            "layoutOptions": {
+              "elk.edgeLabels.placement": "CENTER",
+              "elk.edgeLabels.inline": "true"
+            }
+          }
+        ]
+      },
+      {
+        "id": "display:%5B%22b5d2c980be2b61a60971df08%22%2C%22e94e16561bcef3c5f44c0f4e%22%2C%22control%22%2C%22exit%22%2C%22exit%22%5D",
+        "sources": [
+          "b5d2c980be2b61a60971df08::handle::output:control:exit"
+        ],
+        "targets": [
+          "e94e16561bcef3c5f44c0f4e::handle::input:control:exit"
+        ],
+        "labels": [
+          {
+            "text": "exit",
+            "width": 65.2,
+            "height": 18,
+            "layoutOptions": {
+              "elk.edgeLabels.placement": "CENTER",
+              "elk.edgeLabels.inline": "true"
+            }
+          }
+        ]
+      },
+      {
+        "id": "display:%5B%22e94e16561bcef3c5f44c0f4e%22%2C%223b5b8bef7f4e85f537795c6f%22%2C%22control%22%2Cnull%2C%22%22%5D",
+        "sources": [
+          "e94e16561bcef3c5f44c0f4e::handle::output:control:"
+        ],
+        "targets": [
+          "3b5b8bef7f4e85f537795c6f::handle::input:control:"
+        ],
+        "labels": []
+      }
+    ]
+  },
+  "layoutOptions": {},
+  "options": {
+    "logging": false,
+    "measureExecutionTime": false
+  },
+  "id": 5
+}

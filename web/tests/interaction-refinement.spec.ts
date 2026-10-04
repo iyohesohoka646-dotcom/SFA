@@ -25,11 +25,11 @@ test('logical variable shows last observed assignment and highlights same-scope 
   await page.goto('http://127.0.0.1:8879/#session='+session);
   await importScript(page, 'same-variable.py', 'x = 1\nif x > 0:\n    scores = x + 2\nelse:\n    scores = x - 2\nscores = scores * 3\nresult = scores + 1\ndef shadow():\n    scores = 99\n    return scores\n');
   const tree = page.getByRole('tree', {name:'计算对象树'});
-  await expect(tree.locator('.object-row-name').filter({hasText:/^scores$/})).toHaveCount(0);
+  await expect(tree.locator('.object-row-assignment, .object-row-evidence')).toHaveCount(0);
   await runCompute(page);
   const row = await selectObject(page, 'scores');
   // The lexical shadow has its own scope row; current module has one logical row.
-  await expect(row.locator('small')).toContainText(/v\d+/);
+  await expect(row.locator('.object-dtype')).not.toHaveText('—');
   const tabs = await page.locator('.workspace-tab').count();
   await row.click();
   expect(await page.locator('.workspace-tab').count()).toBe(tabs);
@@ -40,10 +40,8 @@ test('logical variable shows last observed assignment and highlights same-scope 
   await tree.focus();await page.keyboard.press('Control+a');
   await expect(page.locator('.object-selection')).toContainText('2 项选中');
   expect(await page.locator('.workspace-tab').count()).toBe(tabs);
-  await page.getByLabel('对象证据状态').selectOption('observed');
-  await tree.focus();await page.keyboard.press('Control+a');
-  await expect(page.locator('.object-selection')).toContainText('1 项选中');
-  await page.getByLabel('对象证据状态').selectOption('all');
+  await expect(page.getByLabel('对象类型').locator('option')).toHaveCount(2);
+  await expect(page.getByLabel('对象探针结果').locator('option')).toHaveCount(3);
   await page.getByRole('searchbox',{name:'搜索对象',exact:true}).fill('no-matching-research-object');
   await tree.focus();await page.keyboard.press('Control+a');
   await expect(page.locator('.object-selection')).toContainText('0 项选中');
@@ -109,7 +107,7 @@ test('graph uses collapsed structural overview, floating controls, distinct data
   await page.getByLabel('运行记录').selectOption('');
   await page.getByRole('button', {name:'计算关系图', exact:true}).first().click();
   await page.getByRole('button', {name:'放大 main 视图', exact:true}).click();
-  await page.getByLabel('关系图视图').selectOption('structure');
+  await page.getByLabel('关系图视图').selectOption('code');
   await expect(page.getByTestId('graph-layout-metric')).toHaveText(/· [1-9]\d* ms$/);
   await expect(page.locator('.semantic-plate.kind-file.is-expanded')).toHaveCount(1);
   const descendants = page.locator('.semantic-plate:not(.kind-file)');
@@ -142,9 +140,12 @@ test('graph uses collapsed structural overview, floating controls, distinct data
   await page.getByRole('button', {name:'切换主题',exact:true}).click();
   await page.screenshot({path:'../docs/assets/interaction-graph-data-dark.png'});
   await page.getByRole('button', {name:'切换主题',exact:true}).click();
-  await page.getByLabel('关系图视图').selectOption('execution');
-  await expect(page.locator('.wb-graph-pane')).toContainText('暂无运行证据');
-  await page.screenshot({path:'../docs/assets/interaction-graph-execution-empty.png'});
+  await page.getByLabel('关系图视图').selectOption('code');
+  await expect(page.getByLabel('关系图视图').locator('option')).toHaveCount(2);
+  await page.getByRole('button', {name:'布局与关系',exact:true}).click();
+  await page.getByLabel('运行证据', {exact:true}).check();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.graph-node-receipt')).toHaveCount(0);
 });
 
 test('same-name redefined functions keep local probe overrides separate and reject stale ambiguous scopes', async ({page}) => {

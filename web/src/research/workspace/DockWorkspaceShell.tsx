@@ -54,12 +54,16 @@ function DocumentContent({document}:{document:WorkspaceDocument}) {
 }
 function Panel({ api, params }: IDockviewPanelProps) {
   const host = useContext(Host)!,
-    [visible, setVisible] = useState(api.isVisible);
+    [apiVisible, setVisible] = useState(api.isVisible);
   useEffect(() => {
     const h = api.onDidVisibilityChange((e) => setVisible(e.isVisible));
     return () => h.dispose();
   }, [api]);
   const doc = host.layout.documents[String(params.documentId ?? api.id)];
+  const group = groups(host.layout.tree).find(group => group.tabs.includes(doc?.id ?? api.id));
+  // Dockview can briefly report false when another group activates while this
+  // group is maximized. The displayed layout determines accessibility/rendering.
+  const visible = group ? !group.minimized && group.active === doc?.id && (!host.layout.focused || host.layout.focused === group.id) : apiVisible;
   return (
     <div
       className="workspace-document"
@@ -89,7 +93,7 @@ function Actions({ api }: IDockviewHeaderActionsProps) {
   const host = useContext(Host)!,
     id = api.id;
   return (
-    <div className="workspace-pane-actions">
+    <div className="workspace-pane-actions" onPointerDown={e => e.stopPropagation()}>
       <button
         className="workspace-icon-button"
         aria-label={"缩小 " + id + " 视图"}

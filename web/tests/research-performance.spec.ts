@@ -60,8 +60,8 @@ test("research-performance: 1000 objects select without navigation or relayout b
       .locator(".object-row-name")
       .filter({ hasText: /^X7$/ })
       .locator("..")
-      .locator("small"),
-  ).toContainText("v10");
+      .locator(".object-shape"),
+  ).toHaveText("4 × 4");
   await page
     .getByRole("button", { name: "计算关系图", exact: true })
     .first()
@@ -70,7 +70,7 @@ test("research-performance: 1000 objects select without navigation or relayout b
     /· [1-9]\d* ms$/,
   );
   await expect(page.getByTestId("graph-layout-metric")).toContainText(
-    "2000 已折叠",
+    "2000 folded",
   );
   expect(await page.getByTestId("relation-node").count()).toBeLessThanOrEqual(
     160,
@@ -122,7 +122,8 @@ test("research-performance: 1000 objects select without navigation or relayout b
   await page.getByLabel("搜索对象", { exact: true }).fill("");
   await page.getByRole("tree", { name: "计算对象树" }).focus();
   await page.keyboard.press("Control+a");
-  await expect(page.locator(".object-selection")).toContainText("1001 项选中");
+  // The default Variables filter selects the 1000 values, not their file.
+  await expect(page.locator(".object-selection")).toContainText("1000 项选中");
   expect(await page.locator(".workspace-tab").count()).toBe(tabs);
   await page
     .getByRole("button", { name: "缩小 main 视图", exact: true })
@@ -231,7 +232,7 @@ test("research-performance: slow evidence cannot replace a newer explicit select
     .getByLabel("运行记录")
     .selectOption(runs.find((r: any) => r.name === "Analysis").id);
   const row = await selectObject(page, "X7");
-  await expect(row.locator("small")).toContainText("v10");
+  await expect(row.locator(".object-shape")).toHaveText("4 × 4");
   await row.dblclick();
   await pending;
   await chooseValue(page, "X999");

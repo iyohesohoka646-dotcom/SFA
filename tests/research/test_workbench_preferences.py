@@ -23,3 +23,18 @@ def test_settings_routes_and_invalid_budget_are_visible(tmp_path):
         revision=result.json()['project_revision']
         result=client.put('/api/v1/research/workbench/settings',headers=h,json={'scope':'project','values':{'capture':{'max_artifact_bytes':-1}},'expected_revision':revision})
         assert result.status_code==400
+
+
+def test_old_graph_modes_migrate_without_overwriting_saved_preferences(tmp_path):
+    import json
+    from contract_driven_ai_flow.research.workbench.preferences import PreferenceService
+    service = PreferenceService(tmp_path, user_path=tmp_path/'user.json')
+    assert service.load()['values']['graph']['view'] == 'code'
+    for revision, legacy in enumerate(('structure', 'execution'), 1):
+        service.user.write_text(json.dumps({'revision': revision, 'values': {'graph': {'view': legacy}}}), encoding='utf-8')
+        loaded = service.load()
+        assert loaded['values']['graph']['view'] == 'code'
+        assert loaded['sources']['graph.view'] == 'user'
+        assert json.loads(service.user.read_text(encoding='utf-8'))['values']['graph']['view'] == legacy
+    saved = service.save('project', {'graph': {'view': 'data'}}, expected_revision=0)
+    assert saved['values']['graph']['view'] == 'data'

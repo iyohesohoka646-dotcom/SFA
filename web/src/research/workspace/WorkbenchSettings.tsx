@@ -32,7 +32,7 @@ const fields: Record<string, string> = {
 };
 const enums: Record<string, string[]> = {
   theme: ["light", "dark"],
-  view: ["structure", "data", "execution"],
+  view: ["code", "data"],
   direction: ["RIGHT", "DOWN"],
   level: ["metadata", "summary", "sample", "full"],
   profile: ["shell", "python", "cli"],

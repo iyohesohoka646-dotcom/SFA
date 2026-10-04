@@ -1,14 +1,9 @@
 import { memo, useEffect, useState } from "react";
-import { MatrixView } from "../MatrixView";
-import { TableView } from "../TableView";
-import { displayCell } from "../matrix-renderer";
-import { renderers } from "../renderer-registry";
 import { client } from "../client";
 import type { SnapshotRef } from "../generated";
 import type {
   ProbeOutput,
   ProbeDefinition,
-  ProbeInstance,
   WorkbenchConfig,
   DataSemantics,
   AnalysisDocument,
@@ -16,11 +11,12 @@ import type {
 import type { WorkspaceDocument } from "./layout";
 import { useSnapshot } from "./evidence";
 import { wb } from "./WorkbenchClient";
-import { ArtifactView } from "./ArtifactView";
 import { OperationView } from "../OperationView";
 import type { ResearchState } from "../state";
 import { ParameterForm } from "./ParameterForm";
-import { snapshotProbeTarget, targetOverride, targetOverrideError, targetOverrideKey } from "./probe-configuration";
+import { snapshotProbeTarget, targetOverrideError, targetOverrideKey, targetProbeEntries } from "./probe-configuration";
+import { latestProbeOutputs } from "./probe-results";
+import { ProbePresentation } from "./ProbePresentation";
 export const ProbeWorkspace = memo(function ProbeWorkspace({
   document,
   state,
@@ -51,9 +47,9 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   const providedScope = snapshot && runAnalysis?.runId === snapshot.run_id ? runAnalysis : undefined;
   const [history, setHistory] = useState<SnapshotRef[]>([]),
     [outputs, setOutputs] = useState<ProbeOutput[]>([]),
-    [presenters, setPresenters] = useState<ProbeInstance[]>([]),
     [historyOpen, setHistoryOpen] = useState(false),
-    [mode, setMode] = useState(document.reference.instance_id ?? ""),
+    [mode, setMode] = useState(document.reference.instance_id ?? "all"),
+    [closedViews, setClosedViews] = useState(new Set<string>()),
     [settings, setSettings] = useState(false),
     [semantics, setSemantics] = useState<DataSemantics | null>(null),
     [semanticEdit, setSemanticEdit] = useState<DataSemantics>(),
@@ -68,33 +64,26 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   }, [snapshot?.run_id, providedScope?.analysis.id]);
   useEffect(() => {
     const abort = new AbortController();
+    setSemantics(null);
     if (snapshot) {
       setNotice("");
       void Promise.all([
-        client.history(
-          snapshot.run_id,
-          snapshot.binding_id,
-          undefined,
-          abort.signal,
-        ),
         wb.outputs({ snapshot_id: snapshot.id }, abort.signal),
-        wb.presenters(snapshot.id, abort.signal),
         wb.semantics(snapshot.id, abort.signal),
-      ])
-        .then(([h, o, p, s]) => {
-          if (!abort.signal.aborted) {
-            setHistory(h);
-            setOutputs(o);
-            setPresenters(p);
-            setSemantics(s);
-          }
-        })
-        .catch((e) => {
-          if (!abort.signal.aborted) setNotice(e.message);
-        });
+      ]).then(([o, semantics]) => {
+        if (!abort.signal.aborted) { setOutputs(o); setSemantics(semantics); }
+      }).catch(e => { if (!abort.signal.aborted) setNotice(e.message); });
     }
     return () => abort.abort();
   }, [snapshot?.id, outputVersion, config?.revision]);
+  useEffect(() => {
+    if (!snapshot || !historyOpen) return;
+    const abort = new AbortController();
+    void client.history(snapshot.run_id, snapshot.binding_id, undefined, abort.signal)
+      .then(h => { if (!abort.signal.aborted) setHistory(h); })
+      .catch(e => { if (!abort.signal.aborted) setNotice(e.message); });
+    return () => abort.abort();
+  }, [snapshot?.id, historyOpen]);
   if (error)
     return (
       <div className="wb-empty" role="alert">
@@ -108,49 +97,15 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   const overrideKey = targetOverrideKey(target, analysis);
   const overrideNotice = config?.probes.filter((probe) => probe.enabled)
     .map((probe) => targetOverrideError(probe, target, analysis)).find(Boolean);
-  const effective = presenters
-    .filter((p) => {
-      const live = config?.probes.find((i) => i.id === p.id);
-      return (
-        live &&
-        live.enabled !== false &&
-        !targetOverrideError(live, target, analysis) &&
-        targetOverride(live, target, analysis)?.enabled !== false
-      );
-    })
-    .map((p) => {
-      const live = config!.probes.find((i) => i.id === p.id)!;
-      return {
-        ...p,
-        parameters: {
-          ...live.parameters,
-          ...targetOverride(live, target, analysis)?.parameters,
-        },
-      };
-    });
-  const instance =
-      effective.find((p) => p.id === mode) ??
-      (!document.reference.instance_id ? effective[0] : undefined),
-    definition = definitions.find((d) => d.id === instance?.definition_id);
-  const plugin = renderers.resolve(snapshot.descriptor),
-    renderer =
-      definition?.renderer === "auto"
-        ? plugin
-          ? "plugin"
-          : snapshot.sample.columns
-            ? "table"
-            : snapshot.descriptor.shape
-              ? "matrix"
-              : "raw"
-        : definition?.renderer;
-  const artifacts = outputs.filter(
-    (o) =>
-      o.instance_id === instance?.id &&
-      o.artifact_id &&
-      o.status === "ready" &&
-      JSON.stringify(o.data.parameters ?? {}) ===
-        JSON.stringify(instance?.parameters ?? {}),
-  );
+  const entries = targetProbeEntries(config?.probes ?? [], definitions, target, analysis).filter(entry => entry.enabled);
+  const enabled = entries.map(entry => ({ ...entry.probe, parameters: entry.parameters }));
+  const effective = enabled.filter(p => definitions.some(d => d.id === p.definition_id && d.capability === "view"));
+  const instance = effective.find(p => p.id === mode) ?? effective[0];
+  const activeMode = mode === "all" || effective.some(p => p.id === mode) ? mode : "all";
+  const definition = definitions.find(d => d.id === instance?.definition_id);
+  const shown = activeMode === "all" ? effective : effective.filter(p => p.id === activeMode);
+  const currentOutputs = latestProbeOutputs(outputs, snapshot, enabled);
+  const checks = enabled.filter(p => definitions.find(d => d.id === p.definition_id)?.capability !== "view");
   const updateParameters = (parameters: Record<string, unknown>) => {
     if (!config || !instance || !overrideKey) return;
     const key = overrideKey;
@@ -217,10 +172,10 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
         </strong>
         <select
           aria-label="数据呈现探针"
-          value={instance?.id ?? ""}
+          value={activeMode}
           onChange={(e) => setMode(e.target.value)}
         >
-          <option value="">选择呈现探针</option>
+          <option value="all">全部呈现探针 ({effective.length})</option>
           {effective.map((p) => (
             <option value={p.id} key={p.id}>
               {definitions.find((d) => d.id === p.definition_id)?.label ??
@@ -235,7 +190,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
         >
           版本
         </button>
-        <button onClick={() => setSettings(!settings)}>呈现设置</button>
+        <button disabled={!instance} onClick={() => setSettings(!settings)}>呈现设置</button>
         <button onClick={() => onEvaluate(snapshot)}>执行探针</button>
       </div>
       <div className="data-metadata">
@@ -481,50 +436,26 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
         </div>
       )}
       <div className="wb-data-content">
-        {!instance ? (
-          <div className="wb-empty">没有有效呈现探针</div>
-        ) : definition?.entrypoint ? (
-          <pre className="wb-json">
-            {JSON.stringify(
-              outputs.find((o) => o.instance_id === instance.id)?.data ?? {
-                status: "尚未执行此程序探针",
-              },
-              null,
-              2,
-            )}
-          </pre>
-        ) : definition?.tool_id ? (
-          artifacts.length ? (
-            <ArtifactView id={artifacts[0].artifact_id!} />
-          ) : (
-            <div className="wb-empty">尚未执行此绘图探针</div>
-          )
-        ) : renderer === "plugin" && plugin ? (
-          <plugin.Component snapshot={snapshot} />
-        ) : renderer === "matrix" && snapshot.descriptor.shape ? (
-          <MatrixView
-            snapshot={snapshot}
-            parameters={instance.parameters}
-            semantics={selectedSemantic}
-          />
-        ) : renderer === "table" ? (
-          <TableView
-            snapshot={snapshot}
-            semantics={selectedSemantic}
-            parameters={instance.parameters}
-          />
-        ) : renderer === "compare" ? (
-          <div className="wb-empty">联合比较结果在任务与结果中打开</div>
-        ) : renderer === "relationships" ? (
-          <div className="wb-empty">在计算关系图查看关联</div>
-        ) : (
-          <pre className="wb-json" data-testid="raw-data">
-            {snapshot.descriptor.kind === "scalar" &&
-            Array.isArray(snapshot.sample.values)
-              ? displayCell((snapshot.sample.values as unknown[][])[0]?.[0])
-              : JSON.stringify(snapshot.sample, null, 2)}
-          </pre>
-        )}
+        {!shown.length && <div className="wb-empty">没有有效呈现探针</div>}
+        {shown.map(p => {
+          const d = definitions.find(item => item.id === p.definition_id), result = currentOutputs.get(p.id), open = !closedViews.has(p.id);
+          return <details className="probe-presentation" data-testid="probe-view" data-instance-id={p.id} key={p.id} open={open} onToggle={e => {
+            const isOpen = e.currentTarget.open;
+            setClosedViews(old => { if (old.has(p.id) === !isOpen) return old; const next = new Set(old); isOpen ? next.delete(p.id) : next.add(p.id); return next; });
+          }}>
+            <summary><strong>{d?.label ?? p.definition_id}</strong><small>{p.origin === "project_default" ? "默认" : "局部"}</small>
+              {result && <span className={"wb-kind " + result.status}>{result.status}</span>}
+            </summary>
+            {open && <ProbePresentation snapshot={snapshot} instance={p} definition={d} output={result} semantics={selectedSemantic} />}
+          </details>;
+        })}
+        {checks.length > 0 && <div className="data-probe-results">{checks.map(p => {
+          const d = definitions.find(item => item.id === p.definition_id), result = currentOutputs.get(p.id);
+          return <details className={"data-probe-result " + (result?.status ?? "pending")} data-testid="data-probe-result" key={p.id}>
+            <summary><strong>{d?.label ?? p.definition_id}</strong><span className={"wb-kind " + (result?.status ?? "pending")}>{result?.status ?? "待执行"}</span></summary>
+            {result ? <><p>{result.message}</p><pre className="wb-json">{JSON.stringify(result.data, null, 2)}</pre></> : <p>执行探针后显示结果</p>}
+          </details>;
+        })}</div>}
       </div>
       {snapshot.run_id === state.runId &&
         snapshot.operation_id &&
@@ -538,7 +469,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
             />
           </details>
         )}
-      {instance && renderer !== "matrix" && (
+      {instance && (
         <details className="wb-operation-details">
           <summary>统计与采集</summary>
           <div className="wb-form compact">

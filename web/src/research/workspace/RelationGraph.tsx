@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
+  BackgroundVariant,
   BaseEdge,
   Controls,
   Handle,
@@ -36,7 +37,8 @@ import {
 } from "./selection";
 import { layoutSemantic } from "../../graph";
 import { semanticDimensions, semanticLayoutBounds, readableGraphViewport, type SemanticRoute } from "../../graph-semantic-layout";
-import { initialCollapsed, projectGraph, graphNodeTarget, selectedGraphIds, type GraphHandle, type GraphView } from "./graph-projection";
+import { initialCollapsed, graphNodeTarget, selectedGraphIds, type GraphHandle } from "./graph-projection";
+import { projectDisplayGraph, normalizeGraphMode, type GraphMode } from "./graph-display";
 import { describeGraphData, executionOverlay, type GraphDataDescription, type NodeExecution, type EdgeExecution } from "./graph-execution";
 import { logicalObjectGroups, selectionObjectIds, latestObservedSnapshot } from "./objectTree";
 import type { OccurrenceGroup } from "./sourceOccurrences";
@@ -46,26 +48,10 @@ import { client } from "../client";
 import { createState, indexSnapshot } from "../state";
 import "./graph.css";
 const names: Record<string, string> = {
-  function: "函数",
-  class: "类",
-  condition: "条件",
-  loop: "循环",
-  file: "文件",
-  operation: "运算",
-  parameter: "参数",
-  data: "数据",
-  return: "返回",
-  merge: "合流",
-  call: "调用",
-  entry: "入口",
-  exit: "出口",
-  loop_header: "循环头",
-  try: "异常",
-  unknown: "动态",
-  folder: "文件夹",
-  project: "项目",
-  stream: "数据流",
-  with: "上下文",
+  function: "Function", class: "Class", condition: "If", loop: "Loop", file: "File",
+  operation: "Compute", parameter: "Input", data: "Variable", return: "Return", merge: "Merge", call: "Call",
+  entry: "Entry", exit: "Exit", loop_header: "Loop", try: "Try", unknown: "Dynamic", folder: "Folder",
+  project: "Project", stream: "Stream", with: "With",
 };
 const glyphs: Record<string, string> = { function: "ƒ", class: "{}", condition: "?", loop: "↻", loop_header: "↻", operation: "∑", call: "ƒ()", return: "↵", merge: "⋈", entry: "▶", exit: "◼", unknown: "…", scalar: "σ", vector: "[ ]", matrix: "▦", tensor: "▧", table: "▤", text: "Aa", sequence: "≡", mapping: "{ }", object: "◈", data: "▦", parameter: "in" };
 function GraphGlyph({ kind }: { kind: string }) {
@@ -76,20 +62,20 @@ function GraphPorts({ handles, plate }: { handles: GraphHandle[]; plate: boolean
   return handles.map(p => {
     const row = rows.get(p.direction) ?? 0;
     rows.set(p.direction, row + 1);
-    const y = p.y ?? (plate ? 64 : 62) + row * 20 + 10;
-    return <div className={"graph-port port-" + p.direction + " relationship-" + p.kind + (p.boundary ? " boundary-port" : "")} key={p.id} style={{ top: y }} title={p.name + (p.original_ids.length ? ` · ${p.original_ids.length} 条原始关系` : "")}>
-      <Handle id={p.id} type={p.direction === "input" ? "target" : "source"} position={p.direction === "input" ? Position.Left : Position.Right} />
+    const y = p.y ?? 48 + row * 16;
+    const vertical = p.side === "NORTH" || p.side === "SOUTH";
+    return <div className={"graph-port port-" + p.direction + " relationship-" + p.kind + (vertical ? " vertical-port" : "") + (p.boundary ? " boundary-port" : "")} key={p.id} style={vertical ? { left: p.x, top: p.y, right: "auto" } : { top: y }} title={p.name + (p.original_ids.length ? ` · ${p.original_ids.length} references` : "")}>
+      <Handle id={p.id} type={p.direction === "input" ? "target" : "source"} position={vertical ? p.side === "NORTH" ? Position.Top : Position.Bottom : p.direction === "input" ? Position.Left : Position.Right} />
       <span className="graph-port-label">{p.name}</span>
     </div>;
   });
 }
-const executionNames: Record<string, string> = { unobserved: "未观测", observed: "已观测", not_taken: "未经过", running: "运行中", started: "运行中", completed: "最近完成", failed: "失败", error: "异常", cancelled: "取消" };
+const executionNames: Record<string, string> = { observed: "run", running: "running", started: "running", completed: "done", failed: "failed", error: "error", cancelled: "cancelled" };
 function NodeReceipt({ receipt, plate = false }: { receipt?: NodeExecution; plate?: boolean }) {
-  if (!receipt) return null;
-  return <div className={"graph-node-receipt" + (plate ? " plate-counter" : "")} title={receipt.detail}>
+  if (!receipt || ["unobserved", "not_taken"].includes(receipt.status)) return null;
+  return <div className={"graph-node-receipt" + (plate ? " plate-counter" : "")}>
     <span className="graph-execution-state">{executionNames[receipt.status] ?? receipt.status}</span>
-    {receipt.count !== undefined && (receipt.count > 0 || receipt.complete) && <span>{receipt.complete || receipt.unit !== "次" ? "" : "至少 "}{receipt.count} {receipt.unit ?? "次"}</span>}
-    {receipt.detail && <small>{receipt.detail}</small>}
+    {receipt.count !== undefined && (receipt.count > 0 || receipt.complete) && <span>{receipt.complete ? "" : "≥"}{receipt.count}×</span>}
   </div>;
 }
 function SemanticNode({ id, data }: NodeProps) {
@@ -103,7 +89,7 @@ function SemanticNode({ id, data }: NodeProps) {
     >
       <div className="semantic-heading graph-node-drag-handle">
         <GraphGlyph kind={badge?.kind ?? String(data.kind)} />
-        <div><small>{badge?.label ?? names[String(data.kind)] ?? String(data.kind)}{data.kind === "parameter" ? " · 参数" : ""}</small><strong title={String(data.label)}>{String(data.label)}</strong></div>
+        <div><small>{badge ? badge.kind === "unknown" ? "Variable" : badge.kind : names[String(data.kind)] ?? String(data.kind)}</small><strong title={String(data.label)}>{String(data.label)}</strong></div>
         {Boolean(data.pinned) && <span className="graph-pin"><Icon name="pin" size={12} /></span>}
       </div>
       <GraphPorts handles={handles} plate={false} />
@@ -128,18 +114,18 @@ function BlockNode({ id, data }: NodeProps) {
         {Boolean(data.pinned) && <span className="graph-pin"><Icon name="pin" size={12} /></span>}
         <button
           className="nodrag nopan"
-          aria-label={(data.collapsed ? "展开 " : "折叠 ") + data.label}
+          aria-label={(data.collapsed ? "Expand " : "Collapse ") + data.label}
           onClick={(e) => {
             e.stopPropagation();
             (data.collapse as () => void)();
           }}
         >
-          {data.collapsed ? "展开" : "折叠"}
+          <Icon name="chevron" size={12} />
         </button>
       </header>
       <GraphPorts handles={handles} plate />
       {Boolean(data.collapsed) && (
-        <span className="plate-summary">{String(data.members)} 个内部单元</span>
+        <span className="plate-summary">{String(data.members)} units</span>
       )}
       <NodeReceipt receipt={receipt} plate />
     </div>
@@ -195,7 +181,9 @@ function GraphInner({
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]),
     [edges, setEdges] = useState<Edge[]>([]),
     [closed, setClosed] = useState<{ key: string; values: Set<string> }>({ key: "", values: new Set() }),
-    [view, setView] = useState<GraphView>("structure"),
+    [view, setView] = useState<GraphMode>("code"),
+    [showExecution, setShowExecution] = useState(false),
+    [detailId, setDetailId] = useState<string>(),
     [dim, setDim] = useState(false),
     [query, setQuery] = useState(""),
     [direction, setDirection] = useState("RIGHT"),
@@ -232,7 +220,7 @@ function GraphInner({
         );
         setDim(s.dim_unrelated ?? false);
         if (["RIGHT", "DOWN"].includes(s.direction)) setDirection(s.direction);
-        if (["structure", "data", "execution"].includes(s.view)) setView(s.view);
+        setView(normalizeGraphMode(s.view));
       } catch {
         onError("图设置不可读取");
       }
@@ -250,7 +238,7 @@ function GraphInner({
     generation = useRef(0);
   const graph = analysis?.graph,
     pinned = useRef(new Set<string>()),
-    positionKey = "cdaf-graph-positions:" + analysis?.id + ":" + (scope ?? "root");
+    positionKey = "cdaf-graph-positions:v2:" + analysis?.id + ":" + view + ":" + (scope ?? "root");
   useEffect(() => {
     try {
       const saved = JSON.parse(
@@ -288,9 +276,9 @@ function GraphInner({
   const projection = useMemo(
     () =>
       graph
-        ? projectGraph(graph, collapsed, view, scope)
+        ? projectDisplayGraph(graph, collapsed, view, scope, analysis, occurrenceGroups)
         : { nodes: [], edges: [], omitted: 0, viewOmitted: 0 },
-    [graph, collapsed, view, scope],
+    [graph, collapsed, view, scope, occurrenceGroups],
   );
   const groups = useMemo(() => analysis ? logicalObjectGroups(analysis, occurrenceGroups) : [], [analysis, occurrenceGroups]);
   const groupByObject = useMemo(() => new Map(groups.flatMap(g => g.objectIds.map(id => [id, g] as const))), [groups]);
@@ -337,8 +325,11 @@ function GraphInner({
     [analysis, selection, occurrenceGroups],
   );
   const selectedIds = useMemo(
-    () =>
-      selectedGraphIds(targets, selection, selectedObjects, new Map(projection.nodes.map(n => [n.id, n.source_object_id]))),
+    () => {
+      const ids = selectedGraphIds(targets, selection, selectedObjects, new Map(projection.nodes.map(n => [n.id, n.source_object_id])));
+      for (const node of projection.nodes) if (node.original_object_ids?.some(id => selectedObjects.has(id))) ids.add(node.id);
+      return ids;
+    },
     [targets, selection, selectedObjects, projection],
   );
   const selectedBlocks = useMemo(() => {
@@ -366,7 +357,7 @@ function GraphInner({
   );
   useEffect(() => {
     setControls([]);
-    if (view !== "execution" || !state.runId) return;
+    if (!showExecution || !state.runId) return;
     let live = true;
     const load = () =>
       request<{ summaries: ControlSummary[] }>(
@@ -384,7 +375,7 @@ function GraphInner({
       live = false;
       if (timer) clearInterval(timer);
     };
-  }, [state.runId, state.status, view, analysis?.id]);
+  }, [state.runId, state.status, showExecution, analysis?.id]);
   const execution = useMemo(() => graph ? executionOverlay(graph, projection, state, controls) : { hasEvidence: false, nodes: new Map<string, NodeExecution>(), edges: new Map<string, EdgeExecution>() }, [graph, projection, state.runId, state.lastSequence, state.operations, state.snapshots, controls]);
   const toggle = (id: string) =>
     setClosed((old) => {
@@ -431,20 +422,21 @@ function GraphInner({
         zIndex: n.plate ? 0 : 2,
         position: positions.current.get(n.id) ?? { x: i * 200, y: 0 },
         style: {
-          ...semanticDimensions({ plate: n.plate, label: n.label, handles: n.handles, collapsed: n.collapsed }),
+          ...semanticDimensions({ plate: n.plate, label: n.label, handles: n.handles, collapsed: n.collapsed, compact: true }),
           pointerEvents: n.plate && !n.collapsed ? "none" : "auto",
         },
         data: {
           label: n.label,
+          compact: true,
           kind: n.kind,
           handles: n.handles,
-          badge: badge ? { ...badge, detail: badge.detail + (snapshot ? ` · 观测 v${snapshot.version}` : "") } : undefined,
+          badge: badge ? { ...badge, detail: snapshot ? badge.detail : "" } : undefined,
           pinned: pinned.current.has(n.id),
           members: block.members?.length ?? 0,
           collapsed: n.collapsed,
           collapse: () => toggle(n.id),
         },
-        ariaLabel: `${names[n.kind] ?? n.kind} ${n.label}${n.plate ? n.collapsed ? "，已折叠" : "，已展开" : ""}`,
+        ariaLabel: `${names[n.kind] ?? n.kind} ${n.label}${n.plate ? n.collapsed ? ", collapsed" : ", expanded" : ""}`,
       };
     });
     const lines: Edge[] = projection.edges.map((e) => ({
@@ -457,9 +449,9 @@ function GraphInner({
       selectable: false,
       focusable: false,
       interactionWidth: 0,
-      label: e.displayLabel + (e.count > 1 ? " ×" + e.count + " 关系" : ""),
+      label: e.displayLabel,
       markerEnd: { type: MarkerType.ArrowClosed, width: 12, height: 12 },
-      data: { kind: e.kind, original_ids: e.original_ids, baseLabel: e.displayLabel, relationshipCount: e.count, description: `${e.displayLabel}；${names[e.kind] ?? e.kind}；${e.original_ids.length} 条原始关系；${e.provenance}` },
+      data: { kind: e.kind, original_ids: e.original_ids, baseLabel: e.displayLabel, relationshipCount: e.count, description: `${e.displayLabel || names[e.kind] || e.kind}: ${e.original_ids.length} source relationships (${e.provenance})` },
       style: {
         stroke: edgeColors[e.kind] ?? "#647b84",
         strokeDasharray:
@@ -507,7 +499,7 @@ function GraphInner({
                   width: p.width,
                   height: p.height,
                   style: { ...n.style, width: p.width, height: p.height },
-                  data: { ...n.data, handles: (n.data.handles as GraphHandle[]).map(h => ({ ...h, y: p.ports.get(h.id)?.y ?? h.y })) },
+                  data: { ...n.data, handles: (n.data.handles as GraphHandle[]).map(h => ({ ...h, x: p.ports.get(h.id)?.x, y: p.ports.get(h.id)?.y ?? h.y, side: direction === "DOWN" ? h.direction === "input" ? "NORTH" : "SOUTH" : h.direction === "input" ? "WEST" : "EAST" })) },
                 }
               : n;
           }),
@@ -545,8 +537,8 @@ function GraphInner({
           },
           data: {
             ...n.data,
-            receipt: view === "execution" ? execution.nodes.get(n.id) : undefined,
-            badge: badge ? { ...badge, detail: badge.detail + (snapshot ? ` · 观测 v${snapshot.version}` : "") } : undefined,
+            receipt: showExecution ? execution.nodes.get(n.id) : undefined,
+            badge: badge ? { ...badge, detail: snapshot ? badge.detail : "" } : undefined,
             partial,
             searchMatch: normalizedQuery.length > 0 && String(n.data.label).toLowerCase().includes(normalizedQuery),
             pinned: pinned.current.has(n.id),
@@ -563,18 +555,18 @@ function GraphInner({
               ? "control"
               : kind,
           active = selectedIds.has(e.source) || selectedIds.has(e.target),
-          receipt = view === "execution" ? execution.edges.get(e.id) : undefined;
-        const label = String(e.data?.baseLabel ?? "") + (receipt?.count !== undefined ? receipt.count === 0 && !receipt.complete ? " · 待观测" : ` · ${receipt.complete ? "" : "≥"}${receipt.count} 次` : view !== "execution" && Number(e.data?.relationshipCount) > 1 ? ` ×${e.data?.relationshipCount} 关系` : "");
+          receipt = showExecution ? execution.edges.get(e.id) : undefined;
+        const label = String(e.data?.baseLabel ?? "") + (receipt?.count ? ` · ${receipt.complete ? "" : "≥"}${receipt.count}×` : "");
         return {
           ...e,
           hidden: !relations.has(category),
           label,
-          data: { ...e.data, execution: receipt?.status, description: receipt?.detail ?? e.data?.description },
+          data: { ...e.data, execution: receipt?.status },
           style: {
             ...e.style,
             strokeWidth: active ? 2.8 : receipt?.status === "observed" ? 2.4 : 1.4,
-            strokeDasharray: receipt?.status === "observed" ? undefined : kind === "data" && view !== "execution" ? undefined : kind === "backedge" ? "3 3" : "7 4",
-            opacity: dim && selection.targets.length && !active ? 0.3 : receipt?.status === "not_taken" ? 0.27 : receipt?.status === "unobserved" ? 0.48 : 1,
+            strokeDasharray: kind === "backedge" ? "3 3" : kind === "call" ? "7 4" : undefined,
+            opacity: dim && selection.targets.length && !active ? 0.3 : 1,
           },
         };
       }),
@@ -587,6 +579,7 @@ function GraphInner({
     query,
     relations,
     view,
+    showExecution,
     execution,
     pinsRevision,
     valuesByGroup,
@@ -621,123 +614,49 @@ function GraphInner({
       }}
     >
       <div className="wb-view-toolbar graph-toolbar">
-        <strong>计算关系图</strong>
-        <select
-          aria-label="关系图视图"
-          value={view}
-          onChange={(e) => { setView(e.target.value as GraphView); preference("view", e.target.value); }}
-        >
-          <option value="structure">结构</option>
-          <option value="data">数据</option>
-          <option value="execution">执行</option>
+        <strong>Relations</strong>
+        <select aria-label="关系图视图" value={view} onChange={e => { setView(normalizeGraphMode(e.target.value)); preference("view", e.target.value); }}>
+          <option value="code">Code</option><option value="data">Data</option>
         </select>
-        <input
-          type="search"
-          aria-label="搜索计算对象"
-          placeholder="搜索"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <button aria-label="返回上级块" disabled={!scope} onClick={() => onEnter(graph?.blocks.find(b => b.id === scope)?.parent_id ?? null)}>Back</button>
+        <button aria-label="总览" disabled={!scope} onClick={() => onEnter(null)}>Root</button>
+        <input type="search" aria-label="搜索计算对象" placeholder="Find" value={query} onChange={e => setQuery(e.target.value)} />
         <div className="graph-interaction-switch" role="group" aria-label="画布操作">
-          <button aria-pressed={interaction === "pan"} title="空白处左键拖动画布；按住 Shift 框选" onClick={() => setInteraction("pan")}>平移</button>
-          <button aria-pressed={interaction === "select"} title="左键拖动框选；中键或按住空格拖动画布" onClick={() => setInteraction("select")}>框选</button>
+          <button aria-label="平移" aria-pressed={interaction === "pan"} title="Drag canvas; Shift to select" onClick={() => setInteraction("pan")}>Pan</button>
+          <button aria-label="框选" aria-pressed={interaction === "select"} title="Drag to select; Space to pan" onClick={() => setInteraction("select")}>Select</button>
         </div>
-        <button disabled={!scope} onClick={() => onEnter(null)}>总览</button>
-        <button
-          disabled={!layoutReady || !projection.nodes.length}
-          onClick={() => void flow.fitView({ padding: 0.18, minZoom: 0.01, maxZoom: 1.25, duration: 0 })}
-        >
-          适应画布
-        </button>
-        <button ref={settingsButton} className={settingsOpen ? "is-active" : ""} aria-expanded={settingsOpen} aria-controls={document.id + "-graph-settings"} onClick={() => setSettingsOpen(open => !open)}>布局与关系</button>
+        <button aria-label="自动对齐排线" disabled={!layoutReady || !projection.nodes.length} onClick={() => {
+          for (const n of projection.nodes) if (!pinned.current.has(n.id)) positions.current.delete(n.id);
+          fittedNavigation.current = undefined; setArrange(n => n + 1);
+        }}>Arrange</button>
+        <button aria-label="适应画布" disabled={!layoutReady || !projection.nodes.length} onClick={() => void flow.fitView({ padding: 0.12, minZoom: 0.01, maxZoom: 1, duration: 0 })}>Fit</button>
+        <button aria-label="布局与关系" ref={settingsButton} className={settingsOpen ? "is-active" : ""} aria-expanded={settingsOpen} aria-controls={document.id + "-graph-settings"} onClick={() => setSettingsOpen(open => !open)}>Options</button>
       </div>
       <div ref={canvasRef} className="wb-graph-canvas" aria-busy={layoutState.key !== structuralKey || layoutState.status === "pending"}>
         {settingsOpen && <aside ref={settingsRef} id={document.id + "-graph-settings"} className="graph-settings" role="dialog" aria-label="布局与关系">
-          <header><strong>布局与关系</strong><button aria-label="关闭布局与关系" onClick={() => { setSettingsOpen(false); settingsButton.current?.focus(); }}><Icon name="close" size={14} /></button></header>
-          <fieldset><legend>关系显示</legend>
-            <label>
-              <input
-                type="checkbox"
-                checked={dim}
-                onChange={(e) => { setDim(e.target.checked); preference("dim_unrelated", e.target.checked); }}
-              />
-              淡化无关对象
-            </label>
-            <div className="graph-relationship-filters">{["data", "control", "call", "block"].map((k) => (
-              <label key={k}>
-                <input
-                  type="checkbox"
-                  checked={relations.has(k)}
-                  onChange={() =>
-                    setRelations((s) => {
-                      const n = new Set(s);
-                      n.has(k) ? n.delete(k) : n.add(k);
-                      return n;
-                    })
-                  }
-                />
-                {
-                  (
-                    {
-                      data: "数据",
-                      control: "控制",
-                      call: "调用",
-                      block: "块间",
-                    } as Record<string, string>
-                  )[k]
-                }
-                关系
-              </label>
-            ))}</div>
+          <header><strong>Display</strong><button aria-label="关闭布局与关系" onClick={() => { setSettingsOpen(false); settingsButton.current?.focus(); }}><Icon name="close" size={14} /></button></header>
+          <fieldset><legend>Relations</legend>
+            <label><input type="checkbox" checked={dim} aria-label="淡化无关对象" onChange={e => { setDim(e.target.checked); preference("dim_unrelated", e.target.checked); }} />Dim unrelated</label>
+            <label><input type="checkbox" checked={showExecution} aria-label="运行证据" onChange={e => setShowExecution(e.target.checked)} />Run evidence</label>
+            <div className="graph-relationship-filters">{(view === "data" ? ["data"] : ["control", "call", "block"]).map(k => <label key={k}>
+              <input type="checkbox" checked={relations.has(k)} onChange={() => setRelations(old => { const next = new Set(old); next.has(k) ? next.delete(k) : next.add(k); return next; })} />
+              {{ data: "Dependencies", control: "Flow", call: "Calls", block: "Blocks" }[k]}
+            </label>)}</div>
           </fieldset>
-          <fieldset><legend>布局</legend>
-            <label>方向
-            <select
-              aria-label="布局方向"
-              value={direction}
-              onChange={(e) => { setDirection(e.target.value); preference("direction", e.target.value); }}
-            >
-              <option value="RIGHT">从左到右</option>
-              <option value="DOWN">从上到下</option>
-            </select></label>
-            <div className="graph-settings-actions">
-            <button
-              disabled={!projection.nodes.length}
-              onClick={() => {
-                for (const n of projection.nodes)
-                  if (!pinned.current.has(n.id)) positions.current.delete(n.id);
-                setArrange((n) => n + 1);
-              }}
-            >
-              整理当前块
-            </button>
-            <button
-              disabled={!projection.nodes.length}
-              onClick={() => {
-                for (const id of positions.current.keys())
-                  if (!pinned.current.has(id)) positions.current.delete(id);
-                setArrange((n) => n + 1);
-              }}
-            >
-              整理全部
-            </button>
-            </div>
+          <fieldset><legend>Layout</legend><label>Direction<select aria-label="布局方向" value={direction} onChange={e => { setDirection(e.target.value); preference("direction", e.target.value); }}>
+            <option value="RIGHT">Left → right</option><option value="DOWN">Top → bottom</option></select></label>
+            <button aria-label="整理全部" disabled={!projection.nodes.length} onClick={() => { positions.current.clear(); pinned.current.clear(); persistPositions(); fittedNavigation.current = undefined; setArrange(n => n + 1); }}>Reset positions &amp; arrange</button>
           </fieldset>
-          <fieldset><legend>层级</legend><div className="graph-settings-actions">
-            <button disabled={!graph?.blocks.length} onClick={() => setClosed({ key: foldKey, values: new Set() })}>默认折叠</button>
-            <button disabled={!projection.nodes.some(n => n.plate && n.collapsed)} onClick={() => setClosed(old => {
-              const values = new Set(old.key === foldKey ? old.values : []);
-              for (const n of projection.nodes) if (n.plate && n.collapsed) { values.delete(n.id); values.add("open:" + n.id); }
-              return { key: foldKey, values };
-            })}>展开一层</button>
-            <button disabled={!graph?.blocks.length} onClick={() => setClosed({ key: foldKey, values: new Set(graph?.blocks.map(b => b.id)) })}>折叠全部</button>
-            <button disabled={!collapsed.size} onClick={() => setClosed({ key: foldKey, values: new Set(graph?.blocks.map(b => "open:" + b.id)) })}>展开全部</button>
-          </div><p>根层保留，后代块默认折叠。折叠与展开保留当前视角和固定位置。</p></fieldset>
+          <fieldset><legend>Blocks</legend><div className="graph-settings-actions">
+            <button aria-label="默认折叠" disabled={!graph?.blocks.length} onClick={() => setClosed({ key: foldKey, values: new Set() })}>Default</button>
+            <button aria-label="展开一层" disabled={!projection.nodes.some(n => n.plate && n.collapsed)} onClick={() => setClosed(old => {
+              const values = new Set(old.key === foldKey ? old.values : []); for (const n of projection.nodes) if (n.plate && n.collapsed) { values.delete(n.id); values.add("open:" + n.id); } return { key: foldKey, values };
+            })}>Expand level</button>
+            <button aria-label="折叠全部" disabled={!graph?.blocks.length} onClick={() => setClosed({ key: foldKey, values: new Set(graph?.blocks.map(b => b.id)) })}>Collapse all</button>
+            <button aria-label="展开全部" disabled={!collapsed.size} onClick={() => setClosed({ key: foldKey, values: new Set(graph?.blocks.map(b => "open:" + b.id)) })}>Expand all</button>
+          </div></fieldset>
         </aside>}
-        <div className={"graph-mode-note" + (view === "execution" && !execution.hasEvidence ? " graph-no-execution" : "")} role="status">
-          {view === "structure" ? "结构：块、计算与控制关系" : view === "data" ? "数据：计算、数据值与观测类型" : execution.hasEvidence ? "执行：高亮实际观测路径，次数来自运行记录" : "暂无运行证据。运行后显示实际路径、状态与次数。"}
-        </div>
-        {!graph && <div className="graph-empty">导入源码后显示计算结构。</div>}
+        {!graph && <div className="graph-empty">Import a Python file</div>}
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -794,23 +713,21 @@ function GraphInner({
             if (pinned.current.has(n.id)) persistPositions();
           }}
         >
-          <Background gap={24} color="var(--line)" />
+          <Background variant={BackgroundVariant.Lines} gap={16} size={0.5} color="var(--line)" />
           <Controls showInteractive={false} fitViewOptions={{ padding: 0.18, minZoom: 0.01, maxZoom: 1.25, duration: 0 }} />
         </ReactFlow>
       </div>
       <div className="wb-graph-legend">
-        <span style={{ color: edgeColors.data }}>数据</span>
-        <span style={{ color: edgeColors.control }}>条件 / 控制</span>
-        <span style={{ color: edgeColors.call }}>调用</span>
-        <span style={{ color: edgeColors.backedge }}>循环回边</span>
-        {view === "data" && <span>▦ 矩阵 / ▤ 表格 / σ 标量</span>}
-        {view === "execution" && <span>粗实线：已观测 · 虚线：静态或未观测</span>}
-        {projection.viewOmitted > 0 && <span>{projection.viewOmitted} 个数据单元在数据视图显示</span>}
-        <span data-testid="graph-layout-metric">
-          {projection.nodes.length} 单元 · {projection.omitted} 已折叠 ·{" "}
-          {!layoutReady ? layoutState.status === "error" ? "布局失败" : "布局中…" : `${time.toFixed(0)} ms`}
-        </span>
+        {view === "data" ? <span style={{ color: edgeColors.data }}>Variable dependencies</span> : <><span style={{ color: edgeColors.control }}>Flow</span><span style={{ color: edgeColors.call }}>Call</span><span style={{ color: edgeColors.backedge }}>Loop</span></>}
+        {showExecution && <span>Run evidence</span>}
+        <span data-testid="graph-layout-metric">{projection.nodes.length} nodes · {projection.omitted} folded · {!layoutReady ? layoutState.status === "error" ? "Layout error" : "Arranging…" : `${time.toFixed(0)} ms`}</span>
       </div>
+      {detailId && (() => { const node = semanticById.get(detailId); if (!node) return null; return <aside className="graph-detail" role="dialog" aria-label="计算详情">
+        <header><strong>{node.label}</strong><button aria-label="关闭计算详情" onClick={() => setDetailId(undefined)}><Icon name="close" size={14} /></button></header>
+        <dl><div><dt>Kind</dt><dd>{names[node.kind] ?? node.kind}</dd></div><div><dt>Source</dt><dd>{node.source?.path.split(/[\\/]/).at(-1)}{node.source ? `:${node.source.line}` : ""}</dd></div></dl>
+        {node.source?.code && <pre>{node.source.code}</pre>}
+        <button onClick={() => { const target = targets.get(node.id); if (target) onSource(target); }}>Open source</button>
+      </aside>; })()}
       {menu && (
         <div className="context-backdrop" onClick={() => setMenu(undefined)}>
           <div
@@ -825,15 +742,16 @@ function GraphInner({
               disabled={!menu.target.snapshot_id}
               onClick={() => onOpen(menu.target)}
             >
-              打开数据
+              Open data
             </button>
-            <button onClick={() => onSource(menu.target)}>定位源码</button>
+            <button onClick={() => onSource(menu.target)}>Open source</button>
             {menu.target.kind !== "data" && menu.target.block_id && (
               <button onClick={() => onEnter(menu.target.block_id!)}>
-                进入此块
+                Enter block
               </button>
             )}
-            <button onClick={onBind}>绑定探针</button>
+            <button onClick={() => menu.id && setDetailId(menu.id)}>Details</button>
+            <button onClick={onBind}>Bind probe</button>
             <button
               disabled={!menu.id}
               onClick={() => {
@@ -850,8 +768,8 @@ function GraphInner({
               }}
             >
               {pinned.current.has(menu.id ?? "")
-                ? "取消固定位置"
-                : "固定位置"}
+                ? "Unpin"
+                : "Pin"}
             </button>
           </div>
         </div>

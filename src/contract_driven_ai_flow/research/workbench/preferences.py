@@ -9,8 +9,8 @@ from jsonschema import validate, ValidationError
 from ...storage import atomic_write_private
 
 DEFAULTS = {
-    "workspace": {"theme": "light", "explorer_width": 218, "compact": False},
-    "graph": {"view": "structure", "dim_unrelated": False, "direction": "RIGHT"},
+    "workspace": {"theme": "light", "explorer_width": 276, "compact": False},
+    "graph": {"view": "code", "dim_unrelated": False, "direction": "RIGHT"},
     "probes": {"concurrency": 4, "precision": 3},
     "capture": {
         "level": "summary",
@@ -48,7 +48,7 @@ SCHEMA = {
                                 else (
                                     {
                                         "type": "string",
-                                        "enum": ["structure", "data", "execution"],
+                                        "enum": ["code", "data", "structure", "execution"],
                                     }
                                     if key == "view"
                                     else (
@@ -123,6 +123,8 @@ class PreferenceService:
                 values[group].update(fields)
                 for key in fields:
                     sources[group + "." + key] = name
+        if values["graph"]["view"] in ("structure", "execution"):
+            values["graph"]["view"] = "code"
         return {
             "values": values,
             "sources": sources,

@@ -1,11 +1,10 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import type { AnalysisDocument, ProbeOutput } from "./generated";
+import type { AnalysisDocument, ProbeDefinition, ProbeOutput, WorkbenchConfig } from "./generated";
 import type { SnapshotRef } from "../generated";
 import { choose, selectionBlocks, selectionKey, type Selection, type ObjectRow } from "./selection";
 import { buildObjectTree, initialObjectExpansion, logicalSelectionCount, selectableObjectOrder, selectionObjectIds, type BrowserRow } from "./objectTree";
 import type { OccurrenceGroup } from "./sourceOccurrences";
 import { Icon } from "./icons";
-import { client } from "../client";
 import { wb } from "./WorkbenchClient";
 import "./object-browser.css";
 
@@ -23,7 +22,7 @@ function RowIcon({ kind }: { kind: BrowserRow["rowKind"] }) {
   return <svg className={"object-kind-icon " + kind} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[kind]} /></svg>;
 }
 
-export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, selection, onSelection, onOpen, onSource, onEnter, onBind, scope, outputs = [] }: {
+export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, selection, onSelection, onOpen, onSource, onEnter, onBind, scope, outputs = [], config, definitions = [] }: {
   analysis?: AnalysisDocument;
   values: SnapshotRef[];
   selection: Selection;
@@ -34,22 +33,20 @@ export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, sel
   onBind: () => void;
   scope: string | null;
   outputs?: ProbeOutput[];
+  config?: WorkbenchConfig;
+  definitions?: ProbeDefinition[];
 }) {
-  const [query, setQuery] = useState(""), [type, setType] = useState("all"), [top, setTop] = useState(0);
-  const [status, setStatus] = useState("all"), [probe, setProbe] = useState("all"), [notice, setNotice] = useState("");
-  const [histories, setHistories] = useState<Map<string, SnapshotRef[]>>(new Map());
+  const [query, setQuery] = useState(""), [type, setType] = useState("variables"), [top, setTop] = useState(0);
+  const [probe, setProbe] = useState("all"), [notice, setNotice] = useState("");
   const [occurrences, setOccurrences] = useState<{ analysisId?: string; groups: OccurrenceGroup[] }>({ groups: [] });
   const expansionKey = `${analysis?.id ?? ""}:${scope ?? ""}`;
   const [expansion, setExpansion] = useState(() => ({ key: expansionKey, ids: initialObjectExpansion(analysis, scope) }));
   const expanded = expansion.key === expansionKey ? expansion.ids : initialObjectExpansion(analysis, scope);
   const [menu, setMenu] = useState<{ row: BrowserRow; x: number; y: number }>();
   const [focused, setFocused] = useState<string>();
-  const viewport = useRef<HTMLDivElement>(null), version = useRef(0), pendingHistory = useRef(new Set<string>());
+  const viewport = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    version.current++;
-    pendingHistory.current.clear();
-    setHistories(new Map());
     setNotice("");
   }, [analysis?.id, values[0]?.run_id]);
   useEffect(() => {
@@ -68,8 +65,8 @@ export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, sel
     return () => abort.abort();
   }, [analysis?.id]);
   const groups = occurrences.analysisId === analysis?.id ? occurrences.groups : [];
-  const rows = useMemo(() => buildObjectTree(analysis, values, scope, expanded, query, type, histories, { status, probe, outputs, occurrences: groups }),
-    [analysis, values, scope, expanded, query, type, histories, status, probe, outputs, groups]);
+  const rows = useMemo(() => buildObjectTree(analysis, values, scope, expanded, query, type, new Map(), { probe, outputs, occurrences: groups, probes: config?.probes, definitions }),
+    [analysis, values, scope, expanded, query, type, probe, outputs, groups, config?.probes, definitions]);
   const keys = useMemo(() => new Set(selection.targets.map(selectionKey)), [selection]);
   const selectedObjects = useMemo(() => selectionObjectIds(analysis, selection.targets.filter(target => !target.exact_evidence), groups), [analysis, selection, groups]);
   const selectedBlocks = useMemo(() => selectionBlocks(analysis?.graph.blocks ?? [], selection.targets), [analysis, selection]);
@@ -88,16 +85,6 @@ export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, sel
       ids.has(row.id) ? ids.delete(row.id) : ids.add(row.id);
       return { key: expansionKey, ids };
     });
-    const historyId = row.group?.id ?? row.historyGroupId;
-    const snapshot = row.snapshot ?? rows.find(item => item.id === historyId)?.snapshot;
-    if (!expanded.has(row.id) && historyId && snapshot && !histories.has(historyId) && !pendingHistory.current.has(historyId)) {
-      pendingHistory.current.add(historyId);
-      const revision = version.current;
-      void client.history(snapshot.run_id, snapshot.binding_id).then(history => {
-        if (revision === version.current) setHistories(current => new Map([...current, [historyId, history]]));
-      }).catch(error => { if (revision === version.current) setNotice(error.message); })
-        .finally(() => { if (revision === version.current) pendingHistory.current.delete(historyId); });
-    }
   };
   const focusRow = (index: number, event: { ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean }) => {
     const row = rows[index];
@@ -108,20 +95,17 @@ export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, sel
   const closeMenu = (action: () => void) => { action(); setMenu(undefined); };
 
   return <section className="object-browser" aria-label="对象浏览器">
-    <div className="wb-section-label">对象浏览器 <span>{rows.length} 行</span></div>
+    <div className="wb-section-label">对象浏览器 <span>{rows.filter(row => row.rowKind === "variable").length}</span></div>
     <div className="object-filters">
       <input type="search" aria-label="搜索对象" value={query} placeholder="搜索名称或作用域" onChange={event => {
         setQuery(event.target.value); setTop(0); if (viewport.current) viewport.current.scrollTop = 0;
       }} />
-      <select aria-label="对象类型" value={type} onChange={event => setType(event.target.value)}>
-        <option value="all">全部类型</option>
-        <option value="matrix">矩阵</option><option value="table">表格</option><option value="scalar">标量</option><option value="function">函数</option><option value="class">类</option>
-      </select>
     </div>
     <div className="object-filters">
-      <select aria-label="对象证据状态" value={status} onChange={event => setStatus(event.target.value)}><option value="all">全部证据</option><option value="observed">已观测</option><option value="unobserved">未观测</option></select>
-      <select aria-label="对象探针结果" value={probe} onChange={event => setProbe(event.target.value)}><option value="all">全部结果</option><option value="bound">有探针结果</option><option value="failed">检查异常</option></select>
+      <select aria-label="对象类型" value={type} onChange={event => { setType(event.target.value); setTop(0); if (viewport.current) viewport.current.scrollTop = 0; }}><option value="variables">仅变量</option><option value="all">全部</option></select>
+      <select aria-label="对象探针结果" value={probe} onChange={event => { setProbe(event.target.value); setTop(0); if (viewport.current) viewport.current.scrollTop = 0; }}><option value="all">全部</option><option value="failed">探针异常</option><option value="normal">正常</option></select>
     </div>
+    <div className="object-column-headings" aria-hidden="true"><span>名称</span><span>类型</span><span>形状</span><span>探针</span></div>
     <div className="scope-breadcrumb">
       <button onClick={() => onEnter(null)}>项目</button>
       {scope && <><span>/</span><button title="返回上级范围" onClick={() => onEnter(analysis?.graph.blocks.find(block => block.id === scope)?.parent_id ?? null)}>{analysis?.graph.blocks.find(block => block.id === scope)?.label}</button></>}
@@ -135,7 +119,7 @@ export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, sel
             ...(analysis?.graph.blocks.map(block => block.id) ?? []),
             ...rows.filter(row => row.rowKind === "folder").map(row => row.id),
           ]);
-          const allRows = buildObjectTree(analysis, values, scope, allExpanded, query, type, histories, { status, probe, outputs, occurrences: groups });
+          const allRows = buildObjectTree(analysis, values, scope, allExpanded, query, type, new Map(), { probe, outputs, occurrences: groups, probes: config?.probes, definitions });
           const matching = selectableObjectOrder(allRows.filter(row => row.matchesFilter));
           onSelection(matching.length ? choose(selection, matching[0], matching, { all: true }) : { targets: [], anchor: null });
           return;
@@ -163,14 +147,14 @@ export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, sel
           const open = expanded.has(row.id) || rows.some(item => item.parent === row.id);
           return <div key={row.id} id={"object-item:" + row.id} role="treeitem" aria-level={row.depth + 1} aria-selected={row.selectable ? selected : undefined} aria-expanded={row.expandable ? open : undefined}
             className={"object-row object-row-" + row.rowKind + (selected ? " selected" : "") + (partial ? " part-selected" : "") + (focused === row.id ? " tree-focused" : "")}
-            style={{ top: (start + index) * 32, paddingLeft: 6 + row.depth * 14 }}
+            style={{ top: (start + index) * 32, paddingLeft: 6 + row.depth * 10 }}
             onClick={event => select(row, event)} onDoubleClick={event => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey) row.rowKind === "folder" ? toggle(row) : onOpen(row); }}
             onContextMenu={event => { event.preventDefault(); if (row.selectable && !selected) select(row, {}); setFocused(row.id); setMenu({ row, x: event.clientX, y: event.clientY }); }}>
             {row.expandable ? <button className="tree-toggle" tabIndex={-1} aria-label={(open ? "折叠 " : "展开 ") + row.label} aria-expanded={open}
               onClick={event => { event.stopPropagation(); toggle(row); }}><span className={"tree-chevron " + (open ? "open" : "")}><Icon name="chevron" size={12} /></span></button> : <span className="tree-toggle-spacer" />}
             <RowIcon kind={row.rowKind} />
             <span className="object-row-name" title={row.source?.code || row.target.logical_key}>{row.label}</span>
-            <small title={row.detail}>{row.detail}</small>
+            <span className="object-metadata" title={row.detail}><small className="object-dtype">{row.typeLabel}</small><small className="object-shape">{row.shapeLabel}</small>{row.selectable ? <button className="object-probe-count" tabIndex={-1} aria-label={`${row.label} 的探针 (${row.probeCount})`} onClick={event => { event.stopPropagation(); if (!selected) select(row, {}); onBind(); }}>{row.probeCount}</button> : <small>—</small>}</span>
           </div>;
         })}
       </div>

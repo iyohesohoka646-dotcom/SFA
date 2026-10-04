@@ -1658,6 +1658,17 @@
   flex: 1 0 160px;
   min-height: 160px;
 }
+.probe-presentation { border-bottom: 1px solid var(--ri-line); }
+.probe-presentation > summary, .data-probe-result > summary { cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 12px; background: var(--ri-panel); }
+.probe-presentation > summary::before, .data-probe-result > summary::before { content: "›"; font-size: 15px; color: var(--ri-muted); }
+.probe-presentation[open] > summary::before, .data-probe-result[open] > summary::before { transform: rotate(90deg); }
+.probe-presentation > summary small { color: var(--ri-muted); font-size: 10px; }
+.probe-presentation > summary > .wb-kind, .data-probe-result > summary > .wb-kind { margin-left: auto; }
+.data-probe-results { border-top: 1px solid var(--ri-line); }
+.data-probe-result { border-bottom: 1px solid var(--ri-line); }
+.data-probe-result > p { padding: 8px 12px; }
+.probe-input-relations { padding: 16px; font-family: Consolas,monospace; }
+.data-presentation-settings { max-height: 45%; overflow: auto; }
 .wb-evidence-bar,
 .data-metadata,
 .wb-version-strip,

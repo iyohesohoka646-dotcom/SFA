@@ -1,5 +1,6 @@
 import type { SnapshotRef } from "../generated";
-import type { AnalysisDocument, GraphBlock, ProbeOutput, SourceObject, TargetRef } from "./generated";
+import type { AnalysisDocument, GraphBlock, ProbeDefinition, ProbeInstance, ProbeOutput, SourceObject, TargetRef } from "./generated";
+import { targetProbeEntries } from "./probe-configuration";
 import { selectionKey, type ObjectRow } from "./selection";
 import type { OccurrenceGroup } from "./sourceOccurrences";
 
@@ -22,6 +23,9 @@ export interface BrowserRow extends ObjectRow {
   logicalKeys?: string[];
   source?: SourceObject;
   matchesFilter?: boolean;
+  typeLabel: string;
+  shapeLabel: string;
+  probeCount: number;
 }
 
 const lexicalKinds = new Set(["file", "function", "class", "folder", "project"]);
@@ -51,7 +55,6 @@ export function logicalObjectGroups(analysis: AnalysisDocument, occurrences: Occ
   const ownership = new Map(occurrences.flatMap(group => group.object_ids.map(id => [id, group] as const)));
   const blocks = blockIndex(analysis), containers = new Map<string, Set<string>>();
   const objects = [...analysis.objects].sort(sourceOrder);
-  // Parameter nodes such as *args were not present in some older object lists.
   const knownKeys = new Set(objects.map(object => object.logical_key));
   for (const node of analysis.graph.nodes)
     if (["data", "parameter"].includes(node.kind) && node.logical_key && !knownKeys.has(node.logical_key)) {
@@ -74,7 +77,6 @@ export function logicalObjectGroups(analysis: AnalysisDocument, occurrences: Occ
   for (const object of objects) {
     const occurrence = ownership.get(object.id);
     const key = object.logical_key || `${object.path}::${object.scope}::${object.name}`;
-    // Separate redefined function bodies even before occurrence metadata arrives.
     const identity = occurrence?.logical_key ?? (containers.get(key)!.size > 1 && !["function", "class"].includes(object.kind)
       ? `${key}@scope:${lexicalBlock(object.block_id, blocks)}` : key);
     let group = result.get(identity);
@@ -129,15 +131,17 @@ function origin(group: LogicalObjectGroup, snapshot?: SnapshotRef) {
     ?? group.objects.find(object => object.line === snapshot.source!.line) ?? group.objects[0] : group.objects[0];
 }
 
-function valueDetail(snapshot: SnapshotRef) {
-  const descriptor = snapshot.descriptor;
-  const kind = descriptor.dtype ?? descriptor.kind;
-  const shape = descriptor.shape?.length ? descriptor.shape.join(" × ") : "";
-  const values = snapshot.sample.values;
-  const sample = Array.isArray(values) && Array.isArray(values[0]) ? values[0][0] : snapshot.sample.value;
-  const scalar = descriptor.kind === "scalar" && (sample === null || ["string", "number", "boolean"].includes(typeof sample))
-    ? String(sample).slice(0, 32) : "";
-  return [kind, shape || scalar, `观测 v${snapshot.version}`].filter(Boolean).join(" · ");
+function typeLabel(snapshot?: SnapshotRef) {
+  if (!snapshot) return "—";
+  return snapshot.descriptor.dtype ?? snapshot.descriptor.kind ?? "—";
+}
+function shapeLabel(snapshot?: SnapshotRef) {
+  const shape = snapshot?.descriptor.shape;
+  return shape?.length ? shape.join(" × ") : "—";
+}
+
+function valueDetail(type: string, shape: string, count: number) {
+  return [type, shape, count ? `${count} 探针` : "0 探针"].join(" · ");
 }
 
 function targetFor(analysis: AnalysisDocument, source: SourceObject, snapshot?: SnapshotRef, exact = false, objectIds?: Set<string>): TargetRef {
@@ -159,6 +163,31 @@ export interface ObjectTreeOptions {
   probe?: string;
   outputs?: ProbeOutput[];
   occurrences?: OccurrenceGroup[];
+  probes?: ProbeInstance[];
+  definitions?: ProbeDefinition[];
+}
+
+function matchedOutputs(outputs: ProbeOutput[], analysis: AnalysisDocument, row: BrowserRow) {
+  return outputs.filter(output => {
+    if (output.analysis_id && output.analysis_id !== analysis.id) return false;
+    return output.targets.some(target =>
+      (row.logicalKeys ?? [row.target.logical_key]).includes(target.logical_key)
+      && (!target.object_id || (row.objectIds ?? []).includes(target.object_id))
+      && (!target.analysis_id || target.analysis_id === analysis.id));
+  });
+}
+
+function probeOutcome(outputs: ProbeOutput[], analysis: AnalysisDocument, row: BrowserRow, enabled?: Set<string>): "normal" | "failed" | "unknown" {
+  const matched = matchedOutputs(outputs, analysis, row).filter(output => !enabled || enabled.has(output.instance_id));
+  if (!matched.length) return "unknown";
+  const latest = new Map<string, ProbeOutput>();
+  for (const output of matched) {
+    const current = latest.get(output.instance_id);
+    if (!current || (Date.parse(output.created_at) || 0) >= (Date.parse(current.created_at) || 0)) latest.set(output.instance_id, output);
+  }
+  const statuses = [...latest.values()].map(output => output.status);
+  if (statuses.some(status => status === "fail" || status === "error")) return "failed";
+  return statuses.every(status => status === "pass" || status === "ready") ? "normal" : "unknown";
 }
 
 export function buildObjectTree(
@@ -173,6 +202,16 @@ export function buildObjectTree(
 ): BrowserRow[] {
   if (!analysis) return [];
   const blocks = blockIndex(analysis), groups = logicalObjectGroups(analysis, options.occurrences);
+  const probes = options.probes ?? [], definitions = options.definitions ?? [], outputs = options.outputs ?? [];
+  const snapshotIds = new Set(values.map(value => value.id)), outputIndex = new Map<string, ProbeOutput[]>();
+  for (const output of outputs) {
+    if (output.snapshot_id && !snapshotIds.has(output.snapshot_id)) continue;
+    if (output.analysis_id && output.analysis_id !== analysis.id) continue;
+    for (const key of new Set(output.targets.map(target => target.logical_key))) {
+      const matches = outputIndex.get(key) ?? []; matches.push(output); outputIndex.set(key, matches);
+    }
+  }
+  const boundInstances = new Map<string, Set<string>>();
   const objectIds = new Set(analysis.objects.map(object => object.id)), valuesByKey = new Map<string, SnapshotRef[]>();
   for (const value of values) {
     const key = value.logical_key || value.binding_id;
@@ -194,6 +233,11 @@ export function buildObjectTree(
   }
   const children = new Map<string, BrowserRow[]>(), roots: BrowserRow[] = [];
   const append = (row: BrowserRow, parent?: string) => {
+    if (row.selectable) {
+      const enabled = new Set(targetProbeEntries(probes, definitions, row.target, analysis).filter(entry => entry.enabled).map(entry => entry.probe.id));
+      boundInstances.set(row.id, enabled); row.probeCount = enabled.size;
+      if (row.rowKind === "variable") row.detail = valueDetail(row.typeLabel, row.shapeLabel, row.probeCount);
+    }
     row.parent = parent;
     if (parent) {
       const list = children.get(parent) ?? [];
@@ -208,7 +252,7 @@ export function buildObjectTree(
   const rootBlocks = retained.filter(block => !block.parent_id || block.id === scope);
   const syntheticFolder = !scope && rootBlocks.length === 1 && rootBlocks[0].kind === "file";
   if (syntheticFolder) append({ id: folderId(analysis), depth: 0, label: pathName(folderPath(analysis)), detail: "文件夹",
-    rowKind: "folder", selectable: false, expandable: true,
+    rowKind: "folder", selectable: false, expandable: true, typeLabel: "文件夹", shapeLabel: "—", probeCount: 0,
     target: { kind: "folder", logical_key: folderPath(analysis), object_id: null, block_id: null, analysis_id: analysis.id, run_id: null, snapshot_id: null, exact_evidence: false } });
   for (const block of retained) {
     let parent = block.id === scope ? undefined : lexicalBlock(block.parent_id ?? "", blocks) || undefined;
@@ -216,11 +260,12 @@ export function buildObjectTree(
     if (!parent && syntheticFolder) parent = folderId(analysis);
     const source = analysis.objects.find(object => object.id === block.source_object_id);
     const kind = block.kind === "file" ? "file" : ["function", "class"].includes(block.kind) ? "function" : "control";
+    const label = block.kind === "file" ? "文件" : block.kind === "function" ? "函数" : block.kind === "class" ? "类" : "代码块";
     append({ id: block.id, depth: 0, label: block.kind === "file" ? pathName(block.source?.path ?? analysis.path) : block.label,
-      detail: block.kind === "file" ? "Python 文件" : `${block.kind === "function" ? "函数" : block.kind === "class" ? "类" : "代码块"} · L${source?.line ?? block.source?.line ?? 1}`,
+      detail: label,
       rowKind: block.kind === "file" ? "file" : block.kind === "function" ? "function" : block.kind === "class" ? "class" : "control",
       selectable: true, expandable: true, block, source, objectId: source?.id,
-      objectIds: source ? [source.id] : [], logicalKeys: [block.logical_key],
+      objectIds: source ? [source.id] : [], logicalKeys: [block.logical_key], typeLabel: label, shapeLabel: "—", probeCount: 0,
       target: { kind, logical_key: block.logical_key, object_id: block.source_object_id, block_id: block.id, analysis_id: analysis.id,
         run_id: null, snapshot_id: null, exact_evidence: false } }, parent);
   }
@@ -236,26 +281,13 @@ export function buildObjectTree(
       if (owner) parent = owner.id;
     }
     if (!parent || !retainedIds.has(parent)) parent = scope ?? retained.find(block => block.kind === "file")?.id;
+    const target = targetFor(analysis, source, snapshot, false, objectIds);
     const row: BrowserRow = { id: group.id, depth: 0, label: group.name,
-      detail: [snapshot ? valueDetail(snapshot) : "未观测", `${group.objects.length} 处定义`].join(" · "),
-      target: targetFor(analysis, source, snapshot, false, objectIds), objectId: source.id, objectIds: group.objectIds,
-      logicalKeys: group.logicalKeys, rowKind: "variable", selectable: true, expandable: true, group, source, snapshot };
+      detail: "",
+      target, objectId: source.id, objectIds: group.objectIds,
+      logicalKeys: group.logicalKeys, rowKind: "variable", selectable: true, expandable: false, group, source, snapshot,
+      typeLabel: typeLabel(snapshot), shapeLabel: shapeLabel(snapshot), probeCount: 0 };
     append(row, parent);
-    for (const [index, assignment] of group.objects.entries()) {
-      const assignmentValues = snapshots.filter(value => origin(group, value).id === assignment.id);
-      const latest = latestObservedSnapshot(assignmentValues), assignmentId = "assignment:" + assignment.id;
-      append({ id: assignmentId, depth: 0, label: `${assignment.kind === "parameter" ? "参数" : assignment.kind === "import" ? "导入" : "赋值"} #${index + 1}`,
-        detail: `L${assignment.line}${assignment.column ? ":" + (assignment.column + 1) : ""} · ${latest ? valueDetail(latest) : "未观测"}`,
-        target: targetFor(analysis, assignment, undefined, false, objectIds), source: assignment, objectId: assignment.id, objectIds: [assignment.id],
-        logicalKeys: group.logicalKeys, group, historyGroupId: group.id, rowKind: "assignment", selectable: false, expandable: assignmentValues.length > 0 }, group.id);
-      const uniqueValues = [...new Map(assignmentValues.map(value => [value.id, value])).values()]
-        .sort((a, b) => (Date.parse(b.observed_at) || 0) - (Date.parse(a.observed_at) || 0) || b.version - a.version);
-      for (const evidence of uniqueValues)
-        append({ id: "evidence:" + evidence.id, depth: 0, label: `观测 v${evidence.version}`,
-          detail: `${valueDetail(evidence)}${evidence.scope_id === "main" ? "" : " · " + evidence.scope_id}`,
-          target: targetFor(analysis, assignment, evidence, true, objectIds), source: assignment, snapshot: evidence, objectId: assignment.id,
-          objectIds: [assignment.id], logicalKeys: group.logicalKeys, group, rowKind: "evidence", selectable: true }, assignmentId);
-    }
   }
   const known = new Set(groups.flatMap(group => group.logicalKeys));
   if (!scope) {
@@ -266,22 +298,33 @@ export function buildObjectTree(
     }
     for (const [key, snapshots] of extra) {
       const snapshot = latestObservedSnapshot(snapshots)!;
-      append({ id: "runtime:" + key, depth: 0, label: snapshot.name, detail: valueDetail(snapshot) + (snapshot.scope_id === "derived" ? " · 派生" : ""),
-        snapshot, rowKind: "variable", selectable: true, target: { kind: "data", logical_key: key, snapshot_id: snapshot.id, run_id: snapshot.run_id,
+      append({ id: "runtime:" + key, depth: 0, label: snapshot.name,
+        detail: valueDetail(typeLabel(snapshot), shapeLabel(snapshot), 0), snapshot, rowKind: "variable", selectable: true, expandable: false,
+        typeLabel: typeLabel(snapshot), shapeLabel: shapeLabel(snapshot), probeCount: 0, logicalKeys: [key], objectIds: [],
+        target: { kind: "data", logical_key: key, snapshot_id: snapshot.id, run_id: snapshot.run_id,
           object_id: null, block_id: null, analysis_id: analysis.id, exact_evidence: false } }, retained.find(block => block.kind === "file")?.id);
     }
   }
   const q = query.trim().toLowerCase();
-  const filtered = Boolean(q || type !== "all" || options.status && options.status !== "all" || options.probe && options.probe !== "all");
+  const typeMode = type === "variables" ? "variables" : "all";
+  const probeFilter = options.probe && options.probe !== "all" ? options.probe : "all";
+  const filtered = Boolean(q || typeMode !== "all" || probeFilter !== "all");
+  const revealMatches = Boolean(q || probeFilter !== "all");
+  const containerKinds = new Set(["folder", "file", "function", "class", "control"]);
   const matches = (row: BrowserRow) => {
-    if (row.rowKind === "folder" || row.rowKind === "assignment" || row.rowKind === "evidence") return false;
-    const kind = row.snapshot?.descriptor.kind ?? row.rowKind;
-    if (q && !(row.label + " " + row.detail + " " + (row.group?.scope ?? "")).toLowerCase().includes(q)) return false;
-    if (type !== "all" && type !== kind && type !== row.block?.kind) return false;
-    if (options.status === "observed" && !row.snapshot || options.status === "unobserved" && row.snapshot) return false;
-    if (options.probe && options.probe !== "all" && !(options.outputs ?? []).some(output =>
-      output.targets.some(target => (row.logicalKeys ?? [row.target.logical_key]).includes(target.logical_key)) &&
-      (options.probe === "bound" || ["fail", "error"].includes(output.status)))) return false;
+    if (row.rowKind !== "variable") {
+      if (containerKinds.has(row.rowKind) && typeMode === "all" && probeFilter === "all"
+        && (!q || (row.label + " " + row.detail + " " + (row.group?.scope ?? "")).toLowerCase().includes(q))) return true;
+      return false;
+    }
+    const group = row.group;
+    const isImported = group ? group.objects.some(object => ["import", "step"].includes(object.kind)) : false;
+    if (typeMode === "variables" && isImported) return false;
+    if (q && !(row.label + " " + row.detail + " " + (group?.scope ?? "")).toLowerCase().includes(q)) return false;
+    if (probeFilter !== "all") {
+      const candidateOutputs = [...new Map((row.logicalKeys ?? [row.target.logical_key]).flatMap(key => outputIndex.get(key) ?? []).map(output => [output.id, output])).values()];
+      if (probeOutcome(candidateOutputs, analysis, row, options.probes ? boundInstances.get(row.id) : undefined) !== probeFilter) return false;
+    }
     return true;
   };
   const memo = new Map<string, boolean>();
@@ -293,9 +336,9 @@ export function buildObjectTree(
   };
   const rows: BrowserRow[] = [];
   const visit = (row: BrowserRow, depth: number) => {
-    if (filtered && !subtreeMatches(row) && !(row.rowKind === "assignment" || row.rowKind === "evidence")) return;
+    if (filtered && !subtreeMatches(row)) return;
     rows.push({ ...row, depth, matchesFilter: matches(row) });
-    const autoExpand = filtered && row.rowKind !== "variable" && row.rowKind !== "assignment";
+    const autoExpand = revealMatches && row.rowKind !== "variable";
     if (!expanded.has(row.id) && !autoExpand) return;
     const position = (item: BrowserRow) => item.rowKind === "variable" ? item.group?.objects[0] : item.source;
     const ordered = [...(children.get(row.id) ?? [])].sort((a, b) =>

@@ -208,7 +208,7 @@ test('pinned relation graph keeps its nodes and camera after switching global ru
   await expect(page.getByTestId('relation-node')).toHaveCount(count);
   await expect(page.locator('.wb-graph-canvas .react-flow__viewport')).toHaveAttribute('style',camera!);
   await expect(page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first()).toBeVisible();
-  await page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first().click({button:'right'});await page.getByRole('button',{name:'打开数据',exact:true}).click();
+  await page.locator('.semantic-node.kind-data').filter({has:page.locator('strong',{hasText:/^X$/})}).first().click({button:'right'});await page.getByRole('button',{name:'Open data',exact:true}).click();
   await expect(page.locator('.wb-data-pane .wb-evidence-bar')).toContainText(runA.slice(0,8));
 });
 
@@ -239,7 +239,7 @@ test('heatmap explains its color scale and captured sample without an essay', as
   await expect(page.getByTestId('matrix-color-legend')).toContainText('线性');
   await expect(page.getByTestId('matrix-axis-labels')).toContainText('行');
   await expect(page.getByTestId('matrix-cell-value')).toBeVisible();
-  await expect(page.getByText('统计与采集', {exact:true})).toBeVisible();
+  await expect(page.getByTestId('probe-view').getByText('统计与采集', {exact:true})).toBeVisible();
   await page.screenshot({path:'../docs/assets/scientific-matrix.png'});
 });
 

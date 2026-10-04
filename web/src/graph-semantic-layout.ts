@@ -43,8 +43,9 @@ export function semanticLayoutBounds(nodes: readonly Node[], layout: SemanticLay
 }
 
 const labelWidth = (label: string) => [...label].reduce((size, c) => size + (c.charCodeAt(0) > 255 ? 11 : 6.3), 0);
-export function semanticDimensions({ label, plate, handles, collapsed = false }: { label: string; plate: boolean; handles: LayoutHandle[]; collapsed?: boolean }) {
+export function semanticDimensions({ label, plate, handles, collapsed = false, compact = false }: { label: string; plate: boolean; handles: LayoutHandle[]; collapsed?: boolean; compact?: boolean }) {
   const inputs = handles.filter(p => p.direction === "input"), outputs = handles.filter(p => p.direction === "output");
+  if (compact) return { width: plate ? 288 : 192, height: Math.max(80, 64 + Math.max(inputs.length, outputs.length) * 16) };
   const columnWidth = (column: LayoutHandle[]) => column.length ? Math.min(178, Math.max(88, ...column.map(p => labelWidth(p.name)))) : 0;
   const width = Math.ceil(Math.min(440, Math.max(plate ? 300 : 228, labelWidth(label) + (plate ? 118 : 40), columnWidth(inputs) + columnWidth(outputs) + 38)));
   const height = (plate ? 64 : 62) + Math.max(inputs.length, outputs.length) * 20 + (plate && collapsed ? 30 : 28);
@@ -57,17 +58,21 @@ const layoutOptions = (direction: string): LayoutOptions => ({
   "elk.direction": direction,
   "elk.hierarchyHandling": "INCLUDE_CHILDREN",
   "elk.edgeRouting": "ORTHOGONAL",
-  "elk.padding": "[top=76,left=30,bottom=30,right=30]",
-  "elk.spacing.nodeNode": "36",
-  "elk.spacing.edgeNode": "22",
+  "elk.padding": "[top=48,left=24,bottom=24,right=24]",
+  "elk.spacing.nodeNode": "24",
+  "elk.spacing.edgeNode": "16",
   "elk.spacing.edgeEdge": "12",
   "elk.spacing.labelNode": "10",
-  "elk.layered.spacing.nodeNodeBetweenLayers": "72",
-  "elk.layered.spacing.edgeNodeBetweenLayers": "28",
+  "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+  "elk.layered.spacing.edgeNodeBetweenLayers": "20",
+  "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+  "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
   "elk.layered.wrapping.strategy": "MULTI_EDGE",
   "elk.layered.wrapping.additionalEdgeSpacing": "20",
   "elk.aspectRatio": "1.7",
   "elk.randomSeed": "1",
+  // Extra scanline compaction rejects nested loops with fixed vertical ports
+  // in ELK 0.11. BK placement and orthogonal routing already compact each layer.
   // ELK 0.11's model-order comparator can read an unset modelOrder.maximum
   // in compound data graphs. Keep seeded crossing minimization and wrapping;
   // enabling either model-order option reintroduces that comparator path.
@@ -83,10 +88,14 @@ export function buildSemanticLayout(nodes: Node[], edges: Edge[], direction = "R
     const ports = handles.map(p => {
       const row = columnRows.get(p.direction) ?? 0;
       columnRows.set(p.direction, row + 1);
-      const y = p.y ?? (n.type === "plate" ? 64 : 62) + row * 20 + 10;
+      const count = handles.filter(h => h.direction === p.direction).length;
+      const y = p.y ?? (n.data.compact ? 48 + row * 16 : (n.type === "plate" ? 64 : 62) + row * 20 + 10);
+      const vertical = direction === "DOWN";
+      const side = vertical ? p.direction === "input" ? "NORTH" : "SOUTH" : p.direction === "input" ? "WEST" : "EAST";
       return {
-        id: portIdentity(n.id, p.id), x: p.direction === "input" ? -4 : width - 4, y: y - 4, width: 8, height: 8,
-        layoutOptions: { "elk.port.side": p.direction === "input" ? "WEST" : "EAST", "elk.port.index": String(row) },
+        id: portIdentity(n.id, p.id), x: vertical ? width / 2 + (row - (count - 1) / 2) * 16 - 4 : p.direction === "input" ? -4 : width - 4,
+        y: vertical ? p.direction === "input" ? -4 : height - 4 : y - 4, width: 8, height: 8,
+        layoutOptions: { "elk.port.side": side, "elk.port.index": String(row) },
       };
     });
     handlesById.set(n.id, new Set(handles.map(p => p.id)));
