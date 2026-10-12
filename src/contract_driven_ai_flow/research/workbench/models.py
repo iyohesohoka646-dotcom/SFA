@@ -235,9 +235,42 @@ class HarnessPolicy(WireModel):
     allow_execute: bool = False
 
 
+class RunConfiguration(WireModel):
+    """Authored, inert launch intent reused by P2/P3 (never executed here)."""
+    id: str = Field(default_factory=uid)
+    name: str
+    kind: Literal["script", "module"] = "script"
+    target: str = ""
+    cwd: str = "."
+    interpreter_ref: str = ""
+    arguments: list[str] = Field(default_factory=list, max_length=256)
+    environment: list[str] = Field(default_factory=list, max_length=128)
+    options: dict[str, JsonValue] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def require_target(self):
+        if self.kind == "module":
+            self.target = self.target.replace("/", ".").removesuffix(".py")
+        if not self.target:
+            raise ValueError("Run configuration requires a target")
+        return self
+
+
+class ProjectSection(WireModel):
+    """Persistent project identity; authored beside (never inside) observations."""
+    id: str = Field(default_factory=uid)
+    name: str = ""
+    source_roots: list[str] = Field(default_factory=lambda: ["."])
+    include: list[str] = Field(default_factory=lambda: ["**/*.py"])
+    exclude: list[str] = Field(default_factory=list)
+    run_configurations: list[RunConfiguration] = Field(default_factory=list, max_length=64)
+
+
 class WorkbenchConfig(WireModel):
     protocol_version: Literal[2, 3] = 3
     revision: int = Field(default=0, ge=0)
+    project: ProjectSection | None = None
+    run_configurations: list[RunConfiguration] = Field(default_factory=list, max_length=64)
     script: str = ""
     interpreter: str = ""
     arguments: list[str] = Field(default_factory=list, max_length=256)

@@ -25,6 +25,10 @@ class SourceRef(WireModel):
     code: str = ""
     column: int = Field(default=0, ge=0)
     end_column: int = Field(default=0, ge=0)
+    project_id: str = ""
+    file_id: str = ""
+    project_revision_id: str = ""
+    scope_id: str = ""
 
 
 class ValueDescriptor(WireModel):

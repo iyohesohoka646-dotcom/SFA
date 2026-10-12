@@ -19,6 +19,9 @@ class TargetRef(WireModel):
     analysis_id: str | None = None
     run_id: str | None = None
     snapshot_id: str | None = None
+    project_id: str | None = None
+    file_id: str | None = None
+    project_revision_id: str | None = None
     exact_evidence: bool = False
 
 
