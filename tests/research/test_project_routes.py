@@ -237,3 +237,55 @@ def test_project_terminals_are_scoped(tmp_path):
 
 
 
+
+
+def test_index_task_reports_real_progress_receipt(tmp_path):
+    root = tmp_path / 'lab'
+    lab(root)
+    with TestClient(create_research_app(tmp_path / 'host', token=TOKEN)) as client:
+        project = opened(client, root)
+        pid = project['id']
+        application = client.app.state.projects
+        workbench = application.workbench(pid)
+        indexed(client, pid)
+        seen = {}
+        real_index = application.index
+
+        def instrumented(project_id, cancel=None, progress=None):
+            assert callable(progress)
+            progress(
+                {
+                    'stage': 'parse',
+                    'completed': 1,
+                    'total': 2,
+                    'parsed': 1,
+                    'reused': 0,
+                    'file': 'main.py',
+                }
+            )
+            active = next(
+                task for task in workbench.jobs.list() if task['kind'] == 'project.index'
+            )
+            seen['progress'] = active['progress']
+            seen['receipt'] = dict(active['receipt'])
+            return real_index(project_id, cancel=cancel, progress=progress)
+
+        application.index = instrumented
+        try:
+            response = client.post(PREFIX + '/' + pid + '/index', headers=HEADERS, json={})
+            assert response.status_code == 200, response.text
+            task = response.json()
+            for _ in range(200):
+                task = client.get(
+                    PREFIX + '/' + pid + '/tasks/' + task['id'], headers=HEADERS
+                ).json()
+                if task['status'] not in ('queued', 'running'):
+                    break
+                time.sleep(0.02)
+            assert task['status'] == 'completed', task
+        finally:
+            application.index = real_index
+        assert 0 < seen['progress'] < 1
+        assert seen['receipt']['stage'] == 'parse'
+        assert seen['receipt']['completed'] == 1 and seen['receipt']['total'] == 2
+        assert seen['receipt']['project_id'] == pid

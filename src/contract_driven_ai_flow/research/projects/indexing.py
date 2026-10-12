@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import threading
+import time
 from pathlib import Path
 
 from . import discovery
@@ -177,18 +178,71 @@ class ProjectIndexService:
 
     def _run(self, project_id: str, task, cancel):
         workbench = self.application.workbench(project_id)
+        state = {"at": 0.0, "events": 0, "stage": None}
+
+        def progress(event):
+            now = time.monotonic()
+            if isinstance(event, dict):
+                stage = str(event.get("stage") or "parse")
+                completed = int(event.get("completed") or 0)
+                total = int(event.get("total") or 0)
+                parsed = int(event.get("parsed") or 0)
+                reused = int(event.get("reused") or 0)
+                current = str(event.get("file") or "")
+                value = min(0.99, (completed / total) if total else 0.0)
+            else:
+                stage = "discovery"
+                completed = total = parsed = reused = 0
+                current = str(event)
+                value = 0.0
+            first = state["events"] == 0
+            changed = stage != state["stage"]
+            # Throttle ~20Hz but always forward the first and stage-changing
+            # updates so real progress is never silently dropped.
+            if not first and not changed and now - state["at"] < 0.05:
+                return
+            state["at"] = now
+            state["events"] += 1
+            state["stage"] = stage
+            record = workbench.jobs.get(task.id)
+            receipt = dict(record.receipt)
+            receipt.update(
+                {
+                    "stage": stage,
+                    "completed": completed,
+                    "total": total,
+                    "parsed": parsed,
+                    "reused": reused,
+                    "file": current,
+                }
+            )
+            workbench.jobs.update(task.id, progress=value, receipt=receipt)
+
         try:
-            revision = self.application.index(project_id, cancel=cancel)
-            workbench.jobs.update(
-                task.id,
-                project_id=project_id,
-                project_revision_id=revision.id,
-                receipt={
+            revision = self.application.index(
+                project_id, cancel=cancel, progress=progress
+            )
+            record = workbench.jobs.get(task.id)
+            receipt = dict(record.receipt)
+            receipt.update(
+                {
                     "project_id": project_id,
                     "revision_id": revision.id,
                     "parsed_files": revision.parsed_files,
                     "reused_files": revision.reused_files,
-                },
+                    "files": revision.files_count,
+                    "stage": "complete",
+                    "completed": revision.parsed_files + revision.reused_files,
+                    "total": revision.files_count,
+                    "parsed": revision.parsed_files,
+                    "reused": revision.reused_files,
+                }
+            )
+            workbench.jobs.update(
+                task.id,
+                project_id=project_id,
+                project_revision_id=revision.id,
+                receipt=receipt,
             )
             return {
                 "message": (
@@ -199,7 +253,6 @@ class ProjectIndexService:
         finally:
             with self._lock:
                 self._active.pop(project_id, None)
-
     # -- watcher -------------------------------------------------------
     def watch(self, project_id: str, enabled: bool):
         project = self.application.projects.project(project_id)

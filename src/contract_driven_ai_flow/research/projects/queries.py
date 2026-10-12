@@ -862,6 +862,15 @@ class ProjectQueryService:
         ]
         if view == "code":
             edges.extend(ProjectQueryService._calculation_edges(graph, nodes))
+            seen: set = set()
+            deduped: list = []
+            for edge in edges:
+                key = (edge.source, edge.target, edge.kind)
+                if key in seen:
+                    continue
+                seen.add(key)
+                deduped.append(edge)
+            edges = deduped
         for block in blocks:
             block.members = [member for member in block.members if member in known]
         return graph.model_copy(
@@ -874,10 +883,11 @@ class ProjectQueryService:
 
         A variable is not a code plate, so an operation -> data -> operation
         dependency would vanish once the code view drops data/parameter nodes.
-        Walk those transparent value nodes only -- bounded by their count,
-        cycle-safe and keyed by node identity, never by name or line order --
-        and re-materialise the reachable edge with preserved provenance,
-        original edge ids and the input-name label.
+        Rather than enumerate every simple path (exponential across a diamond),
+        each visible origin is traversed forward through transparent value nodes
+        to collect its destinations, then each destination is traversed
+        backwards so the original edge ids of every converging path are unioned.
+        Cycle-safe, keyed by node identity, never by name or line order.
         """
         visible = {node.id: node for node in nodes}
         transparent = {
@@ -885,47 +895,73 @@ class ProjectQueryService:
             for node in graph.nodes
             if node.kind in _TRANSPARENT_NODE_KINDS
         }
-        if not transparent:
-            return []
         forward: dict = {}
+        backward: dict = {}
         for edge in graph.edges:
             if edge.kind in _DATA_FLOW_EDGE_KINDS:
                 forward.setdefault(edge.source, []).append(edge)
+                backward.setdefault(edge.target, []).append(edge)
         projections: dict = {}
         for origin, node in visible.items():
             if node.kind not in _CALCULATION_NODE_KINDS:
                 continue
-            stack = [(origin, (), (origin,))]
+            reachable = {origin}
+            destinations: list = []
+            stack = [origin]
             while stack:
-                current, trail, seen = stack.pop()
+                current = stack.pop()
                 for edge in forward.get(current, ()):
                     target = edge.target
-                    if target in seen:
+                    if target in reachable:
                         continue
-                    path = trail + (edge,)
                     if target in transparent:
-                        stack.append((target, path, seen + (target,)))
-                        continue
-                    if target == origin or target not in visible:
-                        continue
-                    ids = [item.id for item in path]
-                    existing = projections.get((origin, target))
-                    if existing is None:
-                        projections[(origin, target)] = GraphEdge(
-                            id=_id("calculation", origin, target),
-                            source=origin,
-                            target=target,
-                            kind="data",
-                            label=path[-1].label or path[0].label,
-                            provenance=path[-1].provenance,
-                            original_ids=ids,
-                            count=len(ids),
-                        )
-                    else:
-                        for original in ids:
-                            if original not in existing.original_ids:
-                                existing.original_ids.append(original)
-                        existing.count = len(existing.original_ids)
+                        reachable.add(target)
+                        stack.append(target)
+                    elif target in visible and target != origin:
+                        reachable.add(target)
+                        destinations.append(target)
+            for destination in destinations:
+                ids: list = []
+                seen = {destination}
+                pending = [destination]
+                terminal = None
+                origin_label = ""
+                while pending:
+                    current = pending.pop()
+                    for edge in backward.get(current, ()):
+                        source = edge.source
+                        if source != origin and source not in transparent:
+                            continue
+                        if source not in reachable:
+                            continue
+                        if edge.id not in ids:
+                            ids.append(edge.id)
+                            if current == destination and terminal is None:
+                                terminal = edge
+                            if source == origin and not origin_label:
+                                origin_label = edge.label or ""
+                        if source != origin and source not in seen:
+                            seen.add(source)
+                            pending.append(source)
+                if not ids:
+                    continue
+                existing = projections.get((origin, destination))
+                if existing is None:
+                    projections[(origin, destination)] = GraphEdge(
+                        id=_id("calculation", origin, destination),
+                        source=origin,
+                        target=destination,
+                        kind="data",
+                        label=(terminal.label if terminal else "") or origin_label,
+                        provenance=terminal.provenance if terminal else "inferred",
+                        original_ids=ids,
+                        count=len(ids),
+                    )
+                else:
+                    for original in ids:
+                        if original not in existing.original_ids:
+                            existing.original_ids.append(original)
+                    existing.count = len(existing.original_ids)
         return list(projections.values())
 
     def _with_boundaries(self, project_id, revision_id, scope_id, graph, rows, store):

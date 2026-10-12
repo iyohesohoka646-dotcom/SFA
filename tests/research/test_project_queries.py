@@ -409,3 +409,74 @@ def test_code_view_projects_variable_dependencies_through_hidden_nodes(tmp_path)
         assert 'data' in kinds and 'operation' in kinds
     finally:
         app.close()
+
+
+def test_calculation_projection_is_bounded_and_union_preserving(monkeypatch):
+    from contract_driven_ai_flow.research.projects.queries import ProjectQueryService
+    from contract_driven_ai_flow.research.workbench.semantic_models import (
+        GraphEdge,
+        GraphNode,
+        SemanticGraph,
+    )
+
+    first = GraphNode(id='start', kind='operation', label='start', block_id='f')
+    last = GraphNode(id='end', kind='operation', label='end', block_id='f')
+    nodes = [first, last]
+    edges = []
+    previous = ['start']
+    for layer in range(20):
+        current = [f'value-{layer}-{column}' for column in range(2)]
+        nodes.extend(
+            GraphNode(id=key, kind='data', label=key, block_id='f')
+            for key in current
+        )
+        for left in previous:
+            for right in current:
+                edges.append(
+                    GraphEdge(
+                        id=f'{left}>{right}',
+                        source=left,
+                        target=right,
+                        kind='data',
+                        label='input',
+                    )
+                )
+        previous = current
+    edges.extend(
+        GraphEdge(id=f'{key}>end', source=key, target='end', kind='data', label='input')
+        for key in previous
+    )
+    graph = SemanticGraph(source_digest='own', nodes=nodes, edges=edges)
+    reads = {'n': 0}
+    original = GraphEdge.__getattribute__
+
+    def bounded(self, name):
+        if name == 'target':
+            reads['n'] += 1
+            assert reads['n'] < 20000, 'projection must not enumerate simple paths'
+        return original(self, name)
+
+    monkeypatch.setattr(GraphEdge, '__getattribute__', bounded)
+    projected = ProjectQueryService._calculation_edges(graph, [first, last])
+    assert len(projected) == 1
+    assert set(projected[0].original_ids) == {edge.id for edge in edges}
+    assert projected[0].count == len({edge.id for edge in edges})
+
+
+def test_code_view_keeps_direct_calculation_edge_without_transparent_nodes():
+    from contract_driven_ai_flow.research.projects.queries import ProjectQueryService
+    from contract_driven_ai_flow.research.workbench.semantic_models import (
+        GraphEdge,
+        GraphNode,
+        SemanticGraph,
+    )
+
+    nodes = [
+        GraphNode(id=key, kind='operation', label=key, block_id='f')
+        for key in ('a', 'b')
+    ]
+    edge = GraphEdge(id='ab', source='a', target='b', kind='data', label='X')
+    graph = SemanticGraph(source_digest='own', nodes=nodes, edges=[edge])
+    projected = ProjectQueryService._project_view(graph, 'code')
+    links = [e for e in projected.edges if e.source == 'a' and e.target == 'b']
+    assert len(links) == 1 and links[0].kind == 'data'
