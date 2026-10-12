@@ -322,3 +322,88 @@ def test_replaced_parent_link_cannot_write_outside_project(tmp_path):
         assert (outside / "calc.py").read_text() == "X=1\n"
     finally:
         projects.close()
+
+
+def test_accept_defers_revision_until_mark_indexed(tmp_path):
+    root, projects, project, revision, changes = example(tmp_path)
+    try:
+        change = changes.propose(project.id, revision.id, [
+            {"path": "calc.py", "content": "def double(v):\n    return v*3\n", "operation": "modify"},
+        ])
+        accepted = changes.accept(project.id, change.id)
+        assert accepted.status == "accepted" and accepted.accepted_revision is None
+        assert changes.get(project.id, change.id).accepted_revision is None
+        published = projects.index(project.id)
+        marked = changes.mark_indexed(project.id, change.id, published.id)
+        assert marked.accepted_revision == published.id
+        assert changes.get(project.id, change.id).accepted_revision == published.id
+    finally:
+        projects.close()
+
+
+def test_mark_indexed_refuses_base_or_foreign_revision(tmp_path):
+    root, projects, project, revision, changes = example(tmp_path)
+    try:
+        change = changes.propose(project.id, revision.id, [
+            {"path": "calc.py", "content": "def double(v):\n    return v*3\n", "operation": "modify"},
+        ])
+        changes.accept(project.id, change.id)
+        # The base revision does not carry the reviewed candidate bytes: never
+        # bind the accepted record to the pre-apply revision.
+        with pytest.raises(RuntimeError):
+            changes.mark_indexed(project.id, change.id, revision.id)
+        assert changes.get(project.id, change.id).accepted_revision is None
+        other = tmp_path / "other"; other.mkdir()
+        (other / "main.py").write_text("X=1\n")
+        p2 = projects.open(other); r2 = projects.index(p2.id)
+        with pytest.raises(LookupError):
+            changes.mark_indexed(project.id, change.id, r2.id)
+    finally:
+        projects.close()
+
+
+def test_mark_indexed_requires_on_disk_candidate(tmp_path):
+    root, projects, project, revision, changes = example(tmp_path)
+    try:
+        change = changes.propose(project.id, revision.id, [
+            {"path": "calc.py", "content": "def double(v):\n    return v*3\n", "operation": "modify"},
+        ])
+        changes.accept(project.id, change.id)
+        published = projects.index(project.id)
+        (root / "calc.py").write_text("USER=1\n")
+        with pytest.raises(RuntimeError):
+            changes.mark_indexed(project.id, change.id, published.id)
+        assert changes.get(project.id, change.id).accepted_revision is None
+    finally:
+        projects.close()
+
+
+def test_rollback_rejects_corrupted_backup_without_proposal(tmp_path):
+    root, projects, project, revision, changes = example(tmp_path)
+    try:
+        change = changes.propose(project.id, revision.id, [
+            {"path": "calc.py", "content": "def double(v):\n    return v*3\n", "operation": "modify"},
+        ])
+        changes.accept(project.id, change.id)
+        blob = root / ".cdaf/research/project-changes" / change.id / "blobs/0.original"
+        blob.write_bytes(b"corrupted backup")
+        before = [item.id for item in changes.list(project.id)]
+        with pytest.raises(ValueError) as error:
+            changes.rollback(project.id, change.id)
+        assert "original" in str(error.value)
+        assert [item.id for item in changes.list(project.id)] == before
+    finally:
+        projects.close()
+
+
+def test_proposal_rejects_more_than_32_files(tmp_path):
+    root, projects, project, revision, changes = example(tmp_path)
+    try:
+        edits = [
+            {"path": "m%02d.py" % index, "content": "X=%d\n" % index, "operation": "create"}
+            for index in range(33)
+        ]
+        with pytest.raises(ValueError):
+            changes.propose(project.id, revision.id, edits)
+    finally:
+        projects.close()

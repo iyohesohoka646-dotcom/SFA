@@ -41,6 +41,7 @@ _CONTENT_LIMIT = 65536
 _DIFF_LIMIT = 65536
 _MAX_FILE_BYTES = 262144
 _MAX_TOTAL_BYTES = 1048576
+_MAX_FILES = 32
 
 
 def _digest(raw: bytes) -> str:
@@ -277,6 +278,8 @@ class ProjectChangeService:
             return self._propose(root, project_id, revision_id, edits)
 
     def _propose(self, root, project_id, revision_id, edits):
+        if len(edits) > _MAX_FILES:
+            raise ValueError(f"A change set may review at most {_MAX_FILES} files")
         store = ProjectStore(root)
         revision = store.get_revision(revision_id)
         if not revision or revision["project_id"] != project_id:
@@ -602,11 +605,80 @@ class ProjectChangeService:
                     self._update(root, current)
                 raise
             current = self._load(root, project_id, change_id)
-            current = current.model_copy(update={"status": "accepted", "accepted_revision": change.base_revision})
+            current = current.model_copy(update={"status": "accepted", "accepted_revision": None})
             self._update(root, current)
             journal_path.unlink(missing_ok=True)
             self._event(root, project_id, change.id, "accepted")
             return current
+
+    def mark_indexed(self, project_id: str, change_id: str, revision_id: str) -> ProjectChangeSet:
+        """Bind an accepted change to an owned, published revision.
+
+        The record moved to ``accepted`` with ``accepted_revision`` unset when the
+        bytes were written; this call is the only place that records a revision.
+        It never trusts the caller: the revision must be this project's published
+        latest, and every changed file must still match the exact private
+        candidate digest frozen in the proposal manifest. No current-file
+        fallback, no history rewrite, and no partial claim is ever persisted.
+        """
+        root = self._root(project_id)
+        with self._lock(root):
+            change = self._load(root, project_id, change_id)
+            if change.status != "accepted":
+                raise ValueError("Only an accepted change set can be indexed")
+            if change.accepted_revision is not None:
+                if change.accepted_revision == revision_id:
+                    return change
+                raise ValueError("Change set already recorded a different accepted revision")
+            store = ProjectStore(root)
+            revision = store.get_revision(revision_id)
+            if not revision or revision["project_id"] != project_id:
+                raise LookupError("Unknown project revision for this project")
+            latest = store.latest_revision(project_id)
+            if not latest or latest["revision_id"] != revision_id:
+                raise ValueError("Only the published latest revision can be recorded for this change")
+            private = self._load_private(root, change_id)
+            published = {
+                row["relative_path"]: row["digest"] for row in store.revision_files(revision_id)
+            }
+            for meta in private["files"]:
+                if published.get(meta["path"]) != meta["after_digest"]:
+                    raise RuntimeError(
+                        f"{meta['path']}: published revision does not contain the reviewed candidate; "
+                        "refusing to record an accepted revision"
+                    )
+                target = self._resolve_stored(root, meta["path"])
+                if self._current_digest(target) != meta["after_digest"]:
+                    raise RuntimeError(
+                        f"{meta['path']}: on-disk bytes no longer match the reviewed candidate; "
+                        "refusing to record an accepted revision"
+                    )
+            change = change.model_copy(update={"accepted_revision": revision_id})
+            self._update(root, change)
+            self._event(root, project_id, change.id, "indexed", revision_id)
+            return change
+
+    def recovery_state(self, project_id: str) -> dict:
+        """Public recovery summary; never exposes private blobs or the journal."""
+        root = self._root(project_id)
+        journal = self._journal_path(root)
+        required = False
+        change_id = None
+        if journal.is_file():
+            required = True
+            try:
+                data = json.loads(journal.read_text(encoding="utf-8"))
+            except (ValueError, OSError):
+                data = {}
+            if data.get("project_id") == project_id:
+                change_id = data.get("change_id")
+        if not required:
+            for change in self.list(project_id):
+                if change.status == "recovery_required":
+                    required = True
+                    change_id = change.id
+                    break
+        return {"required": required, "change_id": change_id}
 
     def assert_ready(self, project_id: str) -> None:
         root = self._root(project_id)
@@ -719,6 +791,11 @@ class ProjectChangeService:
                 if current_raw is None or _digest(current_raw) != meta["after_digest"]:
                     raise ValueError("Source changed after acceptance; review a new rollback")
                 original_bytes = (self._state(root) / change_id / meta["original_blob"]).read_bytes()
+                if _digest(original_bytes) != meta["before_digest"]:
+                    raise ValueError(
+                        f"{meta['path']}: stored original bytes no longer match their recorded digest; "
+                        "the rollback backup is corrupted and cannot produce a proposal"
+                    )
                 text = _decode(original_bytes)
                 current_text = _decode(current_raw)
                 items.append(
@@ -762,5 +839,10 @@ class ProjectChangeService:
             )
             self._store(root, rollback, items)
             return rollback
+
+
+
+
+
 
 

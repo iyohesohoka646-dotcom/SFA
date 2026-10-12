@@ -324,7 +324,11 @@ def attach_project_routes(app, application, *, prefix="/api/v1/research/projects
             terminal_cleanup()
 
     app.state.project_cleanup = cleanup
+    from .change_routes import attach_project_change_routes
+
+    attach_project_change_routes(app, application, prefix=prefix)
     return router
+
 
 
 
