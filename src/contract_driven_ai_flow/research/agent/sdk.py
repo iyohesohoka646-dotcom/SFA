@@ -30,6 +30,13 @@ class TraceSession:
         self.policy = policy or CapturePolicy()
         self.transport = transport or EventTransport(max_queue_events=self.policy.max_queue_events,
             publish_interval_ms=self.policy.publish_interval_ms, max_queue_bytes=self.policy.max_queue_bytes)
+        _sink = getattr(self.transport, "sink", None)
+        if isinstance(_sink, list):
+            # Backwards-compatible convenience: a list sink receives each published
+            # batch. Callable sinks keep their existing behaviour.
+            def _append_batch(batch, target=_sink):
+                target.extend(batch)
+            self.transport.sink = _append_batch
         self.run_id = run_id or uuid.uuid4().hex
         self.registry = registry or AdapterRegistry()
         self.observer = observer
@@ -40,6 +47,10 @@ class TraceSession:
         self._lock = threading.RLock()
         self._current = contextvars.ContextVar("research_operation", default=None)
         self._scope = contextvars.ContextVar("research_scope", default="main")
+        # P2a: scoped call/return evidence is session-owned so a callee running in
+        # another module runtime can still hand its surviving return to the caller.
+        self._returns = contextvars.ContextVar("research_return_evidence", default=None)
+        self._call_frames = contextvars.ContextVar("research_call_frames", default=())
         self._finished = False
         self.capture_errors = 0
         self._binding_count = 0
@@ -49,6 +60,42 @@ class TraceSession:
         self.transport.emit({"schema_version": 1, "run_id": self.run_id, "sequence": 0, "kind": kind,
             "timestamp": now(), "source": source, "snapshot_id": snapshot_id, "operation_id": operation_id,
             "payload": payload}, critical=critical)
+
+    def open_return_scope(self):
+        """Start collecting surviving returns for the enclosing statement."""
+        return self._returns.set([])
+
+    def close_return_scope(self, token):
+        self._returns.reset(token)
+
+    def pending_returns(self):
+        return tuple(self._returns.get() or ())
+
+    def push_call_frame(self, frame):
+        token = self._call_frames.set((*self._call_frames.get(), frame))
+        return token
+
+    def pop_call_frame(self, token):
+        self._call_frames.reset(token)
+
+    def current_call_frame(self):
+        frames = self._call_frames.get()
+        return frames[-1] if frames else None
+
+    def commit_return(self, snapshot_id):
+        """Only the surviving return of a successful invocation is committed."""
+        values = self._returns.get()
+        if values is not None:
+            values.append(snapshot_id)
+
+    def record_capture_error(self, kind, error):
+        # Helper failures stay visible as capture errors instead of silent passes.
+        self.capture_errors += 1
+        self.emit(
+            "capture.error",
+            {"kind": kind, "error_type": type(error).__name__},
+            critical=True,
+        )
 
     @contextmanager
     def scope(self, scope_id):
@@ -81,6 +128,12 @@ class TraceSession:
             json.dumps(asdict(result), allow_nan=False)
             descriptor = sanitize_json(result.descriptor, self.policy.sensitive_fields)
             sample = sanitize_json(result.sample, self.policy.sensitive_fields)
+            if descriptor.get("kind") == "scalar" and "value" not in sample:
+                # Additive scalar preview: cross-file provenance reads the single
+                # cell without re-deriving it; the existing "values" grid is kept.
+                grid = sample.get("values")
+                if isinstance(grid, list) and len(grid) == 1 and len(grid[0]) == 1:
+                    sample = {**sample, "value": grid[0][0]}
             statistics = sanitize_json(result.statistics, self.policy.sensitive_fields)
             if result.fidelity not in ("exact", "sampled", "metadata_only"):
                 raise ValueError("Unsupported capture fidelity")

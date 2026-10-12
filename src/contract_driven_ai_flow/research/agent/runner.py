@@ -17,15 +17,24 @@ from .source import read_source
 
 
 class ObservationRuntime:
-    def __init__(self, session, references):
+    def __init__(self, session, references, *, module_scope="main", controls=None):
         self.session = session
         self.references = references
+        self.module_scope = module_scope
         self._iterations = {}
         self._active = contextvars.ContextVar("research_statement", default=None)
         self._frames = contextvars.ContextVar("research_scope_frames", default=())
+
         self._array_refs = {}
         from .control_observation import ControlCollector
-        self.controls = ControlCollector(session, detail_limit=session.policy.max_control_details)
+        # P2a: a project run shares one collector so the detail/node budget is
+        # enforced for the whole run. Legacy single-file runtimes omit this and
+        # keep a private collector exactly as before.
+        if controls is None:
+            controls = ControlCollector(
+                session, detail_limit=session.policy.max_control_details
+            )
+        self.controls = controls
 
     def branch(self, identifier, selected):
         self.controls.branch(self.references[identifier], selected)
@@ -61,7 +70,10 @@ class ObservationRuntime:
 
     def owner(self, frame, name):
         if frame.f_locals is frame.f_globals:
-            return "main"
+            # P2a: every traced module keeps its own global binding scope; the
+            # entry module keeps the legacy "main" scope so single-file runs are
+            # byte-for-byte unchanged.
+            return self.module_scope
         code = frame.f_code
         if name in code.co_varnames or name in code.co_cellvars:
             return self.session._scope.get()
@@ -70,25 +82,121 @@ class ObservationRuntime:
                 if name in declared:
                     return scope_id
             return self.session._scope.get()
-        return "main"
+        return self.module_scope
 
     def remember_array(self, owner, name, value):
         np = sys.modules.get("numpy")
         if np is not None and isinstance(value, np.ndarray):
             self._array_refs[(owner, name)] = weakref.ref(value)
 
-    def input_observation(self, owner, name, value, source):
+    def input_observation(self, owner, name, value, source, parents=(), provenance="declared"):
         binding = owner + ":" + name
         observed = self.session._latest.get(binding)
         if observed is None or self.session._objects.get(binding) != id(value):
             token = self.session._current.set(None)
             try:
                 with self.session.scope(owner):
-                    observed = self.session.watch(name, value, source=source)
+                    observed = self.session.watch(
+                        name,
+                        value,
+                        source=source,
+                        parent_snapshots=list(parents),
+                        provenance=provenance,
+                        coverage={"mode": "auto", "binding": "observed", "dependency": "inferred" if parents else "declared", "hidden_mutations": "not_observed"},
+                    )
             finally:
                 self.session._current.reset(token)
         self.remember_array(owner, name, value)
         return observed
+
+    def call_inputs(self):
+        """Caller operation context: the input snapshots of the active call site."""
+        operation = self.session._current.get()
+        return tuple(operation["input_snapshots"]) if operation else ()
+
+    def call_arguments(self, frame, source):
+        """Arguments captured with the real callee lexical owner and file id."""
+        code = frame.f_code
+        count = code.co_argcount + code.co_kwonlyargcount
+        if code.co_flags & 0x04:
+            count += 1
+        if code.co_flags & 0x08:
+            count += 1
+        context = self.call_inputs()
+        observed = []
+        for name in code.co_varnames[:count]:
+            if type(name) is not str or not name or name not in frame.f_locals:
+                continue
+            observed.append(
+                self.input_observation(
+                    self.owner(frame, name),
+                    name,
+                    frame.f_locals[name],
+                    source,
+                    parents=context,
+                    provenance="inferred",
+                )["id"]
+            )
+        return tuple(observed)
+
+    def returned(self, identifier, value):
+        # Passthrough return evidence: the value is already evaluated once and is
+        # handed back unchanged. Nothing is published yet: a ``finally`` block, a
+        # later ``return`` or an exception may still supersede this candidate, so
+        # only the surviving return is committed when the frame exits normally.
+        try:
+            reference = self.references[identifier]
+            frame = sys._getframe(1)
+            reads = tuple(reference.get("reads") or ())
+            parents = []
+            for name in reads:
+                values = self.values(frame, (name,))
+                if name not in values:
+                    continue
+                parents.append(
+                    self.input_observation(
+                        self.owner(frame, name), name, values[name], reference["source"]
+                    )["id"]
+                )
+            state = self.session.current_call_frame()
+            candidate = {"value": value, "source": reference["source"], "parents": tuple(parents)}
+            if state is None:
+                return value
+            state["candidate"] = candidate
+        except Exception as error:
+            self.capture_error("return-evidence", error)
+        return value
+
+    def capture_error(self, kind, error):
+        # Observation failures stay visible without ever breaking user results.
+        try:
+            self.session.record_capture_error(kind, error)
+        except Exception:
+            pass
+
+    def publish_return(self, state):
+        """Commit only the surviving return, merged with the callee's arguments."""
+        try:
+            candidate = state.get("candidate")
+            if candidate is None:
+                return
+            parents = tuple(dict.fromkeys((*candidate["parents"], *state.get("arguments", ()))))
+            token = self.session._current.set(None)
+            try:
+                snapshot = self.session.watch(
+                    "<return>",
+                    candidate["value"],
+                    source=candidate["source"],
+                    parent_snapshots=list(parents),
+                    provenance="observed",
+                    coverage={"mode": "auto", "binding": "observed", "dependency": "inferred", "hidden_mutations": "not_observed", "return": "surviving"},
+                )
+            finally:
+                self.session._current.reset(token)
+        except Exception as error:
+            self.capture_error("return-evidence", error)
+            return
+        self.session.commit_return(snapshot["id"])
 
     def step(self, identifier, names):
         # Read the caller before contextlib enters its own generator frame.
@@ -105,9 +213,11 @@ class ObservationRuntime:
         def managed():
             with context as record:
                 token = self._active.set((record, time.perf_counter(), tuple(s["id"] for s in observed)))
+                scope = self.session.open_return_scope()
                 try:
                     yield
                 finally:
+                    self.session.close_return_scope(scope)
                     self._active.reset(token)
         return managed()
 
@@ -119,6 +229,9 @@ class ObservationRuntime:
             record["parameters"]["timing"] = "statement-only"
         else:
             parents = ()
+        # Surviving callee returns seen inside this statement widen the parent
+        # ancestry, so a caller value can be traced to the real cross-file source.
+        parents = (*parents, *self.session.pending_returns())
         frame = sys._getframe(1)
         values = self.values(frame, names)
         reference = self.references[identifier]
@@ -168,14 +281,29 @@ class ObservationRuntime:
         frame = sys._getframe(1)
         declared = set(frame.f_code.co_varnames) | set(frame.f_code.co_cellvars)
         scope_id = qualname + ":" + uuid.uuid4().hex
+        source = self.references[identifier]["source"]
 
         @contextmanager
         def managed():
             token = self._frames.set((*self._frames.get(), (scope_id, declared)))
+            state = {"scope": scope_id, "arguments": (), "candidate": None, "failed": False}
+            frame_token = self.session.push_call_frame(state)
             try:
                 with self.session.scope(scope_id), self.controls.activation(qualname, scope_id), self.controls.function(self.references[identifier]):
-                    yield
+                    # Arguments belong to the callee activation, not the caller scope.
+                    try:
+                        state["arguments"] = self.call_arguments(frame, source)
+                    except Exception as error:
+                        self.capture_error("call-arguments", error)
+                    try:
+                        yield
+                    except BaseException:
+                        # Exceptional exits discard the superseded return candidate.
+                        state["failed"] = True
+                        raise
+                    self.publish_return(state)
             finally:
+                self.session.pop_call_frame(frame_token)
                 self._frames.reset(token)
                 self.session.forget_scope(scope_id)
                 for key in [key for key in self._iterations if key[0] == scope_id]:

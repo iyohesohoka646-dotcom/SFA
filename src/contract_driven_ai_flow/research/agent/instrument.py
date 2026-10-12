@@ -46,7 +46,7 @@ class InstrumentedCode:
     coverage: CoverageReport
     filename: str
 
-    def execute(self, session, namespace=None):
+    def execute(self, session, namespace=None, *, module_scope="main", finalize_controls=True, runtimes=None, controls=None):
         from .runner import ObservationRuntime
 
         environment = (
@@ -54,18 +54,25 @@ class InstrumentedCode:
             if namespace is None
             else namespace
         )
+        runtime = None
         if self.references:
-            environment[self.runtime_name] = ObservationRuntime(
-                session, self.references
+            # Project runs hand in one collector shared by every module so the
+            # control budget and summary nodes stay finite for the whole run.
+            runtime = ObservationRuntime(
+                session, self.references, module_scope=module_scope, controls=controls
             )
+            environment[self.runtime_name] = runtime
+            if runtimes is not None:
+                # Project runtimes share one session: controls stay open until the
+                # overall run ends, so cross-module summaries are final together.
+                runtimes.append(runtime)
         session.emit(
             "coverage.report", {"entries": self.coverage.entries}, critical=True
         )
         try:
             exec(self.code, environment)
         finally:
-            runtime = environment.get(self.runtime_name)
-            if runtime is not None:
+            if runtime is not None and finalize_controls:
                 runtime.controls.flush(final=True)
         return environment
 
@@ -106,9 +113,10 @@ class Dependencies(ast.NodeVisitor):
 
 
 class Transformer(ast.NodeTransformer):
-    def __init__(self, source, filename, digest, runtime_name, policy, coverage):
+    def __init__(self, source, filename, digest, runtime_name, policy, coverage, project=None):
         self.source, self.filename, self.digest = source, filename, digest
         self.runtime_name, self.policy, self.coverage = runtime_name, policy, coverage
+        self.project = dict(project) if project else {}
         self.references = []
         self.qualname = []
         self.in_class = False
@@ -127,7 +135,7 @@ class Transformer(ast.NodeTransformer):
     def source_ref(self, node):
         from .privacy import clean_text
 
-        return {
+        reference = {
             "path": self.filename,
             "qualname": ".".join(self.qualname),
             "line": node.lineno,
@@ -137,6 +145,10 @@ class Transformer(ast.NodeTransformer):
             "end_column": getattr(node, "end_col_offset", 0),
             "code": clean_text(ast.get_source_segment(self.source, node) or "", 16384),
         }
+        for key in ("project_id", "file_id", "project_revision_id"):
+            if self.project.get(key):
+                reference[key] = self.project[key]
+        return reference
 
     def selected(self, node, outputs):
         return (
@@ -250,6 +262,33 @@ class Transformer(ast.NodeTransformer):
             list(dict.fromkeys([*outputs, *self.dependencies(node.value)])),
             "inplace",
         )
+
+    def visit_Return(self, node):
+        if self.in_class:
+            return node
+        # Passthrough evidence only: the expression stays in place and is still
+        # evaluated exactly once. Bare ``return`` is a candidate ``None`` so a
+        # later ``finally: return`` can still supersede an earlier candidate.
+        value = node.value
+        if value is None:
+            value = ast.copy_location(ast.Constant(value=None), node)
+        index = len(self.references)
+        self.references.append(
+            {
+                "source": self.source_ref(node),
+                "kind": "return",
+                "outputs": [],
+                "reads": self.dependencies(node.value),
+            }
+        )
+        self.coverage.add(
+            "function-return",
+            "supported",
+            node.lineno,
+            "Returned value observed through a passthrough helper; the expression is evaluated exactly once, only the surviving return is committed, async/generator returns stay partial",
+        )
+        node.value = self.helper("returned", ast.Constant(index), value)
+        return node
 
     def visit_Expr(self, node):
         call = node.value
@@ -427,6 +466,7 @@ def instrument(
     policy: InstrumentPolicy | None = None,
     *,
     source_digest=None,
+    project=None,
 ) -> InstrumentedCode:
     policy = policy or InstrumentPolicy()
     tree = ast.parse(source, filename=filename)
@@ -484,7 +524,7 @@ def instrument(
     references = []
     if enabled:
         transformer = Transformer(
-            source, filename, digest, runtime_name, policy, coverage
+            source, filename, digest, runtime_name, policy, coverage, project
         )
         tree = transformer.visit(tree)
         references = transformer.references

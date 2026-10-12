@@ -9,8 +9,13 @@ def source_identity(path, digest, node, role):
 
 
 def logical_binding(source, scope, name):
-    path = source.get('path', '') if isinstance(source, dict) else ''
+    source = source if isinstance(source, dict) else {}
+    path = source.get('path', '')
     lexical = '<module>' if scope in ('main', '<module>') else scope.rsplit(':', 1)[0]
+    project, file_id = source.get('project_id'), source.get('file_id')
+    if project and file_id:
+        # P2a indexed identity wins over the local path so runtime keys match P1.
+        return f'{project}::{file_id}::{lexical}::{name}'
     return f'{path}::{lexical}::{name}'
 
 

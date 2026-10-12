@@ -244,7 +244,20 @@ class ControlCollector:
         except Exception:
             self.failed = True
 
-    def flush(self, *, final=False):
+    def emit_receipt(self, *, succeeded=True, failed=False, node_count=None, omitted=None):
+        """One final receipt per run; project runtimes share a single emission."""
+        self.session.emit(
+            "control.finished",
+            {
+                "node_count": len(self.summaries) if node_count is None else node_count,
+                "revision": self.revision,
+                "complete": not (self.failed or failed) and succeeded,
+                "omitted": self.omitted if omitted is None else omitted,
+            },
+            critical=True,
+        )
+
+    def flush(self, *, final=False, succeeded=True, receipt=True):
         try:
             self.revision += 1
             keys = list(self.summaries) if final else sorted(self._dirty)
@@ -253,7 +266,8 @@ class ControlCollector:
                 for key in keys[offset : offset + 16]:
                     summary = self.summaries[key]
                     summary.update(
-                        revision=self.revision, complete=final and not self.failed
+                        revision=self.revision,
+                        complete=final and not self.failed and succeeded,
                     )
                     values.append(dict(summary))
                 self.session.emit(
@@ -274,17 +288,8 @@ class ControlCollector:
                         critical=False,
                     )
                 self._sent_details = len(self.details)
-            if final:
-                self.session.emit(
-                    "control.finished",
-                    {
-                        "node_count": len(self.summaries),
-                        "revision": self.revision,
-                        "complete": not self.failed,
-                        "omitted": self.omitted,
-                    },
-                    critical=True,
-                )
+            if final and receipt:
+                self.emit_receipt(succeeded=succeeded)
             self._dirty.clear()
             self._last_publish = time.monotonic()
         except Exception:
