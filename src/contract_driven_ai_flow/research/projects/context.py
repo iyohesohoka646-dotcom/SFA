@@ -15,6 +15,7 @@ from pathlib import Path
 
 from ..agent.privacy import clean_text, sanitize_json
 from ..workbench.intelligence.context import token_bound
+from .changes import ProjectChangeService
 from .resolver import _id as _block_id
 from .store import ProjectStore
 
@@ -50,6 +51,7 @@ class ProjectContextBuilder:
         self.project_id = request.project_id
         self.project_revision_id = request.project_revision_id
         self.request = request
+        self.changes = ProjectChangeService(application.projects)
         self._lock = threading.RLock()
         self._plan = None
         self._touched: set = set()
@@ -569,6 +571,11 @@ class ProjectContextBuilder:
             or request.project_revision_id != self.project_revision_id
         ):
             raise ValueError("Project context belongs to a different project revision")
+        # A partial project-change transaction (live recovery journal or a
+        # recovery_required change set) blocks every validation, including the
+        # pre-send, post-response and cached reads. A journal created mid-call
+        # therefore invalidates the answer instead of accepting it.
+        self.changes.assert_ready(self.project_id)
         project = self.application.projects.project(self.project_id)
         if project.latest_revision_id != self.project_revision_id:
             raise ValueError(

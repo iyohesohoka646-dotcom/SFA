@@ -15,6 +15,7 @@ never silently change an already prepared computation.
 
 from __future__ import annotations
 
+import math
 import sys
 from pathlib import Path
 
@@ -27,9 +28,25 @@ from ..workbench.scopes import source_targets
 from ..workbench.semantic_models import GraphBlock, GraphEdge, ScopeSelector, SemanticGraph
 from ..workbench.service import WorkbenchService
 from . import local_runtime, runtime
+from .changes import ProjectChangeService
 from .resolver import _folders_for, _id
 
 MAX_CONTEXT_FILES = 256
+MAX_TIMEOUT_SECONDS = 86400.0
+
+
+def _validate_timeout(value):
+    """Validate an optional positive finite wall-clock timeout (seconds)."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("timeout_seconds must be a positive finite number of seconds")
+    number = float(value)
+    if not math.isfinite(number) or number <= 0 or number > MAX_TIMEOUT_SECONDS:
+        raise ValueError(
+            "timeout_seconds must be a positive finite number of seconds no greater than 86400"
+        )
+    return number
 
 
 class ProjectWorkbenchService(WorkbenchService):
@@ -54,6 +71,13 @@ class ProjectWorkbenchService(WorkbenchService):
             self._owns_models = False
         # Bounded per-plan postprocessing context; never persisted.
         self._contexts: dict = {}
+
+    # -- recovery readiness -------------------------------------------
+    def _assert_project_ready(self):
+        """Refuse planning/execution while an interrupted change journal pends."""
+        if self.projects is None:
+            return
+        ProjectChangeService(self.projects).assert_ready(self.project_id)
 
     # -- authored entries ---------------------------------------------
     def entry(self, configuration_id: str):
@@ -150,6 +174,7 @@ class ProjectWorkbenchService(WorkbenchService):
     ) -> ExecutionPlan:
         if scope not in ("compute", "probes", "replot"):
             raise ValueError("Unknown project plan scope: " + str(scope))
+        self._assert_project_ready()
         if frozen_config is not None:
             # Evidence-only reuse: keep the config exactly as it was reviewed
             # when the run was prepared; never silently recompile.
@@ -170,7 +195,30 @@ class ProjectWorkbenchService(WorkbenchService):
             if source.digest != entry_info["digest"]:
                 raise ValueError("Entry source changed; index the project again")
         # Interpreter stays private: the public plan only carries symbolic refs.
-        resolved_interpreter = config.interpreter or sys.executable
+        entry_public = dict(entry_public)
+        if (
+            frozen_config is None
+            and not (entry_public.get("interpreter_ref") or "").strip()
+            and config.interpreter
+        ):
+            # A migrated legacy absolute path is enrolled privately under a
+            # stable symbolic ref; the original config is never overwritten.
+            entry_public["interpreter_ref"] = local_runtime.enroll_interpreter(
+                self.host_root, local_runtime.legacy_interpreter_ref(config.interpreter), config.interpreter
+            )
+        reference = (entry_public.get("interpreter_ref") or "").strip()
+        try:
+            resolved_interpreter = local_runtime.resolve_interpreter(
+                self.host_root, reference
+            )
+        except ValueError:
+            # Evidence-only scopes never launch a process, so historical plans
+            # and replots must not depend on the current machine references.
+            if scope == "compute":
+                raise
+            resolved_interpreter = sys.executable
+        if "timeout_seconds" in entry_public:
+            entry_public["timeout_seconds"] = _validate_timeout(entry_public["timeout_seconds"])
         selector = ScopeSelector.model_validate(target_scope or {"mode": "project"})
         resolved: list = []
         if selector.mode in ("selection", "block"):
@@ -185,7 +233,7 @@ class ProjectWorkbenchService(WorkbenchService):
             deep=True,
             update={
                 "script": str(entry_path),
-                "interpreter": config.interpreter,
+                "interpreter": "",
                 "arguments": arguments,
                 "capture": capture,
             },
@@ -233,6 +281,20 @@ class ProjectWorkbenchService(WorkbenchService):
                 ],
             }
         )
+        if scope == "compute":
+            # Freeze the exact interpreter path and expanded explicit environment
+            # privately, keyed by this plan; the public plan only carries the
+            # opaque snapshot id so a later reference edit can never silently
+            # change a prepared computation.
+            snapshot_id = local_runtime.freeze_runtime(
+                self.host_root,
+                project_id=self.project_id,
+                plan_id=plan.id,
+                interpreter_ref=entry_public.get("interpreter_ref"),
+                environment_names=entry_public.get("environment") or (),
+            )
+            entry_public = {**entry_public, "runtime_snapshot_id": snapshot_id}
+            plan = plan.model_copy(update={"entry": entry_public})
         self.store.put("plans", plan.id, plan)
         return plan
 
@@ -436,6 +498,7 @@ class ProjectWorkbenchService(WorkbenchService):
 
     # -- execution ----------------------------------------------------
     def execute_plan(self, plan_id: str):
+        self._assert_project_ready()
         plan = ExecutionPlan.model_validate(self.store.get("plans", plan_id))
         if plan.project_id != self.project_id:
             raise ValueError("Plan belongs to another project")
@@ -471,6 +534,15 @@ class ProjectWorkbenchService(WorkbenchService):
                     "project_revision_id": plan.project_revision_id,
                 },
             )
+        # Re-resolve the frozen runtime refs before queueing so a relevant
+        # reference change or a missing reference fails the call itself, before
+        # the job is ever queued.
+        local_runtime.verify_runtime_snapshot(
+            self.host_root,
+            (plan.entry or {}).get("runtime_snapshot_id"),
+            project_id=self.project_id,
+            plan_id=plan.id,
+        )
         # Frozen digests are validated synchronously so a changed dependency
         # fails the call itself, not only the background task. The job
         # rechecks before the actual launch as well.
@@ -581,15 +653,20 @@ class ProjectWorkbenchService(WorkbenchService):
         if entry_info is None:
             raise ValueError("Entry script is not part of the frozen manifest")
         config = plan.config
-        reference = entry.get("interpreter_ref") or ""
-        interpreter = (
-            local_runtime.resolve_interpreter(self.host_root, reference)
-            if reference
-            else (config.interpreter or sys.executable)
+        # Immediately before the launch, re-resolve the frozen refs and require the
+        # exact frozen values; the frozen values are then used directly so there is
+        # no later live global lookup (no time-of-check/time-of-use window).
+        frozen_runtime = local_runtime.verify_runtime_snapshot(
+            self.host_root,
+            entry.get("runtime_snapshot_id"),
+            project_id=self.project_id,
+            plan_id=plan.id,
         )
-        private_env = local_runtime.resolve_environment(
-            self.host_root, entry.get("environment", [])
-        )
+        interpreter = frozen_runtime["interpreter"]
+        private_env = frozen_runtime["environment"]
+        timeout_seconds = entry.get("timeout_seconds")
+        if timeout_seconds is not None:
+            timeout_seconds = _validate_timeout(timeout_seconds)
         working = runtime.resolve_cwd(self.project_root, entry.get("cwd"))
         if cancel.is_set():
             raise InterruptedError()
@@ -602,6 +679,9 @@ class ProjectWorkbenchService(WorkbenchService):
             },
             "full_targets": full_targets,
         }
+        # Re-check immediately before the actual compute launch: a journal that
+        # appeared while this job waited in the queue must still block it.
+        self._assert_project_ready()
         handle = self.research.start_analysis(
             entry_path,
             interpreter=interpreter,
@@ -624,6 +704,7 @@ class ProjectWorkbenchService(WorkbenchService):
                 "manifest_path": str(runtime.manifest_file(self.project_root, plan.manifest_id)),
                 "instrument": "auto",
             },
+            timeout_seconds=timeout_seconds,
         )
         run_id = handle.run_id
         self.store.put(

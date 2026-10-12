@@ -36,12 +36,15 @@ class ProjectIntelligenceService:
 
         This runs before any context, tool, store or model access so a request
         for project B can never be served with project A's workbench, records
-        or models.
+        or models. An interrupted project-change transaction (a live recovery
+        journal or a recovery_required change set) always blocks the request:
+        a half-applied source tree is never treated as a fresh complete project.
         """
         if request.project_id != self.project_id:
             raise ValueError(
                 "Request project does not match this project intelligence service"
             )
+        self.changes.assert_ready(self.project_id)
 
     # -- per-task adapters --------------------------------------------
     def context(self, request):

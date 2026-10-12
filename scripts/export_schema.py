@@ -26,3 +26,63 @@ workbench_protocol = create_model('WorkbenchProtocol', **{model.__name__: (model
     workbench.SemanticGraph, workbench.TargetRef, workbench.ScopeSelector, ControlSummary,
     workbench.ProbeResource, workbench.ResolvedProbeCall, workbench.DerivedData, DataSemantics, PresentationSpec, HarnessRequest, TerminalSession)})
 (target / 'workbench.json').write_text(json.dumps(workbench_protocol.model_json_schema(mode='serialization'), ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+# -- P4 project protocol (separate from the legacy single-project project.json) --
+from contract_driven_ai_flow.research.projects import models as project_models
+from contract_driven_ai_flow.research.projects import (
+    ai_models,
+    change_models,
+    query_models,
+    runtime_models,
+)
+from contract_driven_ai_flow.research.workbench.semantic_models import TargetRef
+
+project_protocol = create_model(
+    "ProjectProtocol",
+    **{
+        model.__name__: (model, ...)
+        for model in (
+            project_models.ResearchProject,
+            project_models.ProjectRevision,
+            project_models.SourceUnit,
+            project_models.FilePage,
+            project_models.ProjectGraphSlice,
+            project_models.ProjectLoadedFile,
+            project_models.ProjectExecutionReceipt,
+            project_models.RunConfiguration,
+            project_models.ProjectSection,
+            query_models.TreeItem,
+            query_models.TreePage,
+            query_models.ObjectItem,
+            query_models.ObjectPage,
+            query_models.SymbolRef,
+            query_models.SymbolPage,
+            query_models.ReferenceItem,
+            query_models.ReferencePage,
+            change_models.ChangeValidation,
+            change_models.ProjectFileEdit,
+            change_models.ProjectChangeSet,
+            change_models.ProjectChangeEditRequest,
+            change_models.ProjectChangeProposalRequest,
+            change_models.ProjectChangeActionRequest,
+            change_models.ProjectChangePage,
+            change_models.ProjectRecoveryState,
+            ai_models.ProjectAIRequest,
+            ai_models.ProjectContextPreview,
+            ai_models.ProjectFileInventoryItem,
+            ai_models.ProjectContextManifest,
+            ai_models.ProjectReadPermission,
+            ai_models.ProjectToolReceipt,
+            ai_models.ProjectEvidenceReceipt,
+            runtime_models.RuntimeReferenceState,
+            runtime_models.InterpreterReferenceRequest,
+            runtime_models.EnvironmentReferenceRequest,
+            SourceRef,
+            TargetRef,
+        )
+    },
+)
+(target / "projects.json").write_text(
+    json.dumps(project_protocol.model_json_schema(mode="serialization"), ensure_ascii=False, indent=2) + "\n",
+    encoding="utf-8",
+)

@@ -259,6 +259,8 @@ def attach_research_routes(app, service: ResearchService, *, prefix="/api/v1/res
         )
         from .projects.routes import attach_project_routes
         attach_project_routes(app, projects, prefix=prefix + "/projects")
+        from .projects.intelligence_routes import attach_project_intelligence_routes
+        attach_project_intelligence_routes(app, projects, prefix=prefix + "/projects")
 
     @app.exception_handler(LookupError)
     async def missing(request, exc):

@@ -18,6 +18,7 @@ from ..workbench.semantic_models import ScopeSelector
 
 __all__ = [
     "ProjectAIRequest",
+    "ProjectContextPreview",
     "ProjectFileInventoryItem",
     "ProjectContextManifest",
     "ProjectReadPermission",
@@ -102,3 +103,18 @@ class ProjectEvidenceReceipt(WireModel):
     version: int = 1
     fidelity: Literal["exact", "sampled", "metadata_only"] = "metadata_only"
     redacted: bool = False
+
+class ProjectContextPreview(WireModel):
+    """Typed, inert preview of the bounded initial context for one request.
+
+    It carries only the frozen project/revision identity, the assembled chat
+    messages, a conservative token bound and the json tool descriptors. Building
+    it never contacts a model profile, sends inference or persists a task, and
+    the inventory is bounded to relative names and kinds (no source bodies).
+    """
+
+    project_id: str
+    project_revision_id: str
+    messages: list[dict] = Field(default_factory=list)
+    token_bound: int = Field(default=0, ge=0)
+    tools: list[dict] = Field(default_factory=list)

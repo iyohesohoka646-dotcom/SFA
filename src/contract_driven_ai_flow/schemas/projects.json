@@ -1,0 +1,3060 @@
+{
+  "$defs": {
+    "ChangeValidation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "default": "not_validated",
+          "enum": [
+            "pass",
+            "fail",
+            "not_run",
+            "not_validated"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "status",
+        "detail"
+      ],
+      "title": "ChangeValidation",
+      "type": "object"
+    },
+    "EnvironmentReference": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Keys",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "keys"
+      ],
+      "title": "EnvironmentReference",
+      "type": "object"
+    },
+    "EnvironmentReferenceRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "minimum": 0,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "values": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Values",
+          "type": "object"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "values"
+      ],
+      "title": "EnvironmentReferenceRequest",
+      "type": "object"
+    },
+    "FilePage": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/SourceUnit"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "total": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "default": "",
+          "title": "Revision Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "items",
+        "total",
+        "offset",
+        "limit",
+        "project_id",
+        "revision_id"
+      ],
+      "title": "FilePage",
+      "type": "object"
+    },
+    "GraphBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "logical_key": {
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "file",
+            "function",
+            "class",
+            "condition",
+            "loop",
+            "try",
+            "with",
+            "folder",
+            "project",
+            "stream"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Id"
+        },
+        "members": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Members",
+          "type": "array"
+        },
+        "runtime_coverage": {
+          "default": "supported",
+          "enum": [
+            "supported",
+            "partial",
+            "unsupported"
+          ],
+          "title": "Runtime Coverage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "logical_key",
+        "kind",
+        "label",
+        "parent_id",
+        "source",
+        "source_object_id",
+        "members",
+        "runtime_coverage"
+      ],
+      "title": "GraphBlock",
+      "type": "object"
+    },
+    "GraphCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "runtime": {
+          "default": "partial",
+          "enum": [
+            "supported",
+            "partial",
+            "unsupported"
+          ],
+          "title": "Runtime",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "source",
+        "runtime"
+      ],
+      "title": "GraphCoverage",
+      "type": "object"
+    },
+    "GraphEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "data",
+            "control",
+            "call",
+            "argument",
+            "return",
+            "merge",
+            "backedge",
+            "contains",
+            "block"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "source_port": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Port"
+        },
+        "target_port": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Port"
+        },
+        "branch": {
+          "anyOf": [
+            {
+              "enum": [
+                "true",
+                "false",
+                "body",
+                "exit",
+                "exception"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Branch"
+        },
+        "provenance": {
+          "default": "inferred",
+          "enum": [
+            "inferred",
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        },
+        "original_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Original Ids",
+          "type": "array"
+        },
+        "count": {
+          "default": 1,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target",
+        "kind",
+        "label",
+        "source_port",
+        "target_port",
+        "branch",
+        "provenance",
+        "original_ids",
+        "count"
+      ],
+      "title": "GraphEdge",
+      "type": "object"
+    },
+    "GraphNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "operation",
+            "data",
+            "parameter",
+            "condition",
+            "loop_header",
+            "merge",
+            "return",
+            "call",
+            "entry",
+            "exit",
+            "unknown"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "block_id": {
+          "title": "Block Id",
+          "type": "string"
+        },
+        "logical_key": {
+          "default": "",
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Id"
+        },
+        "ports": {
+          "items": {
+            "$ref": "#/$defs/GraphPort"
+          },
+          "title": "Ports",
+          "type": "array"
+        },
+        "version": {
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "block_id",
+        "logical_key",
+        "source",
+        "source_object_id",
+        "ports",
+        "version"
+      ],
+      "title": "GraphNode",
+      "type": "object"
+    },
+    "GraphPort": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "input",
+            "output"
+          ],
+          "title": "Direction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "direction"
+      ],
+      "title": "GraphPort",
+      "type": "object"
+    },
+    "HarnessPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "default": "explain",
+          "enum": [
+            "parse",
+            "explain",
+            "probe",
+            "code"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "provider_id": {
+          "default": "offline",
+          "title": "Provider Id",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "input_tokens": {
+          "default": 12000,
+          "maximum": 128000,
+          "minimum": 512,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "default": 2048,
+          "maximum": 16384,
+          "minimum": 128,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "max_steps": {
+          "default": 6,
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Max Steps",
+          "type": "integer"
+        },
+        "max_calls": {
+          "default": 6,
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Max Calls",
+          "type": "integer"
+        },
+        "include_samples": {
+          "default": false,
+          "title": "Include Samples",
+          "type": "boolean"
+        },
+        "allow_execute": {
+          "default": false,
+          "title": "Allow Execute",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "role",
+        "provider_id",
+        "model",
+        "input_tokens",
+        "output_tokens",
+        "max_steps",
+        "max_calls",
+        "include_samples",
+        "allow_execute"
+      ],
+      "title": "HarnessPolicy",
+      "type": "object"
+    },
+    "InterpreterReference": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "InterpreterReference",
+      "type": "object"
+    },
+    "InterpreterReferenceRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "minimum": 0,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "path": {
+          "maxLength": 4096,
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "path"
+      ],
+      "title": "InterpreterReferenceRequest",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "ObjectItem": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/TargetRef"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "default": "assignment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Line",
+          "type": "integer"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shape"
+        },
+        "probe_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Probe Count",
+          "type": "integer"
+        },
+        "probe_status": {
+          "default": "unknown",
+          "enum": [
+            "normal",
+            "failed",
+            "unknown"
+          ],
+          "title": "Probe Status",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/SourceRef"
+        }
+      },
+      "required": [
+        "target",
+        "name",
+        "kind",
+        "line",
+        "end_line",
+        "type",
+        "shape",
+        "probe_count",
+        "probe_status",
+        "source"
+      ],
+      "title": "ObjectItem",
+      "type": "object"
+    },
+    "ObjectPage": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "default": "",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ObjectItem"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "total": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "project_id",
+        "revision_id",
+        "items",
+        "total",
+        "offset",
+        "limit"
+      ],
+      "title": "ObjectPage",
+      "type": "object"
+    },
+    "ProjectAIRequest": {
+      "additionalProperties": false,
+      "description": "One task-scoped project question bound to an immutable revision.\n\n``analysis_id`` stays for shared-harness compatibility but is unused by\nproject work and defaults to the empty string.",
+      "properties": {
+        "question": {
+          "maxLength": 32768,
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "analysis_id": {
+          "default": "",
+          "title": "Analysis Id",
+          "type": "string"
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Id"
+        },
+        "source_object_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Object Ids"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        },
+        "skill_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Skill Id"
+        },
+        "policy": {
+          "$ref": "#/$defs/HarnessPolicy"
+        },
+        "purpose": {
+          "default": "general",
+          "enum": [
+            "general",
+            "format_source"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        },
+        "project_id": {
+          "minLength": 1,
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "minLength": 1,
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "entry_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entry Id"
+        },
+        "scope_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scope Id"
+        },
+        "file_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Ids"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScopeSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "question",
+        "analysis_id",
+        "object_id",
+        "source_object_ids",
+        "run_id",
+        "snapshot_id",
+        "skill_id",
+        "policy",
+        "purpose",
+        "project_id",
+        "project_revision_id",
+        "entry_id",
+        "scope_id",
+        "file_ids",
+        "scope"
+      ],
+      "title": "ProjectAIRequest",
+      "type": "object"
+    },
+    "ProjectChangeActionRequest": {
+      "additionalProperties": false,
+      "description": "Review action body: the caller's expected latest project revision.",
+      "properties": {
+        "expected_revision": {
+          "maxLength": 128,
+          "title": "Expected Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected_revision"
+      ],
+      "title": "ProjectChangeActionRequest",
+      "type": "object"
+    },
+    "ProjectChangeEditRequest": {
+      "additionalProperties": false,
+      "description": "One requested file edit inside a reviewed proposal; content stays inert.",
+      "properties": {
+        "path": {
+          "maxLength": 4096,
+          "title": "Path",
+          "type": "string"
+        },
+        "content": {
+          "default": "",
+          "title": "Content",
+          "type": "string"
+        },
+        "operation": {
+          "default": "modify",
+          "enum": [
+            "modify",
+            "create",
+            "format"
+          ],
+          "title": "Operation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "content",
+        "operation"
+      ],
+      "title": "ProjectChangeEditRequest",
+      "type": "object"
+    },
+    "ProjectChangePage": {
+      "additionalProperties": false,
+      "description": "GET /{pid}/changes: the sanitized reviewed-proposal page.",
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "default": "",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ProjectChangeSet"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "recovery_required": {
+          "default": false,
+          "title": "Recovery Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "project_id",
+        "revision_id",
+        "items",
+        "recovery_required"
+      ],
+      "title": "ProjectChangePage",
+      "type": "object"
+    },
+    "ProjectChangeProposalRequest": {
+      "additionalProperties": false,
+      "description": "POST body for creating a reviewed proposal.\n\nPer-file/per-set budgets (32 files, 1 MiB total) stay enforced by the change\nengine, never by the wire model, so the same limits apply to calls that skip\nthe HTTP layer.",
+      "properties": {
+        "base_revision": {
+          "maxLength": 128,
+          "title": "Base Revision",
+          "type": "string"
+        },
+        "edits": {
+          "items": {
+            "$ref": "#/$defs/ProjectChangeEditRequest"
+          },
+          "title": "Edits",
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_revision",
+        "edits"
+      ],
+      "title": "ProjectChangeProposalRequest",
+      "type": "object"
+    },
+    "ProjectChangeSet": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "base_revision": {
+          "default": "",
+          "title": "Base Revision",
+          "type": "string"
+        },
+        "status": {
+          "default": "ready",
+          "enum": [
+            "ready",
+            "invalid",
+            "accepted",
+            "rejected",
+            "conflict",
+            "recovery_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/ProjectFileEdit"
+          },
+          "title": "Files",
+          "type": "array"
+        },
+        "validation": {
+          "items": {
+            "$ref": "#/$defs/ChangeValidation"
+          },
+          "title": "Validation",
+          "type": "array"
+        },
+        "affected_references": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Affected References",
+          "type": "array"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "accepted_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accepted Revision"
+        },
+        "rollback_of": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rollback Of"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "project_id",
+        "base_revision",
+        "status",
+        "files",
+        "validation",
+        "affected_references",
+        "created_at",
+        "accepted_revision",
+        "rollback_of"
+      ],
+      "title": "ProjectChangeSet",
+      "type": "object"
+    },
+    "ProjectContextManifest": {
+      "additionalProperties": false,
+      "description": "The typed, sanitized initial-context manifest assembled for one request.",
+      "properties": {
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "files_total": {
+          "default": 0,
+          "title": "Files Total",
+          "type": "integer"
+        },
+        "inventory": {
+          "items": {
+            "$ref": "#/$defs/ProjectFileInventoryItem"
+          },
+          "title": "Inventory",
+          "type": "array"
+        },
+        "inventory_total": {
+          "default": 0,
+          "title": "Inventory Total",
+          "type": "integer"
+        },
+        "inventory_truncated": {
+          "default": false,
+          "title": "Inventory Truncated",
+          "type": "boolean"
+        },
+        "entry": {
+          "additionalProperties": true,
+          "title": "Entry",
+          "type": "object"
+        },
+        "scope_mode": {
+          "default": "project",
+          "title": "Scope Mode",
+          "type": "string"
+        },
+        "scope_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scope Id"
+        },
+        "permissions": {
+          "items": {
+            "$ref": "#/$defs/ProjectReadPermission"
+          },
+          "title": "Permissions",
+          "type": "array"
+        },
+        "permission_summary": {
+          "default": "",
+          "title": "Permission Summary",
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tools",
+          "type": "array"
+        },
+        "skills": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Skills",
+          "type": "array"
+        },
+        "role": {
+          "default": "explain",
+          "title": "Role",
+          "type": "string"
+        },
+        "samples_allowed": {
+          "default": false,
+          "title": "Samples Allowed",
+          "type": "boolean"
+        },
+        "omitted": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Omitted",
+          "type": "array"
+        }
+      },
+      "required": [
+        "project_id",
+        "project_revision_id",
+        "files_total",
+        "inventory",
+        "inventory_total",
+        "inventory_truncated",
+        "entry",
+        "scope_mode",
+        "scope_id",
+        "permissions",
+        "permission_summary",
+        "tools",
+        "skills",
+        "role",
+        "samples_allowed",
+        "omitted"
+      ],
+      "title": "ProjectContextManifest",
+      "type": "object"
+    },
+    "ProjectContextPreview": {
+      "additionalProperties": false,
+      "description": "Typed, inert preview of the bounded initial context for one request.\n\nIt carries only the frozen project/revision identity, the assembled chat\nmessages, a conservative token bound and the json tool descriptors. Building\nit never contacts a model profile, sends inference or persists a task, and\nthe inventory is bounded to relative names and kinds (no source bodies).",
+      "properties": {
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "messages": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Messages",
+          "type": "array"
+        },
+        "token_bound": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Token Bound",
+          "type": "integer"
+        },
+        "tools": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Tools",
+          "type": "array"
+        }
+      },
+      "required": [
+        "project_id",
+        "project_revision_id",
+        "messages",
+        "token_bound",
+        "tools"
+      ],
+      "title": "ProjectContextPreview",
+      "type": "object"
+    },
+    "ProjectEvidenceReceipt": {
+      "additionalProperties": false,
+      "description": "An evidence receipt for a sanitized snapshot observation.",
+      "properties": {
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "version": {
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "fidelity": {
+          "default": "metadata_only",
+          "enum": [
+            "exact",
+            "sampled",
+            "metadata_only"
+          ],
+          "title": "Fidelity",
+          "type": "string"
+        },
+        "redacted": {
+          "default": false,
+          "title": "Redacted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "reference",
+        "snapshot_id",
+        "project_id",
+        "project_revision_id",
+        "version",
+        "fidelity",
+        "redacted"
+      ],
+      "title": "ProjectEvidenceReceipt",
+      "type": "object"
+    },
+    "ProjectExecutionReceipt": {
+      "additionalProperties": false,
+      "description": "Durable loaded-file receipt attached to a project run finish payload.\n\n``complete`` means the load ledger was finalized and flushed, independent of\nwhether the user's calculation succeeded; any budget omission makes it false.",
+      "properties": {
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "default": "",
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "loaded_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Loaded Count",
+          "type": "integer"
+        },
+        "loaded_files": {
+          "items": {
+            "$ref": "#/$defs/ProjectLoadedFile"
+          },
+          "title": "Loaded Files",
+          "type": "array"
+        },
+        "omitted_from_summary": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Omitted From Summary",
+          "type": "integer"
+        },
+        "omitted_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Omitted Count",
+          "type": "integer"
+        },
+        "complete": {
+          "default": false,
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "coverage": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Coverage",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "project_revision_id",
+        "loaded_count",
+        "loaded_files",
+        "omitted_from_summary",
+        "omitted_count",
+        "complete",
+        "coverage"
+      ],
+      "title": "ProjectExecutionReceipt",
+      "type": "object"
+    },
+    "ProjectFileEdit": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "before_digest": {
+          "default": "",
+          "title": "Before Digest",
+          "type": "string"
+        },
+        "after_digest": {
+          "default": "",
+          "title": "After Digest",
+          "type": "string"
+        },
+        "before_exists": {
+          "default": true,
+          "title": "Before Exists",
+          "type": "boolean"
+        },
+        "operation": {
+          "default": "modify",
+          "enum": [
+            "modify",
+            "create",
+            "format"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "content": {
+          "default": "",
+          "title": "Content",
+          "type": "string"
+        },
+        "diff": {
+          "default": "",
+          "title": "Diff",
+          "type": "string"
+        },
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "path",
+        "before_digest",
+        "after_digest",
+        "before_exists",
+        "operation",
+        "content",
+        "diff",
+        "diagnostics"
+      ],
+      "title": "ProjectFileEdit",
+      "type": "object"
+    },
+    "ProjectFileInventoryItem": {
+      "additionalProperties": false,
+      "description": "A bounded, source-free inventory entry (relative name + kind only).",
+      "properties": {
+        "file_id": {
+          "title": "File Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "kind": {
+          "default": "file",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file_id",
+        "path",
+        "kind"
+      ],
+      "title": "ProjectFileInventoryItem",
+      "type": "object"
+    },
+    "ProjectGraphSlice": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "graph": {
+          "$ref": "#/$defs/SemanticGraph"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "default": "",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "scope_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scope Id"
+        },
+        "view": {
+          "default": "code",
+          "enum": [
+            "code",
+            "data"
+          ],
+          "title": "View",
+          "type": "string"
+        },
+        "omitted_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Omitted Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "graph",
+        "project_id",
+        "revision_id",
+        "scope_id",
+        "view",
+        "omitted_count"
+      ],
+      "title": "ProjectGraphSlice",
+      "type": "object"
+    },
+    "ProjectLoadedFile": {
+      "additionalProperties": false,
+      "description": "One file the interpreter actually entered during a project run.\n\nPaths are root-relative and sanitized; no machine path or source body is\never carried. ``file_id`` is empty for an in-root file outside the frozen\nmanifest, which keeps a coverage gap explicit instead of implying membership.",
+      "properties": {
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "file_id": {
+          "default": "",
+          "title": "File Id",
+          "type": "string"
+        },
+        "digest": {
+          "default": "",
+          "title": "Digest",
+          "type": "string"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "default": "",
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "module_name": {
+          "default": "",
+          "title": "Module Name",
+          "type": "string"
+        },
+        "state": {
+          "default": "entered",
+          "enum": [
+            "entered",
+            "completed",
+            "failed"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "coverage": {
+          "default": "supported",
+          "enum": [
+            "supported",
+            "unsupported",
+            "partial"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        },
+        "count": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "file_id",
+        "digest",
+        "project_id",
+        "project_revision_id",
+        "module_name",
+        "state",
+        "coverage",
+        "count"
+      ],
+      "title": "ProjectLoadedFile",
+      "type": "object"
+    },
+    "ProjectReadPermission": {
+      "additionalProperties": false,
+      "description": "Permission summary: which indexed files, and which line spans, are readable.",
+      "properties": {
+        "file_id": {
+          "title": "File Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "digest": {
+          "default": "",
+          "title": "Digest",
+          "type": "string"
+        },
+        "whole_file": {
+          "default": true,
+          "title": "Whole File",
+          "type": "boolean"
+        },
+        "ranges": {
+          "items": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "title": "Ranges",
+          "type": "array"
+        }
+      },
+      "required": [
+        "file_id",
+        "path",
+        "digest",
+        "whole_file",
+        "ranges"
+      ],
+      "title": "ProjectReadPermission",
+      "type": "object"
+    },
+    "ProjectRecoveryState": {
+      "additionalProperties": false,
+      "description": "GET /{pid}/changes/recovery: a public recovery summary, no private data.",
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "default": "",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "change_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Change Id"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "project_id",
+        "revision_id",
+        "required",
+        "change_id"
+      ],
+      "title": "ProjectRecoveryState",
+      "type": "object"
+    },
+    "ProjectRevision": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "parent_revision_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Revision Id"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "files_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Files Count",
+          "type": "integer"
+        },
+        "parsed_files": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Parsed Files",
+          "type": "integer"
+        },
+        "reused_files": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Reused Files",
+          "type": "integer"
+        },
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "project_id",
+        "parent_revision_id",
+        "created_at",
+        "files_count",
+        "parsed_files",
+        "reused_files",
+        "diagnostics"
+      ],
+      "title": "ProjectRevision",
+      "type": "object"
+    },
+    "ProjectSection": {
+      "additionalProperties": false,
+      "description": "Persistent project identity; authored beside (never inside) observations.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "title": "Name",
+          "type": "string"
+        },
+        "source_roots": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Roots",
+          "type": "array"
+        },
+        "include": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "run_configurations": {
+          "items": {
+            "$ref": "#/$defs/RunConfiguration"
+          },
+          "maxItems": 64,
+          "title": "Run Configurations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "source_roots",
+        "include",
+        "exclude",
+        "run_configurations"
+      ],
+      "title": "ProjectSection",
+      "type": "object"
+    },
+    "ProjectToolReceipt": {
+      "additionalProperties": false,
+      "description": "A versioned tool receipt: the only token a model may cite.",
+      "properties": {
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "coverage": {
+          "default": "",
+          "title": "Coverage",
+          "type": "string"
+        },
+        "target": {
+          "default": "",
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "tool",
+        "project_id",
+        "project_revision_id",
+        "coverage",
+        "target"
+      ],
+      "title": "ProjectToolReceipt",
+      "type": "object"
+    },
+    "ReferenceItem": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "default": "call",
+          "enum": [
+            "call",
+            "import",
+            "argument",
+            "return",
+            "contains"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "title": "Name",
+          "type": "string"
+        },
+        "logical_key": {
+          "default": "",
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "provenance": {
+          "default": "inferred",
+          "enum": [
+            "inferred",
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/SourceRef"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Target Line",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "logical_key",
+        "provenance",
+        "source",
+        "target",
+        "target_line"
+      ],
+      "title": "ReferenceItem",
+      "type": "object"
+    },
+    "ReferencePage": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "default": "",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ReferenceItem"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "total": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "project_id",
+        "revision_id",
+        "items",
+        "total",
+        "offset",
+        "limit"
+      ],
+      "title": "ReferencePage",
+      "type": "object"
+    },
+    "ResearchProject": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "root": {
+          "title": "Root",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "title": "Name",
+          "type": "string"
+        },
+        "latest_revision_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latest Revision Id"
+        },
+        "source_roots": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Roots",
+          "type": "array"
+        },
+        "include": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "run_configurations": {
+          "items": {
+            "$ref": "#/$defs/RunConfiguration"
+          },
+          "title": "Run Configurations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "id",
+        "root",
+        "name",
+        "latest_revision_id",
+        "source_roots",
+        "include",
+        "exclude",
+        "run_configurations"
+      ],
+      "title": "ResearchProject",
+      "type": "object"
+    },
+    "RunConfiguration": {
+      "additionalProperties": false,
+      "description": "Authored, inert launch intent reused by P2/P3 (never executed here).",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "default": "script",
+          "enum": [
+            "script",
+            "module"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "default": "",
+          "title": "Target",
+          "type": "string"
+        },
+        "cwd": {
+          "default": ".",
+          "title": "Cwd",
+          "type": "string"
+        },
+        "interpreter_ref": {
+          "default": "",
+          "title": "Interpreter Ref",
+          "type": "string"
+        },
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "environment": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Environment",
+          "type": "array"
+        },
+        "options": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Options",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "target",
+        "cwd",
+        "interpreter_ref",
+        "arguments",
+        "environment",
+        "options"
+      ],
+      "title": "RunConfiguration",
+      "type": "object"
+    },
+    "RuntimeReferenceState": {
+      "additionalProperties": false,
+      "description": "Fresh, sanitized machine runtime state (never carries private values).",
+      "properties": {
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "interpreters": {
+          "items": {
+            "$ref": "#/$defs/InterpreterReference"
+          },
+          "title": "Interpreters",
+          "type": "array"
+        },
+        "environments": {
+          "items": {
+            "$ref": "#/$defs/EnvironmentReference"
+          },
+          "title": "Environments",
+          "type": "array"
+        },
+        "legacy_environment": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Legacy Environment",
+          "type": "array"
+        }
+      },
+      "required": [
+        "revision",
+        "interpreters",
+        "environments",
+        "legacy_environment"
+      ],
+      "title": "RuntimeReferenceState",
+      "type": "object"
+    },
+    "ScopeSelector": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "default": "project",
+          "enum": [
+            "selection",
+            "block",
+            "project"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "block_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Id"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/TargetRef"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "excluded_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Excluded Keys",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "block_id",
+        "targets",
+        "excluded_keys"
+      ],
+      "title": "ScopeSelector",
+      "type": "object"
+    },
+    "SemanticGraph": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 3,
+          "default": 3,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "source_digest": {
+          "default": "",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "roots": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Roots",
+          "type": "array"
+        },
+        "blocks": {
+          "items": {
+            "$ref": "#/$defs/GraphBlock"
+          },
+          "title": "Blocks",
+          "type": "array"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/GraphNode"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/GraphEdge"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "coverage": {
+          "items": {
+            "$ref": "#/$defs/GraphCoverage"
+          },
+          "title": "Coverage",
+          "type": "array"
+        },
+        "omitted_count": {
+          "default": 0,
+          "title": "Omitted Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "source_digest",
+        "roots",
+        "blocks",
+        "nodes",
+        "edges",
+        "coverage",
+        "omitted_count"
+      ],
+      "title": "SemanticGraph",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "qualname": {
+          "default": "",
+          "title": "Qualname",
+          "type": "string"
+        },
+        "line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Line",
+          "type": "integer"
+        },
+        "digest": {
+          "default": "",
+          "title": "Digest",
+          "type": "string"
+        },
+        "code": {
+          "default": "",
+          "title": "Code",
+          "type": "string"
+        },
+        "column": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Column",
+          "type": "integer"
+        },
+        "end_column": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Column",
+          "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "file_id": {
+          "default": "",
+          "title": "File Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "default": "",
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "scope_id": {
+          "default": "",
+          "title": "Scope Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "qualname",
+        "line",
+        "end_line",
+        "digest",
+        "code",
+        "column",
+        "end_column",
+        "project_id",
+        "file_id",
+        "project_revision_id",
+        "scope_id"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    },
+    "SourceUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "relative_path": {
+          "title": "Relative Path",
+          "type": "string"
+        },
+        "digest": {
+          "default": "",
+          "title": "Digest",
+          "type": "string"
+        },
+        "analysis_id": {
+          "default": "",
+          "title": "Analysis Id",
+          "type": "string"
+        },
+        "module_names": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Module Names",
+          "type": "array"
+        },
+        "status": {
+          "default": "parsed",
+          "enum": [
+            "parsed",
+            "error"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "relative_path",
+        "digest",
+        "analysis_id",
+        "module_names",
+        "status",
+        "diagnostics"
+      ],
+      "title": "SourceUnit",
+      "type": "object"
+    },
+    "SymbolPage": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "default": "",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/SymbolRef"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "total": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "project_id",
+        "revision_id",
+        "items",
+        "total",
+        "offset",
+        "limit"
+      ],
+      "title": "SymbolPage",
+      "type": "object"
+    },
+    "SymbolRef": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "default": "function",
+          "title": "Kind",
+          "type": "string"
+        },
+        "scope": {
+          "default": "<module>",
+          "title": "Scope",
+          "type": "string"
+        },
+        "line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Line",
+          "type": "integer"
+        },
+        "end_line": {
+          "default": 0,
+          "minimum": 0,
+          "title": "End Line",
+          "type": "integer"
+        },
+        "logical_key": {
+          "default": "",
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/SourceRef"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "scope",
+        "line",
+        "end_line",
+        "logical_key",
+        "source"
+      ],
+      "title": "SymbolRef",
+      "type": "object"
+    },
+    "TargetRef": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "default": "data",
+          "enum": [
+            "data",
+            "operation",
+            "function",
+            "control",
+            "file",
+            "project",
+            "folder",
+            "stream"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "logical_key": {
+          "title": "Logical Key",
+          "type": "string"
+        },
+        "object_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Id"
+        },
+        "block_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Id"
+        },
+        "analysis_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Analysis Id"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "file_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Id"
+        },
+        "project_revision_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Revision Id"
+        },
+        "exact_evidence": {
+          "default": false,
+          "title": "Exact Evidence",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "logical_key",
+        "object_id",
+        "block_id",
+        "analysis_id",
+        "run_id",
+        "snapshot_id",
+        "project_id",
+        "file_id",
+        "project_revision_id",
+        "exact_evidence"
+      ],
+      "title": "TargetRef",
+      "type": "object"
+    },
+    "TreeItem": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "kind": {
+          "default": "file",
+          "enum": [
+            "project",
+            "folder",
+            "file"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "path": {
+          "default": "",
+          "title": "Path",
+          "type": "string"
+        },
+        "file_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Id"
+        },
+        "child_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Child Count",
+          "type": "integer"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TargetRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "parent_id",
+        "kind",
+        "label",
+        "path",
+        "file_id",
+        "child_count",
+        "target"
+      ],
+      "title": "TreeItem",
+      "type": "object"
+    },
+    "TreePage": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "default": "",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/TreeItem"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "total": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "project_id",
+        "revision_id",
+        "items",
+        "total",
+        "offset",
+        "limit"
+      ],
+      "title": "TreePage",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "ResearchProject": {
+      "$ref": "#/$defs/ResearchProject"
+    },
+    "ProjectRevision": {
+      "$ref": "#/$defs/ProjectRevision"
+    },
+    "SourceUnit": {
+      "$ref": "#/$defs/SourceUnit"
+    },
+    "FilePage": {
+      "$ref": "#/$defs/FilePage"
+    },
+    "ProjectGraphSlice": {
+      "$ref": "#/$defs/ProjectGraphSlice"
+    },
+    "ProjectLoadedFile": {
+      "$ref": "#/$defs/ProjectLoadedFile"
+    },
+    "ProjectExecutionReceipt": {
+      "$ref": "#/$defs/ProjectExecutionReceipt"
+    },
+    "RunConfiguration": {
+      "$ref": "#/$defs/RunConfiguration"
+    },
+    "ProjectSection": {
+      "$ref": "#/$defs/ProjectSection"
+    },
+    "TreeItem": {
+      "$ref": "#/$defs/TreeItem"
+    },
+    "TreePage": {
+      "$ref": "#/$defs/TreePage"
+    },
+    "ObjectItem": {
+      "$ref": "#/$defs/ObjectItem"
+    },
+    "ObjectPage": {
+      "$ref": "#/$defs/ObjectPage"
+    },
+    "SymbolRef": {
+      "$ref": "#/$defs/SymbolRef"
+    },
+    "SymbolPage": {
+      "$ref": "#/$defs/SymbolPage"
+    },
+    "ReferenceItem": {
+      "$ref": "#/$defs/ReferenceItem"
+    },
+    "ReferencePage": {
+      "$ref": "#/$defs/ReferencePage"
+    },
+    "ChangeValidation": {
+      "$ref": "#/$defs/ChangeValidation"
+    },
+    "ProjectFileEdit": {
+      "$ref": "#/$defs/ProjectFileEdit"
+    },
+    "ProjectChangeSet": {
+      "$ref": "#/$defs/ProjectChangeSet"
+    },
+    "ProjectChangeEditRequest": {
+      "$ref": "#/$defs/ProjectChangeEditRequest"
+    },
+    "ProjectChangeProposalRequest": {
+      "$ref": "#/$defs/ProjectChangeProposalRequest"
+    },
+    "ProjectChangeActionRequest": {
+      "$ref": "#/$defs/ProjectChangeActionRequest"
+    },
+    "ProjectChangePage": {
+      "$ref": "#/$defs/ProjectChangePage"
+    },
+    "ProjectRecoveryState": {
+      "$ref": "#/$defs/ProjectRecoveryState"
+    },
+    "ProjectAIRequest": {
+      "$ref": "#/$defs/ProjectAIRequest"
+    },
+    "ProjectContextPreview": {
+      "$ref": "#/$defs/ProjectContextPreview"
+    },
+    "ProjectFileInventoryItem": {
+      "$ref": "#/$defs/ProjectFileInventoryItem"
+    },
+    "ProjectContextManifest": {
+      "$ref": "#/$defs/ProjectContextManifest"
+    },
+    "ProjectReadPermission": {
+      "$ref": "#/$defs/ProjectReadPermission"
+    },
+    "ProjectToolReceipt": {
+      "$ref": "#/$defs/ProjectToolReceipt"
+    },
+    "ProjectEvidenceReceipt": {
+      "$ref": "#/$defs/ProjectEvidenceReceipt"
+    },
+    "RuntimeReferenceState": {
+      "$ref": "#/$defs/RuntimeReferenceState"
+    },
+    "InterpreterReferenceRequest": {
+      "$ref": "#/$defs/InterpreterReferenceRequest"
+    },
+    "EnvironmentReferenceRequest": {
+      "$ref": "#/$defs/EnvironmentReferenceRequest"
+    },
+    "SourceRef": {
+      "$ref": "#/$defs/SourceRef"
+    },
+    "TargetRef": {
+      "$ref": "#/$defs/TargetRef"
+    }
+  },
+  "required": [
+    "ResearchProject",
+    "ProjectRevision",
+    "SourceUnit",
+    "FilePage",
+    "ProjectGraphSlice",
+    "ProjectLoadedFile",
+    "ProjectExecutionReceipt",
+    "RunConfiguration",
+    "ProjectSection",
+    "TreeItem",
+    "TreePage",
+    "ObjectItem",
+    "ObjectPage",
+    "SymbolRef",
+    "SymbolPage",
+    "ReferenceItem",
+    "ReferencePage",
+    "ChangeValidation",
+    "ProjectFileEdit",
+    "ProjectChangeSet",
+    "ProjectChangeEditRequest",
+    "ProjectChangeProposalRequest",
+    "ProjectChangeActionRequest",
+    "ProjectChangePage",
+    "ProjectRecoveryState",
+    "ProjectAIRequest",
+    "ProjectContextPreview",
+    "ProjectFileInventoryItem",
+    "ProjectContextManifest",
+    "ProjectReadPermission",
+    "ProjectToolReceipt",
+    "ProjectEvidenceReceipt",
+    "RuntimeReferenceState",
+    "InterpreterReferenceRequest",
+    "EnvironmentReferenceRequest",
+    "SourceRef",
+    "TargetRef"
+  ],
+  "title": "ProjectProtocol",
+  "type": "object"
+}

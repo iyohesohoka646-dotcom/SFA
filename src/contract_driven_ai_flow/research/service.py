@@ -5,6 +5,8 @@ import fnmatch
 import hashlib
 import hmac
 import json
+import logging
+import math
 import os
 import secrets
 import socket
@@ -84,15 +86,33 @@ class ActiveRun:
     output_bytes: dict = field(default_factory=lambda: {"stdout": 0, "stderr": 0})
     output_threads: list = field(default_factory=list)
     observer_error: str | None = None
+    timeout_seconds: float | None = None
+    timed_out: bool = False
+    timer: object = None
 
     def __post_init__(self):
         self.probe_condition = threading.Condition(self.lock)
 
 
 class ResearchService:
-    def __init__(self, root: Path, *, probe_registry=None, runner_registry=None, budget=None):
+    def __init__(
+        self,
+        root: Path,
+        *,
+        probe_registry=None,
+        runner_registry=None,
+        budget=None,
+        job_executor=None,
+        task_admission=None,
+        task_admission_limit=16,
+    ):
         self.root = Path(root).resolve()
         self._budget = budget
+        # Optional application-owned shared background resources. Standalone
+        # services keep their own legacy JobManager defaults.
+        self._job_executor = job_executor
+        self._task_admission = task_admission
+        self._task_admission_limit = task_admission_limit
         self.store = ExperimentStore(self.root)
         self.store.recover_runs()
         self.store.expire_artifacts()
@@ -123,9 +143,22 @@ class ResearchService:
                     return 'paused'
         return self.store.run(run_id)['status']
 
+    @staticmethod
+    def _validate_timeout(timeout_seconds):
+        if timeout_seconds is None:
+            return None
+        if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)):
+            raise ValueError("timeout_seconds must be a positive finite number of seconds")
+        value = float(timeout_seconds)
+        if not math.isfinite(value) or value <= 0 or value > 86400:
+            raise ValueError(
+                "timeout_seconds must be a positive finite number of seconds no greater than 86400"
+            )
+        return value
+
     def start_analysis(self, script: Path, *, interpreter=None, arguments=(), mode="summary", probes=None,
                        adapters=(), watched_names=(), watched_lines=(), instrument="auto", capture=None, runner="python", expected_digest=None,
-                       cwd=None, env=None, project_job=None, run_environment=None):
+                       cwd=None, env=None, project_job=None, run_environment=None, timeout_seconds=None):
         if self._closed:
             raise ValueError("Research service is closed")
         with self._lock:
@@ -150,62 +183,120 @@ class ResearchService:
         configured = [ProbeSpec(id="default-finite", binding="*")] if probes is None else [ProbeSpec.model_validate(p) for p in probes]
         if len(configured) > 128:
             raise ValueError("An analysis can configure at most 128 probes")
+        timeout_value = self._validate_timeout(timeout_seconds)
         if self._budget is not None:
             if not self._budget.acquire():
                 raise ValueError("At most four analyses can run across the application")
             budget_held = True
         else:
             budget_held = False
+        # Every owned resource and the permit are released exactly once by the
+        # single preparation/launch guard below; a failed launch still marks the
+        # created run failed with its sanitized actual reason.
+        run = None
+        listener = None
+        job_file = None
+        process = None
+        tree = None
+        active = None
         try:
             run = self.store.create_run(source.path, interpreter=str(python), source_digest=source.digest, name=Path(source.path).stem,
                 environment=dict(run_environment) if run_environment else None)
-        except BaseException:
-            if budget_held and self._budget is not None:
-                self._budget.release()
-            raise
-        self.store.archive_source(source.digest, source.text)
-        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        listener.bind(("127.0.0.1", 0))
-        listener.listen(2)
-        listener.settimeout(0.5)
-        token = secrets.token_urlsafe(32)
-        jobs = self.store.state / "jobs"
-        jobs.mkdir(exist_ok=True)
-        job_file = jobs / (run["id"] + ".json")
-        configuration = {"protocol_version": 1, "run_id": run["id"], "port": listener.getsockname()[1], "token": token,
-            "interpreter": str(python), "runner": runner,
-            "name": run["name"], "script": source.path, "source_digest": source.digest, "capture": asdict(policy),
-            "artifact_root": str(self.store.state), "arguments": list(arguments), "adapters": list(adapters),
-            "watched_names": list(watched_names), "watched_lines": list(watched_lines), "instrument": instrument,
-            "gates": [{'binding': p.binding, 'target_keys': p.target_keys, 'excluded_keys': p.excluded_keys} for p in configured if p.enabled and p.policy != "continue"]}
-        if cwd is not None:
-            configuration["cwd"] = str(cwd)
-        if env:
-            configuration["env"] = {str(k): str(v) for k, v in dict(env).items()}
-        if project_job:
-            configuration.update(project_job)
-        with os.fdopen(os.open(job_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600), "w", encoding="utf-8") as stream:
-            stream.write(encode(configuration))
-        try:
+            self.store.archive_source(source.digest, source.text)
+            listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            listener.bind(("127.0.0.1", 0))
+            listener.listen(2)
+            listener.settimeout(0.5)
+            token = secrets.token_urlsafe(32)
+            jobs = self.store.state / "jobs"
+            jobs.mkdir(exist_ok=True)
+            job_file = jobs / (run["id"] + ".json")
+            configuration = {"protocol_version": 1, "run_id": run["id"], "port": listener.getsockname()[1], "token": token,
+                "interpreter": str(python), "runner": runner,
+                "name": run["name"], "script": source.path, "source_digest": source.digest, "capture": asdict(policy),
+                "artifact_root": str(self.store.state), "arguments": list(arguments), "adapters": list(adapters),
+                "watched_names": list(watched_names), "watched_lines": list(watched_lines), "instrument": instrument,
+                "gates": [{'binding': p.binding, 'target_keys': p.target_keys, 'excluded_keys': p.excluded_keys} for p in configured if p.enabled and p.policy != "continue"]}
+            if cwd is not None:
+                configuration["cwd"] = str(cwd)
+            if env:
+                configuration["env"] = {str(k): str(v) for k, v in dict(env).items()}
+            if project_job:
+                configuration.update(project_job)
+            with os.fdopen(os.open(job_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600), "w", encoding="utf-8") as stream:
+                stream.write(encode(configuration))
             process = implementation.launch(configuration, job_file)
             tree = ProcessTree(process)
-        except Exception:
-            listener.close()
-            job_file.unlink(missing_ok=True)
-            if self._budget is not None:
-                self._budget.release()
-            self.store.append([ObservationEvent(run_id=run["id"], kind="run.finished", payload={"status": "failed", "reason": "process_start_failed"})])
+            active = ActiveRun(run["id"], process, tree, listener, token, job_file, configured, probes is None,
+                budget=self._budget if budget_held else None, timeout_seconds=timeout_value)
+            with self._lock:
+                self._active[active.id] = active
+            for name, pipe in (("stdout", process.stdout), ("stderr", process.stderr)):
+                thread = threading.Thread(target=self._drain_output, args=(active, name, pipe), daemon=True)
+                active.output_threads.append(thread)
+                thread.start()
+            if timeout_value:
+                active.timer = threading.Timer(timeout_value, self._expire_run, args=(active,))
+                active.timer.daemon = True
+                active.timer.start()
+            threading.Thread(target=self._supervise, args=(active,), name="cdaf-analysis-" + active.id[:8], daemon=True).start()
+            return RunHandle(active.id, "queued", str(python), source.digest, mode)
+        except BaseException as error:
+            self._fail_start(run, active, process, tree, listener, job_file, budget_held, error)
             raise
-        active = ActiveRun(run["id"], process, tree, listener, token, job_file, configured, probes is None,
-            budget=self._budget if budget_held else None)
-        with self._lock:
-            self._active[active.id] = active
-        for name, pipe in (("stdout", process.stdout), ("stderr", process.stderr)):
-            thread = threading.Thread(target=self._drain_output, args=(active, name, pipe), daemon=True)
-            active.output_threads.append(thread)
-            thread.start()
-        threading.Thread(target=self._supervise, args=(active,), name="cdaf-analysis-" + active.id[:8], daemon=True).start()
-        return RunHandle(active.id, "queued", str(python), source.digest, mode)
+
+    def _fail_start(self, run, active, process, tree, listener, job_file, budget_held, error):
+        if active is not None:
+            with self._lock:
+                self._active.pop(active.id, None)
+            timer = getattr(active, "timer", None)
+            if timer is not None:
+                try:
+                    timer.cancel()
+                except Exception:
+                    pass
+        if tree is not None:
+            try:
+                tree.terminate()
+            except Exception:
+                pass
+            try:
+                tree.close()
+            except Exception:
+                pass
+        elif process is not None:
+            try:
+                process.kill()
+            except Exception:
+                pass
+        if listener is not None:
+            try:
+                listener.close()
+            except OSError:
+                pass
+        if job_file is not None:
+            try:
+                job_file.unlink(missing_ok=True)
+            except OSError:
+                pass
+        if run is not None:
+            reason = clean_text(str(error), 512) or type(error).__name__
+            try:
+                self.store.append([ObservationEvent(run_id=run["id"], kind="run.finished", payload={"status": "failed", "reason": reason})])
+            except Exception:
+                pass
+        if budget_held and self._budget is not None:
+            self._budget.release()
+
+    def _expire_run(self, active):
+        with active.lock:
+            if active.done.is_set():
+                return
+            active.timed_out = True
+        try:
+            active.tree.terminate()
+        except Exception:
+            pass
 
     @staticmethod
     def _drain_output(active, name, pipe):
@@ -221,8 +312,11 @@ class ResearchService:
                 with active.write_lock:
                     active.writer.write(encode({"action": action, "snapshot_id": snapshot_id}).encode() + b"\n")
                     active.writer.flush()
-            except OSError:
-                active.observer_error = "control_channel_disconnected"
+            except (OSError, ValueError):
+                # A teardown/peer race can close the writer between the None check
+                # and the write; a closed pipe raises OSError and a closed file
+                # object raises ValueError. Real application errors still surface.
+                active.observer_error = active.observer_error or "control_channel_disconnected"
 
     def _resolve_gate(self, active, snapshot_id):
         with active.lock:
@@ -353,52 +447,123 @@ class ResearchService:
                 active.observer_error = "agent_startup_timeout"
                 active.tree.terminate()
         except ConnectionResetError:
-            active.observer_error = "collector_disconnected"
+            active.observer_error = active.observer_error or "collector_disconnected"
             # An abrupt native exit closes TCP before Windows publishes its exit
             # code. Preserve the analysis code rather than replacing it by 130.
             try:
                 active.process.wait(timeout=0.5)
             except subprocess.TimeoutExpired:
                 active.tree.terminate()
-        except Exception as error:
-            active.observer_error = "collector_error:" + type(error).__name__
-            active.tree.terminate()
+        except BaseException as error:
+            active.observer_error = active.observer_error or ("collector_error:" + type(error).__name__)
+            try:
+                active.tree.terminate()
+            except BaseException:
+                pass
         finally:
-            active.listener.close()
-            if active.connection:
+            # Unconditional teardown and finalization. Every owned listener,
+            # connection/writer/reader, process tree, output thread, probe permit,
+            # job file, timer, active-map entry and execution budget is handled
+            # exactly once here: a failure in one guarded step can never skip the
+            # rest, and the terminal receipt is written no matter which stage failed.
+            stage = "teardown"
+            errors = []
+            failed = object()
+
+            def guard(label, action):
+                nonlocal stage
+                stage = label
                 try:
-                    active.connection.shutdown(socket.SHUT_RDWR)
-                except OSError:
-                    pass
+                    return action()
+                except BaseException as error:
+                    errors.append(label + ":" + type(error).__name__)
+                    detail = clean_text(str(error), 200) or type(error).__name__
+                    active.observer_error = active.observer_error or (label + ":" + detail)
+                    return failed
+
+            guard("listener_close", active.listener.close)
+            connection = active.connection
+            if connection is not None:
+                guard("connection_shutdown", lambda: connection.shutdown(socket.SHUT_RDWR))
             for stream in (reader, active.writer):
-                if stream:
-                    stream.close()
-            if active.connection:
-                active.connection.close()
-            code = active.process.wait()
-            active.tree.close()
+                if stream is not None:
+                    guard("stream_close", stream.close)
+            if connection is not None:
+                guard("connection_close", connection.close)
+            waited = guard("process_wait", active.process.wait)
+            if waited is failed:
+                guard("process_terminate", active.tree.terminate)
+                code = 1
+            else:
+                code = waited if isinstance(waited, int) else 1
+            guard("tree_close", active.tree.close)
             for thread in active.output_threads:
-                thread.join(1)
-            deadline = time.monotonic() + 36
-            with active.probe_condition:
-                while active.pending_probes and time.monotonic() < deadline:
-                    active.probe_condition.wait(max(0.01, deadline - time.monotonic()))
-                if active.pending_probes:
-                    active.observer_error = active.observer_error or "probe_wait_failed"
-            status = "cancelled" if active.cancelled else (active.terminal or {}).get("status", "completed" if code == 0 and not active.observer_error else "failed")
-            quality = "fail" if active.counts["fail"] else "degraded" if active.observer_error or active.counts["error"] or active.counts["unknown"] or active.counts["skipped"] else "pass" if sum(active.counts.values()) else "unconfigured"
-            payload = {**(active.terminal or {}), "status": status, "exit_code": code, "quality": quality,
-                "execution_status": (active.terminal or {}).get("status", "completed" if code == 0 else "failed"),
-                "probe_counts": active.counts, "output_bytes": active.output_bytes, "observer_error": active.observer_error}
-            self.store.append([ObservationEvent(run_id=active.id, kind="run.finished", payload=payload)])
-            self.pool.release_run(active.id)
-            active.job_file.unlink(missing_ok=True)
-            active.done.set()
+                guard("output_join", lambda thread=thread: thread.join(1))
+            probe_deadline = time.monotonic() + 36
+
+            def wait_probes():
+                with active.probe_condition:
+                    while active.pending_probes and time.monotonic() < probe_deadline:
+                        active.probe_condition.wait(max(0.01, probe_deadline - time.monotonic()))
+
+            guard("probe_wait", wait_probes)
+            if active.pending_probes:
+                active.observer_error = active.observer_error or "probe_wait_failed"
+            # The child terminal payload (including project_execution and its own
+            # observer_error) is preserved; the finalizer never blanks it with a
+            # later None/pass. A timeout or cancel still wins over the child status.
+            terminal = dict(active.terminal or {})
+            if active.cancelled:
+                status = "cancelled"
+            elif active.timed_out:
+                status = "timeout"
+            else:
+                status = terminal.get("status", "completed" if code == 0 and not active.observer_error else "failed")
+            execution_status = status if status in ("timeout", "cancelled") else terminal.get("execution_status", "completed" if code == 0 else "failed")
+            observer_error = active.observer_error or terminal.get("observer_error")
+            receipt = terminal.get("project_execution")
+            if isinstance(receipt, dict) and receipt.get("complete") is False:
+                observer_error = observer_error or "project_evidence_incomplete"
+            quality = "fail" if active.counts["fail"] else "degraded" if observer_error or active.counts["error"] or active.counts["unknown"] or active.counts["skipped"] else "pass" if sum(active.counts.values()) else "unconfigured"
+            if terminal.get("quality") == "fail":
+                quality = "fail"
+            elif quality in ("pass", "unconfigured") and terminal.get("quality") == "degraded":
+                quality = "degraded"
+            payload = {**terminal, "status": status, "exit_code": code, "quality": quality,
+                "execution_status": execution_status, "probe_counts": active.counts,
+                "output_bytes": active.output_bytes, "observer_error": observer_error}
+            stage = "finalize"
+            try:
+                self.store.append([ObservationEvent(run_id=active.id, kind="run.finished", payload=payload)])
+            except BaseException as error:
+                detail = clean_text(str(error), 200) or type(error).__name__
+                active.observer_error = active.observer_error or ("terminal_receipt:" + detail)
+                errors.append("terminal_receipt:" + type(error).__name__)
+                # Exactly one best-effort fallback terminal write carrying the
+                # actual error; an unpersisted completion is never reported as a
+                # pass, and the observer gap stays visible on the live run.
+                fallback = {**payload, "observer_error": active.observer_error,
+                    "quality": "fail" if payload.get("quality") == "fail" else "degraded"}
+                try:
+                    self.store.append([ObservationEvent(run_id=active.id, kind="run.finished", payload=fallback)])
+                except BaseException as second:
+                    errors.append("terminal_receipt_fallback:" + type(second).__name__)
+                    active.observer_error = active.observer_error or ("terminal_receipt_unpersisted:" + type(second).__name__)
+                    logging.getLogger(__name__).error("Run %s terminal receipt could not be persisted (%s)", active.id, type(second).__name__)
+            # Ordered cleanup: the done flag is set only after the active entry and
+            # the execution permit are gone, so a waiting client sees capacity.
+            stage = "cleanup"
+            guard("pool_release_run", lambda: self.pool.release_run(active.id))
+            guard("job_file_unlink", lambda: active.job_file.unlink(missing_ok=True))
+            timer = getattr(active, "timer", None)
+            if timer is not None:
+                guard("timer_cancel", timer.cancel)
             with self._lock:
                 self._active.pop(active.id, None)
             if active.budget is not None:
-                active.budget.release()
-                active.budget = None
+                budget, active.budget = active.budget, None
+                guard("budget_release", budget.release)
+            active.done.set()
 
     def wait(self, run_id, timeout=None):
         with self._lock:
@@ -415,6 +580,9 @@ class ResearchService:
                 return
             raise ValueError("This client does not own the active analysis; use its owning service")
         active.cancelled = True
+        timer = getattr(active, "timer", None)
+        if timer is not None:
+            timer.cancel()
         self.pool.cancel_run(run_id)
         self._control(active, "cancel")
         if not active.done.wait(2):

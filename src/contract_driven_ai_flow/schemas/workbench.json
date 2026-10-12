@@ -793,6 +793,64 @@
           },
           "title": "Preferences",
           "type": "object"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "project_revision_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Revision Id"
+        },
+        "manifest_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manifest Id"
+        },
+        "entry": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entry"
+        },
+        "environment": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Environment",
+          "type": "object"
         }
       },
       "required": [
@@ -812,7 +870,12 @@
         "target_scope",
         "resolved_targets",
         "invocations",
-        "preferences"
+        "preferences",
+        "project_id",
+        "project_revision_id",
+        "manifest_id",
+        "entry",
+        "environment"
       ],
       "title": "ExecutionPlan",
       "type": "object"
@@ -2286,6 +2349,60 @@
       "title": "ProbeTemplateMember",
       "type": "object"
     },
+    "ProjectSection": {
+      "additionalProperties": false,
+      "description": "Persistent project identity; authored beside (never inside) observations.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "title": "Name",
+          "type": "string"
+        },
+        "source_roots": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Roots",
+          "type": "array"
+        },
+        "include": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "run_configurations": {
+          "items": {
+            "$ref": "#/$defs/RunConfiguration"
+          },
+          "maxItems": 64,
+          "title": "Run Configurations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "source_roots",
+        "include",
+        "exclude",
+        "run_configurations"
+      ],
+      "title": "ProjectSection",
+      "type": "object"
+    },
     "Relation": {
       "additionalProperties": false,
       "properties": {
@@ -2389,6 +2506,80 @@
         "input_digest"
       ],
       "title": "ResolvedProbeCall",
+      "type": "object"
+    },
+    "RunConfiguration": {
+      "additionalProperties": false,
+      "description": "Authored, inert launch intent reused by P2/P3 (never executed here).",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "default": "script",
+          "enum": [
+            "script",
+            "module"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "default": "",
+          "title": "Target",
+          "type": "string"
+        },
+        "cwd": {
+          "default": ".",
+          "title": "Cwd",
+          "type": "string"
+        },
+        "interpreter_ref": {
+          "default": "",
+          "title": "Interpreter Ref",
+          "type": "string"
+        },
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "environment": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Environment",
+          "type": "array"
+        },
+        "options": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Options",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "target",
+        "cwd",
+        "interpreter_ref",
+        "arguments",
+        "environment",
+        "options"
+      ],
+      "title": "RunConfiguration",
       "type": "object"
     },
     "ScopeSelector": {
@@ -2671,6 +2862,26 @@
           "minimum": 0,
           "title": "End Column",
           "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "file_id": {
+          "default": "",
+          "title": "File Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "default": "",
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "scope_id": {
+          "default": "",
+          "title": "Scope Id",
+          "type": "string"
         }
       },
       "required": [
@@ -2681,7 +2892,11 @@
         "digest",
         "code",
         "column",
-        "end_column"
+        "end_column",
+        "project_id",
+        "file_id",
+        "project_revision_id",
+        "scope_id"
       ],
       "title": "SourceRef",
       "type": "object"
@@ -2798,6 +3013,42 @@
           "default": null,
           "title": "Snapshot Id"
         },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "file_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Id"
+        },
+        "project_revision_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Revision Id"
+        },
         "exact_evidence": {
           "default": false,
           "title": "Exact Evidence",
@@ -2812,6 +3063,9 @@
         "analysis_id",
         "run_id",
         "snapshot_id",
+        "project_id",
+        "file_id",
+        "project_revision_id",
         "exact_evidence"
       ],
       "title": "TargetRef",
@@ -2909,6 +3163,30 @@
           },
           "title": "Receipt",
           "type": "object"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Id"
+        },
+        "project_revision_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Revision Id"
         }
       },
       "required": [
@@ -2924,7 +3202,9 @@
         "progress",
         "output_ids",
         "message",
-        "receipt"
+        "receipt",
+        "project_id",
+        "project_revision_id"
       ],
       "title": "TaskRecord",
       "type": "object"
@@ -3015,6 +3295,25 @@
           "title": "Revision",
           "type": "integer"
         },
+        "project": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProjectSection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "run_configurations": {
+          "items": {
+            "$ref": "#/$defs/RunConfiguration"
+          },
+          "maxItems": 64,
+          "title": "Run Configurations",
+          "type": "array"
+        },
         "script": {
           "default": "",
           "title": "Script",
@@ -3095,6 +3394,8 @@
       "required": [
         "protocol_version",
         "revision",
+        "project",
+        "run_configurations",
         "script",
         "interpreter",
         "arguments",

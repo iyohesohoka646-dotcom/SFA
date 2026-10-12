@@ -9,11 +9,13 @@ only executed entry is the exactly one the user saved and planned.
 from __future__ import annotations
 
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from ..service import ExecutionBudget, ResearchService
 from ..workbench.models import RunConfiguration
 from . import local_runtime, runtime
+from .changes import ProjectChangeService
 from .service import ProjectService
 from .workbench import ProjectWorkbenchService
 
@@ -22,11 +24,20 @@ PAGE = 1000
 
 
 class ProjectApplication:
-    def __init__(self, host_root: Path, models=None):
+    def __init__(self, host_root: Path, models=None, *, max_workers=3, admission_limit=16):
         self.host_root = Path(host_root).resolve()
         self.projects = ProjectService(self.host_root)
         self.models = models
+        # One application-wide computation budget (subprocess launches) and one
+        # application-wide background worker/admission budget shared by every
+        # project service; the two limits are independent and never double-count.
         self.budget = ExecutionBudget(4)
+        self._executor = ThreadPoolExecutor(
+            max_workers=max_workers, thread_name_prefix="cdaf-application"
+        )
+        self._admission = threading.BoundedSemaphore(int(admission_limit))
+        self._task_admission_limit = int(admission_limit)
+        self._changes = ProjectChangeService(self.projects)
         self._services: dict = {}
         self._lock = threading.RLock()
         self._closed = False
@@ -39,7 +50,13 @@ class ProjectApplication:
             service = self._services.get(project_id)
             if service is None:
                 root = Path(self.projects.project(project_id).root)
-                research = ResearchService(root, budget=self.budget)
+                research = ResearchService(
+                    root,
+                    budget=self.budget,
+                    job_executor=self._executor,
+                    task_admission=self._admission,
+                    task_admission_limit=self._task_admission_limit,
+                )
                 workbench = ProjectWorkbenchService(
                     research,
                     project_id=project_id,
@@ -62,6 +79,13 @@ class ProjectApplication:
     def research(self, project_id: str) -> ResearchService:
         return self._service(project_id)["research"]
 
+    def changes(self, project_id: str) -> ProjectChangeService:
+        """Shared reviewed-change service for a project (recovery-ready gate)."""
+        return self._changes
+
+    def assert_ready(self, project_id: str) -> None:
+        self._changes.assert_ready(project_id)
+
     # -- identity and indexing ----------------------------------------
     def open(self, path):
         return self.projects.open(path)
@@ -69,6 +93,7 @@ class ProjectApplication:
     def index(self, project_id: str, cancel=None, progress=None):
         # Asynchronous UI progress flows straight through; the signature stays
         # backwards compatible for existing callers.
+        self._changes.assert_ready(project_id)
         return self.projects.index(project_id, cancel=cancel, progress=progress)
 
     def configuration(self, project_id: str):
@@ -140,6 +165,7 @@ class ProjectApplication:
     ):
         if scope not in ("compute", "probes", "replot"):
             raise ValueError("Unknown project plan scope: " + str(scope))
+        self._changes.assert_ready(project_id)
         project = self.projects.project(project_id)
         workbench = self.workbench(project_id)
         config, run_config = workbench.entry(configuration_id)
@@ -170,6 +196,9 @@ class ProjectApplication:
             "cwd": run_config.cwd,
             "configuration_id": configuration_id,
         }
+        options = dict(run_config.options or {})
+        if "timeout_seconds" in options:
+            entry_public["timeout_seconds"] = options["timeout_seconds"]
         return workbench.plan_project(
             configuration_id,
             revision_id=revision_id,
@@ -185,6 +214,7 @@ class ProjectApplication:
         )
 
     def execute(self, project_id: str, plan_id: str):
+        self._changes.assert_ready(project_id)
         return self.workbench(project_id).execute_plan(plan_id)
 
     def close(self) -> None:
@@ -200,6 +230,9 @@ class ProjectApplication:
             finally:
                 service["research"].close()
         self.projects.close()
+        # Owned background pool: a per-project close never shuts it; only the
+        # application teardown does.
+        self._executor.shutdown(wait=True)
 
     # -- helpers ------------------------------------------------------
     def _revision_units(self, project_id: str, revision_id: str | None):

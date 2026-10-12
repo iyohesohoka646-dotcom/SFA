@@ -327,6 +327,13 @@ def attach_project_routes(app, application, *, prefix="/api/v1/research/projects
     from .change_routes import attach_project_change_routes
 
     attach_project_change_routes(app, application, prefix=prefix)
+    # Machine-scoped runtime profiles are mounted exactly once, beside (not
+    # under) the project prefix; the project suffix is never carried over.
+    from .runtime_routes import DEFAULT_RUNTIME_PREFIX, attach_runtime_routes
+
+    base = prefix[: -len('/projects')] if prefix.endswith('/projects') else prefix
+    runtime_prefix = base.rstrip('/') + '/runtime' if base else DEFAULT_RUNTIME_PREFIX
+    attach_runtime_routes(app, application, prefix=runtime_prefix)
     return router
 
 

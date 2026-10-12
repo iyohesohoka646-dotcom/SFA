@@ -618,6 +618,26 @@
           "minimum": 0,
           "title": "End Column",
           "type": "integer"
+        },
+        "project_id": {
+          "default": "",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "file_id": {
+          "default": "",
+          "title": "File Id",
+          "type": "string"
+        },
+        "project_revision_id": {
+          "default": "",
+          "title": "Project Revision Id",
+          "type": "string"
+        },
+        "scope_id": {
+          "default": "",
+          "title": "Scope Id",
+          "type": "string"
         }
       },
       "required": [
@@ -628,7 +648,11 @@
         "digest",
         "code",
         "column",
-        "end_column"
+        "end_column",
+        "project_id",
+        "file_id",
+        "project_revision_id",
+        "scope_id"
       ],
       "title": "SourceRef",
       "type": "object"

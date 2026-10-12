@@ -43,7 +43,12 @@ class WorkbenchService:
         self.drawing = DrawingService(
             self.root, self.catalog, pool=research.pool, tools=self.tools
         )
-        self.jobs = JobManager(self.store)
+        self.jobs = JobManager(
+            self.store,
+            executor=getattr(research, "_job_executor", None),
+            admission=getattr(research, "_task_admission", None),
+            admission_limit=getattr(research, "_task_admission_limit", 16),
+        )
         self.models = None
         self._harness = None
         self._changes = None

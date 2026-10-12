@@ -9,15 +9,32 @@ from ..models import timestamp
 from .models import TaskRecord
 from .ownership import current_owner
 
+QUEUE_LIMIT = 16
+
 
 class JobManager:
-    def __init__(self, store, *, max_workers=3):
+    def __init__(
+        self,
+        store,
+        *,
+        max_workers=3,
+        executor=None,
+        admission=None,
+        admission_limit=QUEUE_LIMIT,
+    ):
         self.store = store
         self.owner = current_owner()
         self.store.recover()
-        self.executor = ThreadPoolExecutor(
+        # A shared application-owned executor/admission budget keeps the
+        # background worker cap application-wide instead of per project. A
+        # standalone manager keeps the legacy private 3-thread / 16-queue
+        # defaults and owns (and shuts) its own executor.
+        self._owns_executor = executor is None
+        self.executor = executor or ThreadPoolExecutor(
             max_workers=max_workers, thread_name_prefix="cdaf-workbench"
         )
+        self._owns_admission = admission is None
+        self.admission = admission or threading.BoundedSemaphore(int(admission_limit))
         self._active = {}
         self._lock = threading.RLock()
         self._closed = False
@@ -32,20 +49,58 @@ class JobManager:
 
     def submit(self, kind, function, *, plan_id=None, receipt=None):
         with self._lock:
-            if self._closed or len(self._active) >= 16:
+            if self._closed:
                 raise ValueError("Task queue is full or closed")
-            task = TaskRecord(
-                kind=kind,
-                plan_id=plan_id,
-                receipt={**(receipt or {}), "_owner": self.owner},
-            )
-            self.store.put("tasks", task.id, task)
-            cancel = threading.Event()
-            self._active[task.id] = (cancel, None)
-            future = self.executor.submit(self._run, task, cancel, function)
-            if task.id in self._active:
-                self._active[task.id] = (cancel, future)
+        # The queue permit is taken before the task is durable so a full queue is
+        # rejected explicitly instead of silently piling up unbounded work.
+        if not self.admission.acquire(blocking=False):
+            raise ValueError("Task queue is full or closed")
+        task = None
+        persisted = False
+        released = False
+        try:
+            with self._lock:
+                if self._closed:
+                    raise ValueError("Task queue is full or closed")
+                task = TaskRecord(
+                    kind=kind,
+                    plan_id=plan_id,
+                    receipt={**(receipt or {}), "_owner": self.owner},
+                )
+                # A store failure here happens before any future exists and
+                # before the task is durable: only the permit must be returned.
+                self.store.put("tasks", task.id, task)
+                persisted = True
+                cancel = threading.Event()
+                self._active[task.id] = (cancel, None)
+                future = self.executor.submit(self._run, task, cancel, function)
+                if task.id in self._active:
+                    self._active[task.id] = (cancel, future)
             return task
+        except BaseException as error:
+            # Own only this submission's placeholder: pop it so a rejected
+            # executor never leaves a phantom active owner behind.
+            with self._lock:
+                if task is not None:
+                    self._active.pop(task.id, None)
+            # Persist an honest failed state, but only for a task that actually
+            # reached the store; a pre-durable store fault must not fabricate one.
+            if persisted:
+                try:
+                    reason = clean_text(str(error), 512) or type(error).__name__
+                    self.update(
+                        task.id,
+                        status="failed",
+                        message=f"Task failed to start ({type(error).__name__}): {reason}",
+                    )
+                except BaseException:
+                    pass
+            # The future never owned the permit on this path, so the submitting
+            # thread returns it exactly once.
+            if not released:
+                released = True
+                self.admission.release()
+            raise
 
     def _run(self, task, cancel, function):
         try:
@@ -75,6 +130,8 @@ class JobManager:
         finally:
             with self._lock:
                 self._active.pop(task.id, None)
+            # Cancelled queued work holds its permit until it is finalized here.
+            self.admission.release()
 
     def get(self, task_id):
         return TaskRecord.model_validate(self.store.get("tasks", task_id))
@@ -103,6 +160,17 @@ class JobManager:
             if self._closed:
                 return
             self._closed = True
-            for cancel, _ in self._active.values():
-                cancel.set()
-        self.executor.shutdown(wait=True)
+            active = dict(self._active)
+        for cancel, _ in active.values():
+            cancel.set()
+        # Wait only for this manager's own futures; another project's queued or
+        # running work is never cancelled and the shared executor is never shut.
+        for _, future in active.values():
+            if future is None:
+                continue
+            try:
+                future.result()
+            except BaseException:
+                pass
+        if self._owns_executor:
+            self.executor.shutdown(wait=True)
