@@ -5,6 +5,10 @@ through one shared TraceSession. Only the standard ``SourceFileLoader`` is
 wrapped, and only for files present in the supplied manifest: stdlib, third
 party and custom loaders keep their normal behaviour and are reported through
 explicit coverage instead.
+
+Every file the interpreter actually enters is recorded in a bounded ledger so a
+project run can publish a durable, root-relative receipt of what was loaded.
+Unused manifest files are never counted; empty modules still are.
 """
 
 from __future__ import annotations
@@ -48,6 +52,100 @@ def _under(root, path):
         return False
 
 
+class LoadedFileLedger:
+    """Bounded ledger of files actually entered by the project interpreter.
+
+    Rows are keyed by root-relative path, so repeated execution of one module
+    updates a single entry (with a per-file count) instead of inflating the
+    receipt. Indexed manifest files are always tracked, while a small budget
+    covers unindexed in-root loads so a coverage gap is explicit rather than
+    silently absent. Drops past that budget are counted as omitted.
+    """
+
+    MAX_UNKNOWN = 64
+
+    def __init__(self, root, manifest):
+        self.root = Path(root).resolve()
+        self.manifest = manifest or {}
+        self._rows: dict = {}
+        self.omitted = 0
+        self.unknown_boundary = 0
+
+    def _relative(self, path):
+        try:
+            resolved = str(Path(path).resolve())
+            relative = Path(resolved).relative_to(self.root).as_posix()
+        except (ValueError, OSError):
+            return None, None
+        return clean_text(relative, 4096), resolved
+
+    def record(self, path, *, state, coverage, module_name=None):
+        relative, resolved = self._relative(path)
+        if relative is None:
+            # Stdlib, third-party and out-of-root files stay outside the receipt.
+            return None
+        name = clean_text(module_name, 256) if module_name else ""
+        row = self._rows.get(relative)
+        if row is not None:
+            row["state"] = state
+            row["coverage"] = coverage
+            if name:
+                row["module_name"] = name
+            # ``count`` means actual executions: only *entering* a module adds an
+            # execution, while the entered->completed/failed transitions merely
+            # update state. A cached re-import therefore stays at one, whereas a
+            # genuine re-execution (e.g. importlib.reload) increments again.
+            if state == "entered":
+                row["count"] = row.get("count", 0) + 1
+            return row
+        info = self.manifest.get(resolved)
+        if info is None:
+            if self.unknown_boundary >= self.MAX_UNKNOWN:
+                self.omitted += 1
+                return None
+            self.unknown_boundary += 1
+            digest = ""
+            try:
+                digest = read_source(Path(resolved)).digest
+            except (OSError, ValueError):
+                digest = ""
+            row = {
+                "path": relative,
+                "file_id": "",
+                "digest": digest,
+                "project_id": "",
+                "project_revision_id": "",
+                "module_name": name,
+                "state": state,
+                "coverage": coverage,
+                "count": 1,
+            }
+        else:
+            row = {
+                "path": relative,
+                "file_id": info.get("file_id", ""),
+                "digest": info.get("digest", ""),
+                "project_id": info.get("project_id", ""),
+                "project_revision_id": info.get("project_revision_id", ""),
+                "module_name": name,
+                "state": state,
+                "coverage": coverage,
+                "count": 1,
+            }
+        self._rows[relative] = row
+        return row
+
+    def rows(self):
+        return [dict(row) for row in self._rows.values()]
+
+    def coverage_summary(self):
+        counts = {"supported": 0, "unsupported": 0, "partial": 0}
+        for row in self._rows.values():
+            counts[row["coverage"]] = counts.get(row["coverage"], 0) + 1
+        counts["unknown_boundary"] = self.unknown_boundary
+        return counts
+
+
 class ProjectRuntime:
     def __init__(self, root, session, manifest, policy):
         self.root = Path(root).resolve()
@@ -61,6 +159,7 @@ class ProjectRuntime:
         }
         self.runtimes = []
         self.traced = []
+        self.ledger = LoadedFileLedger(self.root, self.manifest)
         from .control_observation import ControlCollector
         from .instrument import CoverageReport
 
@@ -81,6 +180,13 @@ class ProjectRuntime:
             and (not self.allowed or resolved in self.allowed)
         )
 
+    def in_root(self, path):
+        return _under(self.root, path)
+
+    @staticmethod
+    def _module_name(module):
+        return getattr(module, "__name__", "") or ""
+
     def load(self, path):
         """Read and digest-check a traced source immediately before compiling."""
         resolved = str(Path(path).resolve())
@@ -97,48 +203,139 @@ class ProjectRuntime:
             )
         return source, info
 
+    def _tracked(self, source, module, state):
+        return self.ledger.record(
+            source.path,
+            state=state,
+            coverage="supported",
+            module_name=self._module_name(module),
+        )
+
     def exec_module(self, path, module):
         source, info = self.load(path)
-        compiled = instrument(
-            source.text,
-            source.path,
-            self.policy,
-            source_digest=source.digest,
-            project=project_source(info),
-        )
-        compiled.execute(
-            self.session,
-            module.__dict__,
-            module_scope=module_scope(info, path),
-            finalize_controls=False,
-            runtimes=self.runtimes,
-            controls=self.controls,
-        )
+        # Entered BEFORE any user code runs; digest already verified in load().
+        self._tracked(source, module, "entered")
+        try:
+            compiled = instrument(
+                source.text,
+                source.path,
+                self.policy,
+                source_digest=source.digest,
+                project=project_source(info),
+            )
+            compiled.execute(
+                self.session,
+                module.__dict__,
+                module_scope=module_scope(info, path),
+                finalize_controls=False,
+                runtimes=self.runtimes,
+                controls=self.controls,
+            )
+        except BaseException:
+            self._tracked(source, module, "failed")
+            raise
+        self._tracked(source, module, "completed")
         self.traced.append(source.path)
 
     def exec_entry_script(self, path, arguments):
         source, info = self.load(path)
-        compiled = instrument(
-            source.text,
-            source.path,
-            self.policy,
-            source_digest=source.digest,
-            project=project_source(info),
-        )
         module = ModuleType("__main__")
         module.__dict__.update(__file__=source.path, __package__=None, __spec__=None)
+        self._tracked(source, module, "entered")
         sys.modules["__main__"] = module
         sys.argv = [source.path, *arguments]
         sys.path.insert(0, str(Path(source.path).parent))
-        compiled.execute(
-            self.session,
-            module.__dict__,
-            module_scope="main",
-            finalize_controls=False,
-            runtimes=self.runtimes,
-            controls=self.controls,
-        )
+        try:
+            compiled = instrument(
+                source.text,
+                source.path,
+                self.policy,
+                source_digest=source.digest,
+                project=project_source(info),
+            )
+            compiled.execute(
+                self.session,
+                module.__dict__,
+                module_scope="main",
+                finalize_controls=False,
+                runtimes=self.runtimes,
+                controls=self.controls,
+            )
+        except BaseException:
+            self._tracked(source, module, "failed")
+            raise
+        self._tracked(source, module, "completed")
         self.traced.append(source.path)
+
+    def exec_untracked(self, path, module, original, loader_self):
+        """Actual in-root load that is not part of the frozen manifest.
+
+        The file is still executed normally by the standard loader; only its
+        boundary is recorded, never a fabricated frozen membership.
+        """
+        name = self._module_name(module)
+        self.ledger.record(path, state="entered", coverage="unsupported", module_name=name)
+        try:
+            result = original(loader_self, module)
+        except BaseException:
+            self.ledger.record(path, state="failed", coverage="unsupported", module_name=name)
+            raise
+        self.ledger.record(path, state="completed", coverage="unsupported", module_name=name)
+        return result
+
+    def exec_custom(self, path, module, original, loader_self):
+        """A custom loader executed unchanged; its unsupported boundary is explicit."""
+        name = self._module_name(module)
+        self.ledger.record(path, state="entered", coverage="unsupported", module_name=name)
+        try:
+            result = original(loader_self, module)
+        except BaseException:
+            self.ledger.record(path, state="failed", coverage="unsupported", module_name=name)
+            raise
+        self.ledger.record(path, state="completed", coverage="unsupported", module_name=name)
+        return result
+
+    # -- durable receipt ----------------------------------------------
+    def project_identity(self):
+        for info in self.manifest.values():
+            if info.get("project_id"):
+                return info.get("project_id", ""), info.get("project_revision_id", "")
+        return "", ""
+
+    def emit_loaded_files(self, session):
+        """Critical, paged project.files packets from the actual ledger."""
+        project_id, revision_id = self.project_identity()
+        rows = self.ledger.rows()
+        batches = [rows[offset:offset + 16] for offset in range(0, len(rows), 16)]
+        for index, batch in enumerate(batches):
+            session.emit(
+                "project.files",
+                {
+                    "project_id": project_id,
+                    "project_revision_id": revision_id,
+                    "batch": index,
+                    "batches": len(batches),
+                    "omitted_count": self.ledger.omitted,
+                    "files": batch,
+                },
+                critical=True,
+            )
+        return len(batches)
+
+    def build_receipt(self, complete, *, summary_limit=128):
+        project_id, revision_id = self.project_identity()
+        rows = self.ledger.rows()
+        summary = rows[:summary_limit]
+        return {
+            "project_id": project_id,
+            "project_revision_id": revision_id,
+            "loaded_count": len(rows),
+            "loaded_files": summary,
+            "omitted_from_summary": max(0, len(rows) - len(summary)),
+            "omitted_count": self.ledger.omitted,
+            "complete": bool(complete) and self.ledger.omitted == 0,
+            "coverage": self.ledger.coverage_summary(),
+        }
 
 
 @contextmanager
@@ -158,10 +355,15 @@ def source_loader_hook(runtime):
                     "unsupported",
                     message="Manifest file loaded by a non-standard loader; executed unchanged",
                 )
+                runtime.exec_custom(path, module, original, self)
+                return None
             return original(self, module)
         if path is not None and runtime.traces(path):
             runtime.exec_module(path, module)
             return None
+        if path is not None and runtime.in_root(path):
+            # Real in-root load outside the frozen manifest: a coverage gap.
+            return runtime.exec_untracked(path, module, original, self)
         return original(self, module)
 
     loader.exec_module = exec_module
@@ -237,6 +439,7 @@ def run_project(project_root, entry, *, session, manifest, arguments=(), policy=
         "modules": set(sys.modules),
     }
     status, code, details = "completed", 0, {}
+    flush_failed = False
     try:
         working = Path(cwd).resolve() if cwd is not None else root
         os.chdir(working)
@@ -257,56 +460,76 @@ def run_project(project_root, entry, *, session, manifest, arguments=(), policy=
         details = {"exit_code": code}
     except BaseException as error:
         frames = project_frames(error, root, runtime.manifest)
-        session.emit(
-            "analysis.error",
-            {
-                "error_type": type(error).__name__,
-                "message": clean_text(str(error), 4096),
-                "frames": frames,
-            },
-            critical=True,
-        )
         status, code = "failed", 1
         details = {"error_type": type(error).__name__, "frames": frames}
+        try:
+            session.emit(
+                "analysis.error",
+                {**details, "message": clean_text(str(error), 4096)},
+                critical=True,
+            )
+        except Exception as observer_error:
+            flush_failed = True
+            details["observer_error"] = "analysis_error_delivery:" + type(observer_error).__name__
     finally:
         # Project runtimes finalize controls only once, after every module ran.
+        # Each observation step lives in its own error-aware boundary so a
+        # faulting observer can never skip process-state restoration, the loaded
+        # receipt, or the terminal run.finished event. The program outcome is
+        # preserved and is never silently upgraded to complete/pass.
         collectors = []
         for instance in runtime.runtimes:
             if all(instance.controls is not seen for seen in collectors):
                 collectors.append(instance.controls)
         succeeded = status == "completed"
-        for collector in collectors:
-            collector.flush(final=True, succeeded=succeeded, receipt=False)
-        if collectors:
-            collectors[0].emit_receipt(
-                succeeded=succeeded,
-                failed=any(collector.failed for collector in collectors),
-                node_count=sum(len(c.summaries) for c in collectors),
-                omitted=sum(c.omitted for c in collectors),
-            )
-        if runtime.coverage.entries:
-            session.emit(
-                "coverage.report",
-                {"entries": runtime.coverage.entries},
-                critical=True,
-            )
-        os.chdir(original["cwd"])
-        sys.path[:] = original["path"]
-        sys.argv = original["argv"]
-        if original["main"] is _MISSING:
-            sys.modules.pop("__main__", None)
-        else:
-            sys.modules["__main__"] = original["main"]
-        for name in list(sys.modules):
-            if name in original["modules"]:
-                continue
-            module = sys.modules.get(name)
-            path = getattr(module, "__file__", None)
-            locations = list(getattr(module, "__path__", None) or ())
-            if path and _under(root, path):
-                sys.modules.pop(name, None)
-            elif locations and all(_under(root, item) for item in locations):
-                # Namespace packages have no __file__ but must not leak either.
-                sys.modules.pop(name, None)
-        session.finish(status, **details)
+        observer_failed = flush_failed
+        try:
+            for collector in collectors:
+                collector.flush(final=True, succeeded=succeeded, receipt=False)
+            if collectors:
+                collectors[0].emit_receipt(
+                    succeeded=succeeded,
+                    failed=any(collector.failed for collector in collectors),
+                    node_count=sum(len(c.summaries) for c in collectors),
+                    omitted=sum(c.omitted for c in collectors),
+                )
+        except BaseException:
+            observer_failed = True
+        # The durable actual-load ledger is emitted independently of controls so
+        # a control observer fault cannot suppress the project.files batches.
+        try:
+            if runtime.coverage.entries:
+                session.emit(
+                    "coverage.report",
+                    {"entries": runtime.coverage.entries},
+                    critical=True,
+                )
+            runtime.emit_loaded_files(session)
+        except BaseException:
+            observer_failed = True
+        # Restore interpreter state unconditionally before finishing the trace.
+        try:
+            os.chdir(original["cwd"])
+            sys.path[:] = original["path"]
+            sys.argv = original["argv"]
+            if original["main"] is _MISSING:
+                sys.modules.pop("__main__", None)
+            else:
+                sys.modules["__main__"] = original["main"]
+            for name in list(sys.modules):
+                if name in original["modules"]:
+                    continue
+                module = sys.modules.get(name)
+                path = getattr(module, "__file__", None)
+                locations = list(getattr(module, "__path__", None) or ())
+                if path and _under(root, path):
+                    sys.modules.pop(name, None)
+                elif locations and all(_under(root, item) for item in locations):
+                    # Namespace packages have no __file__ but must not leak either.
+                    sys.modules.pop(name, None)
+        except BaseException:
+            observer_failed = True
+        complete = status != "cancelled" and not observer_failed
+        receipt = runtime.build_receipt(complete)
+        session.finish(status, **details, project_execution=receipt)
     return code

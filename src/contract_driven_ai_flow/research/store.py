@@ -333,14 +333,20 @@ class ExperimentStore:
                         ),
                     )
                 if event.kind == "run.started":
+                    environment = self._merge_environment(
+                        db, event.run_id, event.payload.get("environment", {})
+                    )
                     db.execute(
                         "UPDATE runs SET status='running',environment=? WHERE id=?",
-                        (encode(event.payload.get("environment", {})), event.run_id),
+                        (encode(environment), event.run_id),
                     )
                 if event.kind == "environment.observed":
+                    environment = self._merge_environment(
+                        db, event.run_id, event.payload
+                    )
                     db.execute(
                         "UPDATE runs SET environment=? WHERE id=?",
-                        (encode(event.payload), event.run_id),
+                        (encode(environment), event.run_id),
                     )
                 if event.kind == "control.paused":
                     db.execute(
@@ -365,6 +371,31 @@ class ExperimentStore:
                         (status, event.timestamp, encode(event.payload), event.run_id),
                     )
 
+    FROZEN_ENVIRONMENT_KEYS = ("project_id", "project_revision_id")
+
+    def _merge_environment(self, db, run_id: str, incoming) -> dict:
+        """Merge scientific observations without discarding frozen project identity.
+
+        ``create_run`` stores the parent-frozen project ownership. The agent's
+        later ``run.started`` and ``environment.observed`` envelopes describe the
+        scientific environment only, so replacing the column outright would drop
+        the project reference. Merging keeps those frozen keys authoritative while
+        single-file legacy runs (empty stored environment) keep their previous
+        replace-only result.
+        """
+        row = db.execute(
+            "SELECT environment FROM runs WHERE id=?", (run_id,)
+        ).fetchone()
+        stored = json.loads(row[0]) if row is not None and row[0] else {}
+        if not isinstance(stored, dict):
+            stored = {}
+        merged = dict(stored)
+        if isinstance(incoming, dict):
+            merged.update(incoming)
+        for key in self.FROZEN_ENVIRONMENT_KEYS:
+            if key in stored:
+                merged[key] = stored[key]
+        return merged
     def events(
         self, run_id: str, after: int = 0, limit: int = 1000
     ) -> list[ObservationEvent]:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, JsonValue
 
 from ..models import WireModel, timestamp
 from ..workbench.models import ProjectSection, RunConfiguration
@@ -18,7 +18,45 @@ __all__ = [
     "ProjectRevision",
     "ProjectGraphSlice",
     "ResearchProject",
+    "ProjectLoadedFile",
+    "ProjectExecutionReceipt",
 ]
+
+
+class ProjectLoadedFile(WireModel):
+    """One file the interpreter actually entered during a project run.
+
+    Paths are root-relative and sanitized; no machine path or source body is
+    ever carried. ``file_id`` is empty for an in-root file outside the frozen
+    manifest, which keeps a coverage gap explicit instead of implying membership.
+    """
+
+    path: str = ""
+    file_id: str = ""
+    digest: str = ""
+    project_id: str = ""
+    project_revision_id: str = ""
+    module_name: str = ""
+    state: Literal["entered", "completed", "failed"] = "entered"
+    coverage: Literal["supported", "unsupported", "partial"] = "supported"
+    count: int = Field(default=1, ge=1)
+
+
+class ProjectExecutionReceipt(WireModel):
+    """Durable loaded-file receipt attached to a project run finish payload.
+
+    ``complete`` means the load ledger was finalized and flushed, independent of
+    whether the user's calculation succeeded; any budget omission makes it false.
+    """
+
+    project_id: str = ""
+    project_revision_id: str = ""
+    loaded_count: int = Field(default=0, ge=0)
+    loaded_files: list[ProjectLoadedFile] = Field(default_factory=list)
+    omitted_from_summary: int = Field(default=0, ge=0)
+    omitted_count: int = Field(default=0, ge=0)
+    complete: bool = False
+    coverage: dict[str, JsonValue] = Field(default_factory=dict)
 
 
 class SourceUnit(WireModel):
