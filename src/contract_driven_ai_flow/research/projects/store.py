@@ -199,6 +199,34 @@ class ProjectStore:
                     )
         return records
 
+    def iter_graph_block_identities(self, revision_id: str):
+        """Stream compact archived graph block identities for one revision.
+
+        Only the small identity fields are extracted from the stored analysis
+        payload via ``json_each``; no full ``AnalysisDocument`` is instantiated
+        and no user source is re-read. Yields ``(file_id, local_id, kind,
+        logical_key)`` tuples lazily so callers can stop as soon as they match.
+        """
+        sql = (
+            "SELECT rf.file_id AS file_id, "
+            "json_extract(b.value, '$.id') AS local_id, "
+            "json_extract(b.value, '$.kind') AS kind, "
+            "json_extract(b.value, '$.logical_key') AS logical_key "
+            "FROM revision_files rf "
+            "JOIN analyses a ON a.analysis_id = rf.analysis_id, "
+            "json_each(a.payload, '$.graph.blocks') b "
+            "WHERE rf.revision_id = ?"
+        )
+        with self.connect() as conn:
+            cursor = conn.execute(sql, (revision_id,))
+            for row in cursor:
+                yield (
+                    row["file_id"],
+                    row["local_id"],
+                    row["kind"],
+                    row["logical_key"],
+                )
+
     # -- publication (single transaction) ------------------------------
     def publish(self, project_id: str, revision: dict, files: list, relationships: list) -> None:
         """Atomically publish revision, visible file identities and edges."""

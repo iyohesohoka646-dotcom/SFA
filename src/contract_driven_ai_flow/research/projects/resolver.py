@@ -422,10 +422,16 @@ def _prefix_ref(ref, *, project_id: str, file_id: str, revision_id: str, path: s
 
 def build_project_graph(data: ProjectGraphInput) -> tuple[SemanticGraph, int]:
     unit_ids = {u.id for u in data.units}
+    scope_unit = None
     if data.scope_id in unit_ids:
-        units = [u for u in data.units if u.id == data.scope_id]
-    else:
-        units = list(data.units)
+        scope_unit = data.scope_id
+    elif data.scope_id and data.scope_id.startswith("file:"):
+        scope_unit = next(
+            (uid for uid in unit_ids if _id("file", uid) == data.scope_id), None
+        )
+    units = (
+        [u for u in data.units if u.id == scope_unit] if scope_unit else list(data.units)
+    )
     blocks: list = []
     nodes: list = []
     edges: list = []
@@ -784,12 +790,17 @@ def build_project_graph(data: ProjectGraphInput) -> tuple[SemanticGraph, int]:
         )
 
     limit = max(1, int(data.limit))
-    if (len(blocks) + len(nodes)) > limit:
-        blocks, nodes, edges, dropped = _aggregate_to_files(blocks, nodes, edges)
-        omitted += dropped
-    if len(blocks) > limit:
-        blocks, nodes, edges, pruned = _prune_blocks(blocks, edges, limit)
-        omitted += pruned
+    # Resolve a semantic scope before any size limit: the requested root must
+    # survive even when unrelated large files would otherwise force a file-level
+    # aggregate and erase the focused function/control detail.
+    scoped = bool(data.scope_id) and data.scope_id not in unit_ids
+    if not scoped:
+        if (len(blocks) + len(nodes)) > limit:
+            blocks, nodes, edges, dropped = _aggregate_to_files(blocks, nodes, edges)
+            omitted += dropped
+        if len(blocks) > limit:
+            blocks, nodes, edges, pruned = _prune_blocks(blocks, edges, limit)
+            omitted += pruned
 
     known = {b.id for b in blocks} | {n.id for n in nodes}
     edges = [
@@ -819,8 +830,11 @@ def build_project_graph(data: ProjectGraphInput) -> tuple[SemanticGraph, int]:
         coverage=coverage,
         omitted_count=omitted,
     )
-    if data.scope_id and data.scope_id not in unit_ids:
+    if scoped:
         graph = _scope_graph(graph, data.scope_id)
+        graph, dropped = _bound_scoped(graph, limit)
+        omitted += dropped
+        graph = graph.model_copy(update={"omitted_count": omitted})
     return graph, omitted
 
 
@@ -836,15 +850,18 @@ def _file_owner(node_id: str, block_parent: dict, block_kind: dict):
 
 
 def _aggregate_to_files(blocks, nodes, edges):
-    """Large graph -> bounded file-level aggregate; dependencies preserved."""
+    """Large graph -> bounded file-level aggregate; dependencies preserved.
+
+    Every block (not just file plates) is mapped to its owning file through the
+    real parent hierarchy, so a call from a function plate in one file to a
+    function in another survives as one file-level edge instead of vanishing.
+    """
     kept = [b for b in blocks if b.kind in ("project", "folder", "file")]
     block_parent = {b.id: b.parent_id for b in blocks}
     block_kind = {b.id: b.kind for b in blocks}
-    node_block = {n.id: n.block_id for n in nodes}
     owner_of = {}
     for block in blocks:
-        if block.kind == "file":
-            owner_of[block.id] = block.id
+        owner_of[block.id] = _file_owner(block.id, block_parent, block_kind)
     for node in nodes:
         owner_of[node.id] = _file_owner(node.block_id, block_parent, block_kind)
     aggregated: dict = {}
@@ -856,15 +873,27 @@ def _aggregate_to_files(blocks, nodes, edges):
         if source_file is None or target_file is None or source_file == target_file:
             continue
         key = (source_file, target_file, edge.kind)
-        aggregated[key] = GraphEdge(
-            id=_id("edge", source_file, target_file, edge.kind),
-            source=source_file,
-            target=target_file,
-            kind=edge.kind,
-            label=edge.label,
-            provenance="inferred",
-            count=aggregated.get(key, edge).count + 1 if key in aggregated else 1,
-        )
+        originals = list(edge.original_ids) or ([edge.id] if edge.id else [])
+        existing = aggregated.get(key)
+        if existing is None:
+            aggregated[key] = GraphEdge(
+                id=_id("edge", source_file, target_file, edge.kind),
+                source=source_file,
+                target=target_file,
+                kind=edge.kind,
+                label=edge.label,
+                provenance=edge.provenance or "inferred",
+                original_ids=originals,
+                count=len(originals),
+            )
+        else:
+            ids = list(existing.original_ids)
+            for original in originals:
+                if original not in ids:
+                    ids.append(original)
+            aggregated[key] = existing.model_copy(
+                update={"original_ids": ids, "count": len(ids)}
+            )
     dropped = (len(blocks) - len(kept)) + len(nodes)
     return kept, [], list(aggregated.values()), dropped
 
@@ -903,6 +932,7 @@ def _prune_blocks(blocks, edges, limit):
         if source is None or target is None or source == target:
             continue
         key = (source, target, edge.kind)
+        originals = list(edge.original_ids) or ([edge.id] if edge.id else [])
         existing = merged.get(key)
         if existing is None:
             merged[key] = edge.model_copy(
@@ -910,11 +940,63 @@ def _prune_blocks(blocks, edges, limit):
                     "id": _id("edge", source, target, edge.kind, edge.label),
                     "source": source,
                     "target": target,
+                    "original_ids": originals,
+                    "count": len(originals),
                 }
             )
         else:
-            merged[key] = existing.model_copy(update={"count": existing.count + edge.count})
+            ids = list(existing.original_ids)
+            for original in originals:
+                if original not in ids:
+                    ids.append(original)
+            merged[key] = existing.model_copy(
+                update={"original_ids": ids, "count": len(ids)}
+            )
     return hierarchy + retained, [], list(merged.values()), len(dropped_files)
+
+
+def _bound_scoped(graph: SemanticGraph, limit: int) -> tuple[SemanticGraph, int]:
+    """Bound an already scope-filtered graph without collapsing it to file plates.
+
+    The requested root is always retained; the remaining budget goes to the
+    scope's own blocks and then its nodes. The exact number of dropped elements
+    is reported as omitted coverage instead of fabricating adjacency.
+    """
+    blocks = list(graph.blocks)
+    nodes = list(graph.nodes)
+    total = len(blocks) + len(nodes)
+    if total <= limit:
+        return graph, 0
+    roots = list(graph.roots)
+    root_set = set(roots)
+    primary = [b for b in blocks if b.id in root_set]
+    rest = [b for b in blocks if b.id not in root_set]
+    budget = max(0, limit - len(primary))
+    kept_rest = rest[:budget]
+    budget -= len(kept_rest)
+    kept_nodes = nodes[:budget] if budget > 0 else []
+    kept = primary + kept_rest
+    dropped = total - (len(kept) + len(kept_nodes))
+    known = {b.id for b in kept} | {n.id for n in kept_nodes}
+    for block in kept:
+        block.members = [m for m in block.members if m in known]
+        if block.parent_id is not None and block.parent_id not in known:
+            block.parent_id = None
+    edges = [e for e in graph.edges if e.source in known and e.target in known]
+    kept_roots = [r for r in roots if r in known]
+    if not kept_roots and kept:
+        kept_roots = [kept[0].id]
+    return (
+        graph.model_copy(
+            update={
+                "blocks": kept,
+                "nodes": kept_nodes,
+                "edges": edges,
+                "roots": kept_roots,
+            }
+        ),
+        dropped,
+    )
 
 def _scope_graph(graph: SemanticGraph, scope_id: str) -> SemanticGraph:
     block_ids = {b.id: b for b in graph.blocks}

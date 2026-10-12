@@ -8,6 +8,7 @@ import json
 import sqlite3
 import uuid
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -33,6 +34,17 @@ MAX_ARCHIVE_BYTES = 10 * 1024 * 1024
 # Above this many files an overview graph is built from compact index records
 # (module/import/symbol facts) instead of loading every full analysis document.
 DETAIL_FILE_LIMIT = 64
+
+
+@dataclass(frozen=True)
+class GraphScope:
+    """A resolved, existing graph identity for one published revision."""
+
+    kind: str = "project"
+    file_id: str | None = None
+    folder: str | None = None
+    block_id: str | None = None
+    graph_scope_id: str | None = None
 
 
 def _file_id(project_id: str, relative_path: str) -> str:
@@ -564,6 +576,87 @@ class ProjectService:
         if not row:
             raise KeyError("Unknown analysis in revision")
         return self.source(project_id, row["file_id"], header["revision_id"])
+    def resolve_graph_scope(
+        self,
+        project_id: str,
+        revision_id: str,
+        rows,
+        scope_id: str | None,
+        store: ProjectStore | None = None,
+    ) -> GraphScope:
+        """Resolve a client graph identity to an existing file/folder/block scope.
+
+        Accepts a bare file id, a semantic file/folder/block graph id, a folder
+        path or a block logical key. Function and control scopes are recovered
+        from the archived graph metadata (small ``json_each`` identity records),
+        never by loading every full analysis document. An unknown scope raises
+        ``KeyError`` explicitly before any rows are chosen.
+        """
+        if not scope_id:
+            return GraphScope(kind="project")
+        known = {row["file_id"] for row in rows}
+        if scope_id in known:
+            return GraphScope(
+                kind="file",
+                file_id=scope_id,
+                graph_scope_id=resolver._id("file", scope_id),
+            )
+        file_match = next(
+            (fid for fid in known if resolver._id("file", fid) == scope_id), None
+        )
+        if file_match is not None:
+            return GraphScope(
+                kind="file",
+                file_id=file_match,
+                graph_scope_id=resolver._id("file", file_match),
+            )
+        folder = scope_id.rstrip("/")
+        if folder and any(
+            row["relative_path"].startswith(folder + "/") for row in rows
+        ):
+            return GraphScope(
+                kind="folder",
+                folder=folder,
+                graph_scope_id=resolver._id("folder", project_id, folder),
+            )
+        if scope_id.startswith("folder:"):
+            candidates = set()
+            for row in rows:
+                parts = row["relative_path"].split("/")[:-1]
+                for index in range(len(parts)):
+                    candidates.add("/".join(parts[: index + 1]))
+            for candidate in candidates:
+                if resolver._id("folder", project_id, candidate) == scope_id:
+                    return GraphScope(
+                        kind="folder", folder=candidate, graph_scope_id=scope_id
+                    )
+        owner = self._archived_scope_owner(store, revision_id, scope_id, known)
+        if owner is not None:
+            file_id, local_id, canonical = owner
+            return GraphScope(
+                kind="block",
+                file_id=file_id,
+                block_id=local_id,
+                graph_scope_id=canonical,
+            )
+        raise KeyError(f"Unknown graph scope: {scope_id}")
+
+    @staticmethod
+    def _archived_scope_owner(store, revision_id, scope_id, known):
+        """Find the file/block behind a semantic id or logical key, or ``None``."""
+        if store is None:
+            return None
+        for file_id, local_id, _kind, logical_key in store.iter_graph_block_identities(
+            revision_id
+        ):
+            if file_id not in known or not local_id:
+                continue
+            if resolver._id("block", file_id, local_id) == scope_id:
+                return file_id, local_id, scope_id
+            if logical_key and logical_key == scope_id:
+                return file_id, local_id, scope_id
+        return None
+
     def graph(
         self,
         project_id: str,
@@ -585,18 +678,28 @@ class ProjectService:
                 )
             rid = header["revision_id"]
             all_rows = store.revision_files(rid)
-            known_ids = {row["file_id"] for row in all_rows}
-            scope_file = scope_id if scope_id in known_ids else None
-            if scope_file:
-                rows = [row for row in all_rows if row["file_id"] == scope_file]
-            elif scope_id:
-                # Load only the members under a folder scope; function scopes fall back.
-                prefix = scope_id.rstrip("/") + "/"
-                scoped = [row for row in all_rows if row["relative_path"].startswith(prefix)]
-                rows = scoped if scoped else list(all_rows)
+            # Resolve the requested identity to a known file/folder/block before
+            # choosing rows or detail level, so a focused function never loads
+            # every project file merely because the project is small or large.
+            scope = self.resolve_graph_scope(
+                project_id, rid, all_rows, scope_id, store=store
+            )
+            if scope.kind == "file":
+                rows = [row for row in all_rows if row["file_id"] == scope.file_id]
+            elif scope.kind == "block":
+                # A focused block lives in exactly one file; load only that file
+                # instead of inflating every project file into full detail.
+                rows = [row for row in all_rows if row["file_id"] == scope.file_id]
+            elif scope.kind == "folder":
+                prefix = (scope.folder or "").rstrip("/") + "/"
+                rows = [
+                    row
+                    for row in all_rows
+                    if row["relative_path"].startswith(prefix)
+                ]
             else:
                 rows = list(all_rows)
-            detailed = scope_file is not None or len(rows) <= DETAIL_FILE_LIMIT
+            detailed = scope.kind in ("file", "block") or len(rows) <= DETAIL_FILE_LIMIT
             units: list = []
             analyses: dict = {}
             facts: dict = {}
@@ -641,7 +744,7 @@ class ProjectService:
                 facts=facts,
                 module_index=module_index,
                 limit=limit,
-                scope_id=scope_id,
+                scope_id=scope.graph_scope_id,
                 view=view,
                 symbols=symbols,
             )

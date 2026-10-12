@@ -829,13 +829,22 @@ class ProjectQueryService:
         limit = min(max(1, int(limit)), 350)
         view = "data" if view == "data" else "code"
         header, store, rows = self._rows(project_id, revision_id)
+        # Normalise the identity first: boundary stitching needs the actual file
+        # id even when the client sent a semantic file graph id.
+        scope = self.projects.resolve_graph_scope(
+            project_id, header.id, rows, scope_id, store=store
+        )
         base = self.projects.graph(
-            project_id, header.id, scope_id=scope_id, view=view, limit=limit
+            project_id,
+            header.id,
+            scope_id=scope.graph_scope_id,
+            view=view,
+            limit=limit,
         )
         graph = base.graph
-        if scope_id and scope_id in {row["file_id"] for row in rows}:
+        if scope.kind == "file":
             graph = self._with_boundaries(
-                project_id, header.id, scope_id, graph, rows, store
+                project_id, header.id, scope.file_id, graph, rows, store
             )
         graph = self._project_view(graph, view)
         graph = self._enforce_limit(graph, limit)
@@ -966,7 +975,6 @@ class ProjectQueryService:
 
     def _with_boundaries(self, project_id, revision_id, scope_id, graph, rows, store):
         path_of = {row["file_id"]: row["relative_path"] for row in rows}
-        project_block = graph.roots[0] if graph.roots else None
         scope_block = _id("file", scope_id)
         block_ids = {block.id for block in graph.blocks}
         node_ids = {node.id for node in graph.nodes}
@@ -1015,7 +1023,7 @@ class ProjectQueryService:
                 logical_key=f"{project_id}::{file_id}::file::{rel}",
                 kind="file",
                 label=rel,
-                parent_id=project_block,
+                parent_id=None,
                 source=SourceRef(
                     path=rel,
                     project_id=project_id,
@@ -1112,8 +1120,19 @@ class ProjectQueryService:
             block.members = [member for member in block.members if member in known]
             if block.parent_id is not None and block.parent_id not in known:
                 block.parent_id = None
+        # External file plates remain genuine external roots so the client never
+        # renders them as if they were contained in the selected source file.
+        roots = list(graph.roots)
+        for block in external.values():
+            if block.id in known and block.id not in roots:
+                roots.append(block.id)
         return graph.model_copy(
-            update={"blocks": blocks, "nodes": graph.nodes, "edges": edges}
+            update={
+                "blocks": blocks,
+                "nodes": graph.nodes,
+                "edges": edges,
+                "roots": roots,
+            }
         )
 
     @staticmethod
