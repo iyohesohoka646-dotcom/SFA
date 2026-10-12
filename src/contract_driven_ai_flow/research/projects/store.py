@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -14,6 +15,8 @@ class ProjectStore:
         self.state = self.root / ".cdaf" / "research"
         self.state.mkdir(parents=True, exist_ok=True)
         self.path = self.state / "projects.sqlite3"
+        # Thread-local scoped connection; never shared across threads.
+        self._local = threading.local()
         with self.connect() as conn:
             conn.execute("PRAGMA journal_mode=WAL")
             conn.executescript(
@@ -55,12 +58,43 @@ class ProjectStore:
 
     @contextmanager
     def connect(self):
+        """Borrow the scoped connection when one is open, else a transient one."""
+        active = getattr(self._local, "connection", None)
+        if active is not None:
+            yield active
+            return
         conn = sqlite3.connect(self.path, timeout=15)
         conn.row_factory = sqlite3.Row
         try:
             with conn:
                 yield conn
         finally:
+            conn.close()
+
+    @contextmanager
+    def session(self):
+        """One connection/transaction for a group of calls in this thread.
+
+        Methods borrow this connection instead of opening their own. The outer
+        owner commits on success and rolls back on any error or cancellation, so
+        a cancelled index discards its uncommitted caches atomically. Connections
+        are thread-local and never shared across threads.
+        """
+        active = getattr(self._local, "connection", None)
+        if active is not None:
+            yield active
+            return
+        conn = sqlite3.connect(self.path, timeout=15)
+        conn.row_factory = sqlite3.Row
+        self._local.connection = conn
+        try:
+            yield conn
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
+        finally:
+            self._local.connection = None
             conn.close()
 
     # -- file identity -------------------------------------------------
@@ -140,6 +174,30 @@ class ProjectStore:
                 "SELECT code FROM sources WHERE digest=?", (digest,)
             ).fetchone()
         return row["code"] if row else ""
+
+    _READ_CHUNK = 500
+
+    def compact_records(self, analysis_ids) -> dict:
+        """Bulk-read compact (facts, symbols) for many analyses on one connection."""
+        unique = [aid for aid in dict.fromkeys(analysis_ids) if aid]
+        records: dict = {}
+        if not unique:
+            return records
+        with self.connect() as conn:
+            for start in range(0, len(unique), self._READ_CHUNK):
+                chunk = unique[start : start + self._READ_CHUNK]
+                placeholders = ",".join("?" for _ in chunk)
+                rows = conn.execute(
+                    f"SELECT analysis_id, facts, symbols FROM analyses "
+                    f"WHERE analysis_id IN ({placeholders})",
+                    tuple(chunk),
+                ).fetchall()
+                for row in rows:
+                    records[row["analysis_id"]] = (
+                        json.loads(row["facts"]) if row["facts"] else None,
+                        json.loads(row["symbols"]) if row["symbols"] else None,
+                    )
+        return records
 
     # -- publication (single transaction) ------------------------------
     def publish(self, project_id: str, revision: dict, files: list, relationships: list) -> None:

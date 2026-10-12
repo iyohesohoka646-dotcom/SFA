@@ -45,11 +45,24 @@ def normalize_relative(root: Path, path: Path) -> str | None:
 
 
 def _inside(root: Path, path: Path) -> bool:
+    return _inside_resolved(root.resolve(), path)
+
+
+def _inside_resolved(root: Path, path: Path) -> bool:
+    """Ancestry check against an already-resolved root (resolved once)."""
     try:
-        path.resolve().relative_to(root.resolve())
+        path.resolve().relative_to(root)
         return True
     except ValueError:
         return False
+
+
+def _relative_of(root: Path, path: Path) -> str | None:
+    """Relative posix path for a known in-root path, without re-resolving root."""
+    rel = os.path.relpath(path, root)
+    if rel == "." or rel == os.pardir or rel.startswith(os.pardir + os.sep):
+        return None
+    return Path(rel).as_posix()
 
 
 def _check_cancel(cancel) -> None:
@@ -59,16 +72,17 @@ def _check_cancel(cancel) -> None:
 
 def detect_layout(root: Path, cancel=None, progress=None) -> dict:
     """Bounded src-layout probe: prunes links, excluded and dependency dirs."""
+    root = Path(root).resolve()
     src = root / "src"
     has_src = False
-    if src.is_dir() and _inside(root, src):
+    if src.is_dir() and _inside_resolved(root, src):
         for dirpath, dirnames, filenames in os.walk(src, followlinks=False):
             _check_cancel(cancel)
             current = Path(dirpath)
             kept = []
             for name in dirnames:
                 child = current / name
-                if name in EXCLUDED_DIRS or child.is_symlink() or not _inside(root, child):
+                if name in EXCLUDED_DIRS or child.is_symlink() or not _inside_resolved(root, child):
                     continue
                 kept.append(name)
             dirnames[:] = kept
@@ -123,7 +137,7 @@ def discover_files(root: Path, section, cancel=None, progress=None) -> tuple[lis
     candidates: dict[str, DiscoveredFile] = {}
     for source_root in source_roots:
         base = (root / source_root).resolve() if source_root not in (".", "") else root
-        if not base.is_dir() or not _inside(root, base):
+        if not base.is_dir() or not _inside_resolved(root, base):
             diagnostics.append(f"Source root is unavailable or outside the project: {source_root}")
             continue
         for dirpath, dirnames, filenames in os.walk(base, followlinks=False):
@@ -132,7 +146,7 @@ def discover_files(root: Path, section, cancel=None, progress=None) -> tuple[lis
             kept = []
             for name in dirnames:
                 child = current / name
-                if name in EXCLUDED_DIRS or child.is_symlink() or not _inside(root, child):
+                if name in EXCLUDED_DIRS or child.is_symlink() or not _inside_resolved(root, child):
                     continue
                 kept.append(name)
             dirnames[:] = kept
@@ -140,10 +154,10 @@ def discover_files(root: Path, section, cancel=None, progress=None) -> tuple[lis
                 if not name.endswith(".py"):
                     continue
                 path = current / name
-                if path.is_symlink() or not _inside(root, path):
+                if path.is_symlink():
                     diagnostics.append(f"Skipped out-of-root link: {path}")
                     continue
-                rel = normalize_relative(root, path)
+                rel = _relative_of(root, path)
                 if rel is None or _matches_any(rel, exclude):
                     continue
                 if not _matches_any(rel, include):

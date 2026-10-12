@@ -242,21 +242,52 @@ class ProjectService:
                     module_index[name] = fid
         module_index = {k: v for k, v in module_index.items() if v}
 
+        with store.session():
+            return self._write_revision(
+                store,
+                project_id,
+                files,
+                previous,
+                assignments,
+                module_index,
+                diagnostics,
+                parent,
+                check_cancel,
+            )
+
+    def _write_revision(
+        self,
+        store,
+        project_id,
+        files,
+        previous,
+        assignments,
+        module_index,
+        diagnostics,
+        parent,
+        check_cancel,
+    ) -> ProjectRevision:
+        """Write caches and publish one revision inside a single transaction."""
         revision_files: list = []
         facts: dict = {}
         parsed = reused = 0
+        analysis_ids = {
+            candidate.relative_path: "a" + hashlib.sha256(
+                f"{candidate.relative_path}\0{candidate.digest}".encode("utf-8")
+            ).hexdigest()[:24]
+            for candidate in files
+        }
+        # One bulk query replaces two per-file connections during reuse checks.
+        compact = store.compact_records(analysis_ids.values())
         for candidate in files:
             check_cancel()
             fid = assignments[candidate.relative_path]
             rel = candidate.relative_path
             module = candidate.module_names[0] if candidate.module_names else ""
             is_init = rel.endswith("__init__.py")
-            analysis_id = "a" + hashlib.sha256(
-                f"{rel}\0{candidate.digest}".encode("utf-8")
-            ).hexdigest()[:24]
+            analysis_id = analysis_ids[rel]
             previous_row = previous.get(rel)
-            cached_facts = store.get_facts(analysis_id)
-            cached_symbols = store.get_symbols(analysis_id)
+            cached_facts, cached_symbols = compact.get(analysis_id, (None, None))
             unchanged = (
                 previous_row is not None
                 and previous_row.get("digest") == candidate.digest
@@ -487,85 +518,88 @@ class ProjectService:
         view: str = "code",
         limit: int = 350,
     ) -> ProjectGraphSlice:
-        store = ProjectStore(Path(self._lookup_root(project_id)).resolve())
-        header = self._header(store, project_id, revision_id)
-        if not header:
-            return ProjectGraphSlice(
+        root = Path(self._lookup_root(project_id)).resolve()
+        store = ProjectStore(root)
+        with store.session():
+            header = self._header(store, project_id, revision_id)
+            if not header:
+                return ProjectGraphSlice(
+                    project_id=project_id,
+                    revision_id=revision_id or "",
+                    scope_id=scope_id,
+                    view="data" if view == "data" else "code",
+                )
+            rid = header["revision_id"]
+            all_rows = store.revision_files(rid)
+            known_ids = {row["file_id"] for row in all_rows}
+            scope_file = scope_id if scope_id in known_ids else None
+            if scope_file:
+                rows = [row for row in all_rows if row["file_id"] == scope_file]
+            elif scope_id:
+                # Load only the members under a folder scope; function scopes fall back.
+                prefix = scope_id.rstrip("/") + "/"
+                scoped = [row for row in all_rows if row["relative_path"].startswith(prefix)]
+                rows = scoped if scoped else list(all_rows)
+            else:
+                rows = list(all_rows)
+            detailed = scope_file is not None or len(rows) <= DETAIL_FILE_LIMIT
+            units: list = []
+            analyses: dict = {}
+            facts: dict = {}
+            symbols: dict = {}
+            module_index: dict = {}
+            ambiguous: set = set()
+            # One bulk query replaces per-file get_symbols/get_facts connections.
+            compact = store.compact_records([row["analysis_id"] for row in rows])
+            for row in rows:
+                unit = SourceUnit(
+                    id=row["file_id"],
+                    relative_path=row["relative_path"],
+                    digest=row["digest"],
+                    analysis_id=row["analysis_id"],
+                    module_names=json.loads(row["module_names"]) if row["module_names"] else [],
+                    status=row["status"],
+                )
+                units.append(unit)
+                if detailed:
+                    payload = store.get_analysis(row["analysis_id"])
+                    if payload:
+                        analyses[unit.id] = AnalysisDocument.model_validate(payload)
+                cached_facts, cached_symbols = compact.get(row["analysis_id"], (None, None))
+                symbols[unit.id] = cached_symbols or []
+                facts[unit.id] = FileFacts.from_json(cached_facts) if cached_facts else FileFacts()
+                for name in unit.module_names:
+                    if name in ambiguous:
+                        continue
+                    owner = module_index.get(name)
+                    if owner is not None and owner != unit.id:
+                        module_index.pop(name, None)
+                        ambiguous.add(name)
+                    elif name not in module_index:
+                        module_index[name] = unit.id
+            project_model = self._project_model(root, store)
+            data = resolver.ProjectGraphInput(
                 project_id=project_id,
-                revision_id=revision_id or "",
+                project_name=project_model.name,
+                revision_id=rid,
+                units=units,
+                analyses=analyses,
+                facts=facts,
+                module_index=module_index,
+                limit=limit,
+                scope_id=scope_id,
+                view=view,
+                symbols=symbols,
+            )
+            graph, omitted = resolver.build_project_graph(data)
+            return ProjectGraphSlice(
+                graph=graph,
+                project_id=project_id,
+                revision_id=rid,
                 scope_id=scope_id,
                 view="data" if view == "data" else "code",
+                omitted_count=omitted,
             )
-        rid = header["revision_id"]
-        all_rows = store.revision_files(rid)
-        known_ids = {row["file_id"] for row in all_rows}
-        scope_file = scope_id if scope_id in known_ids else None
-        if scope_file:
-            rows = [row for row in all_rows if row["file_id"] == scope_file]
-        elif scope_id:
-            # Load only the members under a folder scope; function scopes fall back.
-            prefix = scope_id.rstrip("/") + "/"
-            scoped = [row for row in all_rows if row["relative_path"].startswith(prefix)]
-            rows = scoped if scoped else list(all_rows)
-        else:
-            rows = list(all_rows)
-        detailed = scope_file is not None or len(rows) <= DETAIL_FILE_LIMIT
-        units: list = []
-        analyses: dict = {}
-        facts: dict = {}
-        symbols: dict = {}
-        module_index: dict = {}
-        ambiguous: set = set()
-        for row in rows:
-            unit = SourceUnit(
-                id=row["file_id"],
-                relative_path=row["relative_path"],
-                digest=row["digest"],
-                analysis_id=row["analysis_id"],
-                module_names=json.loads(row["module_names"]) if row["module_names"] else [],
-                status=row["status"],
-            )
-            units.append(unit)
-            if detailed:
-                payload = store.get_analysis(row["analysis_id"])
-                if payload:
-                    analyses[unit.id] = AnalysisDocument.model_validate(payload)
-            symbols[unit.id] = store.get_symbols(row["analysis_id"]) or []
-            cached = store.get_facts(row["analysis_id"])
-            facts[unit.id] = FileFacts.from_json(cached) if cached else FileFacts()
-            for name in unit.module_names:
-                if name in ambiguous:
-                    continue
-                owner = module_index.get(name)
-                if owner is not None and owner != unit.id:
-                    module_index.pop(name, None)
-                    ambiguous.add(name)
-                elif name not in module_index:
-                    module_index[name] = unit.id
-        project_model = self._project_model(Path(self._lookup_root(project_id)).resolve(), store)
-        data = resolver.ProjectGraphInput(
-            project_id=project_id,
-            project_name=project_model.name,
-            revision_id=rid,
-            units=units,
-            analyses=analyses,
-            facts=facts,
-            module_index=module_index,
-            limit=limit,
-            scope_id=scope_id,
-            view=view,
-            symbols=symbols,
-        )
-        graph, omitted = resolver.build_project_graph(data)
-        return ProjectGraphSlice(
-            graph=graph,
-            project_id=project_id,
-            revision_id=rid,
-            scope_id=scope_id,
-            view="data" if view == "data" else "code",
-            omitted_count=omitted,
-        )
-
     def entries(self, project_id: str):
         root = Path(self._lookup_root(project_id)).resolve()
         section = self._ensure_section(root)
