@@ -135,16 +135,25 @@ class ProjectChangeService:
             raise RuntimeError("An interrupted project change transaction requires explicit recovery first")
 
     @contextmanager
-    def _lock(self, root: Path):
+    def _lock(self, root: Path, cancel=None):
+        # The same project-specific cross-process file lock serialises reviewed
+        # change transactions and project indexing/publishing. A caller may pass
+        # a ``cancel`` Event so that a waiting index can abandon the lock quickly.
+        if cancel is not None and cancel.is_set():
+            raise InterruptedError("Project index cancelled")
         state = self._state(root)
         handle = os.open(state / "project.lock", os.O_CREAT | os.O_RDWR, 0o600)
         if os.fstat(handle).st_size == 0:
             os.write(handle, b"\0")
         deadline = time.monotonic() + 15
+        owned = False
         try:
             while True:
+                if cancel is not None and cancel.is_set():
+                    raise InterruptedError("Project index cancelled")
                 try:
                     self._lock_handle(handle, True)
+                    owned = True
                     break
                 except OSError:
                     if time.monotonic() > deadline:
@@ -152,10 +161,11 @@ class ProjectChangeService:
                     time.sleep(0.02)
             yield
         finally:
-            try:
-                self._lock_handle(handle, False)
-            except OSError:
-                pass
+            if owned:
+                try:
+                    self._lock_handle(handle, False)
+                except OSError:
+                    pass
             os.close(handle)
 
     @staticmethod

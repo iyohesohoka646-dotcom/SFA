@@ -92,9 +92,15 @@ class ProjectApplication:
 
     def index(self, project_id: str, cancel=None, progress=None):
         # Asynchronous UI progress flows straight through; the signature stays
-        # backwards compatible for existing callers.
-        self._changes.assert_ready(project_id)
-        return self.projects.index(project_id, cancel=cancel, progress=progress)
+        # backwards compatible for existing callers. Indexing and publishing a
+        # revision are one transaction: hold the same project-specific
+        # cross-process change lock that reviewed accept/recover use, so a
+        # concurrent multi-file review cannot publish a mixed revision. The
+        # lock is held across the readiness gate and the whole index/publish.
+        root = Path(self.projects._lookup_root(project_id)).resolve()
+        with self._changes._lock(root, cancel=cancel):
+            self._changes.assert_ready(project_id)
+            return self.projects.index(project_id, cancel=cancel, progress=progress)
 
     def configuration(self, project_id: str):
         return self.workbench(project_id).configurations.load()
