@@ -28,11 +28,27 @@ class HarnessRequest(WireModel):
 
 
 class HarnessService:
-    def __init__(self, workbench, models):
+    def __init__(
+        self,
+        workbench,
+        models,
+        *,
+        context=None,
+        tools=None,
+        skills=None,
+        record_metadata=None,
+    ):
         self.workbench, self.models = workbench, models
-        self.skills = SkillService(workbench.store)
-        self.context = HarnessContextBuilder(workbench)
-        self.tools = HarnessToolRegistry(workbench, self.context, self.skills)
+        self.skills = skills if skills is not None else SkillService(workbench.store)
+        self.context = (
+            context if context is not None else HarnessContextBuilder(workbench)
+        )
+        self.tools = (
+            tools
+            if tools is not None
+            else HarnessToolRegistry(workbench, self.context, self.skills)
+        )
+        self.record_metadata = record_metadata
 
     async def execute(self, request: HarnessRequest, *, task_id=None, cancel=None):
         cancel = cancel or threading.Event()
@@ -50,9 +66,21 @@ class HarnessService:
             "status": "running",
             "provenance": "skill" if request.skill_id else "model",
         }
+        metadata = self.record_metadata
+        if callable(metadata):
+            metadata = metadata(request)
+        metadata = dict(metadata or {})
+        record.update(metadata)
         messages = []
         refs = set()
         requests_used = 0
+
+        def validate():
+            validate_request = getattr(self.context, "validate_request", None)
+            if callable(validate_request):
+                validate_request(request)
+            else:
+                self.context.validate_source(request.analysis_id)
 
         def finish(status, message=""):
             record.update(
@@ -61,6 +89,7 @@ class HarnessService:
             self.workbench.store.put("contexts", context_id, record)
             return {
                 "status": status,
+                **metadata,
                 "answer": record["answer"],
                 "citations": record["citations"],
                 "context_id": context_id,
@@ -90,6 +119,7 @@ class HarnessService:
                 self.context.assemble, request, self.tools, self.skills
             )
             messages = scrub(messages, secret)
+            validate()
             if profile.protocol == "offline":
                 record["provenance"] = "offline"
                 record["answer"] = (
@@ -144,7 +174,7 @@ class HarnessService:
                     return finish("cancelled", "Task cancelled")
                 if reply.status != "connected":
                     return finish("error", reply.message)
-                self.context.validate_source(request.analysis_id)
+                validate()
                 text = reply.text.strip()
                 if text.startswith("```") and text.endswith("```"):
                     text = text.split("\n", 1)[1].rsplit("```", 1)[0]
