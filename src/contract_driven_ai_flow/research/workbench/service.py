@@ -446,44 +446,64 @@ class WorkbenchService:
         result = self._postprocess(plan, run_id, task, cancel)
         return {"run_id": run_id, "calculation_status": run["status"], **result}
 
-    def _postprocess(self, plan, run_id, task, cancel):
+    def analysis_context(self, plan):
+        """Graph used to postprocess a plan; project plans supply a multi-file context."""
+        return self.analysis(plan.analysis_id)
+
+
+    def _target_calls(self, plan, analysis, run_id):
+        """Resolve compute-scope invocations from captured evidence + frozen config."""
         from .bindings import resolve_calls, snapshot_target
         from .scopes import resolve_scope, source_targets
 
-        analysis = self.analysis(plan.analysis_id)
-        if plan.scope == "compute":
+        if plan.snapshot_ids:
+            snapshots = [
+                self.research.store.snapshot(key) for key in plan.snapshot_ids
+            ]
+        else:
             snapshots = self.research.store.snapshots(
                 run_id, latest=True, limit=10000, metadata_only=True
             )
-            available = [snapshot_target(snapshot, analysis) for snapshot in snapshots]
-            available.extend(
-                target for target in source_targets(analysis) if target.kind != "data"
-            )
-            targets = resolve_scope(analysis.graph, plan.target_scope, available)
-            calls = resolve_calls(
-                analysis,
-                plan.config,
-                plan.definitions,
-                targets,
-                snapshots,
-                resource_versions=(
-                    plan.invocations[0].resource_versions if plan.invocations else {}
-                ),
-                scope=plan.scope,
-            )
-            frozen_meaning = {
-                key: value
-                for call in plan.invocations
-                for key, value in call.semantics.items()
+        available = [snapshot_target(snapshot, analysis) for snapshot in snapshots]
+        available.extend(
+            target for target in source_targets(analysis) if target.kind != "data"
+        )
+        targets = resolve_scope(analysis.graph, plan.target_scope, available)
+        calls = resolve_calls(
+            analysis,
+            plan.config,
+            plan.definitions,
+            targets,
+            snapshots,
+            resource_versions=(
+                plan.invocations[0].resource_versions if plan.invocations else {}
+            ),
+            scope=plan.scope,
+        )
+        frozen_meaning = {
+            key: value
+            for call in plan.invocations
+            for key, value in call.semantics.items()
+        }
+        for call in calls:
+            call.semantics = {
+                target.logical_key: frozen_meaning[target.logical_key]
+                for target in call.targets
+                if target.logical_key in frozen_meaning
             }
-            for call in calls:
-                call.semantics = {
-                    target.logical_key: frozen_meaning[target.logical_key]
-                    for target in call.targets
-                    if target.logical_key in frozen_meaning
-                }
+        return calls
+
+    def _evidence_calls(self, plan, analysis, run_id):
+        """Saved-evidence invocations; project plans resolve them from a run."""
+        return plan.invocations
+
+
+    def _postprocess(self, plan, run_id, task, cancel):
+        analysis = self.analysis_context(plan)
+        if plan.scope == "compute":
+            calls = self._target_calls(plan, analysis, run_id)
         else:
-            calls = plan.invocations
+            calls = self._evidence_calls(plan, analysis, run_id)
         outputs = []
         counts = {"drawing_errors": 0, "check_failures": 0, "unknown": 0}
         from concurrent.futures import ThreadPoolExecutor
@@ -582,7 +602,7 @@ class WorkbenchService:
                 from .scopes import resolve_scope, source_targets
                 from .semantic_models import ScopeSelector
 
-                analysis = self.analysis(plan.analysis_id)
+                analysis = self.analysis_context(plan)
                 scoped = (
                     resolve_scope(
                         analysis.graph,
@@ -661,7 +681,7 @@ class WorkbenchService:
 
     def _block_output(self, invocation, run_id, plan):
         target, definition = invocation.targets[0], invocation.definition
-        analysis = self.analysis(plan.analysis_id)
+        analysis = self.analysis_context(plan)
         base = dict(
             instance_id=invocation.instance.id,
             definition_id=definition.id,

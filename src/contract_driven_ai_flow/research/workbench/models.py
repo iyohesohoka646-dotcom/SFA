@@ -356,6 +356,12 @@ class ExecutionPlan(WireModel):
     resolved_targets: list[TargetRef] = Field(default_factory=list)
     invocations: list[ResolvedProbeCall] = Field(default_factory=list)
     preferences: dict[str, JsonValue] = Field(default_factory=dict)
+    # P2b ownership: optional and ignored by legacy single-analysis plans.
+    project_id: str | None = None
+    project_revision_id: str | None = None
+    manifest_id: str | None = None
+    entry: dict[str, JsonValue] | None = None
+    environment: dict[str, JsonValue] = Field(default_factory=dict)
 
 
 class TaskRecord(WireModel):
@@ -374,6 +380,8 @@ class TaskRecord(WireModel):
     output_ids: list[str] = Field(default_factory=list)
     message: str = ""
     receipt: dict[str, JsonValue] = Field(default_factory=dict)
+    project_id: str | None = None
+    project_revision_id: str | None = None
 
 
 class CodeProposal(WireModel):

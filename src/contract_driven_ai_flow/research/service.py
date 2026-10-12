@@ -28,6 +28,27 @@ from .store import ExperimentStore, encode
 TERMINAL = {"completed", "failed", "cancelled", "interrupted", "timeout"}
 
 
+class ExecutionBudget:
+    """One global at-most-N computation budget shared by project services.
+
+    The owning application passes one instance to every attached service so the
+    cap covers project services and the legacy service together.
+    """
+
+    def __init__(self, limit: int = 4):
+        self.limit = int(limit)
+        self._semaphore = threading.BoundedSemaphore(self.limit)
+
+    def acquire(self) -> bool:
+        return self._semaphore.acquire(blocking=False)
+
+    def release(self) -> None:
+        try:
+            self._semaphore.release()
+        except ValueError:
+            pass
+
+
 @dataclass(frozen=True)
 class RunHandle:
     run_id: str
@@ -47,6 +68,7 @@ class ActiveRun:
     job_file: Path
     probes: list
     implicit_probes: bool
+    budget: object = None
     connection: object = None
     writer: object = None
     write_lock: object = field(default_factory=threading.Lock)
@@ -68,8 +90,9 @@ class ActiveRun:
 
 
 class ResearchService:
-    def __init__(self, root: Path, *, probe_registry=None, runner_registry=None):
+    def __init__(self, root: Path, *, probe_registry=None, runner_registry=None, budget=None):
         self.root = Path(root).resolve()
+        self._budget = budget
         self.store = ExperimentStore(self.root)
         self.store.recover_runs()
         self.store.expire_artifacts()
@@ -101,7 +124,8 @@ class ResearchService:
         return self.store.run(run_id)['status']
 
     def start_analysis(self, script: Path, *, interpreter=None, arguments=(), mode="summary", probes=None,
-                       adapters=(), watched_names=(), watched_lines=(), instrument="auto", capture=None, runner="python", expected_digest=None):
+                       adapters=(), watched_names=(), watched_lines=(), instrument="auto", capture=None, runner="python", expected_digest=None,
+                       cwd=None, env=None, project_job=None, run_environment=None):
         if self._closed:
             raise ValueError("Research service is closed")
         with self._lock:
@@ -126,7 +150,19 @@ class ResearchService:
         configured = [ProbeSpec(id="default-finite", binding="*")] if probes is None else [ProbeSpec.model_validate(p) for p in probes]
         if len(configured) > 128:
             raise ValueError("An analysis can configure at most 128 probes")
-        run = self.store.create_run(source.path, interpreter=str(python), source_digest=source.digest, name=Path(source.path).stem)
+        if self._budget is not None:
+            if not self._budget.acquire():
+                raise ValueError("At most four analyses can run across the application")
+            budget_held = True
+        else:
+            budget_held = False
+        try:
+            run = self.store.create_run(source.path, interpreter=str(python), source_digest=source.digest, name=Path(source.path).stem,
+                environment=dict(run_environment) if run_environment else None)
+        except BaseException:
+            if budget_held and self._budget is not None:
+                self._budget.release()
+            raise
         self.store.archive_source(source.digest, source.text)
         listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         listener.bind(("127.0.0.1", 0))
@@ -142,6 +178,12 @@ class ResearchService:
             "artifact_root": str(self.store.state), "arguments": list(arguments), "adapters": list(adapters),
             "watched_names": list(watched_names), "watched_lines": list(watched_lines), "instrument": instrument,
             "gates": [{'binding': p.binding, 'target_keys': p.target_keys, 'excluded_keys': p.excluded_keys} for p in configured if p.enabled and p.policy != "continue"]}
+        if cwd is not None:
+            configuration["cwd"] = str(cwd)
+        if env:
+            configuration["env"] = {str(k): str(v) for k, v in dict(env).items()}
+        if project_job:
+            configuration.update(project_job)
         with os.fdopen(os.open(job_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600), "w", encoding="utf-8") as stream:
             stream.write(encode(configuration))
         try:
@@ -150,9 +192,12 @@ class ResearchService:
         except Exception:
             listener.close()
             job_file.unlink(missing_ok=True)
+            if self._budget is not None:
+                self._budget.release()
             self.store.append([ObservationEvent(run_id=run["id"], kind="run.finished", payload={"status": "failed", "reason": "process_start_failed"})])
             raise
-        active = ActiveRun(run["id"], process, tree, listener, token, job_file, configured, probes is None)
+        active = ActiveRun(run["id"], process, tree, listener, token, job_file, configured, probes is None,
+            budget=self._budget if budget_held else None)
         with self._lock:
             self._active[active.id] = active
         for name, pipe in (("stdout", process.stdout), ("stderr", process.stderr)):
@@ -351,6 +396,9 @@ class ResearchService:
             active.done.set()
             with self._lock:
                 self._active.pop(active.id, None)
+            if active.budget is not None:
+                active.budget.release()
+                active.budget = None
 
     def wait(self, run_id, timeout=None):
         with self._lock:

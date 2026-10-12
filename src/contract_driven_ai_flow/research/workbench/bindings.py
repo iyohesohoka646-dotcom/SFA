@@ -43,6 +43,11 @@ def snapshot_target(snapshot, analysis):
         analysis_id=analysis.id,
         run_id=snapshot.run_id,
         snapshot_id=snapshot.id,
+        # Per-file project ownership stays on the exact evidence reference.
+        project_id=(source.project_id or None) if source else None,
+        file_id=(source.file_id or None) if source else None,
+        project_revision_id=(source.project_revision_id or None) if source else None,
+        exact_evidence=True,
     )
 
 

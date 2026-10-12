@@ -253,6 +253,7 @@ class ProjectService:
                 diagnostics,
                 parent,
                 check_cancel,
+                progress,
             )
 
     def _write_revision(
@@ -266,6 +267,7 @@ class ProjectService:
         diagnostics,
         parent,
         check_cancel,
+        progress=None,
     ) -> ProjectRevision:
         """Write caches and publish one revision inside a single transaction."""
         revision_files: list = []
@@ -308,6 +310,17 @@ class ProjectService:
                     else []
                 )
                 reused += 1
+                if progress is not None:
+                    progress(
+                        {
+                            "stage": "parse",
+                            "completed": parsed + reused,
+                            "total": len(files),
+                            "file": rel,
+                            "parsed": parsed,
+                            "reused": reused,
+                        }
+                    )
             else:
                 from ..agent.source import read_source
 
@@ -334,6 +347,17 @@ class ProjectService:
                 fact.relative_path = rel
                 store.put_facts(analysis_id, fact.to_json())
                 parsed += 1
+                if progress is not None:
+                    progress(
+                        {
+                            "stage": "parse",
+                            "completed": parsed + reused,
+                            "total": len(files),
+                            "file": rel,
+                            "parsed": parsed,
+                            "reused": reused,
+                        }
+                    )
             if not unchanged:
                 status = "error" if document.diagnostics and not document.objects else "parsed"
                 file_diagnostics = list(document.diagnostics)
@@ -510,6 +534,36 @@ class ProjectService:
             "project_id": header["project_id"],
         }
 
+    def _revision_row_for_analysis(self, store, header, analysis_id: str):
+        for row in store.revision_files(header["revision_id"]):
+            if row["analysis_id"] == analysis_id:
+                return row
+        return None
+
+    def analysis_by_id(
+        self, project_id: str, analysis_id: str, revision_id: str | None = None
+    ) -> AnalysisDocument:
+        """Bounded lookup of an indexed per-file analysis by its stable ID."""
+        store = ProjectStore(Path(self._lookup_root(project_id)).resolve())
+        header = self._header(store, project_id, revision_id)
+        if not header:
+            raise KeyError("Project has no published revision")
+        row = self._revision_row_for_analysis(store, header, analysis_id)
+        if not row:
+            raise KeyError("Unknown analysis in revision")
+        return self.analysis(project_id, row["file_id"], header["revision_id"])
+
+    def source_by_analysis_id(
+        self, project_id: str, analysis_id: str, revision_id: str | None = None
+    ) -> dict:
+        store = ProjectStore(Path(self._lookup_root(project_id)).resolve())
+        header = self._header(store, project_id, revision_id)
+        if not header:
+            raise KeyError("Project has no published revision")
+        row = self._revision_row_for_analysis(store, header, analysis_id)
+        if not row:
+            raise KeyError("Unknown analysis in revision")
+        return self.source(project_id, row["file_id"], header["revision_id"])
     def graph(
         self,
         project_id: str,

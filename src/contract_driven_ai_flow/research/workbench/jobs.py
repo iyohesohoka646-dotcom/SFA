@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 import time
 
+from ..agent.privacy import clean_text
 from ..models import timestamp
 from .models import TaskRecord
 from .ownership import current_owner
@@ -65,10 +66,11 @@ class JobManager:
         except InterruptedError:
             self.update(task.id, status="cancelled", message="Task cancelled")
         except Exception as error:
+            reason = clean_text(str(error), 512) or type(error).__name__
             self.update(
                 task.id,
                 status="failed",
-                message=f"Task failed ({type(error).__name__})",
+                message=f"Task failed ({type(error).__name__}): {reason}",
             )
         finally:
             with self._lock:

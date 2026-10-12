@@ -67,10 +67,24 @@ def source_targets(analysis):
         for obj in analysis.objects
     ]
     for block in analysis.graph.blocks:
-        if block.kind in ("condition", "loop", "try", "with", "file"):
+        if block.kind in (
+            "condition",
+            "loop",
+            "try",
+            "with",
+            "file",
+            "folder",
+            "project",
+        ):
             targets.append(
                 TargetRef(
-                    kind="file" if block.kind == "file" else "control",
+                    kind=(
+                        "file"
+                        if block.kind == "file"
+                        else block.kind
+                        if block.kind in ("folder", "project")
+                        else "control"
+                    ),
                     logical_key=block.logical_key,
                     block_id=block.id,
                     analysis_id=analysis.id,

@@ -36,9 +36,23 @@ def main():
                 pass
         trace.emit("environment.observed", {"executable": sys.executable, "python": platform.python_version(),
             "platform": platform.platform(), "dependencies": dependencies}, critical=True)
-        code = run_script(Path(job["script"]), arguments=job.get("arguments", []), session=trace,
-            policy=InstrumentPolicy(mode=job.get("instrument", "auto"), watched_names=tuple(job.get("watched_names", [])),
-                watched_lines=tuple(job.get("watched_lines", [])), capture_policy=policy), expected_digest=job["source_digest"])
+        instrument_policy = InstrumentPolicy(mode=job.get("instrument", "auto"), watched_names=tuple(job.get("watched_names", [])),
+            watched_lines=tuple(job.get("watched_lines", [])), capture_policy=policy)
+        if job.get("mode") == "project":
+            # Project jobs carry an immutable manifest pointer, not the full
+            # manifest, so the 128 KiB job document cap stays intact.
+            from dataclasses import replace
+            from .project_runner import run_project
+            manifest_path = Path(job["manifest_path"])
+            if manifest_path.stat().st_size > 32 * 1024 * 1024:
+                raise ValueError("Project manifest is too large")
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            project_policy = replace(instrument_policy, allowed_files=tuple(manifest))
+            code = run_project(Path(job["root"]), job["entry"], session=trace, manifest=manifest,
+                arguments=job.get("arguments", []), policy=project_policy, cwd=job.get("cwd"))
+        else:
+            code = run_script(Path(job["script"]), arguments=job.get("arguments", []), session=trace,
+                policy=instrument_policy, expected_digest=job["source_digest"])
         raise SystemExit(code)
     finally:
         channel.close()

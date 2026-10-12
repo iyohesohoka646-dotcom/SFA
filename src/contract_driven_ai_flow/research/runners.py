@@ -21,10 +21,14 @@ class PythonRunner:
     capabilities = ("python-script", "native-observation", "boundary-control")
 
     def launch(self, job, job_file):
-        env = {**os.environ, "PYTHONUNBUFFERED": "1"}
+        # Private child env is merged here for the subprocess only; it is never
+        # written into public job receipts or HTTP-facing JSON.
+        env = {**os.environ, "PYTHONUNBUFFERED": "1", **(job.get("env") or {})}
+        # Explicit project cwd; legacy script runs keep the authoring directory.
+        cwd = job.get("cwd") or str(Path(job["script"]).parent)
         bootstrap = Path(__file__).parent / "agent/bootstrap.py"
         return subprocess.Popen([job["interpreter"], "-X", "utf8", str(bootstrap), str(job_file)],
-            cwd=str(Path(job["script"]).parent), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
+            cwd=str(cwd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
             creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
             start_new_session=os.name != "nt")
 
