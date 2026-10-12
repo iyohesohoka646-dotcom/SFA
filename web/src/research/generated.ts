@@ -8,6 +8,10 @@ export type Digest = string;
 export type Code = string;
 export type Column = number;
 export type EndColumn = number;
+export type ProjectId = string;
+export type FileId = string;
+export type ProjectRevisionId = string;
+export type ScopeId = string;
 export type SchemaVersion = 1;
 export type Kind = string;
 export type Backend = string;
@@ -23,7 +27,7 @@ export type JsonValue = unknown;
 export type Id = string;
 export type RunId = string;
 export type BindingId = string;
-export type ScopeId = string;
+export type ScopeId1 = string;
 export type Name = string;
 export type LogicalKey = string;
 export type Version = number;
@@ -38,7 +42,7 @@ export type ArtifactRef = string | null;
 export type Id1 = string;
 export type RunId1 = string;
 export type Label = string;
-export type ScopeId1 = string;
+export type ScopeId2 = string;
 export type Iteration = number;
 export type InputSnapshots = string[];
 export type OutputSnapshots = string[];
@@ -93,6 +97,10 @@ export interface SourceRef {
   code: Code;
   column: Column;
   end_column: EndColumn;
+  project_id: ProjectId;
+  file_id: FileId;
+  project_revision_id: ProjectRevisionId;
+  scope_id: ScopeId;
 }
 export interface ValueDescriptor {
   schema_version: SchemaVersion;
@@ -115,7 +123,7 @@ export interface SnapshotRef {
   id: Id;
   run_id: RunId;
   binding_id: BindingId;
-  scope_id: ScopeId;
+  scope_id: ScopeId1;
   name: Name;
   logical_key: LogicalKey;
   version: Version;
@@ -147,7 +155,7 @@ export interface OperationRecord {
   run_id: RunId1;
   label: Label;
   source: SourceRef | null;
-  scope_id: ScopeId1;
+  scope_id: ScopeId2;
   iteration: Iteration;
   input_snapshots: InputSnapshots;
   output_snapshots: OutputSnapshots;
