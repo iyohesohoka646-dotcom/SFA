@@ -14,7 +14,7 @@ import sys
 import threading
 import uuid
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from pydantic import Field
 from ..models import WireModel
 from ..processes import ProcessTree
@@ -448,34 +448,76 @@ class StartTerminal(WireModel):
     cols: int = Field(default=80, ge=2, le=1000)
 
 
-def attach_terminal_routes(app, research):
-    service = TerminalService(
-        research.root,
-        buffer_chars=research.workbench.preferences.load()["values"]["terminal"][
-            "buffer_chars"
-        ],
-        url=f"http://127.0.0.1:{app.state.local_port}",
-        token=app.state.session_token,
+def _terminal_buffer(workbench) -> int:
+    try:
+        return workbench.preferences.load()["values"]["terminal"]["buffer_chars"]
+    except Exception:
+        return 262144
+
+
+def attach_terminal_routes(
+    app, legacy_research, *, prefix="/api/v1/research/terminals", project=None
+):
+    created: dict = {}
+
+    def build(root, workbench):
+        return TerminalService(
+            root,
+            buffer_chars=_terminal_buffer(workbench),
+            url=f"http://127.0.0.1:{app.state.local_port}",
+            token=app.state.session_token,
+        )
+
+    legacy = (
+        build(legacy_research.root, legacy_research.workbench)
+        if project is None
+        else None
     )
-    research.workbench.terminals = service
-    app.state.terminals = service
-    router = APIRouter(prefix="/api/v1/research/terminals")
+    if legacy is not None:
+        legacy_research.workbench.terminals = legacy
+        app.state.terminals = legacy
+
+    def service_for(scope):
+        if project is None:
+            return legacy
+        pid = scope.path_params["pid"]
+        workbench = project.workbench(pid)
+        service = getattr(workbench, "terminals", None)
+        if service is None:
+            root = Path(project.projects.project(pid).root)
+            service = build(root, workbench)
+            workbench.terminals = service
+            created[pid] = service
+        return service
+
+    if project is not None:
+        def terminal_cleanup():
+            for service in list(created.values()):
+                try:
+                    service.close()
+                except Exception:
+                    pass
+            created.clear()
+
+        app.state.terminal_cleanup = terminal_cleanup
+
+    router = APIRouter(prefix=prefix)
 
     @router.get("")
-    def sessions():
-        return service.list()
+    def sessions(request: Request):
+        return service_for(request).list()
 
     @router.post("")
-    def start(body: StartTerminal):
-        return service.create(**body.model_dump())
+    def start(body: StartTerminal, request: Request):
+        return service_for(request).create(**body.model_dump())
 
     @router.get("/{key}")
-    def session(key: str):
-        return service.get(key)
+    def session(key: str, request: Request):
+        return service_for(request).get(key)
 
     @router.post("/{key}/end")
-    def end(key: str):
-        return service.end(key)
+    def end(key: str, request: Request):
+        return service_for(request).end(key)
 
     @router.websocket("/{key}/socket")
     async def socket(ws: WebSocket, key: str):
@@ -506,6 +548,7 @@ def attach_terminal_routes(app, research):
             ):
                 await ws.close(code=4401)
                 return
+            service = service_for(ws)
             after = auth.get("after", 0)
             service.read(key, after)
             # A new PTY's buffered output contains unanswered initialization
@@ -559,3 +602,8 @@ def attach_terminal_routes(app, research):
                 pass
 
     app.include_router(router)
+
+
+
+
+

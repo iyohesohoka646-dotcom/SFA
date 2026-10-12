@@ -1,6 +1,21 @@
-from fastapi import APIRouter, Query
+from contextvars import ContextVar
+
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import FileResponse
 from pydantic import Field
+
+_workbench_service: ContextVar = ContextVar("workbench_service")
+_research_service: ContextVar = ContextVar("research_service")
+
+
+class _Scoped:
+    """Attribute proxy: resolves the project-bound service at request time."""
+
+    def __init__(self, variable):
+        object.__setattr__(self, "_variable", variable)
+
+    def __getattr__(self, name):
+        return getattr(self._variable.get(), name)
 
 from ..models import WireModel
 from .models import WorkbenchConfig
@@ -68,11 +83,29 @@ class ValidationRequest(WireModel):
     output_ids: list[str] = Field(min_length=1, max_length=512)
 
 
-def attach_workbench_routes(app, research):
-    service = research.workbench
-    service.models = app.state.models
-    app.state.workbench = service
-    router = APIRouter(prefix="/api/v1/research/workbench")
+def attach_workbench_routes(
+    app, legacy_research, *, prefix="/api/v1/research/workbench", project=None
+):
+    legacy_workbench = legacy_research.workbench
+    legacy_workbench.models = app.state.models
+    _workbench_service.set(legacy_workbench)
+    _research_service.set(legacy_research)
+    if project is None:
+        app.state.workbench = legacy_workbench
+
+    async def bind(request: Request):
+        if project is None:
+            service, research = legacy_workbench, legacy_research
+        else:
+            pid = request.path_params["pid"]
+            service, research = project.workbench(pid), project.research(pid)
+        service.models = app.state.models
+        _workbench_service.set(service)
+        _research_service.set(research)
+
+    service = _Scoped(_workbench_service)
+    research = _Scoped(_research_service)
+    router = APIRouter(prefix=prefix, dependencies=[Depends(bind)])
 
     @router.post("/analyses")
     def imported(body: ImportRequest):
@@ -389,3 +422,5 @@ def attach_workbench_routes(app, research):
         return service.changes.record_validation(key, body.run_id, body.output_ids)
 
     app.include_router(router)
+
+

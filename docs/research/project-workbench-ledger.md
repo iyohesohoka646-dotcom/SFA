@@ -3,11 +3,11 @@
 Specification: docs/superpowers/plans/2026-10-12-project-research-workbench.md and the user-approved P0-P5 plan.
 Base: 2fe95ff. Execution branch: feat/project-workbench.
 
-- P0: in progress; original checkout clean, isolated worktree created.
+- P0: complete; original checkout clean, isolated worktree created; Python/frontend/browser baselines and installed-data inventory recorded.
 - Backend: DSH (already selected by user), official deepseek-flash. Codex reviews and independently verifies.
 - Ruling: native worktree tool returned `Not a git repository` for this parent-directory task; native Git worktree created from the verified repository instead. The original checkout remains unchanged.
 - Ruling: use one active project in the UI and explicit project IDs in every backend request; existing jobs remain owned by their original project.
-- P1/P2/P3/P4/P5: pending.
+- P1: accepted. P2: runtime/application accepted; loaded-file coverage and shared non-compute limits pending. P3: HTTP/query core accepted; bounded graph projection/progress, CLI and UI pending. P4: reviewed transaction engine accepted; intelligence and API integration pending. P5: pending. No project-level installed release yet.
 - P0 RED: two frozen project-index acceptance cases fail with `Project-level service is missing`, as expected.
 - Ruling: installed official DSH Flash rejected `medium` at session initialization before any model request. Use the supported `low` effort in a fresh session; the failed initialization exited and owned child termination was verified.
 - P0 baseline complete: Python 783 passed / 8 platform skips in 413.56s; frontend 111 passed. Installed data inventory contains 5 run IDs and configuration hashes; inventory and logs are in .work/project-acceptance. No user run was created or changed.
@@ -41,3 +41,6 @@ Base: 2fe95ff. Execution branch: feat/project-workbench.
 - P4 change candidate original4+own12+format11 independently pass27. Added3 frozen race cases all fail: pending recovery journal can be replaced by another accept, recovery overwrites a concurrent user edit, and a replaced parent junction permits an outside-root write. Candidate rejected pending narrow transaction repair; no integration.
 - Frontend-client request1 failed with official TRANSPORT after15 read-only tools, zero changes and no scope violations. No automatic retry. Asked user whether to allow at most2 bounded official Flash transport retries while unrelated acceptance work continues.
 - P2b accepted: final fresh contract route/scope clean, owned_child_exited=true/sdk_closed=true; root frozen9+own23 passed32 in43.57s, integrated legacy targeted73 passed30.94s. Project-keyed service ownership, actual imported data/folder scopes, script/module launch metadata, frozen definitions and archived-evidence replot verified. Actual loaded-file coverage receipts and application-wide non-compute job limits remain integration work.
+- P3 core integrated: root frozen7 passed4.19s; own gateway/query and terminal/API regressions31 passed27.35s; integrated root27 passed13.88s. Route/scope clean and owned runtime closed before integration. Follow-up frozen3 exposes exponential transparent-node path enumeration, lost direct computation edge when no hidden values, and missing asynchronous parse progress. Bounded correction remains required before release.
+- P4 engine integrated after root frozen7+own15+format11 passed33 in6.73s; official route and scope clean, owned child/SDK closed. Pending journal overwrite, concurrent recovery edit and native junction escape regressions now pass. Project API/CLI/UI guards and acceptance revision metadata remain integration tasks.
+- Project intelligence frozen4 are RED due to missing module; fixed provider-neutral structured-tool adapter contract issued. Real external-model validation has not run. Frontend transport failure remains stopped with user retry question pending.
