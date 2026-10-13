@@ -39,6 +39,17 @@
     "final_event_drain_regressions": {
       "deterministic_red": 4,
       "green_with_related_checks": 35
+    },
+    "continuation_full_suite": {
+      "source": "bb2db7820b2f685db65b57991542533e92798cf1",
+      "command": "python -B -X utf8 -m pytest -q",
+      "passed": 1033,
+      "skipped": 9,
+      "failed": 0,
+      "seconds": 582.99,
+      "product_source_unchanged": true,
+      "startup_timeout_changed": false,
+      "previous_failure_retained": true
     }
   },
   "frontend": {
@@ -181,7 +192,19 @@
       "snapshots": 60,
       "operations": 55,
       "workbench_records": 257,
-      "original_installation_backup_retained": true
+      "original_installation_backup_retained": true,
+      "scope": "Immediate post-install acceptance; a subsequent inventory found one added static analysis while original run IDs, configuration hashes and evidence counts remained unchanged."
+    },
+    "post_use_inventory": {
+      "workbench_records": 258,
+      "added_static_analyses": 1,
+      "all_257_prior_row_positions_present": true,
+      "configuration_hashes_and_run_ids_unchanged": true,
+      "runs": 5,
+      "events": 202,
+      "snapshots": 60,
+      "operations": 55,
+      "strict_original_count_comparison": "reports_difference_as_expected_not_reclassified_passed"
     }
   },
   "performance": {
@@ -243,12 +266,12 @@
     "provider_neutral": true,
     "offline_and_http_tool_loop_fixtures": "passed",
     "real_external_model": "not_verified_no_product_profile_configured",
-    "credentials_copied_from_worker": false
+    "credentials_copied_from_worker": false,
+    "continuation_remote_profile_count": 0
   },
   "implementation_attribution": "Bounded DSH workers contributed independently reviewed components. After authorized transport retries were exhausted, Codex implemented remaining integration and acceptance without provider switching. Worker reports are not treated as acceptance.",
   "unverified": [
     "Real external model interpretation and proposal quality",
-    "Native macOS and Linux installation",
-    "Fresh complete Python green suite after the isolated startup timeout"
+    "Native macOS and Linux installation"
   ]
 }
