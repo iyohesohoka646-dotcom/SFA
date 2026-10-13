@@ -27,7 +27,7 @@ const { spawnSync } = require('node:child_process');
   fs.writeFileSync(script, code, 'utf8');
   const app = await electron.launch({
     executablePath: installed || require('electron'),
-    args: [...(installed ? ['--project', root, '--single'] : [path.resolve(__dirname, '../src/main.cjs'), '--project', root, '--single']), '--force-device-scale-factor=' + scale],
+    args: [...(installed ? ['--project', root, '--single'] : [path.resolve(__dirname, '../src/main.cjs'), '--project', root, '--single']), '--force-device-scale-factor=' + scale, '--user-data-dir=' + path.join(root, 'desktop-profile')],
     env: environment, timeout: 30000,
   });
   try {

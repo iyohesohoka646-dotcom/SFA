@@ -13,10 +13,12 @@ const {spawnSync}=require('node:child_process');
  if(installed)delete env.CDAF_DESKTOP_PYTHON;
  else env.CDAF_DESKTOP_PYTHON=path.resolve(__dirname,'../../.work/desktop-python/python.exe');
  const python=installed?path.join(path.dirname(installed),'resources/python/python.exe'):env.CDAF_DESKTOP_PYTHON;
- const app=await electron.launch({executablePath:installed||require('electron'),args:[...(installed?[]:[path.resolve(__dirname,'../src/main.cjs')]),'--project',root],env,timeout:30000});
+ const profile=path.join(root,'desktop-profile');
+ const app=await electron.launch({executablePath:installed||require('electron'),args:[...(installed?[]:[path.resolve(__dirname,'../src/main.cjs')]),'--project',root,'--user-data-dir='+profile],env,timeout:30000});
  const errors=[],children=[];let state,projectId;
  try{
   const page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
+  assert.equal(path.resolve(await app.evaluate(({app})=>app.getPath('userData'))),path.resolve(profile));
   await page.locator('.project-host-bar').waitFor({timeout:45000});
   await page.getByLabel('Folder path',{exact:true}).fill(lab);await page.getByRole('button',{name:'Open folder',exact:true}).click();
   await page.getByRole('button',{name:'运行入口',exact:true}).click();await page.locator('.project-entries-candidates').getByRole('button',{name:'main.py',exact:true}).click();

@@ -7,7 +7,7 @@ const fs=require('node:fs');const path=require('node:path');const os=require('no
  const scale=Number(process.env.CDAF_DESKTOP_TEST_SCALE||'1');
  const env={...process.env,PYTHONUTF8:'1'};
  if(installed)delete env.CDAF_DESKTOP_PYTHON;else env.CDAF_DESKTOP_PYTHON=path.resolve(__dirname,'../../.work/desktop-python/python.exe');
- const app=await electron.launch({executablePath:installed||require('electron'),args:[...(installed?['--project',root,'--single']:[path.resolve(__dirname,'../src/main.cjs'),'--project',root,'--single']),'--force-device-scale-factor='+scale],env,timeout:30000});
+ const app=await electron.launch({executablePath:installed||require('electron'),args:[...(installed?['--project',root,'--single']:[path.resolve(__dirname,'../src/main.cjs'),'--project',root,'--single']),'--force-device-scale-factor='+scale,'--user-data-dir='+path.join(root,'desktop-profile')],env,timeout:30000});
  try{
   const window=await app.firstWindow();try{await window.getByRole('button',{name:'运行',exact:true}).waitFor({timeout:30000});}catch(e){console.error(await window.locator('body').innerText());throw e;}
   assert.equal(await window.evaluate(()=>devicePixelRatio),scale);
