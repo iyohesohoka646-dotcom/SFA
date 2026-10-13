@@ -1,11 +1,51 @@
 """Local peers do not receive an operator's execution or collector authority."""
 import json
+import errno
 import os
 from pathlib import Path
 import socket
 import subprocess
 
 import pytest
+
+
+@pytest.mark.parametrize("shutdown_errno,expected_quality", [(errno.ENOTCONN, "pass"), (errno.EIO, "degraded")])
+def test_closed_connection_cleanup_preserves_real_observation_status(tmp_path, shutdown_errno, expected_quality):
+    from contract_driven_ai_flow.research.service import ResearchService
+
+    class ShutdownFault:
+        def __init__(self, connection):
+            self.connection = connection
+
+        def shutdown(self, mode):
+            raise OSError(shutdown_errno, "injected shutdown boundary")
+
+        def close(self):
+            self.connection.close()
+
+    class FaultAtCleanup(ResearchService):
+        connection = None
+
+        def _ingest(self, active, events):
+            super()._ingest(active, events)
+            if active.connection is not None and self.connection is None:
+                self.connection = active.connection
+                active.connection = ShutdownFault(self.connection)
+
+    script = tmp_path / "analysis.py"
+    script.write_text("X = 42\n", encoding="utf-8")
+    with FaultAtCleanup(tmp_path) as service:
+        record = service.wait(service.start_analysis(script).run_id, 15)
+        assert record["status"] == "completed"
+        assert record["summary"]["quality"] == expected_quality
+        error = record["summary"]["observer_error"]
+        if expected_quality == "pass":
+            assert error is None
+        else:
+            assert error.startswith("connection_shutdown:")
+        snapshot = next(v for v in service.store.snapshots(record["id"]) if v.name == "X")
+        assert snapshot.sample["values"] == [[42]]
+        assert service.connection.fileno() == -1
 
 
 @pytest.mark.parametrize("payload", [b"[]\n", b"null\n", b'{"token":4}\n', None])

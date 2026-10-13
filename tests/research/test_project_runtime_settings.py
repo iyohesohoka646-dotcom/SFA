@@ -8,6 +8,7 @@ environment isolation, freeze-at-plan semantics and privacy of public output.
 from __future__ import annotations
 
 import sys
+import venv
 from pathlib import Path
 
 import pytest
@@ -332,7 +333,9 @@ def test_frozen_interpreter_change_blocks_before_launch(tmp_path):
         plan = app.plan(project.id, "main", revision_id=revision.id)
         assert "runtime_snapshot_id" in (plan.entry or {})
         assert PYTHON not in plan.model_dump_json()
-        alternate = str(Path(sys.base_prefix) / "python.exe")
+        alternate_root = tmp_path / "alternate-runtime"
+        venv.EnvBuilder(with_pip=False, symlinks=False).create(alternate_root)
+        alternate = str(alternate_root / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python"))
         assert alternate != PYTHON and Path(alternate).is_file()
         local_runtime.enroll_interpreter(app.host_root, "chosen", alternate)
         with pytest.raises((RuntimeError, ValueError), match="[Rr]untime|[Ii]nterpreter"):

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import fnmatch
+import errno
 import hashlib
 import hmac
 import json
@@ -488,7 +489,13 @@ class ResearchService:
             guard("listener_close", active.listener.close)
             connection = active.connection
             if connection is not None:
-                guard("connection_shutdown", lambda: connection.shutdown(socket.SHUT_RDWR))
+                def shutdown_connection():
+                    try:
+                        connection.shutdown(socket.SHUT_RDWR)
+                    except OSError as error:
+                        if error.errno != errno.ENOTCONN:
+                            raise
+                guard("connection_shutdown", shutdown_connection)
             for stream in (reader, active.writer):
                 if stream is not None:
                     guard("stream_close", stream.close)
