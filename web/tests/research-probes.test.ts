@@ -5,7 +5,7 @@ import { availableModels, compatibleProbes, currentProbeBlock, initialProbeParam
 import type { AnalysisDocument, ProbeDefinition, ProbeInstance, TargetRef } from "../src/research/workspace/generated";
 
 const target = (kind: TargetRef["kind"], key: string, block = "fn"): TargetRef => ({
-  kind, logical_key: key, block_id: block, object_id: key, analysis_id: "analysis", run_id: null, snapshot_id: null, exact_evidence: false,
+  kind, logical_key: key, block_id: block, object_id: key, analysis_id: "analysis", run_id: null, snapshot_id: null, project_id: null, file_id: null, project_revision_id: null, exact_evidence: false,
 });
 const x = target("data", "demo::f::X"), y = target("data", "demo::f::Y"), z = target("data", "demo::<module>::Z", "file");
 const fn = target("function", "demo::<module>::f");

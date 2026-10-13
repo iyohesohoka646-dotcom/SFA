@@ -145,10 +145,13 @@ function valueDetail(type: string, shape: string, count: number) {
 }
 
 function targetFor(analysis: AnalysisDocument, source: SourceObject, snapshot?: SnapshotRef, exact = false, objectIds?: Set<string>): TargetRef {
+  const ref = snapshot?.source ?? analysis.graph.blocks.find((block) => block.id === source.block_id)?.source ?? null;
   return { kind: ["function", "class"].includes(source.kind) ? "function" : "data", logical_key: snapshot?.logical_key || source.logical_key,
     object_id: (objectIds ? objectIds.has(source.id) : analysis.objects.some(object => object.id === source.id)) ? source.id : null,
     block_id: source.block_id, analysis_id: analysis.id, run_id: snapshot?.run_id ?? null,
-    snapshot_id: snapshot?.id ?? null, exact_evidence: exact };
+    snapshot_id: snapshot?.id ?? null,
+    project_id: ref?.project_id || null, file_id: ref?.file_id || null, project_revision_id: ref?.project_revision_id || null,
+    exact_evidence: exact };
 }
 
 export function initialObjectExpansion(analysis: AnalysisDocument | undefined, scope: string | null): Set<string> {
@@ -253,13 +256,14 @@ export function buildObjectTree(
   const syntheticFolder = !scope && rootBlocks.length === 1 && rootBlocks[0].kind === "file";
   if (syntheticFolder) append({ id: folderId(analysis), depth: 0, label: pathName(folderPath(analysis)), detail: "文件夹",
     rowKind: "folder", selectable: false, expandable: true, typeLabel: "文件夹", shapeLabel: "—", probeCount: 0,
-    target: { kind: "folder", logical_key: folderPath(analysis), object_id: null, block_id: null, analysis_id: analysis.id, run_id: null, snapshot_id: null, exact_evidence: false } });
+    target: { kind: "folder", logical_key: folderPath(analysis), object_id: null, block_id: null, analysis_id: analysis.id, run_id: null, snapshot_id: null,
+      project_id: null, file_id: null, project_revision_id: null, exact_evidence: false } });
   for (const block of retained) {
     let parent = block.id === scope ? undefined : lexicalBlock(block.parent_id ?? "", blocks) || undefined;
     if (parent && !retainedIds.has(parent)) parent = scope ?? undefined;
     if (!parent && syntheticFolder) parent = folderId(analysis);
     const source = analysis.objects.find(object => object.id === block.source_object_id);
-    const kind = block.kind === "file" ? "file" : ["function", "class"].includes(block.kind) ? "function" : "control";
+    const kind = block.kind === "file" ? "file" : ["function", "class"].includes(block.kind) ? "function" : block.kind === "project" ? "project" : block.kind === "folder" ? "folder" : "control";
     const label = block.kind === "file" ? "文件" : block.kind === "function" ? "函数" : block.kind === "class" ? "类" : "代码块";
     append({ id: block.id, depth: 0, label: block.kind === "file" ? pathName(block.source?.path ?? analysis.path) : block.label,
       detail: label,
@@ -267,7 +271,9 @@ export function buildObjectTree(
       selectable: true, expandable: true, block, source, objectId: source?.id,
       objectIds: source ? [source.id] : [], logicalKeys: [block.logical_key], typeLabel: label, shapeLabel: "—", probeCount: 0,
       target: { kind, logical_key: block.logical_key, object_id: block.source_object_id, block_id: block.id, analysis_id: analysis.id,
-        run_id: null, snapshot_id: null, exact_evidence: false } }, parent);
+        run_id: null, snapshot_id: null,
+        project_id: block.source?.project_id || null, file_id: block.source?.file_id || null, project_revision_id: block.source?.project_revision_id || null,
+        exact_evidence: false } }, parent);
   }
   for (const group of groups) {
     if (group.objects.every(object => ["function", "class", "step"].includes(object.kind))) continue;
@@ -302,7 +308,9 @@ export function buildObjectTree(
         detail: valueDetail(typeLabel(snapshot), shapeLabel(snapshot), 0), snapshot, rowKind: "variable", selectable: true, expandable: false,
         typeLabel: typeLabel(snapshot), shapeLabel: shapeLabel(snapshot), probeCount: 0, logicalKeys: [key], objectIds: [],
         target: { kind: "data", logical_key: key, snapshot_id: snapshot.id, run_id: snapshot.run_id,
-          object_id: null, block_id: null, analysis_id: analysis.id, exact_evidence: false } }, retained.find(block => block.kind === "file")?.id);
+          object_id: null, block_id: null, analysis_id: analysis.id,
+          project_id: snapshot.source?.project_id || null, file_id: snapshot.source?.file_id || null, project_revision_id: snapshot.source?.project_revision_id || null,
+          exact_evidence: false } }, retained.find(block => block.kind === "file")?.id);
     }
   }
   const q = query.trim().toLowerCase();

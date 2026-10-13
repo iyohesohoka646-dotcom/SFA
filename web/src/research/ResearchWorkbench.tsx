@@ -256,6 +256,9 @@ export default function ResearchWorkbench() {
     else if (t.run_id)
       c.open("source", { run_id: t.run_id }, undefined, false, "source");
   };
+  const selectionSource = c.object
+    ? (c.viewAnalysis?.objects.includes(c.object) ? c.viewAnalysis : c.analysis)?.graph.blocks.find(block => block.id === c.object?.block_id)?.source ?? c.focusSnapshot?.source ?? null
+    : null;
   const selection: SourceRef | null = c.object
     ? {
         path: c.object.path,
@@ -266,6 +269,10 @@ export default function ResearchWorkbench() {
         end_column: c.object.end_column,
         digest: c.object.source_digest,
         code: c.object.code,
+        project_id: selectionSource?.project_id ?? "",
+        file_id: selectionSource?.file_id ?? "",
+        project_revision_id: selectionSource?.project_revision_id ?? "",
+        scope_id: selectionSource?.scope_id ?? "",
       }
     : (c.focusSnapshot?.source ?? null);
   const evaluateSnapshot = (snapshot: SnapshotRef) => {

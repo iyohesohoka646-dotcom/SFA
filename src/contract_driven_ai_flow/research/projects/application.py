@@ -57,6 +57,8 @@ class ProjectApplication:
                     task_admission=self._admission,
                     task_admission_limit=self._task_admission_limit,
                 )
+                research.project_application = self
+                research._owns_project_application = False
                 workbench = ProjectWorkbenchService(
                     research,
                     project_id=project_id,

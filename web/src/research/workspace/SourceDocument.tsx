@@ -70,9 +70,14 @@ export function SourceDocument({
   const matched =
     file?.digest && selection?.digest === file.digest ? selection : null;
   const matchedObject = matched && objects?.objects.find(object => object.line === matched.line && object.column === matched.column && object.qualname === matched.qualname);
+  const matchedSource = matchedObject && objects
+    ? objects.graph.blocks.find(block => block.id === matchedObject.block_id)?.source ?? null
+    : null;
   const fallback: TargetRef[] = matchedObject ? [{ kind: ["function", "class"].includes(matchedObject.kind) ? "function" : "data",
     logical_key: matchedObject.logical_key, object_id: matchedObject.id, block_id: matchedObject.block_id, analysis_id: objects!.id,
-    run_id: null, snapshot_id: null, exact_evidence: false }] : [];
+    run_id: null, snapshot_id: null,
+    project_id: matchedSource?.project_id || null, file_id: matchedSource?.file_id || null, project_revision_id: matchedSource?.project_revision_id || null,
+    exact_evidence: false }] : [];
   const activeTargets = targets.length ? targets.filter(target => !target.analysis_id || target.analysis_id === objects?.id
     || target.object_id && objects?.objects.some(object => object.id === target.object_id)) : fallback;
   const selectedGroups = selectedOccurrenceGroups(occurrences, activeTargets);

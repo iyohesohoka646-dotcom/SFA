@@ -10,7 +10,8 @@ export function selectedStructureSources(analysis: AnalysisDocument | undefined,
     if (item?.source) return [item.source];
     const object = analysis.objects.find(o => o.id === t.object_id);
     return object ? [{ path: object.path, digest: object.source_digest, qualname: object.qualname, line: object.line, end_line: object.end_line,
-      column: object.column, end_column: object.end_column, code: object.code }] : [];
+      column: object.column, end_column: object.end_column, code: object.code,
+      project_id: t.project_id ?? "", file_id: t.file_id ?? "", project_revision_id: t.project_revision_id ?? "", scope_id: "" }] : [];
   });
 }
 
@@ -82,5 +83,6 @@ export function sourceFocus(
 ): SourceRef | null {
   if (selection?.digest === digest) return selection;
   const first = groups.flatMap(group => group.occurrences).sort((a, b) => a.line - b.line || a.column - b.column)[0];
-  return first ? { path, digest, qualname: groups[0]?.name ?? "", ...first, code: "" } : null;
+  return first ? { path, digest, qualname: groups[0]?.name ?? "", ...first, code: "",
+    project_id: "", file_id: "", project_revision_id: "", scope_id: "" } : null;
 }

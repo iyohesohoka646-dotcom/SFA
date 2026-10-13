@@ -20,6 +20,11 @@ def words(text):
 
 def parse_command(text):
     text=text.strip()
+    if text.startswith('/project '):
+        command, _, arguments = text[len('/project '):].partition(' ')
+        value = json.loads(arguments or '{}')
+        if not isinstance(value, dict): raise ValueError('Project arguments must be a JSON object')
+        return 'project.' + command, value
     if text.startswith('/workbench '):
         command, _, arguments = text[len('/workbench '):].partition(' ')
         value = json.loads(arguments or '{}')

@@ -36,16 +36,20 @@ export interface GraphProjection {
 }
 
 /** Selection/probe targets use protocol keys; @scope keys belong only to grouping. */
-export function graphNodeTarget(node: ProjectionNode, analysisId?: string, origin?: SourceObject, snapshot?: Pick<SnapshotRef, "logical_key" | "id" | "run_id">): TargetRef {
+export function graphNodeTarget(node: ProjectionNode, analysisId?: string, origin?: SourceObject, snapshot?: Pick<SnapshotRef, "logical_key" | "id" | "run_id"> & { source?: SnapshotRef["source"] }): TargetRef {
   const data = node as GraphNode;
+  const source = snapshot?.source ?? data.source ?? null;
   return {
-    kind: node.plate ? ["function", "class"].includes(node.kind) ? "function" : node.kind === "file" ? "file" : "control" : ["data", "parameter"].includes(node.kind) ? "data" : "operation",
+    kind: node.plate ? ["function", "class"].includes(node.kind) ? "function" : node.kind === "file" ? "file" : node.kind === "project" ? "project" : node.kind === "folder" ? "folder" : "control" : ["data", "parameter"].includes(node.kind) ? "data" : "operation",
     logical_key: snapshot?.logical_key || origin?.logical_key || node.logical_key || node.id,
     block_id: node.plate ? node.id : origin?.block_id ?? data.block_id,
     object_id: origin?.id ?? node.source_object_id,
     snapshot_id: snapshot?.id ?? null,
     run_id: snapshot?.run_id ?? null,
     analysis_id: analysisId ?? null,
+    project_id: source?.project_id || null,
+    file_id: source?.file_id || null,
+    project_revision_id: source?.project_revision_id || null,
     exact_evidence: false,
   };
 }

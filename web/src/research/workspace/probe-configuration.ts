@@ -5,7 +5,7 @@ import type {
   ScopeSelector,
   TargetRef,
 } from "./generated";
-import type { SnapshotRef } from "../generated";
+import type { SnapshotRef, SourceRef } from "../generated";
 import type { PublicProviderProfile } from "../../settings/client";
 import { scopeSelector, selectionKey } from "./selection";
 
@@ -152,7 +152,9 @@ export function snapshotProbeTarget(snapshot: SnapshotRef, analysis: AnalysisDoc
     && (!source.column || object.column === source.column));
   const object = exact.at(-1) ?? matches.at(-1);
   return { kind: "data", logical_key, object_id: object?.id ?? null, block_id: object?.block_id ?? analysis.graph.roots[0] ?? null,
-    analysis_id: analysis.id, run_id: snapshot.run_id, snapshot_id: snapshot.id, exact_evidence: false };
+    analysis_id: analysis.id, run_id: snapshot.run_id, snapshot_id: snapshot.id,
+    project_id: source?.project_id || null, file_id: source?.file_id || null, project_revision_id: source?.project_revision_id || null,
+    exact_evidence: false };
 }
 
 export function probeScopeSelector(
@@ -164,9 +166,11 @@ export function probeScopeSelector(
   const selector = scopeSelector(blockId, targets, mode);
   const block = mode === "block" ? analysis?.graph.blocks.find((item) => item.id === blockId) : undefined;
   if (block && analysis) selector.targets = [{
-    kind: block.kind === "file" ? "file" : ["function", "class"].includes(block.kind) ? "function" : "control",
+    kind: block.kind === "file" ? "file" : ["function", "class"].includes(block.kind) ? "function" : block.kind === "project" ? "project" : block.kind === "folder" ? "folder" : "control",
     logical_key: block.logical_key, block_id: block.id, object_id: block.source_object_id,
-    analysis_id: analysis.id, run_id: null, snapshot_id: null, exact_evidence: false,
+    analysis_id: analysis.id, run_id: null, snapshot_id: null,
+    project_id: block.source?.project_id || null, file_id: block.source?.file_id || null, project_revision_id: block.source?.project_revision_id || null,
+    exact_evidence: false,
   }];
   return selector;
 }
@@ -199,19 +203,22 @@ export function removeLogicalProbeTarget(selector: ScopeSelector, target: Target
 
 function sourceTargets(analysis?: AnalysisDocument): TargetRef[] {
   if (!analysis) return [];
-  const ref = (kind: TargetRef["kind"], key: string, object: string | null, block: string | null): TargetRef => ({
+  const ref = (kind: TargetRef["kind"], key: string, object: string | null, block: string | null, source?: SourceRef | null): TargetRef => ({
     kind, logical_key: key, object_id: object, block_id: block,
-    analysis_id: analysis.id, run_id: null, snapshot_id: null, exact_evidence: false,
+    analysis_id: analysis.id, run_id: null, snapshot_id: null,
+    project_id: source?.project_id || null, file_id: source?.file_id || null, project_revision_id: source?.project_revision_id || null,
+    exact_evidence: false,
   });
+  const blockSources = new Map(analysis.graph.blocks.map((block) => [block.id, block.source] as const));
   return [
     ...analysis.objects.map((object) => ref(
       ["function", "class"].includes(object.kind) ? "function" : "data",
-      object.logical_key, object.id, object.block_id,
+      object.logical_key, object.id, object.block_id, blockSources.get(object.block_id),
     )),
     ...analysis.graph.blocks.filter((block) => ["condition", "loop", "try", "with", "file"].includes(block.kind))
-      .map((block) => ref(block.kind === "file" ? "file" : "control", block.logical_key, null, block.id)),
+      .map((block) => ref(block.kind === "file" ? "file" : "control", block.logical_key, null, block.id, block.source)),
     ...analysis.graph.nodes.filter((node) => !["data", "parameter"].includes(node.kind) && node.source)
-      .map((node) => ref("operation", node.logical_key, node.source_object_id, node.block_id)),
+      .map((node) => ref("operation", node.logical_key, node.source_object_id, node.block_id, node.source)),
   ];
 }
 

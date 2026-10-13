@@ -123,6 +123,10 @@ class ResearchService:
         self._lock = threading.RLock()
         self._closed = False
         self._workbench = None
+        # The project application is attached by its lifecycle owner (the HTTP
+        # server) or lazily created and then owned by this standalone service.
+        self.project_application = None
+        self._owns_project_application = False
 
     @property
     def workbench(self):
@@ -614,10 +618,38 @@ class ResearchService:
         # Preserve CRLF: universal newline decoding changes version evidence.
         return {"path": run["script"], "digest": run["source_digest"], "code": archive.read_bytes().decode('utf-8')}
 
+    def ensure_project_application(self, models=None):
+        """Return the shared ProjectApplication, creating and owning one lazily.
+
+        A service that already has an application attached by its lifecycle
+        owner (the HTTP server) reuses it unchanged; a standalone service
+        creates one and closes only that application. The created application
+        shares this service's computation budget so the two never double-count
+        the same subprocess/admission limits.
+        """
+        with self._lock:
+            if self.project_application is not None:
+                return self.project_application
+            from .projects.application import ProjectApplication
+
+            budget = self._budget
+            if budget is None:
+                budget = ExecutionBudget(4)
+                self._budget = budget
+            application = ProjectApplication(self.root, models=models)
+            # Rebinding before any per-project service exists keeps the exact
+            # same budget object shared with legacy analysis execution.
+            application.budget = budget
+            self.project_application = application
+            self._owns_project_application = True
+            return application
+
     def close(self):
         if self._closed:
             return
         self._closed = True
+        application = self.project_application
+        owned = self._owns_project_application
         if self._workbench is not None:
             self._workbench.close()
         with self._lock:
@@ -625,6 +657,13 @@ class ResearchService:
         for run_id in identifiers:
             self.cancel(run_id)
         self.pool.close()
+        # Only an application this service created is closed here. An attached
+        # application belongs to its HTTP/terminal lifecycle owner, and a child
+        # service created by an application never recursively closes it.
+        self.project_application = None
+        self._owns_project_application = False
+        if owned and application is not None:
+            application.close()
 
     def __enter__(self):
         return self

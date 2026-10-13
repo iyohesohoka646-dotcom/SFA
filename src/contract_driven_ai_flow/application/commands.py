@@ -9,7 +9,7 @@ from typing import Literal
 
 from ..research.models import WireModel, ProbeSpec, ExperimentSpec
 
-HELP = '/open "analysis.py" [--python "python.exe"] | /run [-- arguments] | /runs | /resume ID | /vars [search] | /inspect SNAPSHOT | /probe list|add|preview | /model [ID MODEL]|search|test|configure | /explain [OPERATION] [--provider ID --model ID --sample --context] | /workbench import|plan|execute|evaluate|replot|tools|ask|changes JSON | /help | /quit'
+HELP = '/open "analysis.py" [--python "python.exe"] | /run [-- arguments] | /runs | /resume ID | /vars [search] | /inspect SNAPSHOT | /probe list|add|preview | /model [ID MODEL]|search|test|configure | /explain [OPERATION] [--provider ID --model ID --sample --context] | /workbench import|plan|execute|evaluate|replot|tools|ask|changes JSON | /project open|index|info|graph|entries|plan|run JSON | /help | /quit'
 
 
 class CommandResult(WireModel):
@@ -17,12 +17,51 @@ class CommandResult(WireModel):
     data: object = None
     error: str = ''
     run_id: str | None = None
+    project_id: str | None = None
 
+
+_PROJECT_ROUTED = {"vars", "inspect", "cancel", "continue", "resume", "runs"}
+
+
+async def _await_task(workbench, task_id):
+    while True:
+        task = await asyncio.to_thread(workbench.jobs.get, task_id)
+        if task.status not in ("queued", "running"):
+            return task
+        await asyncio.sleep(0.05)
 
 async def dispatch(command: str, arguments: dict, *, service, settings) -> CommandResult:
     """No terminal or HTTP state participates in scientific command semantics."""
     run_id = arguments.get('run_id')
     try:
+        if command.startswith('project.'):
+            from ..research.projects.commands import execute_command as execute_project
+
+            application = service.project_application
+            if application is None:
+                application = service.ensure_project_application(models=settings)
+            project_command = command.removeprefix('project.')
+            project_id = arguments.get('project_id')
+            data = await asyncio.to_thread(
+                execute_project, project_command, arguments, application, settings
+            )
+            if project_command == 'run':
+                workbench = application.workbench(project_id)
+                try:
+                    task = await _await_task(workbench, data['id'])
+                except asyncio.CancelledError:
+                    await asyncio.to_thread(workbench.jobs.cancel, data['id'])
+                    raise
+                return CommandResult(status='ok', data=task.model_dump(mode='json'),
+                                     run_id=task.run_id, project_id=project_id)
+            run_id = data.get('run_id') if isinstance(data, dict) else None
+            return CommandResult(status='ok', data=data, run_id=run_id,
+                                 project_id=project_id if project_command != 'open' else None)
+        if arguments.get('project_id') and command in _PROJECT_ROUTED:
+            application = service.project_application
+            if application is None:
+                application = service.ensure_project_application(models=settings)
+            service = application.research(arguments['project_id'])
         if command == 'help':
             data = {'help': HELP}
         elif command == 'quit':

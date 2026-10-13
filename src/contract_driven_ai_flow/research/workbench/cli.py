@@ -469,3 +469,8 @@ def register(app, output):
     def expire(project: Path = typer.Option(Path("."), "--project", "-p")):
         """Remove expired unretained bulk artifacts, preserving definitions and history."""
         safe(perform, project, "storage.expire", {})
+
+    from ..projects.cli import register_project_cli
+
+    register_project_cli(app, output)
+

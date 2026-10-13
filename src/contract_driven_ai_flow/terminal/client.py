@@ -17,14 +17,21 @@ class LocalResearchClient:
     async def command(self,name,arguments):
         return await dispatch(name,arguments,service=self.service,settings=self.settings)
 
-    async def events(self,run_id,after=0):
+    def _events_service(self,project_id):
+        if not project_id:return self.service
+        application=getattr(self.service,'project_application',None)
+        if application is None:raise ValueError('Project events are unavailable for this session')
+        return application.research(project_id)
+
+    async def events(self,run_id,after=0,project_id=None):
+        research=self._events_service(project_id)
         while True:
-            page=await asyncio.to_thread(self.service.events,run_id,after,256)
+            page=await asyncio.to_thread(research.events,run_id,after,256)
             for event in page:
                 after=event['sequence'];yield event
                 if event['kind']=='run.finished':return
             if not page:
-                record=await asyncio.to_thread(self.service.store.run,run_id)
+                record=await asyncio.to_thread(research.store.run,run_id)
                 if record['status'] in TERMINAL:return
                 await asyncio.sleep(.1)
 
@@ -48,10 +55,18 @@ class ResearchClient:
         if len(response.content)>3*1024*1024:raise ValueError('Command response exceeds the terminal budget')
         return CommandResult.model_validate(response.json())
 
-    async def events(self,run_id,after=0):
+    @staticmethod
+    def _paths(run_id,project_id):
+        if project_id:
+            return ('/api/v1/research/projects/'+project_id+'/runs/'+run_id+'/events',
+                    '/api/v1/research/projects/'+project_id+'/runs/'+run_id)
+        return ('/api/v1/research/runs/'+run_id+'/events','/api/v1/research/runs/'+run_id)
+
+    async def events(self,run_id,after=0,project_id=None):
+        stream_path,record_path=self._paths(run_id,project_id)
         for reconnect in range(4):
             try:
-                async with self.http.stream('GET','/api/v1/research/runs/'+run_id+'/events',params={'after':after},headers={'Last-Event-ID':str(after)},timeout=None) as response:
+                async with self.http.stream('GET',stream_path,params={'after':after},headers={'Last-Event-ID':str(after)},timeout=None) as response:
                     if response.status_code!=200:raise ValueError('Scientific events are unavailable')
                     async for line in response.aiter_lines():
                         if len(line)>3*1024*1024:raise ValueError('Event exceeds the terminal budget')
@@ -59,7 +74,7 @@ class ResearchClient:
                             event=json.loads(line[6:])
                             if event['sequence']>after:after=event['sequence'];yield event
                             if event['kind']=='run.finished':return
-                    record=await self.http.get('/api/v1/research/runs/'+run_id)
+                    record=await self.http.get(record_path)
                     if record.status_code==200 and record.json().get('status') in TERMINAL:return
                     if reconnect==3:raise ValueError('Local event stream ended before the run finished')
                 await asyncio.sleep(.25*(reconnect+1))

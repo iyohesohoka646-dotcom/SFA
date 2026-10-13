@@ -242,6 +242,8 @@ def attach_research_routes(app, service: ResearchService, *, prefix="/api/v1/res
     if projects is not None:
         projects.models = getattr(app.state, "models", None) or projects.models
         app.state.projects = projects
+        service.project_application = projects
+        service._owns_project_application = False
         # Reuse the exact same research/workbench/terminal handlers per project.
         app.include_router(
             _research_router(
