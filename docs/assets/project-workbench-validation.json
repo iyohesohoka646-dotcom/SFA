@@ -1,0 +1,254 @@
+{
+  "version": "0.6.0",
+  "source_commit": "fd83517edd4f71be02fd40963a88974ec68ef3e4",
+  "status": "local_candidate_with_explicit_verification_limits",
+  "artifacts": {
+    "wheel": {
+      "name": "contract_driven_ai_flow-0.6.0-py3-none-any.whl",
+      "sha256": "84a77ab44c90b9fcf6a6fb8fe1f0369645807ff32605a55df4ae8ec03e54b60f"
+    },
+    "windows_installer": {
+      "name": "Scientific Dataflow Inspector Setup 0.6.0.exe",
+      "sha256": "33c024d48bc95a0e20373d10a8d880152be6cbe4bd56cc56dcb5c5687f2f5a30",
+      "signed": false
+    }
+  },
+  "python": {
+    "full_suite_source": "a683935",
+    "passed": 1032,
+    "skipped": 9,
+    "failed": 1,
+    "seconds": 692.87,
+    "failure": "test_simultaneous_shortcut_launches_share_one_server: one child exceeded 20-second readiness deadline",
+    "context": "Installer extraction and independent wheel checks were also active; no causal claim is made.",
+    "targeted_launch_recheck": {
+      "passed": 6,
+      "seconds": 25.31
+    },
+    "exact_failed_case_repeated": [
+      {
+        "passed": 1,
+        "seconds": 6.32
+      },
+      {
+        "passed": 1,
+        "seconds": 9.15
+      }
+    ],
+    "full_suite_reclassified_green": false,
+    "final_event_drain_regressions": {
+      "deterministic_red": 4,
+      "green_with_related_checks": 35
+    }
+  },
+  "frontend": {
+    "unit": {
+      "passed": 150,
+      "files": 21
+    },
+    "last_complete_browser_suite": {
+      "source": "a683935",
+      "passed": 98,
+      "failed": 0,
+      "flaky": 0,
+      "seconds": 428.895
+    },
+    "final_restore_change_browser_recheck": {
+      "passed": 8,
+      "seconds": 51.9,
+      "covers": [
+        "missing remembered project returns to chooser",
+        "server error remains visible",
+        "cross-file evidence and source",
+        "project switch",
+        "real terminal",
+        "entry-save race",
+        "narrow graph Fit and camera",
+        "probe enable and disable"
+      ]
+    },
+    "types_and_production_build": "passed",
+    "dependency_license_texts": 112,
+    "warnings": [
+      "Common frontend chunk remains about 985 kB before gzip."
+    ]
+  },
+  "isolated_python_install": {
+    "result": "passed",
+    "wheel_sha256": "84a77ab44c90b9fcf6a6fb8fe1f0369645807ff32605a55df4ae8ec03e54b60f",
+    "node_required": false,
+    "script_and_module_entries": true,
+    "chinese_paths_and_cross_module_values": true
+  },
+  "windows": {
+    "first_upgrade": {
+      "after": "0.6.0",
+      "installer_exit": 0,
+      "before": "0.5.4",
+      "backup_preserved": true
+    },
+    "final_refresh": {
+      "to": "0.6.0",
+      "installer_exit": 0,
+      "installer_sha256": "33c024d48bc95a0e20373d10a8d880152be6cbe4bd56cc56dcb5c5687f2f5a30",
+      "backup_054_retained": true,
+      "from": "0.6.0",
+      "source": "fd83517"
+    },
+    "installed_bytes": {
+      "version": "0.6.0",
+      "matched_package_files": 280,
+      "wheel_sha256": "84a77ab44c90b9fcf6a6fb8fe1f0369645807ff32605a55df4ae8ec03e54b60f",
+      "desktop_asar_matches_packaged": true,
+      "no_stale_static_resources": true,
+      "metadata_matches": true,
+      "result": "passed"
+    },
+    "default_shortcut_target": {
+      "version": "0.6.0",
+      "entry_kind": "installed-shortcut-target",
+      "exact_shortcut_arguments": true,
+      "node_or_checkout_override": false,
+      "core_version": "0.6.0",
+      "renderer_errors": [],
+      "theme_background": "rgb(247, 250, 251)",
+      "restored_chooser_without_error": true,
+      "owner_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "project_workflow": {
+      "version": "0.6.0",
+      "entry_kind": "installed",
+      "cross_module_evidence": true,
+      "real_matrix": true,
+      "real_terminal": true,
+      "selection_p95_ms": 7.299999997019768,
+      "selection_samples": 30,
+      "owner_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "single_file_compatibility_scale_125": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.25,
+      "core_version": "0.6.0",
+      "window_close": true,
+      "port_released": true,
+      "own_script": true,
+      "source_preserved": true,
+      "matrix_and_anomaly": true,
+      "configured_probe_and_replot": true,
+      "automatic_harness_scope": true,
+      "shared_cli_history": true,
+      "offline_models": true,
+      "offline_report_privacy": true,
+      "result": "passed"
+    },
+    "real_terminals_scale_150": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.5,
+      "unicode": true,
+      "real_python": true,
+      "real_cli": true,
+      "real_shell": true,
+      "concurrent_sessions": 3,
+      "minimize_restore_state": true,
+      "explicit_reconnect_history": true,
+      "owner_exit_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "startup_fault_recovery_development_shell": {
+      "test": "missing-runtime-renderer-crash-service-unavailable",
+      "exit_code": 0,
+      "source": "fd83517",
+      "runtime": "private-0.6.0"
+    },
+    "first_post_install_automation": {
+      "result": "failed_waiting_for_first_ui",
+      "interaction_timeout_seconds": 15,
+      "captured_page": "Healthy project chooser appeared in the retained later failure screenshot; no renderer exception was observed.",
+      "test_correction": "Explicit 45-second native startup readiness phase, matching default-entry acceptance; subsequent interaction deadline remains 15 seconds.",
+      "first_attempt_log_and_screenshot_retained": true
+    },
+    "preserved_original_data": {
+      "configuration_hashes_and_run_ids_unchanged": true,
+      "runs": 5,
+      "events": 202,
+      "snapshots": 60,
+      "operations": 55,
+      "workbench_records": 257,
+      "original_installation_backup_retained": true
+    }
+  },
+  "performance": {
+    "measurements_source": "a683935",
+    "index_fixtures": [
+      {
+        "files": 100,
+        "lines": 10000,
+        "cold_seconds": 3.743,
+        "incremental_seconds": 0.116,
+        "parsed_incremental": 1,
+        "reused_incremental": 99,
+        "graph_seconds": 0.041,
+        "visible_units": 102,
+        "omitted": 0,
+        "pre_cancel_ack_seconds": 0.001
+      },
+      {
+        "files": 1000,
+        "lines": 100000,
+        "cold_seconds": 40.868,
+        "incremental_seconds": 0.475,
+        "parsed_incremental": 1,
+        "reused_incremental": 999,
+        "graph_seconds": 0.306,
+        "visible_units": 350,
+        "omitted": 652,
+        "pre_cancel_ack_seconds": 0.001
+      }
+    ],
+    "in_flight_cancel": {
+      "files": 1000,
+      "cancel_after_actual_parse": true,
+      "ack_seconds": 0.0019,
+      "previous_revision_preserved": true,
+      "sampled_rss_peak_mib": 72.22,
+      "memory_scope": "cancelled incremental index only",
+      "result": "passed"
+    },
+    "native_graph_selection": {
+      "files": 1000,
+      "lines": 100000,
+      "visible_units": 350,
+      "actual_rendered_nodes": 350,
+      "omitted": 652,
+      "selection_p95_ms": 37.20000000298023,
+      "samples": 40,
+      "measurement": "alternating graph selection to next animation frame in native Electron",
+      "target_ms": 50,
+      "target_met": true,
+      "result": "measured"
+    },
+    "limits": [
+      "Selection latency excludes indexing and scientific computation.",
+      "Sampled memory applies only to the cancelled incremental index, not cold indexing."
+    ]
+  },
+  "intelligence": {
+    "provider_neutral": true,
+    "offline_and_http_tool_loop_fixtures": "passed",
+    "real_external_model": "not_verified_no_product_profile_configured",
+    "credentials_copied_from_worker": false
+  },
+  "implementation_attribution": "Bounded DSH workers contributed independently reviewed components. After authorized transport retries were exhausted, Codex implemented remaining integration and acceptance without provider switching. Worker reports are not treated as acceptance.",
+  "unverified": [
+    "Real external model interpretation and proposal quality",
+    "Native macOS and Linux installation",
+    "Fresh complete Python green suite after the isolated startup timeout"
+  ]
+}

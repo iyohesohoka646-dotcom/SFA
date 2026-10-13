@@ -1,5 +1,7 @@
 # 科研命令行与交互终端
 
+项目级批处理入口为 `cdaf --json workbench project`，提供 `open`、`index`、`info`、`entries`、`graph`、`plan` 和 `run`。交互终端使用 `/project` 命令，运行时持续接收跨文件变量，切换浏览项目不会改变当前任务的取消对象。[完整项目示例](projects.zh-CN.md)。
+
 `cdaf` 在交互终端中打开科研界面；管道中输出帮助。`cdaf --help` 查看批处理命令，`cdaf terminal --project PATH` 明确进入指定项目。终端只显示有界变量索引、摘要和事件；矩阵热图、表格及局部运算图在 Web 工作台中查看。
 
 ```text

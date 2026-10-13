@@ -17,6 +17,7 @@ const {spawnSync}=require('node:child_process');
  const errors=[],children=[];let state,projectId;
  try{
   const page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
+  await page.locator('.project-host-bar').waitFor({timeout:45000});
   await page.getByLabel('Folder path',{exact:true}).fill(lab);await page.getByRole('button',{name:'Open folder',exact:true}).click();
   await page.getByRole('button',{name:'运行入口',exact:true}).click();await page.locator('.project-entries-candidates').getByRole('button',{name:'main.py',exact:true}).click();
   await page.getByRole('button',{name:'Save entry',exact:true}).click();await page.getByRole('button',{name:'Save entry',exact:true}).waitFor({state:'hidden'});await page.getByRole('button',{name:'关闭运行入口',exact:true}).click();
