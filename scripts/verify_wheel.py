@@ -35,6 +35,11 @@ def main():
     python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     binary = environment / ("Scripts/cdaf.exe" if os.name == "nt" else "bin/cdaf")
     env = {**os.environ, "PYTHONUTF8": "1", "CDAF_HOME": str(directory / "user home")}
+    # A caller may be testing this checkout through PYTHONPATH. That must not
+    # let pip mistake source metadata for an installed wheel in the new venv.
+    for key in ("PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV"):
+        env.pop(key, None)
+    env["PYTHONNOUSERSITE"] = "1"
 
     def invoke(args, expected=0, timeout=120):
         result = subprocess.run([str(a) for a in args], cwd=directory, env=env, capture_output=True, text=True, encoding="utf-8", timeout=timeout)

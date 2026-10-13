@@ -15,12 +15,6 @@ import type {
   DataSemantics,
 } from "./generated";
 
-const call = <T>(
-  path: string,
-  body?: unknown,
-  signal?: AbortSignal,
-  method = body === undefined ? "GET" : "POST",
-) => request<T>("/workbench" + path, { method, body, signal });
 export interface PublicTool {
   id: string;
   label: string;
@@ -67,7 +61,14 @@ export interface Preferences {
   user_revision: number;
   project_revision: number;
 }
-export const wb = {
+export function createWorkbenchClient(requestImpl: typeof request = request, apiPrefix = "/api/v1/research") {
+const call = <T>(
+  path: string,
+  body?: unknown,
+  signal?: AbortSignal,
+  method = body === undefined ? "GET" : "POST",
+) => requestImpl<T>("/workbench" + path, { method, body, signal });
+return {
   preferences: () => call<Preferences>("/settings"),
   savePreferences: (
     scope: string,
@@ -290,10 +291,14 @@ export const wb = {
     }),
   artifact: async (id: string, signal?: AbortSignal) => {
     const response = await fetch(
-      "/api/v1/research/workbench/artifacts/" + encodeURIComponent(id),
+      apiPrefix + "/workbench/artifacts/" + encodeURIComponent(id),
       { headers: headers(), signal },
     );
     if (!response.ok) throw new Error("绘图产物不可用");
     return response.blob();
   },
 };
+
+}
+export const wb = createWorkbenchClient();
+export type WorkbenchClient = ReturnType<typeof createWorkbenchClient>;

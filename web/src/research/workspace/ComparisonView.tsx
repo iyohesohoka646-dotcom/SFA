@@ -1,7 +1,8 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
-import { client } from "../client";
+
 import { numericCell } from "../matrix-renderer";
-import { wb } from "./WorkbenchClient";
+
 import { useSnapshot } from "./evidence";
 import { MatrixView } from "../MatrixView";
 import { TableView } from "../TableView";
@@ -42,6 +43,7 @@ export function ComparisonView({
   id: string;
   config?: WorkbenchConfig;
 }) {
+  const { research: { client }, workbench: wb } = useResearchServices();
   const [output, setOutput] = useState<ProbeOutput>(),
     [error, setError] = useState(""),
     [zoom, setZoom] = useState(1),

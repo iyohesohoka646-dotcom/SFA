@@ -3,7 +3,7 @@ import { session } from "./session";
 for (const width of [900, 1100, 1280, 1600])
   test(`layout geometry really changes at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("http://127.0.0.1:8879/#session=" + session);
+    await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
     await expect(
       page.getByRole("button", { name: "缩小 main 视图" }),
     ).toBeVisible();
@@ -26,7 +26,7 @@ for (const width of [900, 1100, 1280, 1600])
 test("resize, maximize, locked slots and named layouts change and preserve actual geometry", async ({
   page,
 }) => {
-  await page.goto("http://127.0.0.1:8879/#session=" + session);
+  await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
   const panel = page.locator('[data-group="main"]');
   await expect(panel).toBeVisible();
   await expect(page.getByRole('button', {name: '运行', exact: true})).toBeEnabled();
@@ -101,7 +101,7 @@ for (const scale of [1.25, 1.5])
     });
     const page = await context.newPage();
     try {
-      await page.goto("http://127.0.0.1:8879/#session=" + session);
+      await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
       expect(await page.evaluate(() => devicePixelRatio)).toBe(scale);
       const panel = page.locator('[data-group="main"]');
       await expect(panel).toBeVisible();

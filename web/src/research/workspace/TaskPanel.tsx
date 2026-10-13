@@ -1,9 +1,10 @@
+import { useResearchServices } from "./ResearchServices";
 import { useMemo, useState, useRef, useEffect } from "react";
 import type { ProbeOutput, TaskRecord, AnalysisDocument } from "./generated";
-import { wb } from "./WorkbenchClient";
+
 import { RunTimeline } from "../RunTimeline";
 import type { ResearchState } from "../state";
-import { client } from "../client";
+
 
 export function TaskPanel({
   tasks,
@@ -28,6 +29,7 @@ export function TaskPanel({
   onOutput: (output: ProbeOutput) => void;
   onError: (message: string) => void;
 }) {
+  const { research: { client }, workbench: wb } = useResearchServices();
   const [loaded, setLoaded] = useState<Map<string, ProbeOutput>>(new Map());
   const [page, setPage] = useState<{run: string; cursor: string; more: boolean; loading: boolean}>();
   const currentRun = useRef(state.runId);

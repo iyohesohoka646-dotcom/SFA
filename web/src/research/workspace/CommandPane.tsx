@@ -1,11 +1,13 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { request } from "../client";
+
 import type { TerminalSession } from "./generated";
 import "@xterm/xterm/css/xterm.css";
 
 export function CommandPane() {
+  const { research: { request }, apiPrefix } = useResearchServices();
   const host = useRef<HTMLDivElement>(null),
     terminal = useRef<Terminal | null>(null),
     socket = useRef<WebSocket | null>(null);
@@ -50,7 +52,7 @@ export function CommandPane() {
     ])
       .then(([info, list, config, settings]) => {
         if (abort.signal.aborted) return;
-        key.current = "cdaf-terminal:" + info.root;
+        key.current = "cdaf-terminal:" + apiPrefix + ':' + info.root;
         interpreter.current = config.interpreter || undefined;
         if (!profileTouched.current)
           setProfile(settings.values.terminal.profile);
@@ -70,7 +72,7 @@ export function CommandPane() {
         if (!abort.signal.aborted) setError(e.message);
       });
     return () => abort.abort();
-  }, []);
+  }, [request, apiPrefix]);
   useEffect(() => {
     if (!selected || !host.current) return;
     const term = new Terminal({
@@ -103,7 +105,7 @@ export function CommandPane() {
       (location.protocol === "https:" ? "wss:" : "ws:") +
         "//" +
         location.host +
-        "/api/v1/research/terminals/" +
+        apiPrefix + "/terminals/" +
         encodeURIComponent(selected) +
         "/socket",
     );

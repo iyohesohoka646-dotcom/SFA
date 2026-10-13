@@ -1,5 +1,6 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
-import { wb, type Preferences } from "./WorkbenchClient";
+import { type Preferences } from "./WorkbenchClient";
 const titles: Record<string, string> = {
   workspace: "工作区",
   graph: "计算关系图",
@@ -50,6 +51,7 @@ export function WorkbenchSettings({
   onApplied: (p: Preferences, group: string) => void;
   onError: (s: string) => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const [preferences, setPreferences] = useState<Preferences>(),
     [group, setGroup] = useState("workspace"),
     [query, setQuery] = useState(""),

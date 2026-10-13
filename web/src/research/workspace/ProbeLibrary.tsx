@@ -1,5 +1,6 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
-import { wb } from "./WorkbenchClient";
+
 import { ToolLibrary } from "./ToolLibrary";
 import type { ProbeDefinition, ProbeResource, TaskRecord, WorkbenchConfig } from "./generated";
 import { ParameterForm } from "./ParameterForm";
@@ -36,6 +37,7 @@ export function ProbeLibrary({
   onSave?: () => Promise<unknown>;
   onModelSettings?: () => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const [tab, setTab] = useState("definitions"),
     [target, setTarget] = useState("data"),
     [purpose, setPurpose] = useState("all"),

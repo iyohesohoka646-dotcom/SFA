@@ -23,10 +23,10 @@ class CommandResult(WireModel):
 _PROJECT_ROUTED = {"vars", "inspect", "cancel", "continue", "resume", "runs"}
 
 
-async def _await_task(workbench, task_id):
+async def _await_task(workbench, task_id, *, live=False):
     while True:
         task = await asyncio.to_thread(workbench.jobs.get, task_id)
-        if task.status not in ("queued", "running"):
+        if task.status not in ("queued", "running") or (live and task.run_id):
             return task
         await asyncio.sleep(0.05)
 
@@ -48,7 +48,7 @@ async def dispatch(command: str, arguments: dict, *, service, settings) -> Comma
             if project_command == 'run':
                 workbench = application.workbench(project_id)
                 try:
-                    task = await _await_task(workbench, data['id'])
+                    task = await _await_task(workbench, data['id'], live=arguments.get('follow_live', False))
                 except asyncio.CancelledError:
                     await asyncio.to_thread(workbench.jobs.cancel, data['id'])
                     raise

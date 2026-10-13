@@ -1,12 +1,14 @@
+import { useResearchServices } from "./workspace/ResearchServices";
 import {memo,useEffect,useMemo,useRef,useState} from 'react';
 import type {SnapshotRef} from './generated';
-import {client} from './client';
+
 import {useOperation} from './operations';
 import {cellColor,displayCell,numericCell,planeAxes} from './matrix-renderer';
 import type {DataSemantics} from './workspace/generated';
 import type {ComplexMode} from './matrix-renderer';
 export interface MatrixViewProps {snapshot:SnapshotRef;selectors?:Record<string,number>[];onSelect?:(row:number,column:number)=>void;parameters?:Record<string,unknown>;semantics?:DataSemantics|null;}
 export const MatrixView=memo(function MatrixView({snapshot,onSelect,parameters={},semantics}:MatrixViewProps){
+  const { research: { client } } = useResearchServices();
   const shape=snapshot.descriptor.shape||[],canvas=useRef<HTMLCanvasElement>(null),container=useRef<HTMLDivElement>(null);
   const [mode,setMode]=useState<ComplexMode>('real'),[fixed,setFixed]=useState<Record<number,number>>({}),[chosen,setChosen]=useState([0,0]);
   const [scaleMode,setScaleMode]=useState(parameters.scale==='symmetric'?'zero':'range');

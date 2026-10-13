@@ -347,6 +347,19 @@ class ProjectWorkbenchService(WorkbenchService):
                 "configuration_id": configuration_id,
             }
         )
+        saved_config = WorkbenchConfig.model_validate(context.get("configuration") or {})
+        # A new explicit probe/replot action freezes today's probe configuration
+        # over the archived inputs. The computation entry and capture evidence
+        # remain those of the saved run; this does not alter its original plan.
+        evidence_config = self.configurations.load().model_copy(
+            deep=True,
+            update={
+                "script": saved_config.script,
+                "arguments": list(saved_config.arguments),
+                "interpreter": saved_config.interpreter,
+                "capture": saved_config.capture,
+            },
+        )
         return self.plan_project(
             configuration_id,
             revision_id=revision_id,
@@ -359,7 +372,7 @@ class ProjectWorkbenchService(WorkbenchService):
             snapshot_ids=snapshot_ids,
             instance_ids=instance_ids,
             target_scope=target_scope,
-            frozen_config=context.get("configuration"),
+            frozen_config=evidence_config,
         )
 
     def execute_probes(

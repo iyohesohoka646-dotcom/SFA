@@ -548,9 +548,12 @@ class ProjectChangeService:
                 return f"Whole-set preflight failed: {meta['path']} changed or appeared since the proposal"
         return ""
 
-    def accept(self, project_id: str, change_id: str) -> ProjectChangeSet:
+    def accept(self, project_id: str, change_id: str, cancel=None) -> ProjectChangeSet:
         root = self._root(project_id)
-        with self._lock(root):
+        # A cancellation while waiting for the cross-process lock aborts before
+        # any byte is written; once the lock is held the write runs to its
+        # recoverable conclusion.
+        with self._lock(root, cancel=cancel):
             self._reject_if_recovering(root)
             change = self._load(root, project_id, change_id)
             if change.status != "ready":

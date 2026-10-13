@@ -1,8 +1,10 @@
+import { useResearchServices } from "./workspace/ResearchServices";
 import {useEffect,useRef,useState} from 'react';
 import type {ObservationEvent} from './generated';
-import {client} from './client';
+
 import {useOperation} from './operations';
 export function RunTimeline({runId,live,onSnapshot,scopeIds,scopeKeys,scopeSources}:{runId:string;live:ObservationEvent[];onSnapshot:(id:string)=>void;scopeIds?:Set<string>;scopeKeys?:Set<string>;scopeSources?:Set<string>}){
+  const { research: { client } } = useResearchServices();
   const [open,setOpen]=useState(false),[events,setEvents]=useState<ObservationEvent[]>([]),[cursor,setCursor]=useState(0),[top,setTop]=useState(0),[kind,setKind]=useState(''),[block,setBlock]=useState(''),[after,setAfter]=useState('');const loading=useOperation('timeline:'+runId),scroll=useRef<HTMLDivElement>(null);
   useEffect(()=>{setEvents([]);setCursor(0);setTop(0);},[runId]);
   const load=()=>void loading.run(signal=>client.eventPage(runId,cursor,signal)).then(page=>{if(page){setEvents(page);setCursor(page.at(-1)?.sequence||cursor);setTop(0);if(scroll.current)scroll.current.scrollTop=0;}});

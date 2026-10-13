@@ -13,7 +13,7 @@ test.afterEach(async({request})=>{const url='http://127.0.0.1:8879/api/v1/resear
 test('probe configuration is inert and execution produces real views and checks', async ({ page }) => {
   let executions = 0;
   page.on('request', request => { if (request.url().endsWith('/execute')) executions++; });
-  await page.goto('http://127.0.0.1:8879/#session=' + session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session=' + session);
   await expect(page.getByRole('button', { name: '导入解析', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '打开源码配置' }).click();
   await page.getByLabel('示例选择').selectOption('analysis');
@@ -43,7 +43,7 @@ test('probe configuration is inert and execution produces real views and checks'
 });
 
 test('fixed data versions remain visible side by side across selection and reload', async ({ page }) => {
-  await page.goto('http://127.0.0.1:8879/#session=' + session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session=' + session);
   const runs = await researchApi(page, 'research/runs');
   await page.getByLabel('运行记录').selectOption(runs.find((r: {source_digest:string;name:string}) => r.name==='Analysis').id);
   await chooseValue(page, 'X7');
@@ -60,7 +60,7 @@ test('fixed data versions remain visible side by side across selection and reloa
 });
 
 test('automatic harness reads tools, proposes a scoped diff and waits for acceptance', async ({ page }) => {
-  await page.goto('http://127.0.0.1:8879/#session=' + session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session=' + session);
   const info = await researchApi(page, 'research/info');
   const path = join(info.root, 'reviewed.py'), original = 'def calculate(x):\n    return x + 1\n\nY = calculate(3)\n';
   writeFileSync(path, original, 'utf8');
@@ -88,7 +88,7 @@ test('automatic harness reads tools, proposes a scoped diff and waits for accept
 });
 
 test('tool catalog and automatic intelligence context remain independently accessible', async ({ page }) => {
-  await page.goto('http://127.0.0.1:8879/#session=' + session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session=' + session);
   await page.getByRole('button', { name: '探针库', exact: true }).first().click();
   await page.getByRole('button',{name:'可获取资源',exact:true}).click();await expect(page.getByRole('cell', { name: 'PyVista', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '检测工具', exact: true }).click();
@@ -104,7 +104,7 @@ test('tool catalog and automatic intelligence context remain independently acces
 });
 
 test('an active task cannot replace an explicitly chosen historical run',async({page})=>{
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   const runs=await researchApi(page,'research/runs'),historic=runs.find((r:{name:string})=>r.name==='Analysis'),latest=runs[0];
   const task={protocol_version:2,id:'delayed-compute',kind:'compute',status:'running',created_at:'',updated_at:'',run_id:latest.id,plan_id:null,calculation_status:'running',progress:0,output_ids:[],message:'',receipt:{}};
   await page.route('**/workbench/tasks',route=>route.fulfill({json:[task]}));
@@ -115,7 +115,7 @@ test('an active task cannot replace an explicitly chosen historical run',async({
  });
 
 test('real plotting is explicit and saved artifacts remain independent of computation',async({page})=>{
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await page.getByRole('button',{name:'打开源码配置'}).click();await page.getByLabel('示例选择').selectOption('analysis');
   await page.getByLabel('脚本参数 JSON').fill('[]');await page.getByLabel('计算解释器').focus();
   await page.getByRole('button',{name:'导入解析',exact:true}).click();await expect(page.getByRole('button',{name:'导入解析',exact:true})).toBeEnabled();
@@ -134,7 +134,7 @@ test('narrow screens focus one tool document and keep other views reachable',asy
   let release!: () => void;
   const initialized = new Promise<void>(resolve => { release = resolve; });
   await page.route('**/api/v1/research/info', async route => { await initialized; await route.continue(); });
-  await page.setViewportSize({width:390,height:844});await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.setViewportSize({width:390,height:844});await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await page.getByRole('button',{name:'智能助手',exact:true}).click();
   release();
   await expect(page.getByText(/源码已解析 ·/)).toBeVisible();
@@ -144,7 +144,7 @@ test('narrow screens focus one tool document and keep other views reachable',asy
   await page.screenshot({path:'../docs/assets/scientific-narrow.png'});
 });
 test('manual verdict appears immediately and graph camera survives tab changes', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await chooseExample(page); await runCompute(page); await chooseValue(page,'X');
   await page.getByRole('button',{name:'计算关系图',exact:true}).first().click();
   await expect(page.getByTestId('relation-node').first()).toBeVisible();
@@ -174,7 +174,7 @@ test('manual verdict appears immediately and graph camera survives tab changes',
 });
 
 test('a pinned data probe executes its own historical run', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await chooseExample(page); await runCompute(page); await chooseValue(page,'X');
   const runA = await page.getByLabel('运行记录').inputValue();
   await page.getByRole('tab',{name:'X · v1',exact:true}).dblclick();
@@ -190,7 +190,7 @@ test('a pinned data probe executes its own historical run', async ({page}) => {
 });
 
 test('pinned relation graph keeps its nodes and camera after switching global run', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await chooseExample(page); await runCompute(page);
   const runA = await page.getByLabel('运行记录').inputValue();
   const all = await researchApi(page,'research/runs'), other = all.find((r:{id:string}) => r.id !== runA);
@@ -219,7 +219,7 @@ test('pinned relation graph keeps its nodes and camera after switching global ru
 });
 
 test('pause gate shows a continuation control and resumes once', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   const info = await researchApi(page,'research/info'), path = join(info.root,'pause-review.py'), counter = join(info.root,'pause-counter');
   writeFileSync(path,"import numpy as np\nfrom pathlib import Path\nX = np.array([float('nan')])\np = Path(__file__).with_name('pause-counter')\np.write_text('continued')\n",'utf8');
   await page.getByRole('button',{name:'打开源码配置'}).click(); await page.getByLabel('分析脚本').fill(path);
@@ -239,7 +239,7 @@ test('pause gate shows a continuation control and resumes once', async ({page}) 
 });
 
 test('heatmap explains its color scale and captured sample without an essay', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await chooseExample(page); await runCompute(page); await chooseValue(page,'X');
   await expect(page.getByTestId('matrix-color-legend')).toBeVisible();
   await expect(page.getByTestId('matrix-color-legend')).toContainText('线性');
@@ -269,7 +269,7 @@ test('toolbar replot applies configured probes beyond the selected value', async
     fixtureServer.closeAllConnections();
     await new Promise<void>(resolve => fixtureServer.close(() => resolve()));
   }
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await chooseExample(page); await runCompute(page); await chooseValue(page,'Z');
   await page.getByRole('button',{name:'探针台',exact:true}).first().click();
   await bindProbe(page,'view.matplotlib','C');
@@ -284,7 +284,7 @@ test('toolbar replot applies configured probes beyond the selected value', async
 });
 
 test('completed task reconciles a stale bootstrap status at its final event cursor', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await chooseExample(page);
   await page.route('**/research/runs/*/bootstrap', async route=>{
     const run=route.request().url().split('/').at(-2)!;

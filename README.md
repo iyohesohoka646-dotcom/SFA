@@ -9,7 +9,11 @@ Open existing analysis code. Observe real values. Follow transformations. Find n
 ![Logical variables, source and independent probe views](docs/assets/process-probe-templates.png)
 
 A local research workbench for understanding what an experiment computed. Source lines, variable versions, matrix previews, transformations and probe results share one screen. Basic inspection and rule explanations work without a key. The observation protocol supports multiple data types; NumPy and pandas are the first built-in adapters.
-## Workbench 0.5
+## Project workbench 0.6
+
+Open a local Python folder, choose a script or module entry, and inspect a real run across files. The default view starts with one expanded project level. Code and Data graphs, revision-addressed source, variables, probes, reviewed multi-file changes and real terminals share explicit project ownership. Indexing never imports the project. See the [project guide](docs/research/projects.md) and [protocol boundaries](docs/research/project-protocol.md).
+
+Existing single-file workspaces remain available through **Single-file workspace**. Historical evidence keeps its original IDs and source versions; opening a folder does not reassign old runs.
 
 The workbench offers compact **Code** and **Data** graphs, collapsible function/control plates, orthogonal routing and optional execution summaries. Code shows computations; Data shows variable dependencies with repeated versions merged. The object browser lists logical variables with type, shape and probe count. Click selects; double-click or the context menu opens evidence. Unrelated objects stay visible by default. Dockview groups support resizing, minimize/maximize, fixed slots and saved layouts.
 
@@ -27,12 +31,12 @@ python -m pip install ".[research,views]"
 cdaf studio --project ./experiment
 ```
 
-Choose an example or your own `.py` file and scientific interpreter, then **运行 / Run**. Double-click `X`, `Z` or `C` to open saved evidence, then configure or disable its presentation probe. Run the example with `--failure nan` to inspect a normal return with failed numerical quality.
+Choose **Open folder**, then use **运行入口 / Run entries** to save a script or module entry and its scientific interpreter reference. Click **运行 / Run** explicitly. Expand a file and scope; double-click a variable to open evidence, then configure or disable its probes. The [flat and src examples](examples/research/projects/README.md) include successful and failing runs.
 
-The package includes the compiled Web UI; ordinary use needs neither Node.js nor a key. Direct feature-branch installation needs no Git:
+The package includes the compiled Web UI; ordinary use needs neither Node.js nor a key. Install the locally built candidate wheel with:
 
 ```console
-python -m pip install "contract-driven-ai-flow[research,views] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
+python -m pip install "./dist/contract_driven_ai_flow-0.6.0-py3-none-any.whl[research,views]"
 cdaf studio --project ./experiment
 ```
 

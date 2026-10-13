@@ -18,7 +18,7 @@ test.afterEach(async({request})=>{
 
 test('presentation is governed by default probe, disabling persists, local controls and library are visible',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>{errors.push(e.message);console.log('Browser error:',e.stack);});
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  const cfg=await researchApi(page,'research/workbench/configuration');
  const runs=await researchApi(page,'research/runs');
  const run=runs.find((r:any)=>r.name==='Analysis');

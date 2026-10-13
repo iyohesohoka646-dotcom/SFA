@@ -1,6 +1,7 @@
+import { useResearchServices } from "./ResearchServices";
 import { ParameterForm } from "./ParameterForm";
 import { Icon } from "./icons";
-import { wb } from "./WorkbenchClient";
+
 import { purposeNames, implementationNames } from "./probe-taxonomy";
 import type { ProbeDefinition, ProbeInstance } from "./generated";
 import { probeDisplayName } from "./probe-templates";
@@ -28,6 +29,7 @@ export function ProbeBindingRow({ probe, definition, open, onToggle, onUpdate, o
   modelPolicy?: { provider_id?: string; model?: string | null };
   onModelSettings?: () => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const targetScoped = Boolean(onEnabled);
   const description = probe.selector?.mode === "project" ? "整个项目"
     : probe.selector?.mode === "block" ? "块范围"

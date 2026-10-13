@@ -21,17 +21,29 @@ from .change_models import (
 from .changes import ProjectChangeService
 
 
-def _run_accept(application, changes, project_id, change_id, expected_revision):
+def _run_accept(
+    application, changes, project_id, change_id, expected_revision, *, cancel=None, task=None
+):
     """Apply one reviewed change and bind it to a freshly published revision.
 
     The expected revision is re-checked inside the job so a change that went
     stale while queued fails explicitly instead of writing over a newer revision.
+    The actual cancel token is honored before any write; once the reviewed bytes
+    are committed the publication/binding always completes and is recorded as a
+    real completion, even if a cancellation arrives while it was in flight.
     """
+    if cancel is not None and cancel.is_set():
+        raise InterruptedError("Project change acceptance cancelled")
     if (application.projects.project(project_id).latest_revision_id or "") != expected_revision:
         raise RuntimeError("Project revision changed before the change could be applied")
     # Raising here means an interruption/conflict: the change record carries the
     # recovery_required/conflict state and no indexing happens on a half write.
-    changes.accept(project_id, change_id)
+    changes.accept(project_id, change_id, cancel=cancel)
+    # Commit point: the reviewed bytes are durably applied and the record is
+    # accepted. From here the new revision must be published and bound, and no
+    # late cancellation may turn that real completion into "cancelled".
+    if task is not None:
+        application.workbench(project_id).jobs.mark_committed(task.id)
     try:
         revision = application.index(project_id)
         changes.mark_indexed(project_id, change_id, revision.id)
@@ -160,7 +172,13 @@ def attach_project_change_routes(app, application, *, prefix="/api/v1/research/p
         return jobs.submit(
             "project.change.accept",
             lambda job, cancel: _run_accept(
-                application, changes, project_id, change_id, body.expected_revision
+                application,
+                changes,
+                project_id,
+                change_id,
+                body.expected_revision,
+                cancel=cancel,
+                task=job,
             ),
             receipt={"change_id": change_id, "project_id": project_id},
         )

@@ -39,6 +39,9 @@ class ProjectApplication:
         self._task_admission_limit = int(admission_limit)
         self._changes = ProjectChangeService(self.projects)
         self._services: dict = {}
+        # Optional shared indexing/watcher service, attached by the HTTP gateway
+        # so relocation can preflight against active watchers/index jobs.
+        self._index_service = None
         self._lock = threading.RLock()
         self._closed = False
 
@@ -48,6 +51,15 @@ class ProjectApplication:
             if self._closed:
                 raise ValueError("Project application is closed")
             service = self._services.get(project_id)
+            if service is not None:
+                registered = Path(self.projects._lookup_root(project_id)).resolve()
+                if Path(service["workbench"].project_root).resolve() != registered:
+                    # Never hand back a service bound to a root other than the
+                    # one the registry currently records (e.g. after relocation).
+                    if self._relocation_blockers(project_id):
+                        raise RuntimeError("Project root changed while work is active; relocation is refused")
+                    self._discard_service(project_id)
+                    service = None
             if service is None:
                 root = Path(self.projects.project(project_id).root)
                 research = ResearchService(
@@ -88,9 +100,65 @@ class ProjectApplication:
     def assert_ready(self, project_id: str) -> None:
         self._changes.assert_ready(project_id)
 
+    def bind_index_service(self, index_service):
+        """Attach the shared indexing/watcher service for relocation preflight."""
+        with self._lock:
+            self._index_service = index_service
+        return index_service
+
+    def _relocation_blockers(self, project_id: str) -> list:
+        """Name every kind of work that still targets the old root.
+
+        The probe is read-only: it never cancels or mutates the caller's work,
+        so a refusal leaves the registry exactly as it was.
+        """
+        blockers: list = []
+        service = self._services.get(project_id)
+        if service is not None:
+            if service["workbench"].jobs.has_active():
+                blockers.append("queued or running background jobs")
+            if getattr(service["research"], "_active", None):
+                blockers.append("a running computation")
+        index_service = self._index_service
+        if index_service is not None:
+            if index_service.watching(project_id):
+                blockers.append("an active source watcher")
+            if index_service.active(project_id):
+                blockers.append("an active indexing task")
+        return blockers
+
+    def _discard_service(self, project_id: str) -> None:
+        service = self._services.pop(project_id, None)
+        if service is None:
+            return
+        try:
+            service["workbench"].close()
+        finally:
+            service["research"].close()
+
     # -- identity and indexing ----------------------------------------
     def open(self, path):
-        return self.projects.open(path)
+        project, previous_root = self.projects._prepare_open(path)
+        if previous_root is None:
+            self.projects._register(project)
+            return project
+        # A genuine relocation (same UUID, new root) is coordinated before the
+        # registry is retargeted. Refusal leaves every existing service and store
+        # bound to its original root; never partially retarget active work.
+        with self._lock:
+            if self._closed:
+                raise ValueError("Project application is closed")
+            blockers = self._relocation_blockers(project.id)
+            if blockers:
+                raise RuntimeError(
+                    "Project relocation is refused while " + ", ".join(blockers)
+                    + " is active; stop it (and disable watching) before moving the project."
+                )
+            # Quiescent: drop the idle cache and retarget the registry; the next
+            # access lazily rebuilds every store against the new root.
+            self._discard_service(project.id)
+            self.projects._register(project)
+        return project
 
     def index(self, project_id: str, cancel=None, progress=None):
         # Asynchronous UI progress flows straight through; the signature stays
@@ -176,6 +244,16 @@ class ProjectApplication:
         self._changes.assert_ready(project_id)
         project = self.projects.project(project_id)
         workbench = self.workbench(project_id)
+        if scope != "compute":
+            context = workbench._run_context(run_id)
+            if context.get("project_id") != project_id:
+                raise ValueError("Saved run belongs to another project")
+            if revision_id and revision_id != context.get("project_revision_id"):
+                raise ValueError("Requested revision does not match the saved run")
+            return workbench._evidence_plan(
+                run_id, scope=scope, snapshot_ids=snapshot_ids,
+                instance_ids=instance_ids, target_scope=target_scope,
+            )
         config, run_config = workbench.entry(configuration_id)
         revision_id = revision_id or project.latest_revision_id
         if not revision_id:

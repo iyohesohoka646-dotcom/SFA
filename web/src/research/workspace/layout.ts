@@ -19,6 +19,9 @@ export interface WorkspaceDocument {
   title: string;
   pinned: boolean;
   reference: {
+    project_id?: string;
+    file_id?: string;
+    project_revision_id?: string;
     analysis_id?: string;
     run_id?: string;
     snapshot_id?: string;

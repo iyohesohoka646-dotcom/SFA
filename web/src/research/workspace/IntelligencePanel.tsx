@@ -1,3 +1,4 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
 import { ProbeModelFields } from "./ProbeModelFields";
 import type {
@@ -8,7 +9,7 @@ import type {
   WorkbenchConfig,
 } from "./generated";
 import type { SnapshotRef } from "../generated";
-import { wb, type ContextRecord, type SkillRecord } from "./WorkbenchClient";
+import { type ContextRecord, type SkillRecord } from "./WorkbenchClient";
 
 export function IntelligencePanel({
   analysis,
@@ -33,6 +34,7 @@ export function IntelligencePanel({
   onModels: () => void;
   onError: (message: string) => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const [role, setRole] = useState<HarnessPolicy["role"]>("explain"),
     [purpose, setPurpose] = useState<"general" | "format_source">("general"),
     [question, setQuestion] = useState(""),
@@ -287,6 +289,7 @@ export function ContextView({
   onError: (message: string) => void;
   onProposal?: (id: string) => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const [record, setRecord] = useState<ContextRecord>();
   useEffect(() => {
     const abort = new AbortController();

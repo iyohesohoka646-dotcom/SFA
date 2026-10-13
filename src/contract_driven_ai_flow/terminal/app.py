@@ -66,6 +66,7 @@ class ResearchTerminal(App):
         self._commands.add(worker)
 
     async def execute(self,name,arguments):
+        if name=='project.run':arguments={**arguments,'follow_live':True}
         result=await self.client.command(name,arguments);self.last_result=result
         project_scope=arguments.get('project_id')
         self.query_one('#output',RichLog).write(safe_text(result.model_dump(mode='json')))

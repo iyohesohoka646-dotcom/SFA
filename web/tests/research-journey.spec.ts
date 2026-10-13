@@ -12,7 +12,7 @@ test('research-journey: own code, numerical failure, saved probe, explanation sc
   const script=join(root,'自己的分析.py');
   const code='import numpy as np\nimport pandas as pd\nX = np.arange(12, dtype=float).reshape(3,4)\nmu = X.mean(axis=0)\nZ = X - mu\nZ[1,2] = np.nan\nframe = pd.DataFrame({"value":[1,2],"email":["lab-sensitive@example.org","another@example.org"]})\n';
   writeFileSync(script,code,'utf8');
-  await page.goto(`/#session=${session}`);
+  await page.goto(`/?single=1#session=${session}`);
   await page.getByRole('button',{name:'打开源码配置'}).click();
   await page.getByLabel('分析脚本').fill(script);
   await page.getByRole('button',{name:'导入解析',exact:true}).click();

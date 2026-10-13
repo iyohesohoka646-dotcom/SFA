@@ -1,10 +1,11 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
 import { SourcePane } from "../SourcePane";
-import { client, type SourceFile } from "../client";
+import { type SourceFile } from "../client";
 import type { SourceRef } from "../generated";
 import type { AnalysisDocument, SourceObject, TargetRef } from "./generated";
 import type { WorkspaceDocument } from "./layout";
-import { wb } from "./WorkbenchClient";
+
 import { logicalObjectGroups } from "./objectTree";
 import { selectedOccurrenceGroups, selectedStructureSources, sourceFocus, type OccurrenceGroup } from "./sourceOccurrences";
 
@@ -23,6 +24,7 @@ export function SourceDocument({
   onSelect: (object: SourceObject, analysis: AnalysisDocument) => void;
   onError: (message: string) => void;
 }) {
+  const { research: { client }, workbench: wb } = useResearchServices();
   const [file, setFile] = useState<SourceFile>(),
     [objects, setObjects] = useState<AnalysisDocument>(),
     [occurrences, setOccurrences] = useState<OccurrenceGroup[]>([]);

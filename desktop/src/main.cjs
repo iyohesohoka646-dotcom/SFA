@@ -40,7 +40,11 @@ async function start(){
       if(owner?.state==='ready'||owner?.closed){await owner.close();owner=createOwner();}
       if(!owner) owner=createOwner();
       const handle=await owner.start();
-      if(!closing&&handle) await window.loadURL(handle.url);
+      if(!closing&&handle){
+        const address=new URL(handle.url);
+        if(process.argv.includes('--single'))address.searchParams.set('single','1');
+        await window.loadURL(address.href);
+      }
     }catch(error){await showFailure(error);}
   })();
   try{await recovery;}finally{recovery=undefined;}

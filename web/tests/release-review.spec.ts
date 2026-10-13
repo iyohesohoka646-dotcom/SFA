@@ -45,7 +45,7 @@ async function fixture(page:Page,delays:{history?:ReturnType<typeof deferred>;sl
   else if(path.includes('/snapshots/')){if(path.endsWith('/x1')&&delays.history){entered.resolve();await delays.history.promise;}json=path.endsWith('/y1')?y:path.endsWith('/x1')?old:x;}
   await route.fulfill({json}).catch(()=>{});
  });
- await page.goto(`/#session=${session}`);
+ await page.goto(`/?single=1#session=${session}`);
  await chooseValue(page,'X');await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
  return entered;
 }

@@ -6,7 +6,7 @@ const fs=require('node:fs');
 const os=require('node:os');
 (async()=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'cdaf-startup-error-'));
- const app=await _electron.launch({executablePath:require('electron'),args:[path.resolve(__dirname,'../src/main.cjs'),'--project',root],env:{...process.env,CDAF_DESKTOP_PYTHON:path.join(root,'missing-python.exe')}});
+ const app=await _electron.launch({executablePath:require('electron'),args:[path.resolve(__dirname,'../src/main.cjs'),'--project',root,'--single'],env:{...process.env,CDAF_DESKTOP_PYTHON:path.join(root,'missing-python.exe')}});
  try{
   const started=Date.now();
   const page=await app.firstWindow();
@@ -18,7 +18,7 @@ const os=require('node:os');
   assert.match(await page.locator('#startup-status').innerText(),/runtime unavailable/);
   assert.equal(fs.existsSync(path.join(root,'.cdaf/studio.json')),false);
  }finally{await app.close();}
- const healthy=await _electron.launch({executablePath:require('electron'),args:[path.resolve(__dirname,'../src/main.cjs'),'--project',root],env:{...process.env,CDAF_DESKTOP_PYTHON:path.resolve(__dirname,'../../.work/desktop-python/python.exe')}});
+ const healthy=await _electron.launch({executablePath:require('electron'),args:[path.resolve(__dirname,'../src/main.cjs'),'--project',root,'--single'],env:{...process.env,CDAF_DESKTOP_PYTHON:path.resolve(__dirname,'../../.work/desktop-python/python.exe')}});
  let connection;
  try{
   const page=await healthy.firstWindow();

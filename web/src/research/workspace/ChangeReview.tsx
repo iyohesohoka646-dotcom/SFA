@@ -1,3 +1,4 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
 import type {
   AnalysisDocument,
@@ -6,7 +7,7 @@ import type {
   SourceObject,
   TaskRecord,
 } from "./generated";
-import { wb } from "./WorkbenchClient";
+
 
 export function ChangeReview({
   analysis,
@@ -25,6 +26,7 @@ export function ChangeReview({
   onAccepted: (path: string) => void;
   onError: (message: string) => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const [proposals, setProposals] = useState<CodeProposal[]>([]),
     [id, setId] = useState(proposalId ?? ""),
     [candidate, setCandidate] = useState("");

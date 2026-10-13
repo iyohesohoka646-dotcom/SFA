@@ -92,7 +92,7 @@ async function runSelected(page: Page, mode: "probes" | "replot") {
 test("real tree function and graph operation selections resolve to distinct frozen probe targets", async ({
   page,
 }) => {
-  await page.goto("http://127.0.0.1:8879/#session=" + session);
+  await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
   const analysis = await importSource(
     page,
     "selection-identity.py",
@@ -156,7 +156,7 @@ test("real tree function and graph operation selections resolve to distinct froz
 test("selecting v1 and replotting through the toolbar evaluates that exact historic evidence", async ({
   page,
 }) => {
-  await page.goto("http://127.0.0.1:8879/#session=" + session);
+  await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
   await importSource(page, "historic-selection.py", "X = 1\nX = 2\n", [
     { id: "scalar", definition_id: "view.scalar" },
   ]);

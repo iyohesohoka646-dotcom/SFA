@@ -1,5 +1,6 @@
+import { useResearchServices } from "./ResearchServices";
 import { memo, useEffect, useState } from "react";
-import { client } from "../client";
+
 import type { SnapshotRef } from "../generated";
 import type {
   ProbeOutput,
@@ -10,7 +11,7 @@ import type {
 } from "./generated";
 import type { WorkspaceDocument } from "./layout";
 import { useSnapshot } from "./evidence";
-import { wb } from "./WorkbenchClient";
+
 import { probeDisplayName } from "./probe-templates";
 import type { ResearchState } from "../state";
 import { ParameterForm } from "./ParameterForm";
@@ -44,6 +45,7 @@ export const ProbeWorkspace = memo(function ProbeWorkspace({
   onOpenInspector: (s: SnapshotRef, analysis: AnalysisDocument) => void;
   runAnalysis?: { runId: string; analysis: AnalysisDocument };
 }) {
+  const { research: { client }, workbench: wb } = useResearchServices();
   const { snapshot, error } = useSnapshot(document.reference.snapshot_id);
   const [scope, setScope] = useState<{ runId: string; analysis: AnalysisDocument }>();
   const providedScope = snapshot && runAnalysis?.runId === snapshot.run_id ? runAnalysis : undefined;

@@ -1,5 +1,6 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
-import { wb, type PublicTool } from "./WorkbenchClient";
+import { type PublicTool } from "./WorkbenchClient";
 import type { TaskRecord } from "./generated";
 
 export function ToolLibrary({
@@ -13,6 +14,7 @@ export function ToolLibrary({
   onTask: (task: TaskRecord) => void;
   onError: (message: string) => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const [tools, setTools] = useState<PublicTool[]>([]),
     [query, setQuery] = useState("");
   const version = tasks

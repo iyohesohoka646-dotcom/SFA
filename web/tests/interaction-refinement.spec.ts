@@ -22,7 +22,7 @@ async function importScript(page: Page, filename: string, code: string) {
 test('logical variable shows last observed assignment and highlights same-scope definitions and uses', async ({page}) => {
   const errors:string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await importScript(page, 'same-variable.py', 'x = 1\nif x > 0:\n    scores = x + 2\nelse:\n    scores = x - 2\nscores = scores * 3\nresult = scores + 1\ndef shadow():\n    scores = 99\n    return scores\n');
   const tree = page.getByRole('tree', {name:'计算对象树'});
   await expect(tree.locator('.object-row-assignment, .object-row-evidence')).toHaveCount(0);
@@ -60,7 +60,7 @@ test('logical variable shows last observed assignment and highlights same-scope 
 });
 
 test('configured model stages safe writing proposal and acceptance is explicit and reversible', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   const original = '# 研究说明\nX=2\ndef calculate(x):\n    return x+1\n';
   const path = await importScript(page, 'writing-format.py', original);
   await researchApi(page, 'settings/models/format-browser', {profile:{id:'format-browser', protocol:'openai-compatible', base_url:'http://127.0.0.1:8879/fake-model/v1', models:['format-model'], default_model:'format-model'}}, 'PUT');
@@ -102,7 +102,7 @@ test('configured model stages safe writing proposal and acceptance is explicit a
 });
 
 test('graph uses collapsed structural overview, floating controls, distinct data view and drag panning', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await chooseExample(page);
   await page.getByLabel('运行记录').selectOption('');
   await page.getByRole('button', {name:'计算关系图', exact:true}).first().click();
@@ -149,7 +149,7 @@ test('graph uses collapsed structural overview, floating controls, distinct data
 });
 
 test('same-name redefined functions keep local probe overrides separate and reject stale ambiguous scopes', async ({page}) => {
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   const before = await researchApi(page, 'research/workbench/configuration');
   try {
     const source = 'def f():\n    x = 1\n    return x\nfirst = f\ndef f():\n    x = 8\n    return x\na = first()\nb = f()\n';

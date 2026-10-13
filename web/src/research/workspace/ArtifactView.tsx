@@ -1,7 +1,9 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useRef, useState } from "react";
-import { wb } from "./WorkbenchClient";
+
 
 export function ArtifactView({ id }: { id: string }) {
+  const { workbench: wb } = useResearchServices();
   const [url, setUrl] = useState(""),
     [mime, setMime] = useState(""),
     [error, setError] = useState("");

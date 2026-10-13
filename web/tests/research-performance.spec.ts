@@ -49,7 +49,7 @@ test("research-performance: 1000 objects select without navigation or relayout b
       m.longTasks.push(...list.getEntries().map((e) => e.duration)),
     ).observe({ type: "longtask", buffered: true });
   });
-  await page.goto("/#session=" + session);
+  await page.goto("/?single=1#session=" + session);
   const runs = await researchApi(page, "research/runs");
   await page
     .getByLabel("运行记录")
@@ -226,7 +226,7 @@ test("research-performance: slow evidence cannot replace a newer explicit select
     });
     await route.continue().catch(() => {});
   });
-  await page.goto("/#session=" + session);
+  await page.goto("/?single=1#session=" + session);
   const runs = await researchApi(page, "research/runs");
   await page
     .getByLabel("运行记录")

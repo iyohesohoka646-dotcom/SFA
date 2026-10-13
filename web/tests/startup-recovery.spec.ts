@@ -26,7 +26,7 @@ test('background source import preserves a pressed settings control',async({page
   await route.continue();
  });
  try{
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await sourceRequested;
   await page.getByRole('button',{name:'设置',exact:true}).click();
   await expect(page.getByLabel('主题',{exact:true})).toBeVisible();
@@ -63,7 +63,7 @@ test('a slow graph view keeps the existing probe panel usable',async({page})=>{
   requested();await pending;await route.continue();
  });
  try{
-  await page.goto('http://127.0.0.1:8879/#session='+session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
   await expect(page.getByRole('button',{name:'运行',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'探针台',exact:true}).first().click();
   await expect(page.getByRole('button',{name:'添加探针',exact:true})).toBeVisible();
@@ -80,7 +80,7 @@ test('a slow graph view keeps the existing probe panel usable',async({page})=>{
 test('failed entry script shows recovery and reload opens the actual workbench',async({page})=>{
  const blocked='**/assets/index-*.js';
  await page.route(blocked,r=>r.abort('failed'));
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await expect(page.getByRole('alert')).toContainText('界面资源未能加载');
  await expect(page.getByRole('button',{name:'重试加载',exact:true})).toBeVisible();
  await page.unroute(blocked);
@@ -90,7 +90,7 @@ test('failed entry script shows recovery and reload opens the actual workbench',
 });
 
 test('probe filtering binds the displayed definition rather than a hidden previous choice',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await expect(page.getByRole('button',{name:'运行',exact:true})).toBeEnabled();
  await page.getByRole('button',{name:'探针台',exact:true}).first().click();
  await page.getByRole('button',{name:'添加探针',exact:true}).click();
@@ -108,7 +108,7 @@ test('probe filtering binds the displayed definition rather than a hidden previo
 test('failed initial API loading offers an explicit retry',async({page})=>{
  let failed=true;
  await page.route('**/api/v1/research/info',route=>failed?route.fulfill({status:503,json:{detail:'Fixture backend not ready'}}):route.continue());
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await expect(page.getByRole('alert').filter({hasText:'项目未能加载'})).toBeVisible();
  failed=false;
  await page.getByRole('button',{name:'重试连接',exact:true}).click();
@@ -117,7 +117,7 @@ test('failed initial API loading offers an explicit retry',async({page})=>{
 });
 
 test('searching a settings category retains its editable fields',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await page.getByRole('button',{name:'设置',exact:true}).click();
  await page.getByLabel('搜索设置').fill('工作区');
  await expect(page.getByLabel('主题',{exact:true})).toBeVisible();
@@ -125,7 +125,7 @@ test('searching a settings category retains its editable fields',async({page})=>
 });
 
 test('the library can request the same probe twice and opens an actionable binding range',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await expect(page.getByRole('button',{name:'运行',exact:true})).toBeEnabled();
  await page.getByRole('button',{name:'探针库',exact:true}).first().click();
  const auto=page.locator('.library-definition').filter({has:page.locator('strong',{hasText:/^数据表$/})});
@@ -152,7 +152,7 @@ test('a renderer failure stays inside its view and can be retried',async({page})
   if(breakSchema) data.find((d:any)=>d.id==='view.matrix').parameter_schema={properties:{palette:{type:'string',enum:{invalid:true}}}};
   await route.fulfill({response,json:data});
  });
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await page.getByRole('button',{name:'探针台',exact:true}).first().click();
  await page.getByRole('button',{name:'添加探针',exact:true}).click();
  await expect(page.getByRole('alert').filter({hasText:'视图未能显示'})).toBeVisible();
@@ -168,7 +168,7 @@ test('a renderer failure stays inside its view and can be retried',async({page})
 });
 
 test('historical source definitions select their own analysis after a new import',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await expect(page.getByRole('button',{name:'运行',exact:true})).toBeEnabled();
  const info=await researchApi(page,'research/info');
  const script=join(info.root,'historical-source-audit.py');
@@ -202,7 +202,7 @@ test('historical source definitions select their own analysis after a new import
 });
 
 test('result history offers another page rather than silently dropping older results',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await chooseExample(page);await runCompute(page);
  const run=await page.getByLabel('运行记录').inputValue();
  const actual=await researchApi(page,'research/workbench/outputs?run_id='+run);
@@ -227,7 +227,7 @@ test('result history offers another page rather than silently dropping older res
 
 for(const returnFirst of [false,true]){
 test('leaving a pending result page allows a fresh request '+(returnFirst?'before the old reply':'after the old reply'),async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await chooseExample(page);await runCompute(page);
  const first=await page.getByLabel('运行记录').inputValue();
  const actual=await researchApi(page,'research/workbench/outputs?run_id='+first);

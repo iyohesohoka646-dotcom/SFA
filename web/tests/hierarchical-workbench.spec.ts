@@ -4,7 +4,7 @@ import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {researchApi,runCompute,selectObject,chooseExample} from './scientific-helpers';
 test('selection is pure, multi selection shares graph, explicit menu navigates',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  const tree=page.getByRole('tree',{name:'计算对象树'});await expect(tree).toBeVisible();
  await chooseExample(page);
  await page.getByLabel('运行记录').selectOption('');
@@ -29,7 +29,7 @@ test('selection is pure, multi selection shares graph, explicit menu navigates',
 });
 
 test('function plates, control counters and entering a block share a real computation scope',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await chooseExample(page);
  const info=await researchApi(page,'research/info'),path=join(info.root,'hierarchical-calculation.py');
  writeFileSync(path,'import numpy as np\ndef normalize(data):\n    total = data.sum()\n    count = 0\n    for row in data:\n        if row.sum() > 0:\n            count += 1\n    output = data / total\n    return output, count\nX = np.arange(6.0).reshape(3,2)\nY, count = normalize(X)\n');

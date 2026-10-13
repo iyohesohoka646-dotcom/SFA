@@ -1,15 +1,10 @@
 # Multifile research examples
 
-Two tiny, dependency-free projects used as the acceptance fixtures for
-project-local, multi-file observation. Everything here is plain Python with the
-standard library only: no keys, no network, no install, no model. These are
-research examples, not the installed product.
+Two dependency-free fixtures (`flat-lab`, `src-lab`) and one NumPy matrix example (`matrix-lab`) exercise real cross-file observations. They require no keys, network or model. The matrix example requires NumPy in the selected scientific interpreter.
 
-> The project workbench shown here is under development in this repository and
-> is **not** part of a released/installed 0.5.4 capability. Do not assume new
-> UI or CLI commands are available. The examples reproduce the current public
-> Python application contract; a legacy CLI command may only reference them to
-> `verify`, never to claim new behaviour.
+The 0.6 project workbench opens these folders directly. The preserved installed 0.5.4 does not gain project features until upgraded. See the [project guide](../../../docs/research/projects.md).
+
+For `matrix-lab`, save a Script entry `main.py`, run, and inspect `prepare.build_dataset.X` and `compute.covariance.C`. Bind `check.finite` to C and run with `--nan` to demonstrate completed computation with failed numerical quality. Each default automatic view, additional table and heatmap is a separate effective probe view.
 
 ## Layout
 

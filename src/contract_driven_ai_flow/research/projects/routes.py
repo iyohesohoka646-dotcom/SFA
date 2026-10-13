@@ -68,6 +68,9 @@ def attach_project_routes(app, application, *, prefix="/api/v1/research/projects
     app.state.projects = application
     indexing = ProjectIndexService(application)
     app.state.project_indexing = indexing
+    # The indexing/watcher service is registered with the application so a
+    # project relocation can preflight against it before retargeting the root.
+    application.bind_index_service(indexing)
     queries = ProjectQueryService(application.projects, application)
     app.state.project_queries = queries
     router = APIRouter(prefix=prefix)
@@ -100,7 +103,14 @@ def attach_project_routes(app, application, *, prefix="/api/v1/research/projects
 
     @router.post("/open")
     def open_project(body: OpenRequest):
-        return application.open(body.path)
+        try:
+            return application.open(body.path)
+        except ValueError as error:
+            message = str(error)
+            code = 400 if "does not exist" in message or "not a directory" in message else 409
+            raise HTTPException(code, message)
+        except RuntimeError as error:
+            raise HTTPException(409, str(error))
 
     @router.get("/{project_id}")
     def project_info(project_id: str):
@@ -286,21 +296,50 @@ def attach_project_routes(app, application, *, prefix="/api/v1/research/projects
     @router.post("/{project_id}/plans")
     def plan(project_id: str, body: PlanRequest):
         project = _project(project_id)
-        if body.revision_id and body.revision_id != project.latest_revision_id:
-            raise HTTPException(409, "Project revision changed; index again before planning")
+        if body.scope not in ("compute", "probes", "replot"):
+            raise HTTPException(422, "Unknown project plan scope: " + str(body.scope))
+        if body.scope == "compute":
+            # A fresh computation must target the latest published revision.
+            if body.revision_id and body.revision_id != project.latest_revision_id:
+                raise HTTPException(409, "Project revision changed; index again before planning")
+            try:
+                return application.plan(
+                    project_id,
+                    body.configuration_id,
+                    revision_id=body.revision_id or project.latest_revision_id,
+                    scope=body.scope,
+                    run_id=body.run_id,
+                    snapshot_ids=body.snapshot_ids,
+                    instance_ids=body.instance_ids,
+                    target_scope=body.target_scope,
+                )
+            except LookupError:
+                raise HTTPException(404, "Unknown run configuration")
+        # Evidence-only scopes reuse the saved frozen run: the requested run must
+        # be this project's completed computation at the requested revision. The
+        # saved frozen configuration/entry drive the plan, so a deleted/changed
+        # current configuration, a newer revision, or changed on-disk sources
+        # never require a fresh computation.
+        workbench = application.workbench(project_id)
         try:
-            return application.plan(
-                project_id,
-                body.configuration_id,
-                revision_id=body.revision_id or project.latest_revision_id,
+            context = workbench._run_context(body.run_id)
+        except ValueError as error:
+            raise HTTPException(404, str(error))
+        if context.get("project_id") != project_id:
+            raise HTTPException(409, "Saved run belongs to another project")
+        saved_revision = context.get("project_revision_id")
+        if body.revision_id and body.revision_id != saved_revision:
+            raise HTTPException(409, "Requested revision does not match the saved run")
+        try:
+            return workbench._evidence_plan(
+                body.run_id,
                 scope=body.scope,
-                run_id=body.run_id,
                 snapshot_ids=body.snapshot_ids,
                 instance_ids=body.instance_ids,
                 target_scope=body.target_scope,
             )
-        except LookupError:
-            raise HTTPException(404, "Unknown run configuration")
+        except (ValueError, RuntimeError) as error:
+            raise HTTPException(409, str(error))
 
     @router.get("/{project_id}/plans/{plan_id}")
     def get_plan(project_id: str, plan_id: str):

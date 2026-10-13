@@ -289,6 +289,10 @@ class ProjectIndexService:
         with self._lock:
             return project_id in self._watchers
 
+    def active(self, project_id: str) -> bool:
+        with self._lock:
+            return project_id in self._active
+
     def close(self):
         with self._lock:
             if self._closed:

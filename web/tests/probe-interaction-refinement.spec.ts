@@ -46,7 +46,7 @@ async function saveFromInspector(page: Page) {
 }
 
 async function prepareSource(page: Page) {
-  await page.goto("/#session=" + session);
+  await page.goto("/?single=1#session=" + session);
   const info = await researchApi(page, "research/info");
   const path = info.examples.find((example: any) => example.id === "analysis").script;
   const isImport = (response: import("@playwright/test").Response) => response.url().endsWith("/workbench/analyses")

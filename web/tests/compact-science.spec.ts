@@ -15,7 +15,7 @@ test.afterEach(async ({ request }) => {
 
 test('each bound presentation probe has a real independently selectable and collapsible view', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-  await page.goto('http://127.0.0.1:8879/#session=' + session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session=' + session);
   await chooseExample(page); await runCompute(page); await chooseValue(page, 'X');
   const data = page.locator('.wb-data-pane').filter({ has: page.getByTestId('current-variable').filter({ hasText: /^X$/ }) }).last();
   await expect(data.getByTestId('probe-view')).toHaveCount(1);
@@ -51,7 +51,7 @@ test('each bound presentation probe has a real independently selectable and coll
 });
 
 test('probe state filters and compact English Code/Data views keep selection and block navigation explicit', async ({ page }) => {
-  await page.goto('http://127.0.0.1:8879/#session=' + session);
+  await page.goto('http://127.0.0.1:8879/?single=1#session=' + session);
   await chooseExample(page, 'analysis', 'summary', ['--failure', 'nan']); await runCompute(page); await chooseValue(page, 'X');
   await bindProbe(page, 'check.finite', 'X');
   await page.locator('.wb-inspector').filter({visible:true}).getByRole('button',{name:'保存',exact:true}).click();

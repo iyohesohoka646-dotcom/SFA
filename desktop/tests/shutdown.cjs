@@ -13,7 +13,7 @@ const os=require('node:os');
   env.CDAF_DESKTOP_PYTHON=path.resolve(__dirname,'../../.work/desktop-python/python.exe');
   env.PYTHONPATH=path.resolve(__dirname,'../../src');
  }
- const app=await _electron.launch({executablePath:installed||require('electron'),args:installed?['--project',root]:[path.resolve(__dirname,'../src/main.cjs'),'--project',root],env});
+ const app=await _electron.launch({executablePath:installed||require('electron'),args:installed?['--project',root,'--single']:[path.resolve(__dirname,'../src/main.cjs'),'--project',root,'--single'],env});
  try{
   const page=await app.firstWindow();
   await page.getByRole('tree',{name:'计算对象树'}).waitFor({timeout:30000});

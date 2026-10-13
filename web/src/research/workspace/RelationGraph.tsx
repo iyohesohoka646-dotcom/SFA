@@ -1,3 +1,4 @@
+import { useResearchServices } from "./ResearchServices";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
@@ -19,7 +20,7 @@ import {
   type NodeProps,
   MarkerType,
 } from "@xyflow/react";
-import { request } from "../client";
+
 import type { ResearchState } from "../state";
 import type { SnapshotRef } from "../generated";
 import type {
@@ -43,8 +44,8 @@ import { describeGraphData, executionOverlay, type GraphDataDescription, type No
 import { logicalObjectGroups, selectionObjectIds, latestObservedSnapshot } from "./objectTree";
 import type { OccurrenceGroup } from "./sourceOccurrences";
 import { Icon } from "./icons";
-import { wb } from "./WorkbenchClient";
-import { client } from "../client";
+
+
 import { createState, indexSnapshot } from "../state";
 import "./graph.css";
 const names: Record<string, string> = {
@@ -178,6 +179,7 @@ function GraphInner({
   onBind: () => void;
   onError: (s: string) => void;
 }) {
+  const { research: { request }, workbench: wb } = useResearchServices();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]),
     [edges, setEdges] = useState<Edge[]>([]),
     [closed, setClosed] = useState<{ key: string; values: Set<string> }>({ key: "", values: new Set() }),
@@ -782,6 +784,7 @@ function GraphInner({
 export const RelationGraph = memo(function RelationGraph(
   props: Parameters<typeof GraphInner>[0],
 ) {
+  const { research: { client }, workbench: wb } = useResearchServices();
   const [historical, setHistorical] = useState<{
       analysis: AnalysisDocument;
       state: ResearchState;

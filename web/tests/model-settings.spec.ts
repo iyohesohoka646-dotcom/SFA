@@ -8,7 +8,7 @@ test('model-settings: late initial catalog cannot hide a just-saved profile',asy
   let release=()=>{};const gate=new Promise<void>(resolve=>{release=resolve;});
   await page.route('**/api/v1/settings/credential-store',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({available:false,plaintext_fallback:false})}));
   await page.route('**/api/v1/settings/models',async route=>{await gate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{id:'offline',protocol:'offline',base_url:'',models:['rules'],default_model:'rules',timeout_seconds:60,credential_ref:null,configured:true}])}).catch(()=>{});});
-  await page.goto(`/#session=${session}`);
+  await page.goto(`/?single=1#session=${session}`);
   await page.getByRole('button',{name:'模型设置',exact:true}).click();
   await page.getByRole('button',{name:'新增模型服务',exact:true}).click();
   await page.getByLabel('模型服务 ID').fill('late-catalog');
@@ -23,7 +23,7 @@ test('model-settings: late initial catalog cannot hide a just-saved profile',asy
 });
 
 test('model-settings: discover, configure, share with CLI, and cancel without blocking data',async({page})=>{
-  await page.goto(`/#session=${session}`);
+  await page.goto(`/?single=1#session=${session}`);
   await expect(page.getByRole('button',{name:'模型设置',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'模型设置',exact:true}).click();
   await page.getByRole('button',{name:'新增模型服务',exact:true}).click();
@@ -57,7 +57,7 @@ test('model-settings: discover, configure, share with CLI, and cancel without bl
 });
 
 test('model-settings: automatic evidence tools and slow harness stay independently cancellable',async({page})=>{
-  await page.goto(`/#session=${session}`);
+  await page.goto(`/?single=1#session=${session}`);
   await researchApi(page,'settings/models/browser-lab',{profile:{id:'browser-lab',protocol:'openai-compatible',base_url:'http://127.0.0.1:8879/fake-model/v1',models:['harness-model','slow-model'],default_model:'harness-model'}},'PUT');
   await chooseExample(page);await runCompute(page);
   await chooseValue(page,'Z');

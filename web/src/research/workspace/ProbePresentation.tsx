@@ -1,15 +1,17 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
 import { MatrixView } from "../MatrixView";
 import { TableView } from "../TableView";
 import { displayCell } from "../matrix-renderer";
 import { renderers } from "../renderer-registry";
-import { client } from "../client";
+
 import type { SnapshotRef } from "../generated";
 import type { DataSemantics, ProbeDefinition, ProbeInstance, ProbeOutput } from "./generated";
 import { ArtifactView } from "./ArtifactView";
 import { sameParameters } from "./probe-results";
 
 function InputRelations({ snapshot }: { snapshot: SnapshotRef }) {
+  const { research: { client } } = useResearchServices();
   const [parents, setParents] = useState<SnapshotRef[]>([]), [error, setError] = useState("");
   useEffect(() => {
     const abort = new AbortController(); setParents([]); setError("");

@@ -1,11 +1,6 @@
+import { useResearchServices } from "./ResearchServices";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  client,
-  subscribeRun,
-  type ResearchInfo,
-  type RunRecord,
-  type SourceFile,
-} from "../client";
+import { type ResearchInfo, type RunRecord, type SourceFile } from "../client";
 import type { ObservationEvent, SnapshotRef } from "../generated";
 import { applyEvent, createState, indexSnapshot } from "../state";
 import { useOperation } from "../operations";
@@ -17,12 +12,13 @@ import type {
   WorkbenchConfig,
 } from "./generated";
 import { useWorkspace } from "./useWorkspace";
-import { wb } from "./WorkbenchClient";
+
 import { scopeSelector, type Selection } from "./selection";
 import { groups, type DocumentKind, type WorkspaceDocument } from "./layout";
 import { currentProbeBlock, snapshotProbeTarget } from "./probe-configuration";
 
 export function useWorkbench() {
+  const { research: { client, subscribeRun }, workbench: wb } = useResearchServices();
   const [info, setInfo] = useState<ResearchInfo>(),
     [runs, setRuns] = useState<RunRecord[]>([]),
     [runId, setRunIdRaw] = useState("");

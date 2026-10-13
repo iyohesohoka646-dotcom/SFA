@@ -1,8 +1,9 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useMemo, useState } from "react";
 import type { AnalysisDocument, ProbeDefinition, ProbeInstance, ProbeOutput, WorkbenchConfig, TargetRef } from "./generated";
 import type { SnapshotRef } from "../generated";
 import { Icon } from "./icons";
-import { wb } from "./WorkbenchClient";
+
 import { ParameterForm } from "./ParameterForm";
 import { ProbeBindingRow } from "./ProbeBindingRow";
 import { purposeNames, targetNames } from "./probe-taxonomy";
@@ -28,6 +29,7 @@ export function ProbeInspector({ config, definitions, selected, analysis, output
   onRequestedHandled?: () => void;
   onModelSettings?: () => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const [tab, setTab] = useState<"inspect" | "apply" | "templates">("inspect");
   const [templateId, setTemplateId] = useState("");
   const [adding, setAdding] = useState(false), [type, setType] = useState("view.matrix");

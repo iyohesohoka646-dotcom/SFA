@@ -6,7 +6,7 @@ import {join,resolve} from 'node:path';
 
 test('lifecycle: refresh, background and multiple tabs preserve the service until last close',async({browser})=>{
  const root=mkdtempSync(join(tmpdir(),'cdaf-browser-lifecycle-'));
- const python=resolve(process.platform==='win32'?'../.venv/Scripts/python.exe':'../.venv/bin/python');
+ const python=process.env.CDAF_TEST_PYTHON||resolve(process.platform==='win32'?'../.venv/Scripts/python.exe':'../.venv/bin/python');
  const script='import json,sys;from pathlib import Path;from contract_driven_ai_flow.studio import start;print(json.dumps(start(Path(sys.argv[1]),owned=True)))';
  const launched=spawnSync(python,['-X','utf8','-c',script,root],{encoding:'utf8',timeout:30000});
  expect(launched.status,launched.stderr).toBe(0);

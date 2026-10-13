@@ -4,7 +4,7 @@ import { researchApi, chooseExample, runCompute } from "./scientific-helpers";
 test("the selected current run stays visible while the history list is stale", async ({
   page,
 }) => {
-  await page.goto("http://127.0.0.1:8879/#session=" + session);
+  await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
   await chooseExample(page);
   const history = await researchApi(page, "research/runs");
   await page.route("**/api/v1/research/runs", (route) =>
@@ -29,7 +29,7 @@ test("changing run mode is configuration and does not execute until Run is press
     )
       executions++;
   });
-  await page.goto("http://127.0.0.1:8879/#session=" + session);
+  await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
   await expect(
     page.getByRole("button", { name: "运行", exact: true }),
   ).toBeEnabled();
@@ -40,7 +40,7 @@ test("changing run mode is configuration and does not execute until Run is press
 test("saving graph preferences preserves authored capture and intelligence settings", async ({
   page,
 }) => {
-  await page.goto("http://127.0.0.1:8879/#session=" + session);
+  await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
   const current = await researchApi(page, "research/workbench/configuration");
   await researchApi(
     page,
@@ -80,7 +80,7 @@ test("saving graph preferences preserves authored capture and intelligence setti
 test("importing a new source switches the object tree to that definition without a run", async ({
   page,
 }) => {
-  await page.goto("http://127.0.0.1:8879/#session=" + session);
+  await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
   await expect(page.getByLabel("运行记录")).not.toHaveValue("");
   await page.getByRole("button", { name: "打开源码配置" }).click();
   await page.getByLabel("示例选择").selectOption("analysis");
@@ -95,7 +95,7 @@ test("importing a new source switches the object tree to that definition without
 test("editing shortcuts do not run a task or open the workspace view menu", async ({
   page,
 }) => {
-  await page.goto("http://127.0.0.1:8879/#session=" + session);
+  await page.goto("http://127.0.0.1:8879/?single=1#session=" + session);
   await chooseExample(page);
   let executions = 0;
   page.on("request", (r) => {

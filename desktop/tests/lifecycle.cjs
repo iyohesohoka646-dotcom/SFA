@@ -27,7 +27,7 @@ const { spawnSync } = require('node:child_process');
   fs.writeFileSync(script, code, 'utf8');
   const app = await electron.launch({
     executablePath: installed || require('electron'),
-    args: [...(installed ? ['--project', root] : [path.resolve(__dirname, '../src/main.cjs'), '--project', root]), '--force-device-scale-factor=' + scale],
+    args: [...(installed ? ['--project', root, '--single'] : [path.resolve(__dirname, '../src/main.cjs'), '--project', root, '--single']), '--force-device-scale-factor=' + scale],
     env: environment, timeout: 30000,
   });
   try {
@@ -84,9 +84,9 @@ const { spawnSync } = require('node:child_process');
     const scope = await window.locator('.wb-context-view').textContent();
     assert(!scope.includes('lab-sensitive@example.org'));
     const record = JSON.parse(fs.readFileSync(path.join(root, '.cdaf/studio.json'), 'utf8'));
-    const runs = invoke(['research', 'runs', '--project', root]);
+    const runs = invoke(['research', 'runs', '--project', root, '--single']);
     assert(runs.some(run => run.id === runId && run.status === 'completed' && run.summary.quality === 'fail'));
-    assert(invoke(['models', 'list', '--project', root]).some(profile => profile.id === 'offline'));
+    assert(invoke(['models', 'list', '--project', root, '--single']).some(profile => profile.id === 'offline'));
     const html = await (await fetch(`http://127.0.0.1:${record.port}/api/v1/research/runs/${runId}/export/html`,
       { headers: { Authorization: 'Bearer ' + record.token } })).text();
     assert(html.includes('Scientific Dataflow Inspector') && !html.includes('lab-sensitive@example.org'));

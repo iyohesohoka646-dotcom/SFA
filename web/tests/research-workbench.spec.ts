@@ -5,7 +5,7 @@ test.use({baseURL:'http://127.0.0.1:8879'});
 
 test('research-workbench: real matrix, source, checks and NaN journey',async({page})=>{
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto(`/#session=${session}`);await chooseExample(page);await runCompute(page);await chooseValue(page,'Z');
+  await page.goto(`/?single=1#session=${session}`);await chooseExample(page);await runCompute(page);await chooseValue(page,'Z');
   await expect(page.getByTestId('matrix-definition')).toContainText('120 × 8');
   await expect(page.getByRole('img',{name:'矩阵热图'})).toBeVisible();
   await expect(page.getByTestId('source-selection')).toContainText('Z = (X - mu) / sigma');
@@ -24,7 +24,7 @@ test('research-workbench: real matrix, source, checks and NaN journey',async({pa
 });
 
 test('research-workbench: paged historical events and narrow workspace remain reachable',async({page})=>{
-  await page.goto(`/#session=${session}`);
+  await page.goto(`/?single=1#session=${session}`);
   await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Analysis · completed'}).last().textContent()||''});
   await page.getByRole('button',{name:'运行事件',exact:true}).click();await page.getByRole('button',{name:'读取历史事件',exact:true}).click();
   await expect(page.locator('.ri-event').first().locator('small')).toHaveText('1');
@@ -36,7 +36,7 @@ test('research-workbench: paged historical events and narrow workspace remain re
 test('research-workbench: delayed preferences cannot replace current source edits',async({page})=>{
   let release=()=>{};const gate=new Promise<void>(resolve=>{release=resolve;});
   await page.route('**/research/workbench/configuration',async route=>{const response=await route.fetch();await gate;await route.fulfill({response}).catch(()=>{});});
-  await page.goto(`/#session=${session}`);await page.getByRole('button',{name:'打开源码配置'}).click();
+  await page.goto(`/?single=1#session=${session}`);await page.getByRole('button',{name:'打开源码配置'}).click();
   await page.getByLabel('分析脚本').fill('current.py');release();
   await expect(page.getByLabel('示例选择').locator('option')).toHaveCount(3);
   await expect(page.getByLabel('分析脚本')).toHaveValue('current.py');

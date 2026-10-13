@@ -1,6 +1,7 @@
+import { useResearchServices } from "./ResearchServices";
 import { useEffect, useState } from "react";
 import type { ProbeOutput, CodeProposal } from "./generated";
-import { wb } from "./WorkbenchClient";
+
 import { ArtifactView } from "./ArtifactView";
 
 export function ResultView({
@@ -14,6 +15,7 @@ export function ResultView({
   onProposal: (p: CodeProposal) => void;
   onError: (s: string) => void;
 }) {
+  const { workbench: wb } = useResearchServices();
   const [result, setResult] = useState<ProbeOutput>(),
     [retained, setRetained] = useState<boolean | null>(null);
   useEffect(() => {

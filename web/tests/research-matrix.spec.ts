@@ -3,7 +3,7 @@ import {session} from './session';
 import {test,expect} from '@playwright/test';
 test.use({baseURL:'http://127.0.0.1:8879'});
 test('research-matrix: complex, higher axes, empty matrices and table indices',async({page})=>{
-  await page.goto(`/#session=${session}`);
+  await page.goto(`/?single=1#session=${session}`);
   await chooseExample(page,'edge-cases');
   await runCompute(page);
   await expect(page.getByTestId('run-status')).toHaveText('completed',{timeout:15000});
@@ -30,7 +30,7 @@ test('research-matrix: complex, higher axes, empty matrices and table indices',a
 });
 
 test('research-matrix: exact slices use exact coordinates and keyboard selection',async({page})=>{
-  await page.goto(`/#session=${session}`);
+  await page.goto(`/?single=1#session=${session}`);
   await chooseExample(page,'edge-cases');
   await page.getByRole('button',{name:'打开源码配置'}).click();
   await page.getByLabel('采集模式').selectOption('full');
@@ -50,7 +50,7 @@ test('research-matrix: exact slices use exact coordinates and keyboard selection
 });
 
 test('research-matrix: an independent point-cloud renderer uses the same workbench',async({page})=>{
-  await page.goto(`/#session=${session}`);
+  await page.goto(`/?single=1#session=${session}`);
   await page.getByLabel('运行记录').selectOption({label:await page.getByLabel('运行记录').locator('option').filter({hasText:'Point cloud extension'}).first().textContent()||''});
   await chooseValue(page,'points');
   await expect(page.getByRole('img',{name:'扩展点云预览'})).toBeVisible();

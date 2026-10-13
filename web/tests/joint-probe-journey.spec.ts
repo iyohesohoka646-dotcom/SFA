@@ -8,7 +8,7 @@ test.afterEach(async({request})=>{const url='http://127.0.0.1:8879/api/v1/resear
 
 test('multi-object bindings produce comparison, exact derived data and a useful shape error',async({page})=>{
  test.setTimeout(120000);
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await chooseExample(page,'analysis','full');await runCompute(page);
  const run=await page.getByLabel('运行记录').inputValue();
  const dataTabs=await page.locator('.workspace-tab').filter({hasText:/ · v\d+/}).count();

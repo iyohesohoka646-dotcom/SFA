@@ -8,7 +8,7 @@ test.beforeEach(async ({ request }) => { saved = await (await request.get(url, {
 test.afterEach(async ({ request }) => { const current = await (await request.get(url, { headers })).json(); expect((await request.put(url, { headers, data: { config: { ...saved, revision: current.revision }, expected_revision: current.revision } })).ok()).toBe(true); });
 
 test('data is only configured probes; disabling the template leaves just the variable and inspector entry', async ({ page }) => {
-  await page.goto('/#session=' + session); await chooseExample(page); await runCompute(page); await chooseValue(page, 'X');
+  await page.goto('/?single=1#session=' + session); await chooseExample(page); await runCompute(page); await chooseValue(page, 'X');
   const data = page.locator('.wb-data-pane').filter({ has: page.getByTestId('current-variable').filter({ hasText: /^X$/ }) }).last();
   await expect(data.getByTestId('probe-view')).toHaveCount(1);
   await expect(data.getByLabel('数据呈现探针')).toHaveCount(0);
@@ -28,7 +28,7 @@ test('data is only configured probes; disabling the template leaves just the var
 });
 
 test('library creates a compound template; application freezes members and changes the data page', async ({ page }) => {
-  await page.goto('/#session=' + session); await chooseExample(page); await runCompute(page); await chooseValue(page, 'X');
+  await page.goto('/?single=1#session=' + session); await chooseExample(page); await runCompute(page); await chooseValue(page, 'X');
   await page.getByRole('button', { name: '探针库', exact: true }).first().click();
   await page.getByRole('button', { name: '探针模板', exact: true }).click();
   await page.getByRole('button', { name: '新建探针模板' }).click();
@@ -61,7 +61,7 @@ test('library creates a compound template; application freezes members and chang
 });
 
 test('Code expresses real dependencies and guards, blocks drag in either mode, and selection highlights source', async ({ page }) => {
-  await page.goto('/#session=' + session); await chooseExample(page);
+  await page.goto('/?single=1#session=' + session); await chooseExample(page);
   await page.getByRole('button', { name: '计算关系图', exact: true }).first().click();
   await page.getByRole('button', { name: '放大 main 视图', exact: true }).click();
   const graph = page.locator('.wb-graph-pane');
@@ -93,7 +93,7 @@ test('Code expresses real dependencies and guards, blocks drag in either mode, a
 });
 
 test('run evidence and data metadata have distinct rectangles', async ({ page }) => {
-  await page.goto('/#session=' + session); await chooseExample(page); await runCompute(page);
+  await page.goto('/?single=1#session=' + session); await chooseExample(page); await runCompute(page);
   await page.getByRole('button', { name: '计算关系图', exact: true }).first().click();
   await page.getByLabel('关系图视图').selectOption('data');
   await page.getByRole('button', { name: '放大 main 视图', exact: true }).click();
@@ -110,7 +110,7 @@ test('run evidence and data metadata have distinct rectangles', async ({ page })
 });
 
 test('provider-neutral model services validate blank setup and use optional presets', async ({ page }) => {
-  await page.goto('/#session=' + session); await page.getByRole('button', { name: '模型设置', exact: true }).click();
+  await page.goto('/?single=1#session=' + session); await page.getByRole('button', { name: '模型设置', exact: true }).click();
   await page.getByRole('button', { name: '新增模型服务', exact: true }).click();
   await expect(page.getByLabel('服务地址')).toHaveValue('');
   await expect(page.getByLabel('默认模型 ID')).toHaveValue('');

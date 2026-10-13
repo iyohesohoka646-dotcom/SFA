@@ -1,6 +1,7 @@
 """Update only the repository's copied, relocatable desktop Python runtime."""
 
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import subprocess
@@ -10,6 +11,9 @@ import shutil
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--package-only',action='store_true',help='Update the wheel in an already provisioned private runtime')
+    options=parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     runtime = (root / ".work/desktop-python").resolve()
     if not runtime.is_relative_to(root / ".work"):
@@ -53,11 +57,12 @@ def main():
     subprocess.run(
         [*install, "--force-reinstall", "--no-deps", str(wheel)], cwd=root, check=True
     )
-    subprocess.run(
-        [*install, "--upgrade", str(wheel) + "[research,tables,views]"],
-        cwd=root,
-        check=True,
-    )
+    if not options.package_only:
+        subprocess.run(
+            [*install, "--upgrade", str(wheel) + "[research,tables,views]"],
+            cwd=root,
+            check=True,
+        )
     quarantine=root/'.work/desktop-prior-metadata'
     for previous in site.glob('contract_driven_ai_flow-*.dist-info'):
         if previous.name!=f'contract_driven_ai_flow-{version}.dist-info':

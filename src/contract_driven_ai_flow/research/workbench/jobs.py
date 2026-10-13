@@ -1,6 +1,7 @@
 """UI-neutral background tasks. Geometry changes never submit jobs."""
 
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 import threading
 import time
 
@@ -36,6 +37,9 @@ class JobManager:
         self._owns_admission = admission is None
         self.admission = admission or threading.BoundedSemaphore(int(admission_limit))
         self._active = {}
+        # Tasks whose durable work is already committed; a late cancellation
+        # must never rewrite them as cancelled. Process-local, cleared on finish.
+        self._committed: set = set()
         self._lock = threading.RLock()
         self._closed = False
 
@@ -73,7 +77,9 @@ class JobManager:
                 persisted = True
                 cancel = threading.Event()
                 self._active[task.id] = (cancel, None)
-                future = self.executor.submit(self._run, task, cancel, function)
+                # A route may use request-bound project services. A fresh copy
+                # per job survives request teardown without sharing later requests.
+                future = self.executor.submit(copy_context().run, self._run, task, cancel, function)
                 if task.id in self._active:
                     self._active[task.id] = (cancel, future)
             return task
@@ -108,7 +114,9 @@ class JobManager:
                 raise InterruptedError()
             task = self.update(task.id, status="running")
             result = function(task, cancel) or {}
-            if cancel.is_set():
+            with self._lock:
+                committed = task.id in self._committed
+            if cancel.is_set() and not committed:
                 raise InterruptedError()
             self.update(
                 task.id,
@@ -130,8 +138,23 @@ class JobManager:
         finally:
             with self._lock:
                 self._active.pop(task.id, None)
+                self._committed.discard(task.id)
             # Cancelled queued work holds its permit until it is finalized here.
             self.admission.release()
+
+    def mark_committed(self, task_id) -> None:
+        """Record that a task's durable side effects are already committed.
+
+        A cancellation that arrives after this point must not rewrite a real
+        completion as cancelled, so the final recorded status stays truthful.
+        """
+        with self._lock:
+            self._committed.add(task_id)
+
+    def has_active(self) -> bool:
+        """True while any queued or running task still owns this manager."""
+        with self._lock:
+            return bool(self._active)
 
     def get(self, task_id):
         return TaskRecord.model_validate(self.store.get("tasks", task_id))

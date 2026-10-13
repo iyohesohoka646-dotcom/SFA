@@ -164,6 +164,18 @@ class ProjectService:
 
     # -- public API ----------------------------------------------------
     def open(self, path) -> ResearchProject:
+        project, _ = self._prepare_open(path)
+        self._register(project)
+        return project
+
+    def _prepare_open(self, path):
+        """Resolve a project without mutating the registry.
+
+        Returns ``(project, previous_root)``. ``previous_root`` is set only when
+        ``path`` is the same project UUID recorded at a different root (a genuine
+        relocation to a moved folder); a duplicate copy at another *existing*
+        root is still refused here before any registry change.
+        """
         root = Path(path).expanduser()
         if not root.is_dir():
             raise ValueError("Project root does not exist or is not a directory")
@@ -171,6 +183,7 @@ class ProjectService:
         raw = self._read_raw(root)
         section = raw.get("project") if isinstance(raw, dict) else None
         existing_id = section.get("id") if isinstance(section, dict) else None
+        previous_root = None
         if existing_id:
             registered = self._registered_root(existing_id)
             if registered is not None:
@@ -180,10 +193,11 @@ class ProjectService:
                         "Project UUID is already registered at another existing root; "
                         "refusing to retarget it. Remove the duplicate copy or open the original."
                     )
+                if registered_path != root:
+                    previous_root = registered_path
         store = ProjectStore(root)
         project = self._project_model(root, store)
-        self._register(project)
-        return project
+        return project, previous_root
 
     def project(self, project_id: str) -> ResearchProject:
         root = Path(self._lookup_root(project_id)).resolve()

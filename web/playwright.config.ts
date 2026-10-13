@@ -8,5 +8,5 @@ export default defineConfig({
   reporter: [['list'], ['json', { outputFile: '../.work/browser-tests.json' }]],
   use: { baseURL: 'http://127.0.0.1:8877', viewport: { width: 1600, height: 1000 }, reducedMotion: 'reduce',
     channel: process.platform === 'win32' ? 'msedge' : undefined, screenshot: 'only-on-failure', trace: 'retain-on-failure' },
-  webServer: ['serve_browser_test.py', 'serve_workspace_test.py', 'serve_research_test.py'].map((script, index) => ({ command: `${process.platform === 'win32' ? '..\\.venv\\Scripts\\python.exe' : '../.venv/bin/python'} ../scripts/${script}`, url: `http://127.0.0.1:${8877 + index}`, reuseExistingServer: false, timeout: 60000 })),
+  webServer: ['serve_browser_test.py', 'serve_workspace_test.py', 'serve_research_test.py','serve_project_test.py'].map((script, index) => ({ command: `"${process.env.CDAF_TEST_PYTHON || (process.platform === 'win32' ? '..\\.venv\\Scripts\\python.exe' : '../.venv/bin/python')}" -X utf8 ../scripts/${script}`, url: `http://127.0.0.1:${8877 + index}`, reuseExistingServer: false, timeout: 60000 })),
 });

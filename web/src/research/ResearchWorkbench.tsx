@@ -1,3 +1,4 @@
+import { useResearchServices } from "./workspace/ResearchServices";
 import {
   lazy,
   Suspense,
@@ -7,7 +8,7 @@ import {
   useState,
 } from "react";
 import { ModelSettings } from "../settings/ModelSettings";
-import { client, downloadReport } from "./client";
+
 import { ObjectBrowser } from "./workspace/ObjectBrowser";
 import type { TargetRef, SourceObject, AnalysisDocument } from "./workspace/generated";
 import type { SnapshotRef, SourceRef } from "./generated";
@@ -17,7 +18,7 @@ import { groups } from "./workspace/layout";
 import { LayoutControls, WorkspaceShell } from "./workspace/WorkspaceShell";
 import { useWorkbench } from "./workspace/controller";
 import { Icon } from "./workspace/icons";
-import { wb, type Preferences } from "./workspace/WorkbenchClient";
+import { type Preferences } from "./workspace/WorkbenchClient";
 import { SourceDocument } from "./workspace/SourceDocument";
 import { ProbeWorkspace } from "./workspace/ProbeWorkspace";
 import { snapshotProbeTarget } from "./workspace/probe-configuration";
@@ -63,6 +64,7 @@ const views: { kind: DocumentKind; label: string }[] = [
 ];
 
 export default function ResearchWorkbench() {
+  const { research: { client, downloadReport }, workbench: wb } = useResearchServices();
   const c = useWorkbench(),
     [modelsVisible, setModelsVisible] = useState(false),
     [sourceOptions, setSourceOptions] = useState(false),

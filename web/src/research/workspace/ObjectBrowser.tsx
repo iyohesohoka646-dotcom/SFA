@@ -1,3 +1,4 @@
+import { useResearchServices } from "./ResearchServices";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import type { AnalysisDocument, ProbeDefinition, ProbeOutput, WorkbenchConfig } from "./generated";
 import type { SnapshotRef } from "../generated";
@@ -5,7 +6,7 @@ import { choose, selectionBlocks, selectionKey, type Selection, type ObjectRow }
 import { buildObjectTree, initialObjectExpansion, logicalSelectionCount, selectableObjectOrder, selectionObjectIds, type BrowserRow } from "./objectTree";
 import type { OccurrenceGroup } from "./sourceOccurrences";
 import { Icon } from "./icons";
-import { wb } from "./WorkbenchClient";
+
 import "./object-browser.css";
 
 function RowIcon({ kind }: { kind: BrowserRow["rowKind"] }) {
@@ -36,6 +37,7 @@ export const ObjectBrowser = memo(function ObjectBrowser({ analysis, values, sel
   config?: WorkbenchConfig;
   definitions?: ProbeDefinition[];
 }) {
+  const { workbench: wb } = useResearchServices();
   const [query, setQuery] = useState(""), [type, setType] = useState("variables"), [top, setTop] = useState(0);
   const [probe, setProbe] = useState("all"), [notice, setNotice] = useState("");
   const [occurrences, setOccurrences] = useState<{ analysisId?: string; groups: OccurrenceGroup[] }>({ groups: [] });

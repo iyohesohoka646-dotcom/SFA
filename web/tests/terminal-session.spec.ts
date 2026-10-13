@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 import {session} from './session';
 import {researchApi} from './scientific-helpers';
 test('embedded Python preserves hidden output, reconnects and ends explicitly',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await page.getByRole('button',{name:'终端',exact:true}).click();
  await expect(page.getByLabel('终端配置')).toBeVisible();await page.getByLabel('终端配置').selectOption('python');
  await page.getByRole('button',{name:'新建终端',exact:true}).click();
@@ -25,7 +25,7 @@ test('embedded Python preserves hidden output, reconnects and ends explicitly',a
 });
 
 test('new sessions preserve accessibility output and remain independently interactive',async({page})=>{
- await page.goto('http://127.0.0.1:8879/#session='+session);
+ await page.goto('http://127.0.0.1:8879/?single=1#session='+session);
  await page.getByRole('button',{name:'终端',exact:true}).click();
  await page.getByLabel('终端配置').selectOption('python');
  await page.getByRole('button',{name:'新建终端',exact:true}).click();
