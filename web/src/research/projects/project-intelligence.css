@@ -1,0 +1,211 @@
+/* Scoped styling for the P4 project intelligence panel and change review.
+   Uses the shared research variables so it reads in both light and dark. */
+.pi-panel,
+.pi-review {
+  --pi-bg: var(--ri-bg, #f5f7f8);
+  --pi-panel: var(--ri-panel, #fff);
+  --pi-line: var(--ri-line, #dce3e7);
+  --pi-text: var(--ri-text, #233b47);
+  --pi-muted: var(--ri-muted, #697d87);
+  --pi-accent: var(--ri-accent, #167760);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  gap: 8px;
+  padding: 10px;
+  background: var(--pi-bg);
+  color: var(--pi-text);
+  font: 12px/1.45 system-ui, "Microsoft YaHei", sans-serif;
+}
+[data-theme="dark"] .pi-panel,
+[data-theme="dark"] .pi-review {
+  --pi-bg: #18262d;
+  --pi-panel: #1f2e36;
+  --pi-line: #354850;
+  --pi-text: #d7e2e7;
+  --pi-muted: #9bafb9;
+  --pi-accent: #7fc5ad;
+}
+.pi-panel *,
+.pi-review * {
+  min-width: 0;
+}
+.pi-panel button,
+.pi-panel input,
+.pi-panel select,
+.pi-panel textarea,
+.pi-review button,
+.pi-review select {
+  font: inherit;
+  color: inherit;
+  min-height: 27px;
+  padding: 4px 7px;
+  border: 1px solid var(--pi-line);
+  border-radius: 3px;
+  background: var(--pi-panel);
+}
+.pi-panel button,
+.pi-review button {
+  cursor: pointer;
+}
+.pi-panel button:hover,
+.pi-review button:hover {
+  color: var(--pi-accent);
+}
+.pi-panel button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--pi-accent) 14%, var(--pi-panel));
+  color: var(--pi-accent);
+}
+.pi-panel button:disabled,
+.pi-review button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.pi-panel :focus-visible,
+.pi-review :focus-visible {
+  outline: 2px solid var(--pi-accent);
+  outline-offset: 1px;
+}
+.pi-primary {
+  background: var(--pi-accent) !important;
+  border-color: var(--pi-accent) !important;
+  color: #fff !important;
+}
+.pi-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.pi-toolbar strong {
+  margin-right: auto;
+}
+.pi-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pi-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.pi-textarea {
+  width: 100%;
+  min-height: 68px;
+  resize: vertical;
+  background: var(--pi-panel);
+  color: var(--pi-text);
+}
+.pi-muted {
+  color: var(--pi-muted);
+}
+.pi-status {
+  display: block;
+  padding: 4px 6px;
+  border: 1px solid var(--pi-line);
+  border-radius: 3px;
+  color: var(--pi-muted);
+  background: var(--pi-panel);
+}
+.pi-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  border: 1px solid #c0564f;
+  border-radius: 3px;
+  color: #a5433c;
+}
+[data-theme="dark"] .pi-error {
+  color: #ed9292;
+}
+.pi-scroll {
+  overflow: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pi-answer {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 6px 7px;
+  border: 1px solid var(--pi-line);
+  border-radius: 3px;
+  background: var(--pi-panel);
+}
+.pi-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.pi-chip {
+  padding: 2px 6px;
+  border: 1px solid var(--pi-line);
+  border-radius: 999px;
+  color: var(--pi-muted);
+  font-size: 11px;
+}
+.pi-details {
+  border: 1px solid var(--pi-line);
+  border-radius: 3px;
+  background: var(--pi-panel);
+}
+.pi-details > summary {
+  cursor: pointer;
+  padding: 5px 7px;
+  color: var(--pi-muted);
+}
+.pi-details > :not(summary) {
+  padding: 0 7px 7px;
+}
+.pi-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.pi-diff {
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 7px;
+  border: 1px solid var(--pi-line);
+  border-radius: 3px;
+  background: var(--pi-panel);
+  color: var(--pi-text);
+  white-space: pre;
+  tab-size: 4;
+}
+.pi-diff .pi-add {
+  color: #1f7a55;
+}
+.pi-diff .pi-del {
+  color: #b0403a;
+}
+[data-theme="dark"] .pi-diff .pi-add {
+  color: #7fc5ad;
+}
+[data-theme="dark"] .pi-diff .pi-del {
+  color: #ed9292;
+}
+.pi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pi-list button {
+  justify-content: flex-start;
+  text-align: left;
+}
+.pi-chip.warn {
+  border-color: #c08a2d;
+  color: #9a6a12;
+}
+.pi-chip.bad {
+  border-color: #c0564f;
+  color: #a5433c;
+}

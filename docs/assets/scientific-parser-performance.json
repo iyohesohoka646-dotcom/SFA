@@ -1,0 +1,11 @@
+{
+  "objects": 1000,
+  "utf8": true,
+  "samples_ms": [
+    159.6459000138566,
+    153.8423000019975,
+    176.98780001956038
+  ],
+  "nodes": 2000,
+  "scope": "static import only; no code execution or plotting"
+}

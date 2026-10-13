@@ -1,0 +1,156 @@
+{
+  "measured_at": "2026-10-01T10:51:42Z",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "processor": "",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "blas_threads": 1,
+  "size": 1536,
+  "iterations": 92,
+  "calibration": {
+    "iterations": 92,
+    "seconds_per_operation": 0.1316232333338121
+  },
+  "runs": [
+    {
+      "mode": "off",
+      "elapsed_seconds": 11.48613610000757,
+      "peak_memory_bytes": 113291264,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 1
+    },
+    {
+      "mode": "metadata",
+      "elapsed_seconds": 11.71086410000862,
+      "peak_memory_bytes": 113278976,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 1
+    },
+    {
+      "mode": "summary",
+      "elapsed_seconds": 11.52661229998921,
+      "peak_memory_bytes": 114257920,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 1
+    },
+    {
+      "mode": "full",
+      "elapsed_seconds": 14.191806000002543,
+      "peak_memory_bytes": 116232192,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 264242944,
+      "repeat": 1
+    },
+    {
+      "mode": "off",
+      "elapsed_seconds": 10.907112499990035,
+      "peak_memory_bytes": 113180672,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 2
+    },
+    {
+      "mode": "metadata",
+      "elapsed_seconds": 11.215468499998678,
+      "peak_memory_bytes": 113414144,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 2
+    },
+    {
+      "mode": "summary",
+      "elapsed_seconds": 11.985744900011923,
+      "peak_memory_bytes": 114262016,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 2
+    },
+    {
+      "mode": "full",
+      "elapsed_seconds": 13.93768380000256,
+      "peak_memory_bytes": 116113408,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 264242944,
+      "repeat": 2
+    },
+    {
+      "mode": "off",
+      "elapsed_seconds": 11.720441699988442,
+      "peak_memory_bytes": 113115136,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 3
+    },
+    {
+      "mode": "metadata",
+      "elapsed_seconds": 11.585188900004141,
+      "peak_memory_bytes": 113184768,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 3
+    },
+    {
+      "mode": "summary",
+      "elapsed_seconds": 11.851626600007876,
+      "peak_memory_bytes": 114163712,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 0,
+      "repeat": 3
+    },
+    {
+      "mode": "full",
+      "elapsed_seconds": 14.09965679999732,
+      "peak_memory_bytes": 116281344,
+      "result_sha256": "18e84ed97e8384895e06a76c8f05712e073486d177954181b72446ec15916db4",
+      "dropped": 0,
+      "capture_errors": 0,
+      "artifact_bytes": 264242944,
+      "repeat": 3
+    }
+  ],
+  "summary": {
+    "off": {
+      "median_seconds": 11.48613610000757,
+      "overhead_percent": 0.0
+    },
+    "metadata": {
+      "median_seconds": 11.585188900004141,
+      "overhead_percent": 0.8623683293854212
+    },
+    "summary": {
+      "median_seconds": 11.851626600007876,
+      "overhead_percent": 3.1820143590329364
+    },
+    "full": {
+      "median_seconds": 14.09965679999732,
+      "overhead_percent": 22.753697825224496
+    }
+  },
+  "same_output": true,
+  "baseline_over_10_seconds": true,
+  "sdk_summary_goal_met": true
+}

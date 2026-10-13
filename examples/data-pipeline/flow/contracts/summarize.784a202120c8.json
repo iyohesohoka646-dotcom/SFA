@@ -1,0 +1,48 @@
+{
+  "input": {
+    "type": "object",
+    "properties": {
+      "values": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "required": [
+      "values"
+    ],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "mean": {
+        "type": "number"
+      },
+      "count": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "mean",
+      "count"
+    ],
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "input": {
+        "values": [
+          1,
+          2,
+          3
+        ]
+      },
+      "output": {
+        "mean": 2,
+        "count": 3
+      }
+    }
+  ]
+}

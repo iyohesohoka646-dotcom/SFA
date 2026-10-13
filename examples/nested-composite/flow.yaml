@@ -1,0 +1,247 @@
+schema_version: 1
+name: Nested transforms · 复合模块
+input_schema:
+  type: object
+  properties:
+    value:
+      type: number
+  required:
+  - value
+  additionalProperties: false
+modules:
+- id: pipeline
+  name: Transform pipeline
+  description: ''
+  kind: composite
+  symbol: null
+  contract:
+    input:
+      type: object
+      properties:
+        value:
+          type: number
+      required:
+      - value
+      additionalProperties: false
+    output:
+      type: object
+      properties:
+        result:
+          type: number
+      required:
+      - result
+      additionalProperties: false
+    examples: []
+  parent: null
+  outputs:
+    result:
+      kind: module
+      module: stage
+      pointer: /result
+      value: null
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+- id: stage
+  name: Inner stage
+  description: ''
+  kind: composite
+  symbol: null
+  contract:
+    input:
+      type: object
+      properties:
+        value:
+          type: number
+      required:
+      - value
+      additionalProperties: false
+    output:
+      type: object
+      properties:
+        result:
+          type: number
+      required:
+      - result
+      additionalProperties: false
+    examples: []
+  parent: pipeline
+  outputs:
+    result:
+      kind: module
+      module: double
+      pointer: ''
+      value: null
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+- id: double
+  name: Double
+  description: ''
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: double
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        value:
+          type: number
+      required:
+      - value
+      additionalProperties: false
+    output:
+      type: number
+    examples: []
+  parent: stage
+  outputs: {}
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+- id: display
+  name: Display
+  description: ''
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: display
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        result:
+          type: number
+      required:
+      - result
+      additionalProperties: false
+    output:
+      type: number
+    examples: []
+  parent: null
+  outputs: {}
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+bindings:
+- id: input_pipeline_value
+  target: pipeline
+  port: value
+  source:
+    kind: project
+    module: null
+    pointer: /value
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: pipeline_stage_value
+  target: stage
+  port: value
+  source:
+    kind: module
+    module: pipeline
+    pointer: /value
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: stage_double_value
+  target: double
+  port: value
+  source:
+    kind: module
+    module: stage
+    pointer: /value
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: pipeline_display_result
+  target: display
+  port: result
+  source:
+    kind: module
+    module: pipeline
+    pointer: /result
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+probes:
+- id: result_limit
+  module: display
+  binding: null
+  boundary: output
+  kind: assertion
+  expression: $output < 100
+  policy: continue
+  pointer: ''
+  enabled: true
+  language_version: 1
+  true_target: null
+  false_target: null
+capture:
+  level: summary
+  sensitive_fields:
+  - password
+  - token
+  - secret
+  - api_key
+  - authorization
+  - email
+  max_bytes: 16384
+  sample_items: 5
+  retention_days: 7
+concurrency: 1
+metadata:
+  example: nested-composite
+  inputs:
+    success:
+      value: 12
+    failure:
+      value: 80
+  description: Reproducible local example; failure demonstrates a completed execution
+    with failed quality.

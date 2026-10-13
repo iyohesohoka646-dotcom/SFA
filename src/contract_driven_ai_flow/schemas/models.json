@@ -1,0 +1,236 @@
+{
+  "$defs": {
+    "ConnectionResult": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "connected",
+            "error",
+            "cancelled",
+            "offline"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "operation_id": {
+          "default": "",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        },
+        "models": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Models",
+          "type": "array"
+        },
+        "inference": {
+          "default": false,
+          "title": "Inference",
+          "type": "boolean"
+        },
+        "usage": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Usage",
+          "type": "object"
+        },
+        "duration_ms": {
+          "default": 0,
+          "title": "Duration Ms",
+          "type": "number"
+        },
+        "requests": {
+          "default": 0,
+          "title": "Requests",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "status",
+        "operation_id",
+        "message",
+        "models",
+        "inference",
+        "usage",
+        "duration_ms",
+        "requests"
+      ],
+      "title": "ConnectionResult",
+      "type": "object"
+    },
+    "ProviderProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "protocol": {
+          "default": "offline",
+          "enum": [
+            "offline",
+            "openai-compatible",
+            "anthropic"
+          ],
+          "title": "Protocol",
+          "type": "string"
+        },
+        "base_url": {
+          "default": "",
+          "maxLength": 4096,
+          "title": "Base Url",
+          "type": "string"
+        },
+        "models": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2000,
+          "title": "Models",
+          "type": "array"
+        },
+        "default_model": {
+          "default": "",
+          "maxLength": 256,
+          "title": "Default Model",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 60,
+          "maximum": 300,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "number"
+        },
+        "credential_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Credential Ref"
+        }
+      },
+      "required": [
+        "id",
+        "protocol",
+        "base_url",
+        "models",
+        "default_model",
+        "timeout_seconds",
+        "credential_ref"
+      ],
+      "title": "ProviderProfile",
+      "type": "object"
+    },
+    "PublicProviderProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "protocol": {
+          "default": "offline",
+          "enum": [
+            "offline",
+            "openai-compatible",
+            "anthropic"
+          ],
+          "title": "Protocol",
+          "type": "string"
+        },
+        "base_url": {
+          "default": "",
+          "maxLength": 4096,
+          "title": "Base Url",
+          "type": "string"
+        },
+        "models": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2000,
+          "title": "Models",
+          "type": "array"
+        },
+        "default_model": {
+          "default": "",
+          "maxLength": 256,
+          "title": "Default Model",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 60,
+          "maximum": 300,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "number"
+        },
+        "credential_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Credential Ref"
+        },
+        "configured": {
+          "default": false,
+          "title": "Configured",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "protocol",
+        "base_url",
+        "models",
+        "default_model",
+        "timeout_seconds",
+        "credential_ref",
+        "configured"
+      ],
+      "title": "PublicProviderProfile",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "ProviderProfile": {
+      "$ref": "#/$defs/ProviderProfile"
+    },
+    "PublicProviderProfile": {
+      "$ref": "#/$defs/PublicProviderProfile"
+    },
+    "ConnectionResult": {
+      "$ref": "#/$defs/ConnectionResult"
+    }
+  },
+  "required": [
+    "ProviderProfile",
+    "PublicProviderProfile",
+    "ConnectionResult"
+  ],
+  "title": "ModelsProtocol",
+  "type": "object"
+}

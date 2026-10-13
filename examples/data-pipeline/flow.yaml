@@ -1,0 +1,354 @@
+schema_version: 1
+name: Signal quality · 数据质量流水线
+input_schema:
+  type: object
+  properties:
+    values:
+      type: array
+      items:
+        type: number
+    scale:
+      type: number
+  required:
+  - values
+  - scale
+  additionalProperties: false
+modules:
+- id: ingest
+  name: Ingest
+  description: Receive source measurements through a typed boundary
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: ingest
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        values:
+          type: array
+          items:
+            type: number
+      required:
+      - values
+      additionalProperties: false
+    output:
+      type: array
+      items:
+        type: number
+    examples:
+    - input:
+        values:
+        - 2
+        - 4
+        - 6
+      output:
+      - 2
+      - 4
+      - 6
+  parent: null
+  outputs: {}
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+- id: normalize
+  name: Normalize
+  description: Scale each measurement in an isolated worker
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: normalize
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        values:
+          type: array
+          items:
+            type: number
+        scale:
+          type: number
+      required:
+      - values
+      - scale
+      additionalProperties: false
+    output:
+      type: array
+      items:
+        type: number
+    examples:
+    - input:
+        values:
+        - 2
+        - 4
+        - 6
+        scale: 2
+      output:
+      - 1
+      - 2
+      - 3
+  parent: null
+  outputs: {}
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+- id: summarize
+  name: Summarize
+  description: Summarize the normalized signal
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: summarize
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        values:
+          type: array
+          items:
+            type: number
+      required:
+      - values
+      additionalProperties: false
+    output:
+      type: object
+      properties:
+        mean:
+          type: number
+        count:
+          type: integer
+      required:
+      - mean
+      - count
+      additionalProperties: false
+    examples:
+    - input:
+        values:
+        - 1
+        - 2
+        - 3
+      output:
+        mean: 2
+        count: 3
+  parent: null
+  outputs: {}
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+- id: report
+  name: Report
+  description: Publish a local, reproducible result
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: report
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            mean:
+              type: number
+            count:
+              type: integer
+          required:
+          - mean
+          - count
+          additionalProperties: false
+      required:
+      - summary
+      additionalProperties: false
+    output:
+      type: string
+    examples:
+    - input:
+        summary:
+          mean: 2
+          count: 3
+      output: 3 samples · mean 2.00
+  parent: null
+  outputs: {}
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+bindings:
+- id: input_ingest_values
+  target: ingest
+  port: values
+  source:
+    kind: project
+    module: null
+    pointer: /values
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: ingest_normalize_values
+  target: normalize
+  port: values
+  source:
+    kind: module
+    module: ingest
+    pointer: ''
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: input_normalize_scale
+  target: normalize
+  port: scale
+  source:
+    kind: project
+    module: null
+    pointer: /scale
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: normalize_summarize_values
+  target: summarize
+  port: values
+  source:
+    kind: module
+    module: normalize
+    pointer: ''
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: summarize_report_summary
+  target: report
+  port: summary
+  source:
+    kind: module
+    module: summarize
+    pointer: ''
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+probes:
+- id: positive_scale
+  module: normalize
+  binding: null
+  boundary: input
+  kind: assertion
+  expression: $input.scale > 0
+  policy: block
+  pointer: ''
+  enabled: true
+  language_version: 1
+  true_target: null
+  false_target: null
+- id: mean_in_range
+  module: summarize
+  binding: null
+  boundary: output
+  kind: assertion
+  expression: $output.mean <= 5
+  policy: continue
+  pointer: ''
+  enabled: true
+  language_version: 1
+  true_target: null
+  false_target: null
+- id: sample_count
+  module: normalize
+  binding: null
+  boundary: output
+  kind: metric
+  expression: 'True'
+  policy: continue
+  pointer: ''
+  enabled: true
+  language_version: 1
+  true_target: null
+  false_target: null
+- id: output_sample
+  module: summarize
+  binding: null
+  boundary: output
+  kind: capture
+  expression: 'True'
+  policy: continue
+  pointer: ''
+  enabled: true
+  language_version: 1
+  true_target: null
+  false_target: null
+capture:
+  level: summary
+  sensitive_fields:
+  - password
+  - token
+  - secret
+  - api_key
+  - authorization
+  - email
+  max_bytes: 16384
+  sample_items: 5
+  retention_days: 7
+concurrency: 1
+metadata:
+  example: data-pipeline
+  inputs:
+    success:
+      values:
+      - 2
+      - 4
+      - 6
+      scale: 2
+    failure:
+      values:
+      - 20
+      - 40
+      - 60
+      scale: 2
+  description: Reproducible local example; failure demonstrates a completed execution
+    with failed quality.

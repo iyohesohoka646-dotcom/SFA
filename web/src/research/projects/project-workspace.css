@@ -1,0 +1,197 @@
+/* Namespaced styles for the P3 project browser and canvas. Everything is scoped
+   under .project-*; no global body/html rules and no new dependencies. */
+
+.project-browser {
+  --project-border: var(--border, #d5dbe0);
+  --project-muted: var(--muted, #5c6b76);
+  --project-surface: var(--surface, #ffffff);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 0.4rem;
+  font-size: 12px;
+  color: inherit;
+}
+
+.project-browser-toolbar,
+.project-canvas-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.35rem;
+  border-bottom: 1px solid var(--project-border);
+}
+
+.project-toolbar-button {
+  border: 1px solid var(--project-border);
+  background: var(--project-surface);
+  color: inherit;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  font-size: 11px;
+  cursor: pointer;
+}
+.project-toolbar-button:hover { background: rgba(0, 0, 0, 0.04); }
+.project-toolbar-button.is-active { border-color: #2b6cb0; background: rgba(43, 108, 176, 0.12); }
+
+.project-browser-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  gap: 0.4rem;
+}
+.project-browser-tree {
+  flex: 1 1 50%;
+  min-width: 0;
+  overflow: auto;
+  border-right: 1px solid var(--project-border);
+}
+.project-browser-detail {
+  flex: 1 1 50%;
+  min-width: 0;
+  overflow: auto;
+  padding-left: 0.4rem;
+}
+
+.project-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  cursor: default;
+}
+.project-tree-row:hover { background: rgba(0, 0, 0, 0.04); }
+.project-tree-row.is-selected { background: rgba(43, 108, 176, 0.16); }
+.project-tree-row[aria-selected="true"] { outline: 1px solid rgba(43, 108, 176, 0.5); }
+.project-tree-disclosure {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 1rem;
+  font-size: 10px;
+  color: var(--project-muted);
+}
+.project-tree-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-tree-meta { color: var(--project-muted); font-size: 10px; }
+
+.project-object-list { padding-left: 0.6rem; }
+.project-object-group { margin: 0.1rem 0 0.35rem; }
+.project-object-group > header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+.project-object-name { font-family: var(--mono, ui-monospace, monospace); }
+.project-object-detail { color: var(--project-muted); font-size: 10px; }
+.project-object-row {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.05rem 0.3rem 0.05rem 1rem;
+  border-radius: 3px;
+}
+.project-object-row.is-selected { background: rgba(43, 108, 176, 0.14); }
+
+.project-empty,
+.project-error {
+  padding: 0.5rem;
+  color: var(--project-muted);
+  font-size: 11px;
+}
+.project-error { color: #b23c3c; }
+
+.project-canvas {
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+  height: 100%;
+  border: 1px solid var(--project-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.project-canvas-flow { position: relative; flex: 1; min-height: 260px; }
+.project-canvas-status,
+.project-omitted { color: var(--project-muted); font-size: 10px; }
+.project-canvas-error { color: #b23c3c; font-size: 10px; }
+
+.project-node {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #9aa7b1;
+  background: #f6f8fa;
+  color: #1f2933;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  justify-content: center;
+}
+.project-node.shape-rounded { border-radius: 12px; background: #eef7f1; border-color: #6fae8b; }
+.project-node.shape-circle { border-radius: 50%; align-items: center; text-align: center; background: #fff6e5; border-color: #d0a24c; }
+.project-node.shape-diamond {
+  border-radius: 6px;
+  background: #eef2fb;
+  border-color: #7f8fc7;
+  padding: 0.5rem 1.1rem;
+  clip-path: polygon(50% 3%, 97% 50%, 50% 97%, 3% 50%);
+}
+.project-node.shape-plate { border-radius: 6px; }
+.project-node.plate-file { background: #eef1f5; border-color: #8d99a6; }
+.project-node.plate-function { background: #eaf0f8; border-color: #5b7ea8; }
+.project-node.plate-control { background: #f7f1e6; border-color: #b99452; }
+.project-node.is-selected { border-color: #1f3f68; border-width: 2px; }
+.project-node-header { display: flex; align-items: baseline; gap: 0.35rem; }
+.project-node-category { font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; color: #5c6b76; }
+.project-node-label {
+  overflow: hidden;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+.project-node-expression {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 10px;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.project-node-fold { font-size: 9px; color: #5c6b76; }
+.project-handle {
+  width: 7px;
+  height: 7px;
+  background: #6b7680;
+  border: 1px solid #ffffff;
+}
+.project-handle.handle-boundary { background: #2b6cb0; }
+
+.project-context-menu {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 130px;
+  background: var(--project-surface, #ffffff);
+  border: 1px solid var(--project-border, #d5dbe0);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  padding: 0.2rem;
+}
+.project-context-menu button {
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.45rem;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.project-context-menu button:hover { background: rgba(0, 0, 0, 0.06); }

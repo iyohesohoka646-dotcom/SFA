@@ -1,0 +1,884 @@
+{
+  "format": "cdaf.export.v1",
+  "project": {
+    "bindings": [
+      {
+        "dynamic": false,
+        "id": "input_inventory_stock",
+        "port": "stock",
+        "provenance": "designed",
+        "source": {
+          "kind": "project",
+          "module": null,
+          "pointer": "/stock",
+          "value": null
+        },
+        "target": "inventory",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "inventory_approve_available",
+        "port": "available",
+        "provenance": "designed",
+        "source": {
+          "kind": "module",
+          "module": "inventory",
+          "pointer": "/available",
+          "value": null
+        },
+        "target": "approve",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "input_fulfill_amount",
+        "port": "amount",
+        "provenance": "designed",
+        "source": {
+          "kind": "project",
+          "module": null,
+          "pointer": "/amount",
+          "value": null
+        },
+        "target": "fulfill",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "input_decline_amount",
+        "port": "amount",
+        "provenance": "designed",
+        "source": {
+          "kind": "project",
+          "module": null,
+          "pointer": "/amount",
+          "value": null
+        },
+        "target": "decline",
+        "visibility": "L2"
+      }
+    ],
+    "capture": {
+      "level": "summary",
+      "max_bytes": 16384,
+      "retention_days": 7,
+      "sample_items": 5,
+      "sensitive_fields": [
+        "password",
+        "token",
+        "secret",
+        "api_key",
+        "authorization",
+        "email"
+      ]
+    },
+    "concurrency": 1,
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "stock": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "amount",
+        "stock"
+      ],
+      "type": "object"
+    },
+    "metadata": {
+      "description": "Reproducible local example; failure demonstrates a completed execution with failed quality.",
+      "example": "business-flow",
+      "inputs": {
+        "failure": {
+          "amount": 120,
+          "stock": 0
+        },
+        "success": {
+          "amount": 120,
+          "stock": 3
+        }
+      }
+    },
+    "modules": [
+      {
+        "allowed_imports": [
+          "http.server",
+          "http",
+          "socketserver",
+          "threading",
+          "urllib",
+          "json"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "stock": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "stock"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "additionalProperties": false,
+            "properties": {
+              "available": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "available"
+            ],
+            "type": "object"
+          }
+        },
+        "dependencies": [],
+        "description": "Call a loopback HTTP inventory stub; no remote credential required",
+        "guard": null,
+        "id": "inventory",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Inventory",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": true,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "inventory"
+        },
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": "$input.available == True",
+        "contract": {
+          "examples": [],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "available": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "available"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "type": "boolean"
+          }
+        },
+        "dependencies": [],
+        "description": "",
+        "guard": null,
+        "id": "approve",
+        "idempotent": false,
+        "kind": "decision",
+        "name": "Approve order",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": null,
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "amount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "amount"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "additionalProperties": false,
+            "properties": {
+              "total": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "total"
+            ],
+            "type": "object"
+          }
+        },
+        "dependencies": [],
+        "description": "",
+        "guard": {
+          "decision": "approve",
+          "when": true
+        },
+        "id": "fulfill",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Fulfill",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "fulfill"
+        },
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "amount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "amount"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "type": "string"
+          }
+        },
+        "dependencies": [],
+        "description": "",
+        "guard": {
+          "decision": "approve",
+          "when": false
+        },
+        "id": "decline",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Decline",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "decline"
+        },
+        "timeout_seconds": 30.0
+      }
+    ],
+    "name": "Order approval · 本地外部服务",
+    "probes": [
+      {
+        "binding": null,
+        "boundary": "output",
+        "enabled": true,
+        "expression": "$output.available == True",
+        "false_target": null,
+        "id": "stock_available",
+        "kind": "assertion",
+        "language_version": 1,
+        "module": "inventory",
+        "pointer": "",
+        "policy": "continue",
+        "true_target": null
+      },
+      {
+        "binding": null,
+        "boundary": "output",
+        "enabled": true,
+        "expression": "$output.available == True",
+        "false_target": "decline",
+        "id": "legacy_observation",
+        "kind": "branch_observer",
+        "language_version": 1,
+        "module": "inventory",
+        "pointer": "",
+        "policy": "continue",
+        "true_target": "fulfill"
+      }
+    ],
+    "schema_version": 1
+  },
+  "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+  "run": {
+    "id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+    "started": "2026-10-01T08:29:12.542559+00:00",
+    "finished": "2026-10-01T08:29:15.418430+00:00",
+    "status": "completed",
+    "quality": "passed",
+    "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+    "environment": {
+      "dependencies": {
+        "contract-driven-ai-flow": "0.2.0",
+        "jsonschema": "4.26.0",
+        "pydantic": "2.13.4"
+      },
+      "input_digest": "214c11ee3bf3adb8a4fe017ebfbe872d928bae9e24400df67e3d555a80408d6c",
+      "platform": "Windows-10-10.0.26200-SP0",
+      "python": "3.11.9",
+      "sources": {
+        "decline": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
+        "fulfill": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
+        "inventory": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070"
+      }
+    },
+    "owner": 2104
+  },
+  "events": [
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 121,
+      "time": "2026-10-01T08:29:12.553888+00:00",
+      "kind": "run.started",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": null,
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": null,
+      "links": [],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 2,
+            "fields": {
+              "amount": {
+                "type": "int",
+                "value": 120
+              },
+              "stock": {
+                "type": "int",
+                "value": 3
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 24,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "environment": {
+          "python": "3.11.9",
+          "platform": "Windows-10-10.0.26200-SP0",
+          "sources": {
+            "inventory": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
+            "fulfill": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070",
+            "decline": "dfdaefc20873dab0bfa206ce7fcc5fe2e7d052b01f8643f73f1cd5470b476070"
+          },
+          "dependencies": {
+            "contract-driven-ai-flow": "0.2.0",
+            "jsonschema": "4.26.0",
+            "pydantic": "2.13.4"
+          },
+          "input_digest": "214c11ee3bf3adb8a4fe017ebfbe872d928bae9e24400df67e3d555a80408d6c"
+        }
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 122,
+      "time": "2026-10-01T08:29:12.572830+00:00",
+      "kind": "binding.transferred",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "inventory",
+      "binding": "input_inventory_stock",
+      "attempt": 0,
+      "contract_revision": "051624486a44e9163186977da7d233f04e7c4da8bfff1fcaa21847eb678c2989",
+      "links": [
+        {
+          "binding": "input_inventory_stock",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "port": "stock"
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 123,
+      "time": "2026-10-01T08:29:12.583878+00:00",
+      "kind": "module.started",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "inventory",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "051624486a44e9163186977da7d233f04e7c4da8bfff1fcaa21847eb678c2989",
+      "links": [
+        {
+          "binding": "input_inventory_stock",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "stock": {
+                "type": "int",
+                "value": 3
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 11,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 124,
+      "time": "2026-10-01T08:29:12.595965+00:00",
+      "kind": "contract.checked",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "inventory",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "051624486a44e9163186977da7d233f04e7c4da8bfff1fcaa21847eb678c2989",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 125,
+      "time": "2026-10-01T08:29:13.827849+00:00",
+      "kind": "contract.checked",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "inventory",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "051624486a44e9163186977da7d233f04e7c4da8bfff1fcaa21847eb678c2989",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 126,
+      "time": "2026-10-01T08:29:13.835577+00:00",
+      "kind": "probe.result",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "inventory",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "051624486a44e9163186977da7d233f04e7c4da8bfff1fcaa21847eb678c2989",
+      "links": [],
+      "data": {
+        "probe": "stock_available",
+        "status": "pass",
+        "kind": "assertion",
+        "value": true,
+        "message": "",
+        "policy": "continue",
+        "redacted": []
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 127,
+      "time": "2026-10-01T08:29:13.843981+00:00",
+      "kind": "probe.result",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "inventory",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "051624486a44e9163186977da7d233f04e7c4da8bfff1fcaa21847eb678c2989",
+      "links": [],
+      "data": {
+        "probe": "legacy_observation",
+        "status": "pass",
+        "kind": "branch_observer",
+        "value": {
+          "condition": true,
+          "hypothetical_target": "fulfill"
+        },
+        "message": "",
+        "policy": "continue",
+        "redacted": []
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 128,
+      "time": "2026-10-01T08:29:13.851081+00:00",
+      "kind": "module.completed",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "inventory",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "051624486a44e9163186977da7d233f04e7c4da8bfff1fcaa21847eb678c2989",
+      "links": [],
+      "data": {
+        "duration_ms": 1235.000000000582,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "available": {
+                "type": "bool",
+                "value": true
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 18,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 129,
+      "time": "2026-10-01T08:29:13.858623+00:00",
+      "kind": "binding.transferred",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "approve",
+      "binding": "inventory_approve_available",
+      "attempt": 0,
+      "contract_revision": "37e2bec648827074d9a2282b06afc37b842706b4bd6edd17a522c77ef787ad19",
+      "links": [
+        {
+          "binding": "inventory_approve_available",
+          "module": "inventory",
+          "sequence": 128
+        }
+      ],
+      "data": {
+        "port": "available"
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 130,
+      "time": "2026-10-01T08:29:13.866939+00:00",
+      "kind": "module.started",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "approve",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "37e2bec648827074d9a2282b06afc37b842706b4bd6edd17a522c77ef787ad19",
+      "links": [
+        {
+          "binding": "inventory_approve_available",
+          "module": "inventory",
+          "sequence": 128
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "available": {
+                "type": "bool",
+                "value": true
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 18,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 131,
+      "time": "2026-10-01T08:29:13.877549+00:00",
+      "kind": "contract.checked",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "approve",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "37e2bec648827074d9a2282b06afc37b842706b4bd6edd17a522c77ef787ad19",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 132,
+      "time": "2026-10-01T08:29:13.888839+00:00",
+      "kind": "contract.checked",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "approve",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "37e2bec648827074d9a2282b06afc37b842706b4bd6edd17a522c77ef787ad19",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 133,
+      "time": "2026-10-01T08:29:13.897702+00:00",
+      "kind": "module.completed",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "approve",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "37e2bec648827074d9a2282b06afc37b842706b4bd6edd17a522c77ef787ad19",
+      "links": [],
+      "data": {
+        "duration_ms": 0.0,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "bool",
+            "value": true
+          },
+          "bytes": 4,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 134,
+      "time": "2026-10-01T08:29:13.915133+00:00",
+      "kind": "binding.transferred",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "fulfill",
+      "binding": "input_fulfill_amount",
+      "attempt": 0,
+      "contract_revision": "5ae3618b7fa0cc1c38485116c63832ee625b74f2eb3e3661631af7a45da08100",
+      "links": [
+        {
+          "binding": "input_fulfill_amount",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "port": "amount"
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 135,
+      "time": "2026-10-01T08:29:13.921156+00:00",
+      "kind": "module.started",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "fulfill",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "5ae3618b7fa0cc1c38485116c63832ee625b74f2eb3e3661631af7a45da08100",
+      "links": [
+        {
+          "binding": "input_fulfill_amount",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "amount": {
+                "type": "int",
+                "value": 120
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 14,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 136,
+      "time": "2026-10-01T08:29:13.930973+00:00",
+      "kind": "contract.checked",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "fulfill",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "5ae3618b7fa0cc1c38485116c63832ee625b74f2eb3e3661631af7a45da08100",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 137,
+      "time": "2026-10-01T08:29:15.359391+00:00",
+      "kind": "contract.checked",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "fulfill",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "5ae3618b7fa0cc1c38485116c63832ee625b74f2eb3e3661631af7a45da08100",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 138,
+      "time": "2026-10-01T08:29:15.371043+00:00",
+      "kind": "module.completed",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "fulfill",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "5ae3618b7fa0cc1c38485116c63832ee625b74f2eb3e3661631af7a45da08100",
+      "links": [],
+      "data": {
+        "duration_ms": 1406.0000000026776,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "total": {
+                "type": "int",
+                "value": 120
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 13,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 139,
+      "time": "2026-10-01T08:29:15.388835+00:00",
+      "kind": "module.skipped",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": "decline",
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": "5f56a97b5a533b498a3ba12be51e5f72fd520cba793947c122ba1581c2457723",
+      "links": [],
+      "data": {
+        "reason": "Decision selected the other branch",
+        "guard_owner": "decline"
+      }
+    },
+    {
+      "run_id": "e9f49c9348274b68ac36a0aab4e9a0d6",
+      "sequence": 140,
+      "time": "2026-10-01T08:29:15.400780+00:00",
+      "kind": "run.finished",
+      "revision": "8e06292840808d4388be57e3222f6d6272eb16a83ed041f0e38d2a10c0244993",
+      "module": null,
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": null,
+      "links": [],
+      "data": {
+        "status": "completed",
+        "quality": "passed",
+        "modules": {
+          "inventory": "completed",
+          "approve": "completed",
+          "fulfill": "completed",
+          "decline": "skipped"
+        }
+      }
+    }
+  ],
+  "view": {
+    "positions": {},
+    "collapsed": [],
+    "theme": "dark"
+  },
+  "evidence": "Observed events are historical execution evidence. Design links alone express static reachability."
+}

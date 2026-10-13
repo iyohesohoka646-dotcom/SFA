@@ -1,4 +1,16 @@
 .venv/
 __pycache__/
+node_modules/
+.cdaf/
+*.egg-info/
+dist/
+build/
+web/dist/
+.venv*/
+playwright-report/
+test-results/
+*.log
+.work/
 *.pyc
 .pytest_cache/
+*.tsbuildinfo

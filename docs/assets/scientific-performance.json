@@ -1,0 +1,264 @@
+{
+  "paint": [
+    3.8000000044703484,
+    4,
+    4.0999999940395355,
+    4.0999999940395355,
+    4.100000001490116,
+    4.100000001490116,
+    4.199999995529652,
+    4.300000004470348,
+    4.300000004470348,
+    4.4000000059604645,
+    4.699999995529652,
+    5.100000001490116,
+    5.200000002980232,
+    5.5,
+    5.700000002980232,
+    5.700000002980232,
+    5.799999997019768,
+    5.899999998509884,
+    6.199999995529652,
+    6.800000004470348
+  ],
+  "hiddenPaint": [
+    13.200000002980232,
+    5.4000000059604645,
+    4.100000001490116,
+    5,
+    4,
+    4.199999995529652,
+    4,
+    3.399999998509884,
+    3.7000000029802322,
+    4.700000002980232,
+    5.5,
+    4.799999997019768,
+    3.7000000029802322,
+    3.7999999970197678,
+    4.100000001490116,
+    5.5,
+    4,
+    3.600000001490116,
+    3.899999998509884,
+    5.200000002980232
+  ],
+  "longTasks": [
+    291,
+    259,
+    137,
+    106,
+    120,
+    117,
+    115,
+    110,
+    108,
+    110,
+    126,
+    118,
+    119,
+    105,
+    100,
+    109,
+    111,
+    103,
+    106,
+    110,
+    106,
+    113,
+    122,
+    122,
+    101,
+    210,
+    120,
+    124,
+    110,
+    102,
+    112,
+    117,
+    107,
+    111,
+    119,
+    106,
+    112,
+    122,
+    118,
+    100,
+    103,
+    117,
+    102,
+    107,
+    109,
+    107,
+    111,
+    124,
+    131
+  ],
+  "api": [
+    {
+      "url": "/api/v1/research/info",
+      "duration": 16.30000000447035
+    },
+    {
+      "url": "/api/v1/research/workbench/configuration",
+      "duration": 19.200000002980232
+    },
+    {
+      "url": "/api/v1/research/workbench/probe-definitions",
+      "duration": 24.19999999552965
+    },
+    {
+      "url": "/api/v1/lifecycle",
+      "duration": 29.30000000447035
+    },
+    {
+      "url": "/api/v1/research/runs",
+      "duration": 30.69999999552965
+    },
+    {
+      "url": "/api/v1/research/workbench/tasks",
+      "duration": 30.700000002980232
+    },
+    {
+      "url": "/api/v1/research/runs",
+      "duration": 24.299999997019768
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?run_id=c9b2423cdd7445668095440dfb978def",
+      "duration": 17.299999997019768
+    },
+    {
+      "url": "/api/v1/research/runs/c9b2423cdd7445668095440dfb978def/bootstrap",
+      "duration": 21.799999997019768
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses",
+      "duration": 47.19999999552965
+    },
+    {
+      "url": "/api/v1/research/workbench/settings",
+      "duration": 27.5
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/c9b2423cdd7445668095440dfb978def/analysis",
+      "duration": 43.20000000298023
+    },
+    {
+      "url": "/api/v1/research/runs/c9b2423cdd7445668095440dfb978def/events?after=10404",
+      "duration": 27.5
+    },
+    {
+      "url": "/api/v1/research/workbench/templates",
+      "duration": 30.299999997019768
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/122b6f94e2284359b72246217f664c09/source",
+      "duration": 16.5
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/122b6f94e2284359b72246217f664c09/occurrences",
+      "duration": 31.799999997019768
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?run_id=26326402ffc547279304c446f7d6579c",
+      "duration": 13.399999998509884
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/122b6f94e2284359b72246217f664c09/occurrences",
+      "duration": 13.399999998509884
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/26326402ffc547279304c446f7d6579c/analysis",
+      "duration": 360.5
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/122b6f94e2284359b72246217f664c09/source",
+      "duration": 378.20000000298023
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/c6cddb4585aa4f568f315c37ee6a3005/occurrences",
+      "duration": 287.20000000298023
+    },
+    {
+      "url": "/api/v1/research/runs/26326402ffc547279304c446f7d6579c/bootstrap",
+      "duration": 1675.2000000029802
+    },
+    {
+      "url": "/api/v1/research/runs/26326402ffc547279304c446f7d6579c/events?after=10001",
+      "duration": 115.69999999552965
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/26326402ffc547279304c446f7d6579c/analysis",
+      "duration": 368.1000000014901
+    },
+    {
+      "url": "/api/v1/research/runs/26326402ffc547279304c446f7d6579c/bootstrap",
+      "duration": 551.6000000014901
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/c6cddb4585aa4f568f315c37ee6a3005/occurrences",
+      "duration": 314.8999999985099
+    },
+    {
+      "url": "/api/v1/research/runs/26326402ffc547279304c446f7d6579c/source",
+      "duration": 13.200000002980232
+    },
+    {
+      "url": "/api/v1/research/snapshots/s7-10",
+      "duration": 13.199999995529652
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?snapshot_id=s7-10",
+      "duration": 281.19999999552965
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s7-10/semantics",
+      "duration": 280.79999999701977
+    },
+    {
+      "url": "/api/v1/research/workbench/runs/26326402ffc547279304c446f7d6579c/analysis",
+      "duration": 440.40000000596046
+    },
+    {
+      "url": "/api/v1/research/snapshots/s999-10",
+      "duration": 122.69999999552965
+    },
+    {
+      "url": "/api/v1/research/workbench/analyses/c6cddb4585aa4f568f315c37ee6a3005/occurrences",
+      "duration": 323.20000000298023
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?snapshot_id=s999-10",
+      "duration": 253.89999999850988
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s999-10/semantics",
+      "duration": 253.70000000298023
+    },
+    {
+      "url": "/api/v1/research/snapshots/s15-10",
+      "duration": 12.399999998509884
+    },
+    {
+      "url": "/api/v1/research/workbench/outputs?snapshot_id=s15-10",
+      "duration": 16.099999994039536
+    },
+    {
+      "url": "/api/v1/research/workbench/snapshots/s15-10/semantics",
+      "duration": 16.100000001490116
+    }
+  ],
+  "measuring": false,
+  "hidden": true,
+  "p95": 6.199999995529652,
+  "p50": 4.699999995529652,
+  "count": 20,
+  "hidden_p95": 5.5,
+  "hidden_count": 20,
+  "fixture": {
+    "logical_objects": 1000,
+    "versions": 10,
+    "events": 10000
+  },
+  "scope": "Synthetic saved-history fixture; selection event to next animation frame, with DOM effects checked. Excludes scientific computation and cold import."
+}

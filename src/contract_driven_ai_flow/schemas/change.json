@@ -1,0 +1,685 @@
+{
+  "$defs": {
+    "CapturePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "default": "summary",
+          "enum": [
+            "metadata",
+            "summary",
+            "sample",
+            "full"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "sensitive_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sensitive Fields",
+          "type": "array"
+        },
+        "max_bytes": {
+          "default": 16384,
+          "maximum": 1048576,
+          "minimum": 128,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "sample_items": {
+          "default": 5,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Sample Items",
+          "type": "integer"
+        },
+        "retention_days": {
+          "default": 7,
+          "maximum": 365,
+          "minimum": 1,
+          "title": "Retention Days",
+          "type": "integer"
+        }
+      },
+      "title": "CapturePolicy",
+      "type": "object"
+    },
+    "Contract": {
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "additionalProperties": true,
+          "title": "Input",
+          "type": "object"
+        },
+        "output": {
+          "additionalProperties": true,
+          "title": "Output",
+          "type": "object"
+        },
+        "examples": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Examples",
+          "type": "array"
+        }
+      },
+      "title": "Contract",
+      "type": "object"
+    },
+    "Diagnostic": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "severity": {
+          "default": "error",
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "module": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Module"
+        },
+        "binding": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Binding"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "Diagnostic",
+      "type": "object"
+    },
+    "ModuleSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "default": "python",
+          "enum": [
+            "python",
+            "composite",
+            "decision"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SymbolRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "contract": {
+          "$ref": "#/$defs/Contract"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent"
+        },
+        "outputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Source"
+          },
+          "title": "Outputs",
+          "type": "object"
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Condition"
+        },
+        "guard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RouteGuard"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timeout_seconds": {
+          "default": 30,
+          "exclusiveMinimum": 0,
+          "maximum": 86400,
+          "title": "Timeout Seconds",
+          "type": "number"
+        },
+        "retries": {
+          "default": 0,
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Retries",
+          "type": "integer"
+        },
+        "idempotent": {
+          "default": false,
+          "title": "Idempotent",
+          "type": "boolean"
+        },
+        "allowed_imports": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Imports",
+          "type": "array"
+        },
+        "dependencies": {
+          "items": {
+            "$ref": "#/$defs/SymbolRef"
+          },
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "side_effects": {
+          "default": false,
+          "title": "Side Effects",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ModuleSpec",
+      "type": "object"
+    },
+    "PortBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "port": {
+          "title": "Port",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/Source"
+        },
+        "dynamic": {
+          "default": false,
+          "title": "Dynamic",
+          "type": "boolean"
+        },
+        "visibility": {
+          "default": "L2",
+          "enum": [
+            "L1",
+            "L2",
+            "L3",
+            "L4"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        },
+        "provenance": {
+          "default": "designed",
+          "enum": [
+            "designed",
+            "migrated"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "target",
+        "port",
+        "source"
+      ],
+      "title": "PortBinding",
+      "type": "object"
+    },
+    "ProbeSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "module": {
+          "title": "Module",
+          "type": "string"
+        },
+        "binding": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Binding"
+        },
+        "boundary": {
+          "default": "output",
+          "enum": [
+            "input",
+            "output"
+          ],
+          "title": "Boundary",
+          "type": "string"
+        },
+        "kind": {
+          "default": "assertion",
+          "enum": [
+            "assertion",
+            "metric",
+            "capture",
+            "branch_observer"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "expression": {
+          "default": "True",
+          "title": "Expression",
+          "type": "string"
+        },
+        "policy": {
+          "default": "continue",
+          "enum": [
+            "continue",
+            "block",
+            "pause",
+            "breakpoint"
+          ],
+          "title": "Policy",
+          "type": "string"
+        },
+        "pointer": {
+          "default": "",
+          "title": "Pointer",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "language_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Language Version",
+          "type": "integer"
+        },
+        "true_target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "True Target"
+        },
+        "false_target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "False Target"
+        }
+      },
+      "required": [
+        "id",
+        "module"
+      ],
+      "title": "ProbeSpec",
+      "type": "object"
+    },
+    "ProjectSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "name": {
+          "default": "Contract-Driven AI Flow",
+          "title": "Name",
+          "type": "string"
+        },
+        "input_schema": {
+          "additionalProperties": true,
+          "title": "Input Schema",
+          "type": "object"
+        },
+        "modules": {
+          "items": {
+            "$ref": "#/$defs/ModuleSpec"
+          },
+          "title": "Modules",
+          "type": "array"
+        },
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/PortBinding"
+          },
+          "title": "Bindings",
+          "type": "array"
+        },
+        "probes": {
+          "items": {
+            "$ref": "#/$defs/ProbeSpec"
+          },
+          "title": "Probes",
+          "type": "array"
+        },
+        "capture": {
+          "$ref": "#/$defs/CapturePolicy"
+        },
+        "concurrency": {
+          "default": 1,
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Concurrency",
+          "type": "integer"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "title": "ProjectSpec",
+      "type": "object"
+    },
+    "RouteGuard": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "title": "Decision",
+          "type": "string"
+        },
+        "when": {
+          "title": "When",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "decision",
+        "when"
+      ],
+      "title": "RouteGuard",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "A JSON Pointer within project input, module output or a literal value.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "project",
+            "module",
+            "literal"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "module": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Module"
+        },
+        "pointer": {
+          "default": "",
+          "title": "Pointer",
+          "type": "string"
+        },
+        "value": {
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "SymbolRef": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "qualname": {
+          "title": "Qualname",
+          "type": "string"
+        },
+        "digest": {
+          "default": "",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "qualname"
+      ],
+      "title": "SymbolRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "architecture",
+        "implementation",
+        "rollback"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "base_revision": {
+      "title": "Base Revision",
+      "type": "string"
+    },
+    "created": {
+      "title": "Created",
+      "type": "string"
+    },
+    "status": {
+      "default": "proposed",
+      "enum": [
+        "proposed",
+        "accepted",
+        "rejected",
+        "invalid"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "module": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Module"
+    },
+    "base_source_digest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Base Source Digest"
+    },
+    "before": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Before"
+    },
+    "after": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "After"
+    },
+    "project": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProjectSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "diff": {
+      "default": "",
+      "title": "Diff",
+      "type": "string"
+    },
+    "diagnostics": {
+      "items": {
+        "$ref": "#/$defs/Diagnostic"
+      },
+      "title": "Diagnostics",
+      "type": "array"
+    },
+    "usage": {
+      "additionalProperties": true,
+      "title": "Usage",
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "base_revision",
+    "created",
+    "title"
+  ],
+  "title": "ChangeSet",
+  "type": "object"
+}
