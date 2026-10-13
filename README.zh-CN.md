@@ -6,7 +6,7 @@
 
 [English](README.md) · [快速使用](docs/research/quickstart.md) · [交互 CLI](docs/research/cli.md) · [扩展协议](docs/research/adapter-api.md) · [发行验证](docs/release.md)
 
-![逻辑变量、源码与独立探针视图](docs/assets/process-probe-templates.png)
+![项目文件、真实矩阵数据与独立探针管理](docs/assets/project-workbench.png)
 
 在同一界面查看变量在哪里定义、维度与类型是什么、运算怎样改变数据、异常首先在哪里出现。基础观察与规则解释不需要密钥。核心协议支持可扩展数据类型，NumPy／pandas 是首批内置适配器。
 
@@ -31,12 +31,12 @@ python -m pip install ".[research,views]"
 cdaf studio --project .\experiment
 ```
 
-选择示例，或填写自己的 `.py` 文件和计算解释器，先“导入解析”，配置探针，再点击“运行”。选择 `X`、`Z`、`C` 查看定义、形状、预览、表达式与上游。示例加入 `--failure nan` 后正常返回，但数值探针失败，可以直接追踪来源。
+通过 **Open folder** 打开项目目录，在“运行入口”保存脚本或模块入口，再点击“运行”。展开文件和作用域，双击变量查看数据，或进入探针台调整绑定。[项目示例](examples/research/projects/README.md)提供普通及 `src/` 布局、跨文件矩阵计算与失败路径。
 
-安装包包含构建后的 Web UI，普通使用不需要 Node.js 或密钥。也可直接安装功能分支，无需 Git：
+安装包包含构建后的 Web UI，普通使用不需要 Node.js 或密钥。也可安装本地构建的候选 wheel：
 
 ```powershell
-python -m pip install "contract-driven-ai-flow[research,views] @ https://github.com/iyohesohoka646-dotcom/SFA/archive/refs/heads/feat/contract-driven-ai-flow.zip"
+python -m pip install "./dist/contract_driven_ai_flow-0.6.0-py3-none-any.whl[research,views]"
 cdaf studio --project .\experiment
 ```
 
@@ -49,6 +49,7 @@ cdaf studio --project .\experiment
 | `cdaf studio --project PATH` | 源码、数据、局部运算、探针与时间线 |
 | Windows 桌面 | 同一工作台，单实例、关窗清理，顶部打开终端 |
 | `cdaf terminal --project PATH` 或终端里的 `cdaf` | `/open /run /vars /probe /model /explain /help` |
+| `cdaf --json workbench project --help` | 打开／索引目录、保存入口、编译冻结计划并执行 |
 | `cdaf observe analysis.py --python PATH --project PATH` | 独立科研环境中的批处理观察 |
 | `cdaf --json research runs --project PATH` | 自动化读取历史，不重新执行 |
 
@@ -77,7 +78,7 @@ cdaf studio --project .\experiment
 
 自动插桩有[明确覆盖边界](docs/research/instrumentation.md)，关系区分实际观察、源码推断与用户声明。代码和插件具有用户本身的文件／网络权限，见[限制](docs/research/limitations.md)。
 
-产品工作名称为 Scientific Dataflow Inspector。发行包 `contract-driven-ai-flow`、导入 `contract_driven_ai_flow`、命令 `cdaf`、仓库 `SFA` 保持兼容。当前是 **0.5.4 本地候选版本**，没有更名远端或发布 PyPI；简化对象、探针及图谱见[本轮改进记录](docs/research/process-probes-0.5.4.md)，启动恢复见[此前审查记录](docs/research/workbench-audit-0.5.1.md)。`sfa` 保留别名。契约工作流从“旧版架构”进入，见[旧工作流](docs/workflow.md)。[迁移](docs/research/migration.md)保留原文件和历史 ID，不补造矩阵证据。
+产品工作名称为 Scientific Dataflow Inspector。发行包 `contract-driven-ai-flow`、导入 `contract_driven_ai_flow`、命令 `cdaf`、仓库 `SFA` 保持兼容。当前是 **0.6.0 本地候选版本**，没有更名远端或发布 PyPI；见[项目使用](docs/research/projects.zh-CN.md)和[发行证据](docs/release.md)。`sfa` 保留别名。契约工作流从“旧版架构”进入，见[旧工作流](docs/workflow.md)。[迁移](docs/research/migration.md)保留原文件和历史 ID，不补造矩阵证据。
 
 ## 设计与开发
 

@@ -6,7 +6,7 @@ Open existing analysis code. Observe real values. Follow transformations. Find n
 
 [简体中文](README.zh-CN.md) · [Quick start](docs/research/quickstart.md) · [CLI](docs/research/cli.md) · [Extensions](docs/research/adapter-api.md) · [Release evidence](docs/release.md)
 
-![Logical variables, source and independent probe views](docs/assets/process-probe-templates.png)
+![Project files, real matrix evidence and independently managed probes](docs/assets/project-workbench.png)
 
 A local research workbench for understanding what an experiment computed. Source lines, variable versions, matrix previews, transformations and probe results share one screen. Basic inspection and rule explanations work without a key. The observation protocol supports multiple data types; NumPy and pandas are the first built-in adapters.
 ## Project workbench 0.6
@@ -49,6 +49,7 @@ Closing the last tab stops its owned service after a three-second refresh grace 
 | `cdaf studio --project PATH` | Source, data, local flow, probes and timeline |
 | Windows desktop | Same workbench, single instance, close cleanup and Open Terminal |
 | `cdaf terminal --project PATH` or bare `cdaf` in a TTY | `/open /run /vars /probe /model /explain /help` |
+| `cdaf --json workbench project --help` | Open/index a folder, save entries, compile frozen plans and run them |
 | `cdaf observe analysis.py --python PATH --project PATH` | Batch observation in a separate scientific environment |
 | `cdaf --json research runs --project PATH` | Saved evidence for automation; no rerun |
 
@@ -77,7 +78,7 @@ Plugins are explicitly enabled. The [point-cloud adapter](examples/research/cust
 
 Instrumentation has [explicit limits](docs/research/instrumentation.md); observed, inferred and declared relations are distinct. Code and plugins retain user file/network permissions. [Limitations](docs/research/limitations.md).
 
-Scientific Dataflow Inspector is the working display name. Package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, command `cdaf` and repository `SFA` stay compatible. This is a **0.5.4 local candidate**; no remote rename or PyPI publication. See the [compact workbench changes](docs/research/process-probes-0.5.4.md) and the [earlier startup repair](docs/research/workbench-audit-0.5.1.md). `sfa` remains an alias. Contract workflows remain in **旧版架构 / Legacy architecture** and [their reference](docs/workflow.md). [Migration](docs/research/migration.md) preserves originals and IDs without inventing scientific evidence.
+Scientific Dataflow Inspector is the working display name. Package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, command `cdaf` and repository `SFA` stay compatible. This is a **0.6.0 local candidate**; no remote rename or PyPI publication. See the [project guide](docs/research/projects.md) and [release evidence](docs/release.md). `sfa` remains an alias. Contract workflows remain in **旧版架构 / Legacy architecture** and [their reference](docs/workflow.md). [Migration](docs/research/migration.md) preserves originals and IDs without inventing scientific evidence.
 
 ## Development
 

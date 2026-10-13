@@ -39,8 +39,22 @@ const {spawnSync}=require('node:child_process');
   await page.locator('.project-canvas-status').waitFor({state:'hidden'});await page.locator('.react-flow__node').first().waitFor();
   await page.getByRole('button',{name:'Fit',exact:true}).click();
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const canvasGeometry=()=>page.locator('.project-canvas-flow').evaluate(element=>{
+    const bounds=element.getBoundingClientRect();
+    const clipped=[...element.querySelectorAll('.react-flow__node')].filter(node=>{
+      const box=node.getBoundingClientRect();
+      return box.left<bounds.left-2||box.right>bounds.right+2||box.top<bounds.top-2||box.bottom>bounds.bottom+2;
+    }).map(node=>node.getAttribute('data-id'));
+    return {width:bounds.width,height:bounds.height,clipped,nodes:element.querySelectorAll('.react-flow__node').length,viewport:element.querySelector('.react-flow__viewport')?.getAttribute('style')};
+  });
+  const fitted=await canvasGeometry();assert(fitted.nodes>0);assert.deepEqual(fitted.clipped,[],'Fit must keep every visible block inside the canvas');
   const timings=await row.evaluate(async element=>{const result=[];for(let i=0;i<30;i++){const start=performance.now();element.dispatchEvent(new MouseEvent('click',{bubbles:true}));await new Promise(requestAnimationFrame);result.push(performance.now()-start);}return result;});
   timings.sort((a,b)=>a-b);const p95=timings[Math.floor(timings.length*.95)];
+  const afterSelection=await canvasGeometry();console.log(JSON.stringify({fitted,afterSelection}));
+  assert.equal(afterSelection.viewport,fitted.viewport,'Selection must preserve the fitted camera');
+  assert.deepEqual(afterSelection.clipped,[],'The fitted blocks must remain inside the canvas after selection');
+  await page.screenshot({path:path.resolve(__dirname,'../../docs/assets/project-graph.png')});
+  await page.getByRole('tab',{name:'X',exact:true}).locator('.workspace-tab-title').click();await page.getByRole('img',{name:'矩阵热图',exact:true}).waitFor();
   await page.screenshot({path:path.resolve(__dirname,'../../docs/assets/project-workbench.png')});
   const frames=[];page.on('websocket',socket=>socket.on('framereceived',event=>frames.push(String(event.payload))));
   await page.getByRole('button',{name:'打开终端',exact:true}).click();await page.getByLabel('终端配置',{exact:true}).selectOption('python');await page.getByRole('button',{name:'新建终端',exact:true}).click();
@@ -54,6 +68,15 @@ const {spawnSync}=require('node:child_process');
   const check=spawnSync('powershell.exe',['-NoProfile','-Command',`if(Get-Process -Id ${children.join(',')} -ErrorAction SilentlyContinue){exit 1}`],{windowsHide:true,timeout:10000});assert.equal(check.status,0,'Owned PTY survived application exit');
   const receipt={version:'0.6.0',entry_kind:process.env.CDAF_DESKTOP_ENTRY_KIND||(installed?'packaged':'development'),executable:installed||require('electron'),project_id:projectId,run_id:runId,cross_module_evidence:true,real_matrix:true,real_terminal:true,selection_p95_ms:p95,selection_samples:30,owner_cleanup:true,port_released:true,result:'passed'};
   fs.writeFileSync(path.resolve(__dirname,'../../.work/project-acceptance/desktop-project-'+(installed?'packaged':'development')+'.json'),JSON.stringify(receipt,null,2));console.log(JSON.stringify(receipt));
- }catch(error){console.error('Project status:',await app.firstWindow().then(page=>page.locator('.wb-statusbar').innerText()).catch(()=>'(renderer unavailable)'));throw error;}
+ }catch(error){
+  const page=await app.firstWindow().catch(()=>null);
+  if(page){
+   console.error('Project status:',await page.locator('.wb-statusbar').innerText().catch(()=>'(renderer unavailable)'));
+   console.error('Panels:',await page.locator('.workspace-document[aria-hidden=false]').allTextContents());
+   console.error('Tabs:',await page.getByRole('tab').evaluateAll(elements=>elements.map(element=>({name:element.textContent,selected:element.getAttribute('aria-selected')}))));
+   await page.screenshot({path:path.resolve(__dirname,'../../.work/project-acceptance/native-project-failure.png')}).catch(()=>{});
+  }
+  throw error;
+ }
  finally{await app.close().catch(()=>{});}
 })().catch(error=>{console.error(error);process.exitCode=1;});

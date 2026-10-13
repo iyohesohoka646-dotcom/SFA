@@ -146,6 +146,7 @@ function ProjectEdgeView(props: EdgeProps) {
 
 const nodeTypes: NodeTypes = { project: ProjectNodeView };
 const edgeTypes: EdgeTypes = { project: ProjectEdgeView };
+const fitOptions = { padding: 0.2, minZoom: 0.01, maxZoom: 1.25, duration: 0 };
 
 function CanvasInner({
   slice,
@@ -223,7 +224,7 @@ function CanvasInner({
         setStatus("ready");
         if (fitted.current !== identity) {
           fitted.current = identity;
-          requestAnimationFrame(() => flow.fitView({ padding: 0.2 }));
+          requestAnimationFrame(() => flow.fitView(fitOptions));
         }
       } catch (error) {
         if (cancelled) return;
@@ -293,7 +294,7 @@ function CanvasInner({
         <button type="button" className={"project-toolbar-button" + (mode === "select" ? " is-active" : "")} onClick={() => setMode("select")}>
           Select
         </button>
-        <button type="button" className="project-toolbar-button" onClick={() => flow.fitView({ padding: 0.2 })}>Fit</button>
+        <button type="button" className="project-toolbar-button" onClick={() => flow.fitView(fitOptions)}>Fit</button>
         <button type="button" className="project-toolbar-button" onClick={arrangeNow}>Arrange</button>
         <button type="button" className="project-toolbar-button" onClick={folded ? unfoldAll : foldAll}>
           {folded ? "Expand" : "Collapse"}
@@ -327,10 +328,11 @@ function CanvasInner({
           panOnDrag={mode === "pan"}
           selectionOnDrag={mode === "select"}
           fitView={false}
+          minZoom={0.01}
           proOptions={{ hideAttribution: true }}
         >
           <Background />
-          <Controls showInteractive={false} />
+          <Controls showInteractive={false} fitViewOptions={fitOptions} />
         </ReactFlow>
         {menu && (
           <div className="project-context-menu" style={{ left: menu.x, top: menu.y }} role="menu">

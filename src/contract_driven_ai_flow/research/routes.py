@@ -176,6 +176,7 @@ def _research_router(app, resolve, prefix: str, *, project=None):
         async def events():
             nonlocal cursor
             idle = 0
+            terminal_seen = False
             while True:
                 if await request.is_disconnected():
                     return
@@ -184,9 +185,14 @@ def _research_router(app, resolve, prefix: str, *, project=None):
                     cursor = event["sequence"]
                     yield f"id: {cursor}\nevent: observation\ndata: {json.dumps(event, ensure_ascii=False, allow_nan=False)}\n\n"
                 if not page:
+                    if terminal_seen:
+                        return
                     record = await asyncio.to_thread(service.store.run, run_id)
                     if record["status"] in TERMINAL:
-                        return
+                        # Completion may commit after the empty page read.
+                        # Drain again from the cursor before closing the stream.
+                        terminal_seen = True
+                        continue
                     idle += 1
                     if idle >= 200:
                         yield ": heartbeat\n\n"

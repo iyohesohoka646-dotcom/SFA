@@ -158,6 +158,35 @@ test("saving an entry then immediately running does not overwrite a stale clean 
   } finally { release(); }
 });
 
+test("Fit contains every project block in a narrow dock and selection keeps the camera", async ({ page, request }) => {
+  const fixture = await (await request.get("/api/v1/project-test-fixture", { headers })).json();
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await page.goto("/#session=" + token);
+  await page.getByLabel("Folder path", { exact: true }).fill(fixture.matrix_root);
+  await page.getByRole("button", { name: "Open folder", exact: true }).click();
+  const response = page.waitForResponse(r => r.url().includes("/graph?") && r.url().includes("view=data") && r.ok());
+  await page.getByRole("button", { name: "Data", exact: true }).click();
+  await response;
+  const canvas = page.locator(".project-canvas-flow");
+  await expect(canvas.locator(".react-flow__node").first()).toBeVisible();
+  await expect(page.locator(".project-canvas-status")).not.toBeVisible();
+  await page.getByRole("button", { name: "Fit", exact: true }).click();
+  const clipped = () => canvas.evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    return [...element.querySelectorAll(".react-flow__node")].filter(node => {
+      const box = node.getBoundingClientRect();
+      return box.left < bounds.left - 2 || box.right > bounds.right + 2 || box.top < bounds.top - 2 || box.bottom > bounds.bottom + 2;
+    }).map(node => node.getAttribute("data-id"));
+  });
+  await expect.poll(clipped).toEqual([]);
+  const viewport = canvas.locator(".react-flow__viewport");
+  const before = await viewport.getAttribute("style");
+  await page.getByRole("treeitem").filter({ has: page.locator(".project-tree-label", { hasText: /^main\.py$/ }) }).click();
+  await expect(page.locator(".wb-statusbar")).toContainText("1 个选中");
+  await expect(viewport).toHaveAttribute("style", before!);
+  expect(await clipped()).toEqual([]);
+});
+
 test("project probes added after a run create real views and disabling them persists", async ({
   page,
   request,
