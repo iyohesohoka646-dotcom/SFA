@@ -8,7 +8,7 @@ for (const status of [404, 500]) {
     await page.addInitScript(() => localStorage.setItem("cdaf.project.id", "previous-local-workspace"));
     if (status === 500) await page.route("**/research/projects/previous-local-workspace", route => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ detail: "Project service unavailable" }) }));
     await page.goto("/#session=" + token);
-    await expect(page.getByLabel("Folder path", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", {name:"Open folder", exact:true})).toBeEnabled();
     await expect.poll(() => page.evaluate(() => localStorage.getItem("cdaf.project.id"))).toBe(null);
     if (status === 404) await expect(page.locator(".project-host-error")).not.toBeVisible();
     else await expect(page.locator(".project-host-error")).toContainText("Project service unavailable");
@@ -25,8 +25,9 @@ test("project browser, cross-file evidence, probes and source versions share one
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/#session=" + token);
+  await page.getByText("Enter folder path", {exact:true}).click();
   await page.getByLabel("Folder path", { exact: true }).fill(fixture.root);
-  await page.getByRole("button", { name: "Open folder", exact: true }).click();
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
   await expect(page.getByLabel("项目运行入口", { exact: true })).toHaveValue(
     "main",
   );
@@ -82,8 +83,9 @@ test("switching projects unmounts old sessions without running the new project",
     await request.get("/api/v1/project-test-fixture", { headers })
   ).json();
   await page.goto("/#session=" + token);
+  await page.getByText("Enter folder path", {exact:true}).click();
   await page.getByLabel("Folder path", { exact: true }).fill(fixture.root);
-  await page.getByRole("button", { name: "Open folder", exact: true }).click();
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
   await page.getByRole("button", { name: "智能助手", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "上下文预览", exact: true }),
@@ -91,8 +93,9 @@ test("switching projects unmounts old sessions without running the new project",
   await page
     .getByRole("button", { name: "Switch project", exact: true })
     .click();
+  await page.getByText("Enter folder path", {exact:true}).click();
   await page.getByLabel("Folder path", { exact: true }).fill(fixture.other);
-  await page.getByRole("button", { name: "Open folder", exact: true }).click();
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
   await expect(page.locator(".wb-project-name")).toHaveText("other", {
     timeout: 15000,
   });
@@ -119,8 +122,9 @@ test("embedded terminal executes Python in the selected project and ends explici
     socket.on("framereceived", (event) => frames.push(String(event.payload))),
   );
   await page.goto("/#session=" + token);
+  await page.getByText("Enter folder path", {exact:true}).click();
   await page.getByLabel("Folder path", { exact: true }).fill(fixture.root);
-  await page.getByRole("button", { name: "Open folder", exact: true }).click();
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
   await page.getByRole("button", { name: "终端", exact: true }).click();
   await page.getByLabel("终端配置", { exact: true }).selectOption("python");
   await page.getByRole("button", { name: "新建终端", exact: true }).click();
@@ -149,8 +153,9 @@ test("embedded terminal executes Python in the selected project and ends explici
 test("saving an entry then immediately running does not overwrite a stale clean configuration", async ({ page, request }) => {
   const fixture = await (await request.get("/api/v1/project-test-fixture", { headers })).json();
   await page.goto("/#session=" + token);
+  await page.getByText("Enter folder path", {exact:true}).click();
   await page.getByLabel("Folder path", { exact: true }).fill(fixture.other);
-  await page.getByRole("button", { name: "Open folder", exact: true }).click();
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
   await page.getByRole("button", { name: "运行入口", exact: true }).click();
   await page.locator(".project-entries-candidates").getByRole("button", { name: "main.py", exact: true }).click();
   let hold = false;
@@ -174,8 +179,9 @@ test("Fit contains every project block in a narrow dock and selection keeps the 
   const fixture = await (await request.get("/api/v1/project-test-fixture", { headers })).json();
   await page.setViewportSize({ width: 1100, height: 900 });
   await page.goto("/#session=" + token);
+  await page.getByText("Enter folder path", {exact:true}).click();
   await page.getByLabel("Folder path", { exact: true }).fill(fixture.matrix_root);
-  await page.getByRole("button", { name: "Open folder", exact: true }).click();
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
   const response = page.waitForResponse(r => r.url().includes("/graph?") && r.url().includes("view=data") && r.ok());
   await page.getByRole("button", { name: "Data", exact: true }).click();
   await response;
@@ -211,9 +217,10 @@ test("project probes added after a run create real views and disabling them pers
   const original = await (await request.get(configUrl, { headers })).json();
   try {
     await page.goto("/#session=" + token);
-    await page.getByLabel("Folder path", { exact: true }).fill(fixture.root);
+    await page.getByText("Enter folder path", {exact:true}).click();
+  await page.getByLabel("Folder path", { exact: true }).fill(fixture.root);
     await page
-      .getByRole("button", { name: "Open folder", exact: true })
+      .getByRole("button", { name: "Open project", exact: true })
       .click();
     await page.getByRole("button", { name: "运行", exact: true }).click();
     await expect(page.locator(".wb-statusbar")).toContainText("completed", {

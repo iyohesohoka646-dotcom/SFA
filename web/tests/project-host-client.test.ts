@@ -277,8 +277,7 @@ describe("component smoke", () => {
         createElement("span", null, "child"),
       ),
     );
-    expect(markup).toContain("Choose project");
-    expect(markup).toContain("No project open");
+    expect(markup).toContain("Workspace");
     expect(calls.length).toBe(0);
   });
 

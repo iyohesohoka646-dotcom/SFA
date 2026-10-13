@@ -21,6 +21,7 @@ import {
   type ProjectCommands,
 } from "./projectCommands";
 import "./project-host.css";
+import {ProjectChooser} from './ProjectChooser';
 
 /** Task poll cadence while an index job is queued or running. */
 export const INDEX_POLL_MS = 350;
@@ -86,11 +87,18 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
   const [chooser, setChooser] = useState(false);
   const [folder, setFolder] = useState("");
   const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const [manualRequest,setManualRequest]=useState(0);
   const [error, setError] = useState("");
   const [task, setTask] = useState<TaskRecord | null>(null);
   const [restoring, setRestoring] = useState(
     () => typeof window !== "undefined" && !!readStoredProject(),
   );
+
+  useEffect(()=>{
+    window.dispatchEvent(new Event('cdaf-service-slot'));
+    return()=>{queueMicrotask(()=>window.dispatchEvent(new Event('cdaf-service-slot')));};
+  },[chooser]);
 
   const mounted = useRef(true);
   const activeId = useRef("");
@@ -239,8 +247,8 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
     [beginIndex, commands, fail],
   );
 
-  const openFolder = useCallback(async () => {
-    const value = folder.trim();
+  const openFolder = useCallback(async (path=folder) => {
+    const value = path.trim();
     if (!value) return;
     const controller = new AbortController();
     pending.current?.abort();
@@ -275,11 +283,36 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
         ticket !== sequence.current
       )
         return;
-      fail(cause, () => void openFolder());
+      fail(cause, () => void openFolder(value));
     } finally {
       if (mounted.current && ticket === sequence.current) setBusy(false);
     }
   }, [beginIndex, commands, fail, folder]);
+
+  const desktop=typeof window==='undefined'?undefined:(window as Window&{desktopStartup?:{pickProjectFolder?:()=>Promise<string|null>}}).desktopStartup;
+  const pickProjectFolder=desktop?.pickProjectFolder;
+  const chooseFolder=useCallback(async()=>{
+    if(!pickProjectFolder){setChooser(true);setManualRequest(value=>value+1);return;}
+    if(picking||busy)return;
+    const ticket=sequence.current;setPicking(true);setError('');
+    try{
+      const path=await pickProjectFolder();
+      if(mounted.current&&ticket===sequence.current&&path)await openFolder(path);
+    }catch(cause){if(mounted.current&&ticket===sequence.current)fail(cause,()=>void chooseFolder());}
+    finally{if(mounted.current)setPicking(false);}
+  },[busy,picking,pickProjectFolder,openFolder,fail]);
+
+  useEffect(()=>{
+    let chordUntil=0;
+    const shortcut=(event:KeyboardEvent)=>{
+      const target=event.target as HTMLElement|null;
+      if(target?.closest('input,textarea,[contenteditable=true],[role=textbox]'))return;
+      if(!(event.ctrlKey||event.metaKey)||event.altKey)return;
+      if(event.key.toLowerCase()==='k'){chordUntil=Date.now()+1500;event.preventDefault();}
+      else if(event.key.toLowerCase()==='o'&&Date.now()<chordUntil){chordUntil=0;event.preventDefault();void chooseFolder();}
+    };
+    window.addEventListener('keydown',shortcut);return()=>window.removeEventListener('keydown',shortcut);
+  },[chooseFolder]);
 
   const cancelIndex = useCallback(async () => {
     const current = project;
@@ -359,26 +392,24 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
   const status = indexStatus(task);
 
   return (
-    <div className="project-host">
+    <div className={`project-host${chooser?' is-choosing':''}`}>
       <div className="project-host-bar">
-        {!project && <h1>Scientific Dataflow Inspector</h1>}
-        <button
+        {!project && <span className="project-host-home">Workspace</span>}
+        {project&&<button
           type="button"
           className="project-host-button"
           aria-expanded={chooser}
           onClick={() => setChooser((value) => !value)}
         >
-          {project ? "Switch project" : "Choose project"}
-        </button>
+          {chooser ? "Back to project" : "Switch project"}
+        </button>}
         {project ? (
           <span className="project-host-current">
             <strong>{project.name || project.id}</strong>
             <code className="project-host-root">{project.root}</code>
           </span>
         ) : (
-          <span className="project-host-current project-host-muted">
-            No project open
-          </span>
+          null
         )}
         {project ? (
           <button
@@ -399,7 +430,7 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
             Cancel index
           </button>
         ) : null}
-        {onLegacy ? (
+        {onLegacy&&project ? (
           <button
             type="button"
             className="project-host-button project-host-legacy"
@@ -408,53 +439,14 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
             Back to legacy
           </button>
         ) : null}
+        <div className="project-host-service-actions"/>
       </div>
 
       {chooser ? (
-        <div className="project-host-chooser">
-          <label className="project-host-field">
-            <span>Folder path</span>
-            <input
-              value={folder}
-              placeholder="C:\\path\\to\\project"
-              onChange={(event) => setFolder(event.target.value)}
-            />
-          </label>
-          <button
-            type="button"
-            className="project-host-button project-host-open"
-            disabled={busy || !folder.trim()}
-            onClick={() => void openFolder()}
-          >
-            Open folder
-          </button>
-          <div className="project-host-recent">
-            <span className="project-host-label">Recent projects</span>
-            {recentError ? (
-              <p className="project-host-error-text">{recentError}</p>
-            ) : recent.length === 0 ? (
-              <p className="project-host-muted">No indexed projects yet.</p>
-            ) : (
-              <ul>
-                {recent.map((item) => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      className={item.id === project?.id ? "is-active" : ""}
-                      onClick={() =>
-                        void load(item.id, { persist: true, autoIndex: true })
-                      }
-                    >
-                      <strong>{item.name || item.id}</strong>
-                      <code>{item.root}</code>
-                      {item.latest_revision_id ? null : <em>not indexed</em>}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+        <ProjectChooser recent={recent} recentError={recentError} folder={folder} onFolder={setFolder}
+          onOpen={()=>void openFolder()} onChoose={()=>void chooseFolder()}
+          onRecent={id=>void load(id,{persist:true,autoIndex:true})} onLegacy={onLegacy}
+          busy={busy||picking} nativePicker={!!pickProjectFolder} manualRequest={manualRequest}/>
       ) : null}
 
       {error ? (
@@ -496,7 +488,7 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
       ) : null}
 
       {session ? (
-        <div className="project-session" key={session.project.id}>
+        <div className="project-session" hidden={chooser} key={session.project.id}>
           {children(session)}
         </div>
       ) : project ? (

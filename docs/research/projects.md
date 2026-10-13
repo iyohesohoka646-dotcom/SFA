@@ -4,7 +4,7 @@ Version 0.6 opens local Python folders without executing them. Flat scripts and 
 
 ## Workflow
 
-1. Start `cdaf studio --project PATH`; open the research folder through **Open folder**.
+1. Start the desktop app or `cdaf studio --project PATH`. **Open folder** opens the native directory chooser on desktop; in a browser it reveals and focuses the path field. **Enter folder path** is also available directly; submit with **Open project** or Enter. Opened folders appear in **Recent** for one-click reopening. Desktop supports Ctrl+K, Ctrl+O. Opening/importing only indexes; it does not run source.
 2. In **运行入口 / Run entries**, choose a candidate or add a script-relative path or dotted module entry. Save arguments, working directory and machine interpreter/environment references. Install a `src/` package in its selected interpreter or explicitly author its import environment; indexing does not repair imports implicitly.
 3. Click **运行 / Run**. The selected entry alone runs in a separate process. Expand a file/scope and double-click a variable to view actual saved evidence. A click only selects; use the context menu to open source or enter a scope, and **Back** to return.
 4. Configure probes or apply a template. Save, then execute probes or replot explicitly. These actions use the selected run's archived inputs and freeze the newly selected probe configuration; they do not rerun the project entry.

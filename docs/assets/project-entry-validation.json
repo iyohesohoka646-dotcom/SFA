@@ -1,0 +1,108 @@
+{
+  "version": "0.6.0",
+  "revision_kind": "project-entry-fix",
+  "base_commit": "a7b7ec0b39625183dc37f90e8955a33a22b5d756",
+  "implementation_sha256": {
+    "desktop/src/main.cjs": "36bb07eb1d0d2c4be4c163d58add619434c40fb6cef8ed811f4fe0b46704cb4b",
+    "desktop/src/preload.cjs": "a73c74af3f1cfa1b34bd4a773c7eb227b8364b1753ae41667c9b8a93627ac7fd",
+    "desktop/src/folder-picker.cjs": "e2bc00aa3231bd15e1528b7f681fc8d98a03d98e36687e5d82591aaa8d778ef7",
+    "web/src/runtime/lifecycle.tsx": "063261ccd16e0496dd13a0ba012cab627d7ff69da34f123b14e49263fc046ff5",
+    "web/src/research/projects/ProjectHost.tsx": "815d0e129d4306f7f744b08c4d87c55649f060d803b90b3ce1e405d29e6a3ccf",
+    "web/src/research/projects/ProjectChooser.tsx": "ee755b5e5837e5eaf19cec81a6b3bc5ec297e1bc67988f8721b9c9a2eb10d59a",
+    "web/src/research/projects/project-host.css": "6b86fc991dd7e575e0d2f9da44d877e776e6c21a728a3ab83210a9dbe555f448"
+  },
+  "artifacts": {
+    "wheel_sha256": "0aad850f4c6a133e787e373968e668020e06649befd6b925a247eddb30a75f03",
+    "windows_installer_sha256": "e8ebc8557f47287308af9f206631acec05e99e7c29b06c59b9124631d5033099",
+    "signed": false
+  },
+  "verification": {
+    "desktop_unit": 6,
+    "frontend_unit": 150,
+    "focused_browser": 14,
+    "complete_browser": 106,
+    "browser_seconds": 635.526,
+    "failed": 0,
+    "native_installed": {
+      "version": "0.6.0",
+      "entry_kind": "installed",
+      "native_system_dialog_visible": true,
+      "native_picker_ipc": true,
+      "subsequent_dialog_result_stubbed": true,
+      "cancel_then_open": true,
+      "cross_module_evidence": true,
+      "real_matrix": true,
+      "real_terminal": true,
+      "selection_p95_ms": 14,
+      "selection_samples": 30,
+      "owner_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "shortcut": {
+      "version": "0.6.0",
+      "entry_kind": "installed-shortcut-target",
+      "exact_shortcut_arguments": true,
+      "node_or_checkout_override": false,
+      "core_version": "0.6.0",
+      "renderer_errors": [],
+      "theme_background": "rgb(247, 250, 251)",
+      "initial_view": "chooser",
+      "initial_view_without_error": true,
+      "owner_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "installed_bytes": {
+      "version": "0.6.0",
+      "matched_package_files": 280,
+      "wheel_sha256": "0aad850f4c6a133e787e373968e668020e06649befd6b925a247eddb30a75f03",
+      "desktop_asar_matches_packaged": true,
+      "no_stale_static_resources": true,
+      "metadata_matches": true,
+      "result": "passed"
+    },
+    "python_only_wheel_install": "passed",
+    "definition_and_every_sqlite_row_preservation": "passed",
+    "preserved_table_counts": {
+      ".cdaf\\research\\experiments.sqlite3": {
+        "artifact_leases": 0,
+        "control_details": 16,
+        "control_receipts": 5,
+        "control_summaries": 16,
+        "events": 235,
+        "operations": 59,
+        "research_migrations": 1,
+        "runs": 6,
+        "snapshots": 64,
+        "sqlite_sequence": 1
+      },
+      ".cdaf\\research\\host.sqlite3": {
+        "projects": 0
+      },
+      ".cdaf\\research\\workbench.sqlite3": {
+        "records": 258
+      },
+      ".cdaf\\settings\\models.sqlite3": {
+        "calls": 0,
+        "profiles": 0
+      }
+    },
+    "current_ci": "See the current draft PR checks. The earlier a7b7ec0 matrix is historical; it is not the entry-fix CI result.",
+    "browser_flaky": 0
+  },
+  "native_test_boundary": "The real Windows directory dialog is opened and cancelled. Subsequent chosen-folder results are stubbed at the OS API only; actual IPC/import/index/computation/PTY/close are exercised.",
+  "test_environment_logs": [
+    "The complete browser run logged Windows Python3.11 Proactor ConnectionResetError10054 during transport teardown; original output is retained, with106testspassed."
+  ],
+  "limitations": [
+    "Windows installer remains unsigned.",
+    "Native macOS/Linux folder-dialog acceptance has not run.",
+    "Real model inference remains deferred by user."
+  ],
+  "screenshot": {
+    "name": "project-welcome.png",
+    "sha256": "e4b1e58f57f2348d0deac4c0cc066eba0751c63b32b856be6517d4f6f4f197ed",
+    "source": "installed Windows app using owned synthetic test profile; no user projects or files are displayed."
+  }
+}

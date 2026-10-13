@@ -4,6 +4,16 @@ import {headers} from '../api';
 
 export function ServiceControl(){
  const [owned,setOwned]=useState(false);const [stopped,setStopped]=useState(false);
+ const [slot,setSlot]=useState<Element|null>(null);
+ const [welcome,setWelcome]=useState(false);
+ useEffect(()=>{
+  const locate=()=>{
+   setSlot(document.querySelector('.project-host-service-actions')||document.querySelector('.ri-header-actions'));
+   setWelcome(!!document.querySelector('.project-host.is-choosing'));
+  };
+  locate();window.addEventListener('cdaf-service-slot',locate);
+  return()=>window.removeEventListener('cdaf-service-slot',locate);
+ },[]);
  useEffect(()=>{
   const controller=new AbortController();let lease:string|undefined;let closed=false;
   const release=()=>{closed=true;controller.abort();if(lease)void fetch('/api/v1/lifecycle/leases/'+lease,{method:'DELETE',headers:headers(),keepalive:true}).catch(()=>{});};
@@ -31,7 +41,7 @@ export function ServiceControl(){
  const desktop=(window as Window & {desktopStartup?:{close:()=>Promise<unknown>}}).desktopStartup;
  if(!owned&&!desktop)return null;
  const button=<button disabled={stopped} onClick={async()=>{setStopped(true);try{if(desktop){await desktop.close();return;}const response=await fetch('/api/v1/studio/shutdown',{method:'POST',headers:headers()});if(!response.ok)setStopped(false);}catch{setStopped(false);} }}> {stopped?'正在停止…':'退出并停止'} </button>;
- const target=document.querySelector('.ri-header-actions');
- const controls=<>{desktop&&<button onClick={()=>window.dispatchEvent(new Event('cdaf-open-terminal'))}>打开终端</button>}{owned&&button}</>;
+ const target=slot?.isConnected?slot:document.querySelector('.ri-header-actions');
+ const controls=<>{desktop&&!welcome&&<button onClick={()=>window.dispatchEvent(new Event('cdaf-open-terminal'))}>打开终端</button>}{owned&&button}</>;
  return target?createPortal(controls,target):<div className="service-control">{controls}</div>;
 }

@@ -1,5 +1,5 @@
 const {contextBridge,ipcRenderer}=require('electron');
-contextBridge.exposeInMainWorld('desktopStartup',{retry:()=>ipcRenderer.invoke('retry-backend'),close:()=>ipcRenderer.invoke('close-workbench')});
+contextBridge.exposeInMainWorld('desktopStartup',{retry:()=>ipcRenderer.invoke('retry-backend'),close:()=>ipcRenderer.invoke('close-workbench'),pickProjectFolder:()=>ipcRenderer.invoke('pick-project-folder')});
 const update=state=>{
  if(!state)return;
  const status=document.getElementById('startup-status');

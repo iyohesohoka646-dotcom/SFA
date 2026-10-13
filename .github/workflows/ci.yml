@@ -58,6 +58,7 @@ jobs:
         working-directory: web
       - run: npm run test:unit
         working-directory: web
+      - run: npm test --prefix desktop
       - run: npx playwright install --with-deps chromium
         working-directory: web
       - run: npm test

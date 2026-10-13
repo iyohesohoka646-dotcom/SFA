@@ -68,15 +68,30 @@
 .project-host-muted { color: var(--project-host-muted); font-size: 11px; }
 
 .project-host-chooser {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto;
-  align-items: end;
-  gap: 0.5rem;
-  padding: 0.5rem 0.35rem;
-  border: 1px solid var(--project-host-border);
-  border-radius: 5px;
-  background: var(--project-host-canvas);
+  width: min(940px, calc(100% - 96px));
+  margin: clamp(48px, 9vh, 100px) auto 32px;
+  padding: 0;
+  flex: 1;
+  overflow: auto;
 }
+.project-host-home {font-size:12px;color:var(--project-host-muted);padding:8px 12px;}
+.project-host-service-actions {display:flex;gap:6px;margin-left:auto;align-items:center;}
+.project-host-service-actions button {border:0;background:transparent;padding:5px 9px;color:var(--project-host-muted);font-size:11px;}
+.project-host-service-actions:empty {display:none;}
+.project-welcome-heading {margin-bottom:48px;}
+.project-welcome-heading h1 {font-size:32px;font-weight:500;line-height:1.25;letter-spacing:-.7px;margin:0 0 10px;}
+.project-welcome-heading p {font-size:16px;color:var(--project-host-muted);margin:0;}
+.project-welcome-columns {display:grid;grid-template-columns:300px minmax(0,1fr);gap:64px;align-items:start;}
+.project-host-chooser h2 {font-size:19px;font-weight:500;margin:0 0 20px;line-height:1.3;}
+.project-welcome-action {width:100%;justify-content:flex-start;border:0;border-radius:4px;background:transparent;color:var(--project-host-accent);padding:10px 8px;margin-left:-8px;font-size:15px;gap:12px;}
+.project-welcome-action.secondary {color:var(--project-host-text);}
+.project-welcome-action svg {flex-shrink:0;}
+.project-welcome-action:hover:not(:disabled) {background:var(--hover);}
+.project-welcome-path {margin-top:22px;font-size:12px;}
+.project-welcome-path summary {cursor:pointer;color:var(--project-host-muted);padding:6px 0;}
+.project-welcome-path summary:hover {color:var(--project-host-text);}
+.project-welcome-path form {display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:12px 0 0;}
+.project-welcome-path form button {align-self:flex-start;padding:7px 12px;font-size:12px;}
 .project-host-field { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
 .project-host-field > span { font-size: 10px; color: var(--project-host-muted); }
 .project-host-field input {
@@ -88,34 +103,56 @@
   color: inherit;
 }
 
-.project-host-recent { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.25rem; }
+.project-host-recent {min-width:0;}
 .project-host-label { font-size: 10px; color: var(--project-host-muted); letter-spacing: 0.04em; }
-.project-host-recent ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; max-height: 220px; overflow: auto; }
+.project-host-recent ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 48vh; overflow: auto; }
 .project-host-recent li > button {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content:flex-start;
+  gap: 12px;
   width: 100%;
   text-align: left;
-  padding: 0.25rem 0.4rem;
-  font-size: 11px;
-  border: 1px solid transparent;
+  padding: 9px 10px;
+  font-size: 14px;
+  border: 0;
   border-radius: 4px;
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
 .project-host-recent li > button:hover { background: var(--hover, rgba(127, 127, 127, 0.14)); }
-.project-host-recent li > button.is-active { border-color: var(--project-host-accent); }
-.project-host-recent code {
-  font-family: var(--project-host-mono);
-  font-size: 10px;
+.project-host-recent svg {color:var(--project-host-muted);flex-shrink:0;}
+.project-recent-name {display:flex;flex-direction:column;gap:4px;min-width:0;}
+.project-recent-name strong {font-weight:500;color:var(--project-host-accent);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+.project-recent-path {
+  font-size: 12px;
   color: var(--project-host-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .project-host-recent em { margin-left: auto; font-style: normal; font-size: 10px; color: var(--project-host-warn); }
+.project-welcome-empty {padding:10px 0;color:var(--project-host-muted);}
+.project-welcome-empty p {font-size:14px;margin:14px 0 6px;color:var(--project-host-text);}
+.project-welcome-empty span {font-size:12px;}
+.project-welcome-shortcut {display:flex;align-items:center;gap:5px;color:var(--project-host-muted);font-size:11px;margin-top:30px;}
+.project-welcome-shortcut kbd {font-family:inherit;font-size:11px;padding:3px 5px;border:1px solid var(--project-host-border);border-radius:3px;}
+.project-welcome-shortcut span {margin-left:5px;}
+.project-welcome-footer {display:flex;gap:16px;color:var(--project-host-muted);font-size:11px;border-top:1px solid var(--project-host-border);padding-top:16px;margin-top:64px;}
+.project-session[hidden] {display:none;}
+.service-control {height:38px;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:3px 12px;background:var(--bg);border-bottom:1px solid var(--border);}
+.service-control button {padding:4px 9px;border:0;background:transparent;font-size:11px;color:var(--muted);}
+.service-control + .project-host {height:calc(100dvh - 38px);}
+#root:has(.project-host.is-choosing) > .service-control button:first-child:not(:last-child) {display:none;}
+@media(max-width:800px){
+ .project-host-chooser {width:calc(100% - 48px);margin-top:36px;}
+ .project-welcome-heading {margin-bottom:32px;}
+ .project-welcome-heading h1 {font-size:26px;}
+ .project-welcome-columns {grid-template-columns:minmax(0,1fr);gap:36px;}
+ .project-welcome-start {max-width:360px;}
+ .project-welcome-footer {margin-top:40px;flex-wrap:wrap;}
+}
 
 .project-host-error {
   display: flex;
@@ -303,7 +340,6 @@
 }
 
 @media (max-width: 900px) {
-  .project-host-chooser { grid-template-columns: 1fr; }
   .project-entries-grid { grid-template-columns: 1fr; }
   .project-entries-list li > button:first-child { grid-template-columns: 1fr; }
   .project-host-legacy { margin-left: 0; }

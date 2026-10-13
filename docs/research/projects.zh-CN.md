@@ -4,7 +4,7 @@
 
 ## 打开与运行
 
-1. 启动 `cdaf studio --project PATH`，在 **Open folder** 输入需要研究的项目目录。首次只扫描与解析源码，文件错误单独显示。
+1. 启动桌面程序或 `cdaf studio --project PATH`。点击 **Open folder**，桌面版弹出系统文件夹选择器，网页版展开并聚焦路径输入。也可以展开 **Enter folder path**，输入后按 Enter 或 **Open project**。已打开的目录列在 **Recent**，点击即可重开；桌面支持依次按 Ctrl+K、Ctrl+O。首次只扫描与解析源码，文件错误单独显示，不执行程序。
 2. 打开 **运行入口**，从候选中选择一个，或 **Add** 新建。Script 使用项目相对 `.py` 路径；Module 使用 `research_lab.main` 等模块名。
 3. 保存名称、参数、工作目录与解释器引用。解释器路径和环境值在 **Advanced: machine references** 注册；项目配置只保存引用。`src/` 项目应先在所选环境安装项目，或明确设置自己的导入环境。
 4. 点击 **运行**，查看任务和实际加载文件。运行结束后展开目录、文件和函数，双击变量打开对应证据。单击只选择；图上右键可定位源码或进入块，**Back** 返回。

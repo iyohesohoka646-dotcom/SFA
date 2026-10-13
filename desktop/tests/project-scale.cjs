@@ -16,8 +16,9 @@ const os = require('node:os');
     args: [...(exe ? [] : [path.resolve(__dirname, '../src/main.cjs')]), '--project', root], env, timeout: 30000 });
   try {
     const page = await app.firstWindow();
+    await page.getByText('Enter folder path', { exact: true }).click();
     await page.getByLabel('Folder path', { exact: true }).fill(fixture);
-    await page.getByRole('button', { name: 'Open folder', exact: true }).click();
+    await page.getByRole('button', { name: 'Open project', exact: true }).click();
     await page.locator('.react-flow__node').nth(1).waitFor({ timeout: 45000 });
     await page.getByRole('button', { name: 'Expand', exact: true }).click();
     await page.waitForFunction(() => document.querySelectorAll('.react-flow__node').length > 10, {}, { timeout: 45000 });

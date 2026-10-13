@@ -4,6 +4,7 @@ const fs=require('node:fs');
 const {pathToFileURL}=require('node:url');
 const {BackendController}=require('./controller.cjs');
 const {BackendHost}=require('./backend.cjs');
+const {createProjectFolderPicker}=require('./folder-picker.cjs');
 const option=name=>{const i=process.argv.indexOf(name);return i<0?undefined:process.argv[i+1];};
 const project=option('--project')||path.join(app.getPath('userData'),'research');
 const python=process.env.CDAF_DESKTOP_PYTHON||(app.isPackaged?path.join(process.resourcesPath,'python',process.platform==='win32'?'python.exe':'bin/python3'):path.resolve(__dirname,'../../.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python'));
@@ -65,6 +66,7 @@ else{
     ipcMain.handle('retry-backend',event=>permitted(event)?start():undefined);
     ipcMain.handle('backend-status',event=>permitted(event)?backendState:undefined);
     ipcMain.handle('close-workbench',event=>{if(permitted(event))window.close();});
+    ipcMain.handle('pick-project-folder',createProjectFolderPicker({dialog,getWindow:()=>window,allowed:permitted,defaultPath:()=>app.getPath('documents')}));
     window.on('close',event=>{
       if(closing)return;
       event.preventDefault();closing=true;
