@@ -459,6 +459,7 @@ def attach_terminal_routes(
     app, legacy_research, *, prefix="/api/v1/research/terminals", project=None
 ):
     created: dict = {}
+    creation_lock = threading.Lock()
 
     def build(root, workbench):
         return TerminalService(
@@ -482,13 +483,16 @@ def attach_terminal_routes(
             return legacy
         pid = scope.path_params["pid"]
         workbench = project.workbench(pid)
-        service = getattr(workbench, "terminals", None)
-        if service is None:
-            root = Path(project.projects.project(pid).root)
-            service = build(root, workbench)
-            workbench.terminals = service
-            created[pid] = service
-        return service
+        # Initial list and create requests can arrive together. Publishing two
+        # registries would orphan the new PTY before its WebSocket attaches.
+        with creation_lock:
+            service = getattr(workbench, "terminals", None)
+            if service is None:
+                root = Path(project.projects.project(pid).root)
+                service = build(root, workbench)
+                workbench.terminals = service
+                created[pid] = service
+            return service
 
     if project is not None:
         def terminal_cleanup():

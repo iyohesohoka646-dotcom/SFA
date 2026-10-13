@@ -176,7 +176,7 @@ export default function ResearchWorkbench() {
   const refreshKey = c.tasks
     .filter((t) => !["running", "queued"].includes(t.status))
     .map((t) => t.id)
-    .join("|");
+    .join("|") + ":" + c.outputs.map(output => output.id).join("|");
   const showView = (kind: DocumentKind) => {
     setViewMenu(false);
     if (kind === "graph")

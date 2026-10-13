@@ -134,6 +134,30 @@ test("embedded terminal executes Python in the selected project and ends explici
   );
 });
 
+test("saving an entry then immediately running does not overwrite a stale clean configuration", async ({ page, request }) => {
+  const fixture = await (await request.get("/api/v1/project-test-fixture", { headers })).json();
+  await page.goto("/#session=" + token);
+  await page.getByLabel("Folder path", { exact: true }).fill(fixture.other);
+  await page.getByRole("button", { name: "Open folder", exact: true }).click();
+  await page.getByRole("button", { name: "运行入口", exact: true }).click();
+  await page.locator(".project-entries-candidates").getByRole("button", { name: "main.py", exact: true }).click();
+  let hold = false;
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/workbench/configuration", async route => {
+    if (hold && route.request().method() === "GET") await gate;
+    await route.continue();
+  });
+  hold = true;
+  try {
+    await page.getByRole("button", { name: "Save entry", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Save entry", exact: true })).not.toBeVisible();
+    await page.getByRole("button", { name: "关闭运行入口", exact: true }).click();
+    await page.getByRole("button", { name: "运行", exact: true }).click();
+    await expect(page.locator(".wb-statusbar")).toContainText("completed", { timeout: 15000 });
+  } finally { release(); }
+});
+
 test("project probes added after a run create real views and disabling them persists", async ({
   page,
   request,

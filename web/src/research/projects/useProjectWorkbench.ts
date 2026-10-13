@@ -90,6 +90,7 @@ export function useProjectWorkbench(session: ProjectSession) {
     const operation = async () => {
       const current = configRef.current;
       if (!current) throw new Error("项目配置尚未读取");
+      if (!dirtyRef.current) return current;
       const saved = await wb.configure(current);
       if (!mounted.current) return saved;
       if (configRef.current === current) {
@@ -282,10 +283,12 @@ export function useProjectWorkbench(session: ProjectSession) {
     queries,
     refresh: () => setRefresh((n) => n + 1),
     outputVersion: String(outputEpoch),
-    record: (output: ProbeOutput) =>
+    record: (output: ProbeOutput) => {
       setOutputs((current) => [
         output,
         ...current.filter((o) => o.id !== output.id),
-      ]),
+      ]);
+      setOutputEpoch(epoch => epoch + 1);
+    },
   };
 }

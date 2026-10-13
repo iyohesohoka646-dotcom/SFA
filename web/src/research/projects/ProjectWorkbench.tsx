@@ -160,6 +160,11 @@ function ProjectWorkspace({ session }: { session: ProjectSession }) {
     [workspace.dispatch],
   );
   useEffect(() => {
+    const showTerminal = () => open("terminal");
+    window.addEventListener("cdaf-open-terminal", showTerminal);
+    return () => window.removeEventListener("cdaf-open-terminal", showTerminal);
+  }, [open]);
+  useEffect(() => {
     if (
       workspace.ready &&
       !groups(workspace.layout.tree).some((g) => g.tabs.length)

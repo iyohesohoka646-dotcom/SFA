@@ -21,6 +21,7 @@
   min-height: 0;
   gap: 0.4rem;
   color: var(--project-host-text);
+  background: var(--project-host-canvas);
   font-size: 12px;
 }
 

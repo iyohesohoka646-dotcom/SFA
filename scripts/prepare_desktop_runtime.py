@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import argparse
+import sys
 import hashlib
 import json
 import subprocess
@@ -10,10 +11,10 @@ import tomllib
 import shutil
 
 
-def main():
+def main(argv=()):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--package-only',action='store_true',help='Update the wheel in an already provisioned private runtime')
-    options=parser.parse_args()
+    options=parser.parse_args(argv)
     root = Path(__file__).resolve().parents[1]
     runtime = (root / ".work/desktop-python").resolve()
     if not runtime.is_relative_to(root / ".work"):
@@ -112,4 +113,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

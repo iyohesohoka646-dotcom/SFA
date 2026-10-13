@@ -50,6 +50,8 @@ def main():
     invoke([python, "-m", "pip", "--isolated", "install", "--no-user", str(wheel) + "[research,tables,views]"], timeout=300)
     from research_acceptance import verify_research_delivery
     research = verify_research_delivery(python, binary, directory / "research-acceptance", env)
+    from project_acceptance import verify_project_delivery
+    projects = verify_project_delivery(python, binary, directory / "project-acceptance", env)
     assert research["version"] in invoke([binary, "--version"])
     installed = json.loads(invoke([python, "-c", 'import sys,json,importlib.metadata as metadata; import contract_driven_ai_flow as pkg; print(json.dumps({"python":sys.version.split()[0],"package_file":pkg.__file__,"dependencies":{name:metadata.version(name) for name in ("typer","pydantic","fastapi","libcst","jsonschema")}}))']))
     assert environment.resolve() in Path(installed["package_file"]).resolve().parents
@@ -131,6 +133,7 @@ print("Bundled Studio and runtime metadata available")'''
     finally:
         invoke([binary, "studio", "--workspace", "--stop", "--no-open"])
     receipt = {"wheel": wheel.name, "wheel_sha256": hashlib.sha256(wheel.read_bytes()).hexdigest(), "isolated_environment": str(directory), "installed": installed, "research": research, "ordinary_install_needs_node": False, "cases": records, "static_asset_count": len([n for n in names if "static/" in n]), "installed_studio_http": "passed", "studio_background_lifecycle": "passed", "first_use_workspace": "passed", "installed_shortcuts": "passed", "windowless_launcher": "passed", "result": "passed"}
+    receipt["projects"] = projects
     (work / "wheel-validation.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(receipt, ensure_ascii=False, indent=2))
 

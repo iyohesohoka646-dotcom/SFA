@@ -168,8 +168,13 @@ test('manual verdict appears immediately and graph camera survives tab changes',
   await page.locator('.wb-inspector').filter({visible:true}).getByRole('button',{name:'保存',exact:true}).click();
   await page.locator('.probe-manual-entry > summary').click();await page.getByLabel('人工判断结果',{exact:true}).selectOption('pass');
   await page.getByLabel('人工判断记录').fill('人工核对数值一致');
+  let releaseManual!: () => void;
+  const manualGate = new Promise<void>(resolve => { releaseManual = resolve; });
+  await page.route('**/workbench/manual-results', async route => { await manualGate; await route.continue(); });
   await page.getByRole('button',{name:'记录判断',exact:true}).click();
   await chooseValue(page,'X');
+  await expect(page.getByTestId('data-probe-result').filter({hasText:'人工判断'})).toContainText('待执行');
+  releaseManual();
   await expect(page.getByTestId('data-probe-result').filter({hasText:'人工判断'})).toContainText('人工核对数值一致');
 });
 
