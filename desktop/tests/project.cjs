@@ -67,7 +67,7 @@ const {spawnSync}=require('node:child_process');
   await assert.rejects(fetch(`http://127.0.0.1:${state.port}/api/v1/studio`));assert(!fs.existsSync(path.join(root,'.cdaf/studio.json')));
   const check=spawnSync('powershell.exe',['-NoProfile','-Command',`if(Get-Process -Id ${children.join(',')} -ErrorAction SilentlyContinue){exit 1}`],{windowsHide:true,timeout:10000});assert.equal(check.status,0,'Owned PTY survived application exit');
   const receipt={version:'0.6.0',entry_kind:process.env.CDAF_DESKTOP_ENTRY_KIND||(installed?'packaged':'development'),executable:installed||require('electron'),project_id:projectId,run_id:runId,cross_module_evidence:true,real_matrix:true,real_terminal:true,selection_p95_ms:p95,selection_samples:30,owner_cleanup:true,port_released:true,result:'passed'};
-  fs.writeFileSync(path.resolve(__dirname,'../../.work/project-acceptance/desktop-project-'+(installed?'packaged':'development')+'.json'),JSON.stringify(receipt,null,2));console.log(JSON.stringify(receipt));
+  fs.writeFileSync(path.resolve(__dirname,'../../.work/project-acceptance/desktop-project-'+receipt.entry_kind+'.json'),JSON.stringify(receipt,null,2));console.log(JSON.stringify(receipt));
  }catch(error){
   const page=await app.firstWindow().catch(()=>null);
   if(page){

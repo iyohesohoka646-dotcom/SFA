@@ -192,7 +192,7 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
   );
 
   const load = useCallback(
-    async (id: string, options: { persist: boolean; autoIndex: boolean }) => {
+    async (id: string, options: { persist: boolean; autoIndex: boolean; restore?: boolean }) => {
       const controller = new AbortController();
       pending.current?.abort();
       pending.current = controller;
@@ -224,7 +224,10 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
         )
           return;
         if (options.persist) storeProject("");
-        fail(cause, () => void load(id, options));
+        if (options.restore && commandError(cause).status === 404) {
+          setError("");
+          retry.current = null;
+        } else fail(cause, () => void load(id, options));
         setChooser(true);
       } finally {
         if (mounted.current && ticket === sequence.current) {
@@ -323,7 +326,7 @@ export function ProjectHost({ children, onLegacy, client }: ProjectHostProps) {
         setRecentError(commandError(cause).message);
       });
     const stored = readStoredProject();
-    if (stored) void load(stored, { persist: true, autoIndex: false });
+    if (stored) void load(stored, { persist: true, autoIndex: false, restore: true });
     else {
       setRestoring(false);
       setChooser(true);

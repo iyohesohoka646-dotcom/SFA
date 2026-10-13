@@ -3,6 +3,18 @@ test.use({ baseURL: "http://127.0.0.1:8880" });
 const token = process.env.CDAF_BROWSER_TEST_SESSION!,
   headers = { Authorization: "Bearer " + token };
 
+for (const status of [404, 500]) {
+  test(`restoring a remembered project handles ${status} explicitly`, async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("cdaf.project.id", "previous-local-workspace"));
+    if (status === 500) await page.route("**/research/projects/previous-local-workspace", route => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ detail: "Project service unavailable" }) }));
+    await page.goto("/#session=" + token);
+    await expect(page.getByLabel("Folder path", { exact: true })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("cdaf.project.id"))).toBe(null);
+    if (status === 404) await expect(page.locator(".project-host-error")).not.toBeVisible();
+    else await expect(page.locator(".project-host-error")).toContainText("Project service unavailable");
+  });
+}
+
 test("project browser, cross-file evidence, probes and source versions share one real run", async ({
   page,
   request,
