@@ -223,7 +223,9 @@
       "operations": 55,
       "workbench_records": 257,
       "original_installation_backup_retained": true,
-      "scope": "Immediate post-install acceptance; a subsequent inventory found one added static analysis while original run IDs, configuration hashes and evidence counts remained unchanged."
+      "scope": "Immediate post-install acceptance; a subsequent inventory found one added static analysis while original run IDs, configuration hashes and evidence counts remained unchanged.",
+      "scope_correction": "This evidence used Microsoft Store Python and describes its virtualized user directory, not the native installed desktop directory.",
+      "native_installed_preservation_claim_withdrawn": true
     },
     "post_use_inventory": {
       "workbench_records": 258,
@@ -234,7 +236,9 @@
       "events": 202,
       "snapshots": 60,
       "operations": 55,
-      "strict_original_count_comparison": "reports_difference_as_expected_not_reclassified_passed"
+      "strict_original_count_comparison": "reports_difference_as_expected_not_reclassified_passed",
+      "scope_correction": "This evidence used Microsoft Store Python and describes its virtualized user directory, not the native installed desktop directory.",
+      "native_installed_preservation_claim_withdrawn": true
     },
     "latest_upgrade_preservation": {
       "result": "passed",
@@ -246,7 +250,9 @@
       "workbench_records": 258,
       "database_backups_retained": true,
       "original_054_installation_backup_retained": true,
-      "prior_257_record_inventory_difference_retained": true
+      "prior_257_record_inventory_difference_retained": true,
+      "scope_correction": "This evidence used Microsoft Store Python and describes its virtualized user directory, not the native installed desktop directory.",
+      "native_installed_preservation_claim_withdrawn": true
     },
     "latest_installed_screenshot_attempt": {
       "first": "cross-module computation and selection assertions passed; graph screenshot exceeded the unchanged 15-second interaction deadline",
@@ -270,6 +276,89 @@
         "desktop/tests/startup.cjs": "ef73c05b885c0c54f9b82955bb12121a34f0aba9c97e05912b414e4475d3ee84",
         "desktop/tests/terminal.cjs": "48dab247bf8ad086db1e414f6ed2b217615752ecf0b47c070d22491f4720ff2d"
       }
+    },
+    "native_user_data_preservation": {
+      "reference": "0.5.4 native installed baseline retained before this project extension",
+      "reference_sha256": "534a387b135e19762edc32073ccc472706b871476c771807ff604e0fe2d34044",
+      "runtime": "installed private CPython, without Store filesystem virtualization",
+      "definition_files_unchanged": true,
+      "files": {
+        "research.yaml": true,
+        "workbench.yaml": true
+      },
+      "tables": {
+        ".cdaf\\research\\experiments.sqlite3:runs": {
+          "before": 6,
+          "after": 6,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:events": {
+          "before": 235,
+          "after": 235,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:snapshots": {
+          "before": 64,
+          "after": 64,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:operations": {
+          "before": 59,
+          "after": 59,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:control_summaries": {
+          "before": 16,
+          "after": 16,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:control_details": {
+          "before": 16,
+          "after": 16,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:control_receipts": {
+          "before": 5,
+          "after": 5,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:artifact_leases": {
+          "before": 0,
+          "after": 0,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:research_migrations": {
+          "before": 1,
+          "after": 1,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\workbench.sqlite3:records": {
+          "before": 255,
+          "after": 258,
+          "original_rows_retained": true
+        },
+        ".cdaf\\settings\\models.sqlite3:profiles": {
+          "before": 0,
+          "after": 0,
+          "original_rows_retained": true
+        },
+        ".cdaf\\settings\\models.sqlite3:calls": {
+          "before": 0,
+          "after": 0,
+          "original_rows_retained": true
+        }
+      },
+      "all_original_rows_retained": true,
+      "no_automatic_new_run": true,
+      "current_database_backups_retained": true,
+      "comparison": "Multisets of original row digests from the retained pre-0.6 native baseline, using installed private CPython."
+    },
+    "ordinary_shortcut_final_launch": {
+      "shortcut_launch": "ready",
+      "version": "0.6.0",
+      "installed_core_authenticated": true,
+      "interactive_window_left_open": true,
+      "expected_user_workspace": true
     }
   },
   "performance": {
@@ -337,7 +426,8 @@
   "implementation_attribution": "Bounded DSH workers contributed independently reviewed components. After authorized transport retries were exhausted, Codex implemented remaining integration and acceptance without provider switching. Worker reports are not treated as acceptance.",
   "unverified": [
     "Real external model interpretation and proposal quality",
-    "Native macOS and Linux installation"
+    "Native macOS and Linux installation",
+    "Native pre-upgrade equality for the three workbench rows added after the older 255-row native baseline; all 255 baseline rows are retained."
   ],
   "previous_candidate": {
     "source_commit": "fd83517edd4f71be02fd40963a88974ec68ef3e4",
