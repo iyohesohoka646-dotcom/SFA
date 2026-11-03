@@ -46,13 +46,7 @@ def _write_if_absent(path: Path, content: str, force: bool) -> None:
 
 
 def clean_project(root: Path | None = None) -> Path:
-    """Remove all generated metadata under ``.sfa/`` and re-scaffold it empty.
-
-    Keeps ``sfa.yml`` intact. Requires the project to be initialized
-    (``.sfa/`` present); raises SFAError otherwise. Useful for re-running
-    demos or resetting a project to a fresh state without deleting the
-    config.
-    """
+    """Clear extraction cache while preserving authored definitions and evidence."""
     root = (root or Path.cwd()).resolve()
     meta = sfa_dir(root)
     if not meta.is_dir():
@@ -60,9 +54,8 @@ def clean_project(root: Path | None = None) -> Path:
             f"未找到 .sfa/ 元数据目录：{meta}\n"
             "可操作建议：请先执行 `sfa init` 初始化项目。"
         )
-    shutil.rmtree(meta)
-    meta.mkdir()
-    for sub in SFA_SUBDIRS:
-        (meta / sub).mkdir()
-    _write_if_absent(meta / PIPELINE_YML, EMPTY_PIPELINE, force=True)
+    cache = (meta / "elements.json").resolve()
+    if not cache.is_relative_to(root):
+        raise SFAError("Cache path escapes the project")
+    cache.unlink(missing_ok=True)
     return root

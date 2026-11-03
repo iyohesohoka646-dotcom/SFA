@@ -1,0 +1,1228 @@
+{
+  "format": "cdaf.export.v1",
+  "project": {
+    "bindings": [
+      {
+        "dynamic": false,
+        "id": "input_ingest_values",
+        "port": "values",
+        "provenance": "designed",
+        "source": {
+          "kind": "project",
+          "module": null,
+          "pointer": "/values",
+          "value": null
+        },
+        "target": "ingest",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "ingest_normalize_values",
+        "port": "values",
+        "provenance": "designed",
+        "source": {
+          "kind": "module",
+          "module": "ingest",
+          "pointer": "",
+          "value": null
+        },
+        "target": "normalize",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "input_normalize_scale",
+        "port": "scale",
+        "provenance": "designed",
+        "source": {
+          "kind": "project",
+          "module": null,
+          "pointer": "/scale",
+          "value": null
+        },
+        "target": "normalize",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "normalize_summarize_values",
+        "port": "values",
+        "provenance": "designed",
+        "source": {
+          "kind": "module",
+          "module": "normalize",
+          "pointer": "",
+          "value": null
+        },
+        "target": "summarize",
+        "visibility": "L2"
+      },
+      {
+        "dynamic": false,
+        "id": "summarize_report_summary",
+        "port": "summary",
+        "provenance": "designed",
+        "source": {
+          "kind": "module",
+          "module": "summarize",
+          "pointer": "",
+          "value": null
+        },
+        "target": "report",
+        "visibility": "L2"
+      }
+    ],
+    "capture": {
+      "level": "summary",
+      "max_bytes": 16384,
+      "retention_days": 7,
+      "sample_items": 5,
+      "sensitive_fields": [
+        "password",
+        "token",
+        "secret",
+        "api_key",
+        "authorization",
+        "email"
+      ]
+    },
+    "concurrency": 1,
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "scale": {
+          "type": "number"
+        },
+        "values": {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "values",
+        "scale"
+      ],
+      "type": "object"
+    },
+    "metadata": {
+      "description": "Reproducible local example; failure demonstrates a completed execution with failed quality.",
+      "example": "data-pipeline",
+      "inputs": {
+        "failure": {
+          "scale": 2,
+          "values": [
+            20,
+            40,
+            60
+          ]
+        },
+        "success": {
+          "scale": 2,
+          "values": [
+            2,
+            4,
+            6
+          ]
+        }
+      }
+    },
+    "modules": [
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [
+            {
+              "input": {
+                "values": [
+                  2,
+                  4,
+                  6
+                ]
+              },
+              "output": [
+                2,
+                4,
+                6
+              ]
+            }
+          ],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "values": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "values"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          }
+        },
+        "dependencies": [],
+        "description": "Receive source measurements through a typed boundary",
+        "guard": null,
+        "id": "ingest",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Ingest",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "ingest"
+        },
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [
+            {
+              "input": {
+                "scale": 2,
+                "values": [
+                  2,
+                  4,
+                  6
+                ]
+              },
+              "output": [
+                1,
+                2,
+                3
+              ]
+            }
+          ],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "scale": {
+                "type": "number"
+              },
+              "values": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "values",
+              "scale"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          }
+        },
+        "dependencies": [],
+        "description": "Scale each measurement in an isolated worker",
+        "guard": null,
+        "id": "normalize",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Normalize",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "normalize"
+        },
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [
+            {
+              "input": {
+                "values": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "output": {
+                "count": 3,
+                "mean": 2
+              }
+            }
+          ],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "values": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "values"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "mean": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "mean",
+              "count"
+            ],
+            "type": "object"
+          }
+        },
+        "dependencies": [],
+        "description": "Summarize the normalized signal",
+        "guard": null,
+        "id": "summarize",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Summarize",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "summarize"
+        },
+        "timeout_seconds": 30.0
+      },
+      {
+        "allowed_imports": [
+          "json",
+          "math",
+          "typing",
+          "dataclasses",
+          "__future__"
+        ],
+        "condition": null,
+        "contract": {
+          "examples": [
+            {
+              "input": {
+                "summary": {
+                  "count": 3,
+                  "mean": 2
+                }
+              },
+              "output": "3 samples · mean 2.00"
+            }
+          ],
+          "input": {
+            "additionalProperties": false,
+            "properties": {
+              "summary": {
+                "additionalProperties": false,
+                "properties": {
+                  "count": {
+                    "type": "integer"
+                  },
+                  "mean": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "mean",
+                  "count"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "summary"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "type": "string"
+          }
+        },
+        "dependencies": [],
+        "description": "Publish a local, reproducible result",
+        "guard": null,
+        "id": "report",
+        "idempotent": false,
+        "kind": "python",
+        "name": "Report",
+        "outputs": {},
+        "parent": null,
+        "retries": 0,
+        "side_effects": false,
+        "symbol": {
+          "digest": "",
+          "path": "src/steps.py",
+          "qualname": "report"
+        },
+        "timeout_seconds": 30.0
+      }
+    ],
+    "name": "Signal quality · 数据质量流水线",
+    "probes": [
+      {
+        "binding": null,
+        "boundary": "input",
+        "enabled": true,
+        "expression": "$input.scale > 0",
+        "false_target": null,
+        "id": "positive_scale",
+        "kind": "assertion",
+        "language_version": 1,
+        "module": "normalize",
+        "pointer": "",
+        "policy": "block",
+        "true_target": null
+      },
+      {
+        "binding": null,
+        "boundary": "output",
+        "enabled": true,
+        "expression": "$output.mean <= 5",
+        "false_target": null,
+        "id": "mean_in_range",
+        "kind": "assertion",
+        "language_version": 1,
+        "module": "summarize",
+        "pointer": "",
+        "policy": "continue",
+        "true_target": null
+      },
+      {
+        "binding": null,
+        "boundary": "output",
+        "enabled": true,
+        "expression": "True",
+        "false_target": null,
+        "id": "sample_count",
+        "kind": "metric",
+        "language_version": 1,
+        "module": "normalize",
+        "pointer": "",
+        "policy": "continue",
+        "true_target": null
+      },
+      {
+        "binding": null,
+        "boundary": "output",
+        "enabled": true,
+        "expression": "True",
+        "false_target": null,
+        "id": "output_sample",
+        "kind": "capture",
+        "language_version": 1,
+        "module": "summarize",
+        "pointer": "",
+        "policy": "continue",
+        "true_target": null
+      }
+    ],
+    "schema_version": 1
+  },
+  "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+  "run": {
+    "id": "9714a590c9444b8f8a2467d59f3a8e56",
+    "started": "2026-10-01T08:29:05.310395+00:00",
+    "finished": "2026-10-01T08:29:10.969523+00:00",
+    "status": "completed",
+    "quality": "failed",
+    "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+    "environment": {
+      "dependencies": {
+        "contract-driven-ai-flow": "0.2.0",
+        "jsonschema": "4.26.0",
+        "pydantic": "2.13.4"
+      },
+      "input_digest": "0d1ea5c8ea7ad64d181e12ba52f0643e161172645b84c153537c9bc8cd0b749e",
+      "platform": "Windows-10-10.0.26200-SP0",
+      "python": "3.11.9",
+      "sources": {
+        "ingest": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff",
+        "normalize": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff",
+        "report": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff",
+        "summarize": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff"
+      }
+    },
+    "owner": 2104
+  },
+  "events": [
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 190,
+      "time": "2026-10-01T08:29:05.319423+00:00",
+      "kind": "run.started",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": null,
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": null,
+      "links": [],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 2,
+            "fields": {
+              "scale": {
+                "type": "int",
+                "value": 2
+              },
+              "values": {
+                "type": "array",
+                "count": 3
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 31,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "environment": {
+          "python": "3.11.9",
+          "platform": "Windows-10-10.0.26200-SP0",
+          "sources": {
+            "ingest": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff",
+            "normalize": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff",
+            "summarize": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff",
+            "report": "cb5d699e3008bba448c8955d5e9ba833390c2dacb29b0b6ffea9a4ca50a9c0ff"
+          },
+          "dependencies": {
+            "contract-driven-ai-flow": "0.2.0",
+            "jsonschema": "4.26.0",
+            "pydantic": "2.13.4"
+          },
+          "input_digest": "0d1ea5c8ea7ad64d181e12ba52f0643e161172645b84c153537c9bc8cd0b749e"
+        }
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 191,
+      "time": "2026-10-01T08:29:05.334959+00:00",
+      "kind": "binding.transferred",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "ingest",
+      "binding": "input_ingest_values",
+      "attempt": 0,
+      "contract_revision": "fcf19faf7165a959009102e139d6a9b316fbe9acabebb030e6cdb25bc011106d",
+      "links": [
+        {
+          "binding": "input_ingest_values",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "port": "values"
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 192,
+      "time": "2026-10-01T08:29:05.346604+00:00",
+      "kind": "module.started",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "ingest",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "fcf19faf7165a959009102e139d6a9b316fbe9acabebb030e6cdb25bc011106d",
+      "links": [
+        {
+          "binding": "input_ingest_values",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "values": {
+                "type": "array",
+                "count": 3
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 21,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 193,
+      "time": "2026-10-01T08:29:05.355265+00:00",
+      "kind": "contract.checked",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "ingest",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "fcf19faf7165a959009102e139d6a9b316fbe9acabebb030e6cdb25bc011106d",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 194,
+      "time": "2026-10-01T08:29:06.632847+00:00",
+      "kind": "contract.checked",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "ingest",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "fcf19faf7165a959009102e139d6a9b316fbe9acabebb030e6cdb25bc011106d",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 195,
+      "time": "2026-10-01T08:29:06.643803+00:00",
+      "kind": "module.completed",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "ingest",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "fcf19faf7165a959009102e139d6a9b316fbe9acabebb030e6cdb25bc011106d",
+      "links": [],
+      "data": {
+        "duration_ms": 1265.9999999887077,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "array",
+            "count": 3
+          },
+          "bytes": 10,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 196,
+      "time": "2026-10-01T08:29:06.655212+00:00",
+      "kind": "binding.transferred",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "normalize",
+      "binding": "ingest_normalize_values",
+      "attempt": 0,
+      "contract_revision": "ddf541d68c4d1fee2305a314c1d0e48fe9dee667618ddf3476dc0c451bdf4c5b",
+      "links": [
+        {
+          "binding": "ingest_normalize_values",
+          "module": "ingest",
+          "sequence": 195
+        }
+      ],
+      "data": {
+        "port": "values"
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 197,
+      "time": "2026-10-01T08:29:06.659740+00:00",
+      "kind": "binding.transferred",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "normalize",
+      "binding": "input_normalize_scale",
+      "attempt": 0,
+      "contract_revision": "ddf541d68c4d1fee2305a314c1d0e48fe9dee667618ddf3476dc0c451bdf4c5b",
+      "links": [
+        {
+          "binding": "input_normalize_scale",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "port": "scale"
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 198,
+      "time": "2026-10-01T08:29:06.670352+00:00",
+      "kind": "module.started",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "normalize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "ddf541d68c4d1fee2305a314c1d0e48fe9dee667618ddf3476dc0c451bdf4c5b",
+      "links": [
+        {
+          "binding": "ingest_normalize_values",
+          "module": "ingest",
+          "sequence": 195
+        },
+        {
+          "binding": "input_normalize_scale",
+          "module": null,
+          "sequence": null
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 2,
+            "fields": {
+              "values": {
+                "type": "array",
+                "count": 3
+              },
+              "scale": {
+                "type": "int",
+                "value": 2
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 31,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 199,
+      "time": "2026-10-01T08:29:06.686582+00:00",
+      "kind": "contract.checked",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "normalize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "ddf541d68c4d1fee2305a314c1d0e48fe9dee667618ddf3476dc0c451bdf4c5b",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 200,
+      "time": "2026-10-01T08:29:06.701221+00:00",
+      "kind": "probe.result",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "normalize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "ddf541d68c4d1fee2305a314c1d0e48fe9dee667618ddf3476dc0c451bdf4c5b",
+      "links": [],
+      "data": {
+        "probe": "positive_scale",
+        "status": "pass",
+        "kind": "assertion",
+        "value": true,
+        "message": "",
+        "policy": "block",
+        "redacted": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 201,
+      "time": "2026-10-01T08:29:07.992696+00:00",
+      "kind": "contract.checked",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "normalize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "ddf541d68c4d1fee2305a314c1d0e48fe9dee667618ddf3476dc0c451bdf4c5b",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 202,
+      "time": "2026-10-01T08:29:08.005754+00:00",
+      "kind": "probe.result",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "normalize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "ddf541d68c4d1fee2305a314c1d0e48fe9dee667618ddf3476dc0c451bdf4c5b",
+      "links": [],
+      "data": {
+        "probe": "sample_count",
+        "status": "pass",
+        "kind": "metric",
+        "value": {
+          "type": "list",
+          "bytes": 16,
+          "count": 3,
+          "min": 10.0,
+          "max": 30.0,
+          "mean": 20.0
+        },
+        "message": "",
+        "policy": "continue",
+        "redacted": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 203,
+      "time": "2026-10-01T08:29:08.015869+00:00",
+      "kind": "module.completed",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "normalize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "ddf541d68c4d1fee2305a314c1d0e48fe9dee667618ddf3476dc0c451bdf4c5b",
+      "links": [],
+      "data": {
+        "duration_ms": 1281.0000000026776,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "array",
+            "count": 3
+          },
+          "bytes": 16,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 204,
+      "time": "2026-10-01T08:29:08.039672+00:00",
+      "kind": "binding.transferred",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "summarize",
+      "binding": "normalize_summarize_values",
+      "attempt": 0,
+      "contract_revision": "784a202120c80320cac58d0d56af27cbc424a204e0027c98571c2bdea3ed4f57",
+      "links": [
+        {
+          "binding": "normalize_summarize_values",
+          "module": "normalize",
+          "sequence": 203
+        }
+      ],
+      "data": {
+        "port": "values"
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 205,
+      "time": "2026-10-01T08:29:08.049597+00:00",
+      "kind": "module.started",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "summarize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "784a202120c80320cac58d0d56af27cbc424a204e0027c98571c2bdea3ed4f57",
+      "links": [
+        {
+          "binding": "normalize_summarize_values",
+          "module": "normalize",
+          "sequence": 203
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "values": {
+                "type": "array",
+                "count": 3
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 27,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 206,
+      "time": "2026-10-01T08:29:08.063157+00:00",
+      "kind": "contract.checked",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "summarize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "784a202120c80320cac58d0d56af27cbc424a204e0027c98571c2bdea3ed4f57",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 207,
+      "time": "2026-10-01T08:29:09.372701+00:00",
+      "kind": "contract.checked",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "summarize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "784a202120c80320cac58d0d56af27cbc424a204e0027c98571c2bdea3ed4f57",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 208,
+      "time": "2026-10-01T08:29:09.387469+00:00",
+      "kind": "probe.result",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "summarize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "784a202120c80320cac58d0d56af27cbc424a204e0027c98571c2bdea3ed4f57",
+      "links": [],
+      "data": {
+        "probe": "mean_in_range",
+        "status": "fail",
+        "kind": "assertion",
+        "value": false,
+        "message": "",
+        "policy": "continue",
+        "redacted": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 209,
+      "time": "2026-10-01T08:29:09.395032+00:00",
+      "kind": "probe.result",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "summarize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "784a202120c80320cac58d0d56af27cbc424a204e0027c98571c2bdea3ed4f57",
+      "links": [],
+      "data": {
+        "probe": "output_sample",
+        "status": "pass",
+        "kind": "capture",
+        "value": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 2,
+            "fields": {
+              "count": {
+                "type": "int",
+                "value": 3
+              },
+              "mean": {
+                "type": "float",
+                "value": 20.0
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 23,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "message": "",
+        "policy": "continue",
+        "redacted": [],
+        "pointer": ""
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 210,
+      "time": "2026-10-01T08:29:09.427088+00:00",
+      "kind": "module.completed",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "summarize",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "784a202120c80320cac58d0d56af27cbc424a204e0027c98571c2bdea3ed4f57",
+      "links": [],
+      "data": {
+        "duration_ms": 1297.0000000059372,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 2,
+            "fields": {
+              "count": {
+                "type": "int",
+                "value": 3
+              },
+              "mean": {
+                "type": "float",
+                "value": 20.0
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 23,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 211,
+      "time": "2026-10-01T08:29:09.464882+00:00",
+      "kind": "binding.transferred",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "report",
+      "binding": "summarize_report_summary",
+      "attempt": 0,
+      "contract_revision": "90d941fae75286f3b9c18846a264cb0213ddd6a5ecaf3601fab82ac2b50f4d21",
+      "links": [
+        {
+          "binding": "summarize_report_summary",
+          "module": "summarize",
+          "sequence": 210
+        }
+      ],
+      "data": {
+        "port": "summary"
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 212,
+      "time": "2026-10-01T08:29:09.475952+00:00",
+      "kind": "module.started",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "report",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "90d941fae75286f3b9c18846a264cb0213ddd6a5ecaf3601fab82ac2b50f4d21",
+      "links": [
+        {
+          "binding": "summarize_report_summary",
+          "module": "summarize",
+          "sequence": 210
+        }
+      ],
+      "data": {
+        "input": {
+          "level": "summary",
+          "data": {
+            "type": "object",
+            "count": 1,
+            "fields": {
+              "summary": {
+                "type": "object",
+                "count": 2,
+                "fields": {
+                  "count": {
+                    "type": "int",
+                    "value": 3
+                  },
+                  "mean": {
+                    "type": "float",
+                    "value": 20.0
+                  }
+                },
+                "omitted_fields": 0
+              }
+            },
+            "omitted_fields": 0
+          },
+          "bytes": 35,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 213,
+      "time": "2026-10-01T08:29:09.489847+00:00",
+      "kind": "contract.checked",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "report",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "90d941fae75286f3b9c18846a264cb0213ddd6a5ecaf3601fab82ac2b50f4d21",
+      "links": [],
+      "data": {
+        "boundary": "input",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 214,
+      "time": "2026-10-01T08:29:10.862724+00:00",
+      "kind": "contract.checked",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "report",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "90d941fae75286f3b9c18846a264cb0213ddd6a5ecaf3601fab82ac2b50f4d21",
+      "links": [],
+      "data": {
+        "boundary": "output",
+        "status": "pass",
+        "violations": []
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 215,
+      "time": "2026-10-01T08:29:10.884327+00:00",
+      "kind": "module.completed",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": "report",
+      "binding": null,
+      "attempt": 1,
+      "contract_revision": "90d941fae75286f3b9c18846a264cb0213ddd6a5ecaf3601fab82ac2b50f4d21",
+      "links": [],
+      "data": {
+        "duration_ms": 1359.0000000112923,
+        "output": {
+          "level": "summary",
+          "data": {
+            "type": "string",
+            "length": 22
+          },
+          "bytes": 25,
+          "redacted": [],
+          "truncated": false,
+          "dropped": 0
+        },
+        "downstream_blocked": false
+      }
+    },
+    {
+      "run_id": "9714a590c9444b8f8a2467d59f3a8e56",
+      "sequence": 216,
+      "time": "2026-10-01T08:29:10.953040+00:00",
+      "kind": "run.finished",
+      "revision": "d96321a079b5a1fde9019d014b818c39806cfe0c0b5a6939b78a30b55c2459f4",
+      "module": null,
+      "binding": null,
+      "attempt": 0,
+      "contract_revision": null,
+      "links": [],
+      "data": {
+        "status": "completed",
+        "quality": "failed",
+        "modules": {
+          "ingest": "completed",
+          "normalize": "completed",
+          "summarize": "completed",
+          "report": "completed"
+        }
+      }
+    }
+  ],
+  "view": {
+    "positions": {},
+    "collapsed": [],
+    "theme": "dark"
+  },
+  "evidence": "Observed events are historical execution evidence. Design links alone express static reachability."
+}

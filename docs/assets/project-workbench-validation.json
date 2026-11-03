@@ -1,0 +1,512 @@
+{
+  "version": "0.6.0",
+  "source_commit": "58f94e5ddf90341047c0e1d1e46e86cff0fe89e8",
+  "status": "cross_platform_ci_and_installed_windows_candidate_verified",
+  "artifacts": {
+    "wheel": {
+      "name": "contract_driven_ai_flow-0.6.0-py3-none-any.whl",
+      "sha256": "00ce84fa08dc9b90ffe8e35612f1147cdb5385625148698fbf12b7c768468590"
+    },
+    "windows_installer": {
+      "name": "Scientific Dataflow Inspector Setup 0.6.0.exe",
+      "sha256": "866c7816d5b7a86f031651a510b66f4676437b98595868458caeb510f981a8b1",
+      "signed": false
+    }
+  },
+  "python": {
+    "full_suite_source": "a683935",
+    "passed": 1032,
+    "skipped": 9,
+    "failed": 1,
+    "seconds": 692.87,
+    "failure": "test_simultaneous_shortcut_launches_share_one_server: one child exceeded 20-second readiness deadline",
+    "context": "Installer extraction and independent wheel checks were also active; no causal claim is made.",
+    "targeted_launch_recheck": {
+      "passed": 6,
+      "seconds": 25.31
+    },
+    "exact_failed_case_repeated": [
+      {
+        "passed": 1,
+        "seconds": 6.32
+      },
+      {
+        "passed": 1,
+        "seconds": 9.15
+      }
+    ],
+    "full_suite_reclassified_green": false,
+    "final_event_drain_regressions": {
+      "deterministic_red": 4,
+      "green_with_related_checks": 35
+    },
+    "continuation_full_suite": {
+      "source": "bb2db7820b2f685db65b57991542533e92798cf1",
+      "command": "python -B -X utf8 -m pytest -q",
+      "passed": 1033,
+      "skipped": 9,
+      "failed": 0,
+      "seconds": 582.99,
+      "product_source_unchanged": true,
+      "startup_timeout_changed": false,
+      "previous_failure_retained": true
+    },
+    "normal_socket_disconnect_regressions": {
+      "source": "ee38483",
+      "red": {
+        "failed": 1,
+        "passed": 1
+      },
+      "green_with_related": {
+        "passed": 29,
+        "seconds": 72.3
+      },
+      "behavior": "Ignore only ENOTCONN after normal peer closure; other shutdown failures still degrade observation quality."
+    },
+    "first_ci_failures": {
+      "source": "294eb05",
+      "run_id": 38347529508,
+      "failures": [
+        "nonportable frozen-interpreter fixture",
+        "macOS normal socket disconnect marked observer failure"
+      ],
+      "original_failure_logs_retained": true,
+      "reclassified_passed": false
+    }
+  },
+  "frontend": {
+    "unit": {
+      "passed": 150,
+      "files": 21
+    },
+    "last_complete_browser_suite": {
+      "source": "58f94e5",
+      "passed": 100,
+      "failed": 0,
+      "flaky": 0,
+      "runner": "GitHub Actions Ubuntu Chromium"
+    },
+    "final_restore_change_browser_recheck": {
+      "passed": 8,
+      "seconds": 51.9,
+      "covers": [
+        "missing remembered project returns to chooser",
+        "server error remains visible",
+        "cross-file evidence and source",
+        "project switch",
+        "real terminal",
+        "entry-save race",
+        "narrow graph Fit and camera",
+        "probe enable and disable"
+      ]
+    },
+    "types_and_production_build": "passed",
+    "dependency_license_texts": 112,
+    "warnings": [
+      "Common frontend chunk remains about 985 kB before gzip."
+    ],
+    "prior_complete_browser_suite": {
+      "source": "a683935",
+      "passed": 98,
+      "failed": 0,
+      "flaky": 0,
+      "seconds": 428.895
+    }
+  },
+  "isolated_python_install": {
+    "result": "passed",
+    "wheel_sha256": "00ce84fa08dc9b90ffe8e35612f1147cdb5385625148698fbf12b7c768468590",
+    "node_required": false,
+    "script_and_module_entries": true,
+    "chinese_paths_and_cross_module_values": true
+  },
+  "windows": {
+    "first_upgrade": {
+      "after": "0.6.0",
+      "installer_exit": 0,
+      "before": "0.5.4",
+      "backup_preserved": true
+    },
+    "final_refresh": {
+      "from": "0.6.0",
+      "installer_exit": 0,
+      "source": "58f94e5",
+      "to": "0.6.0",
+      "installer_sha256": "866c7816d5b7a86f031651a510b66f4676437b98595868458caeb510f981a8b1",
+      "backup_054_retained": true
+    },
+    "installed_bytes": {
+      "version": "0.6.0",
+      "matched_package_files": 280,
+      "wheel_sha256": "00ce84fa08dc9b90ffe8e35612f1147cdb5385625148698fbf12b7c768468590",
+      "desktop_asar_matches_packaged": true,
+      "no_stale_static_resources": true,
+      "metadata_matches": true,
+      "result": "passed"
+    },
+    "default_shortcut_target": {
+      "version": "0.6.0",
+      "entry_kind": "installed-shortcut-target",
+      "exact_shortcut_arguments": true,
+      "node_or_checkout_override": false,
+      "core_version": "0.6.0",
+      "renderer_errors": [],
+      "theme_background": "rgb(247, 250, 251)",
+      "initial_view": "chooser",
+      "initial_view_without_error": true,
+      "owner_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "project_workflow": {
+      "version": "0.6.0",
+      "entry_kind": "installed",
+      "cross_module_evidence": true,
+      "real_matrix": true,
+      "real_terminal": true,
+      "selection_p95_ms": 13.599999994039536,
+      "selection_samples": 30,
+      "owner_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "single_file_compatibility_scale_125": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.25,
+      "core_version": "0.6.0",
+      "window_close": true,
+      "port_released": true,
+      "own_script": true,
+      "source_preserved": true,
+      "matrix_and_anomaly": true,
+      "configured_probe_and_replot": true,
+      "automatic_harness_scope": true,
+      "shared_cli_history": true,
+      "offline_models": true,
+      "offline_report_privacy": true,
+      "result": "passed"
+    },
+    "real_terminals_scale_150": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.5,
+      "unicode": true,
+      "real_python": true,
+      "real_cli": true,
+      "real_shell": true,
+      "concurrent_sessions": 3,
+      "minimize_restore_state": true,
+      "explicit_reconnect_history": true,
+      "owner_exit_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "startup_fault_recovery_development_shell": {
+      "test": "missing-runtime-renderer-crash-service-unavailable",
+      "exit_code": 0,
+      "source": "fd83517",
+      "runtime": "private-0.6.0"
+    },
+    "first_post_install_automation": {
+      "result": "failed_waiting_for_first_ui",
+      "interaction_timeout_seconds": 15,
+      "captured_page": "Healthy project chooser appeared in the retained later failure screenshot; no renderer exception was observed.",
+      "test_correction": "Explicit 45-second native startup readiness phase, matching default-entry acceptance; subsequent interaction deadline remains 15 seconds.",
+      "first_attempt_log_and_screenshot_retained": true
+    },
+    "preserved_original_data": {
+      "configuration_hashes_and_run_ids_unchanged": true,
+      "runs": 5,
+      "events": 202,
+      "snapshots": 60,
+      "operations": 55,
+      "workbench_records": 257,
+      "original_installation_backup_retained": true,
+      "scope": "Immediate post-install acceptance; a subsequent inventory found one added static analysis while original run IDs, configuration hashes and evidence counts remained unchanged.",
+      "scope_correction": "This evidence used Microsoft Store Python and describes its virtualized user directory, not the native installed desktop directory.",
+      "native_installed_preservation_claim_withdrawn": true
+    },
+    "post_use_inventory": {
+      "workbench_records": 258,
+      "added_static_analyses": 1,
+      "all_257_prior_row_positions_present": true,
+      "configuration_hashes_and_run_ids_unchanged": true,
+      "runs": 5,
+      "events": 202,
+      "snapshots": 60,
+      "operations": 55,
+      "strict_original_count_comparison": "reports_difference_as_expected_not_reclassified_passed",
+      "scope_correction": "This evidence used Microsoft Store Python and describes its virtualized user directory, not the native installed desktop directory.",
+      "native_installed_preservation_claim_withdrawn": true
+    },
+    "latest_upgrade_preservation": {
+      "result": "passed",
+      "comparison": "configuration file digests and multisets of SHA256 for every row in every original SQLite table",
+      "runs": 5,
+      "events": 202,
+      "snapshots": 60,
+      "operations": 55,
+      "workbench_records": 258,
+      "database_backups_retained": true,
+      "original_054_installation_backup_retained": true,
+      "prior_257_record_inventory_difference_retained": true,
+      "scope_correction": "This evidence used Microsoft Store Python and describes its virtualized user directory, not the native installed desktop directory.",
+      "native_installed_preservation_claim_withdrawn": true
+    },
+    "latest_installed_screenshot_attempt": {
+      "first": "cross-module computation and selection assertions passed; graph screenshot exceeded the unchanged 15-second interaction deadline",
+      "subsequent_diagnostic_screenshot": "saved healthy UI",
+      "unchanged_full_journey_repeat": "passed",
+      "timeout_increased": false,
+      "first_attempt_log_and_screenshot_retained": true
+    },
+    "native_test_isolation": {
+      "synthetic_journeys_use_owned_user_data_directory": true,
+      "actual_default_shortcut_check_uses_real_user_profile": true,
+      "real_user_startup_screenshot_public": false,
+      "published_project_screenshots": "synthetic four-file fixture under repository .work, without user profile paths",
+      "acceptance_test_sha256": {
+        "desktop/tests/controller.test.cjs": "dbc7cc363351848e0c3d878bcf1ed50ed8b6ec5542f142c39ad381efc18eebbb",
+        "desktop/tests/installed-entry.cjs": "0197ec83fb4b954eb6300e0a9f7632bb1115bdc4e947bfe624c8f64be82bb58e",
+        "desktop/tests/lifecycle.cjs": "44118782bf9ff3f2a3bee3cc99be4bd50de4a577c61cb7705d0b24a3694bc91e",
+        "desktop/tests/project-scale.cjs": "717fbc3d3cbb7fdd92aae3724b1702a5c1bdc074fba7d07d15a8c5dc89f8dcfb",
+        "desktop/tests/project.cjs": "6b409b6632ab14a37b61df9225ed8986f4c7c0395d17fef3809ee21646a1ca56",
+        "desktop/tests/shutdown.cjs": "1f076705c224ad8610c6f91dcbae31f02453b0a768f038d46aff631063f19eb9",
+        "desktop/tests/startup.cjs": "ef73c05b885c0c54f9b82955bb12121a34f0aba9c97e05912b414e4475d3ee84",
+        "desktop/tests/terminal.cjs": "48dab247bf8ad086db1e414f6ed2b217615752ecf0b47c070d22491f4720ff2d"
+      }
+    },
+    "native_user_data_preservation": {
+      "reference": "0.5.4 native installed baseline retained before this project extension",
+      "reference_sha256": "534a387b135e19762edc32073ccc472706b871476c771807ff604e0fe2d34044",
+      "runtime": "installed private CPython, without Store filesystem virtualization",
+      "definition_files_unchanged": true,
+      "files": {
+        "research.yaml": true,
+        "workbench.yaml": true
+      },
+      "tables": {
+        ".cdaf\\research\\experiments.sqlite3:runs": {
+          "before": 6,
+          "after": 6,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:events": {
+          "before": 235,
+          "after": 235,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:snapshots": {
+          "before": 64,
+          "after": 64,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:operations": {
+          "before": 59,
+          "after": 59,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:control_summaries": {
+          "before": 16,
+          "after": 16,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:control_details": {
+          "before": 16,
+          "after": 16,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:control_receipts": {
+          "before": 5,
+          "after": 5,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:artifact_leases": {
+          "before": 0,
+          "after": 0,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\experiments.sqlite3:research_migrations": {
+          "before": 1,
+          "after": 1,
+          "original_rows_retained": true
+        },
+        ".cdaf\\research\\workbench.sqlite3:records": {
+          "before": 255,
+          "after": 258,
+          "original_rows_retained": true
+        },
+        ".cdaf\\settings\\models.sqlite3:profiles": {
+          "before": 0,
+          "after": 0,
+          "original_rows_retained": true
+        },
+        ".cdaf\\settings\\models.sqlite3:calls": {
+          "before": 0,
+          "after": 0,
+          "original_rows_retained": true
+        }
+      },
+      "all_original_rows_retained": true,
+      "no_automatic_new_run": true,
+      "current_database_backups_retained": true,
+      "comparison": "Multisets of original row digests from the retained pre-0.6 native baseline, using installed private CPython."
+    },
+    "ordinary_shortcut_final_launch": {
+      "shortcut_launch": "ready",
+      "version": "0.6.0",
+      "installed_core_authenticated": true,
+      "interactive_window_left_open": true,
+      "expected_user_workspace": true
+    }
+  },
+  "performance": {
+    "measurements_source": "a683935",
+    "index_fixtures": [
+      {
+        "files": 100,
+        "lines": 10000,
+        "cold_seconds": 3.743,
+        "incremental_seconds": 0.116,
+        "parsed_incremental": 1,
+        "reused_incremental": 99,
+        "graph_seconds": 0.041,
+        "visible_units": 102,
+        "omitted": 0,
+        "pre_cancel_ack_seconds": 0.001
+      },
+      {
+        "files": 1000,
+        "lines": 100000,
+        "cold_seconds": 40.868,
+        "incremental_seconds": 0.475,
+        "parsed_incremental": 1,
+        "reused_incremental": 999,
+        "graph_seconds": 0.306,
+        "visible_units": 350,
+        "omitted": 652,
+        "pre_cancel_ack_seconds": 0.001
+      }
+    ],
+    "in_flight_cancel": {
+      "files": 1000,
+      "cancel_after_actual_parse": true,
+      "ack_seconds": 0.0019,
+      "previous_revision_preserved": true,
+      "sampled_rss_peak_mib": 72.22,
+      "memory_scope": "cancelled incremental index only",
+      "result": "passed"
+    },
+    "native_graph_selection": {
+      "files": 1000,
+      "lines": 100000,
+      "visible_units": 350,
+      "actual_rendered_nodes": 350,
+      "omitted": 652,
+      "selection_p95_ms": 37.20000000298023,
+      "samples": 40,
+      "measurement": "alternating graph selection to next animation frame in native Electron",
+      "target_ms": 50,
+      "target_met": true,
+      "result": "measured"
+    },
+    "limits": [
+      "Selection latency excludes indexing and scientific computation.",
+      "Sampled memory applies only to the cancelled incremental index, not cold indexing."
+    ]
+  },
+  "intelligence": {
+    "provider_neutral": true,
+    "offline_and_http_tool_loop_fixtures": "passed",
+    "real_external_model": "deferred_by_user_until_after_ci",
+    "credentials_copied_from_worker": false,
+    "continuation_remote_profile_count": 0
+  },
+  "implementation_attribution": "Bounded DSH workers contributed independently reviewed components. After authorized transport retries were exhausted, Codex implemented remaining integration and acceptance without provider switching. Worker reports are not treated as acceptance.",
+  "unverified": [
+    "Real external model interpretation and proposal quality",
+    "Native macOS and Linux installation",
+    "Native pre-upgrade equality for the three workbench rows added after the older 255-row native baseline; all 255 baseline rows are retained."
+  ],
+  "previous_candidate": {
+    "source_commit": "fd83517edd4f71be02fd40963a88974ec68ef3e4",
+    "artifacts": {
+      "wheel": {
+        "name": "contract_driven_ai_flow-0.6.0-py3-none-any.whl",
+        "sha256": "84a77ab44c90b9fcf6a6fb8fe1f0369645807ff32605a55df4ae8ec03e54b60f"
+      },
+      "windows_installer": {
+        "name": "Scientific Dataflow Inspector Setup 0.6.0.exe",
+        "sha256": "33c024d48bc95a0e20373d10a8d880152be6cbe4bd56cc56dcb5c5687f2f5a30",
+        "signed": false
+      }
+    },
+    "native_acceptance": "passed before the subsequent cross-platform collector repair"
+  },
+  "cross_platform_ci": {
+    "source_commit": "58f94e5ddf90341047c0e1d1e46e86cff0fe89e8",
+    "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/38349003506",
+    "result": "passed",
+    "jobs": [
+      {
+        "name": "python (ubuntu-latest, 3.12)",
+        "result": "success"
+      },
+      {
+        "name": "python (ubuntu-latest, 3.11)",
+        "result": "success"
+      },
+      {
+        "name": "python (macos-latest, 3.12)",
+        "result": "success"
+      },
+      {
+        "name": "python (windows-latest, 3.12)",
+        "result": "success"
+      },
+      {
+        "name": "python (macos-latest, 3.11)",
+        "result": "success"
+      },
+      {
+        "name": "studio",
+        "result": "success"
+      },
+      {
+        "name": "python (ubuntu-latest, 3.13)",
+        "result": "success"
+      },
+      {
+        "name": "python (windows-latest, 3.13)",
+        "result": "success"
+      },
+      {
+        "name": "python (macos-latest, 3.13)",
+        "result": "success"
+      },
+      {
+        "name": "python (windows-latest, 3.11)",
+        "result": "success"
+      }
+    ],
+    "python_versions": [
+      "3.11",
+      "3.12",
+      "3.13"
+    ],
+    "python_posix_each": {
+      "passed": 1044,
+      "failed": 0
+    },
+    "python_windows_each": {
+      "passed": 1036,
+      "skipped": 8,
+      "failed": 0
+    },
+    "each_python_job_builds_and_independently_installs_wheel": true,
+    "frontend_unit": 150,
+    "browser": 100,
+    "native_desktop_replaced_by_ci": false
+  }
+}

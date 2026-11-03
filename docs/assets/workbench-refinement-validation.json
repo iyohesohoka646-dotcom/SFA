@@ -1,0 +1,826 @@
+{
+  "version": "0.5.2",
+  "recorded_at": "2026-10-04T07:37:06.738627+00:00",
+  "basis_commit": "3e6882fca56343ab3b42668e61c3b9c5ac1776df",
+  "python": {
+    "tests": 780,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 8,
+    "passed": 772,
+    "seconds": 464.972
+  },
+  "frontend_unit": {
+    "passed": 87
+  },
+  "desktop_controller": {
+    "passed": 2
+  },
+  "browser": {
+    "startTime": "2026-10-04T06:55:56.020Z",
+    "duration": 369444.92199999996,
+    "expected": 85,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "desktop": {
+    "actual_original_shortcut_target": true,
+    "installed_version": "0.5.2",
+    "core_version": "0.5.2",
+    "render_errors": [],
+    "silent_nsis_install": "passed",
+    "installer_signed": false,
+    "interactive_installer_wizard": "not_tested",
+    "source_native_fault_recovery": "passed",
+    "visible_exit_and_process_cleanup": "passed",
+    "capture_note": "One 125 percent native screenshot timed out; the unchanged installed release passed the full journey and capture on retest.",
+    "retained_run_count": 2,
+    "upgraded_legacy_count": 1,
+    "research_journey": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.25,
+      "core_version": "0.5.2",
+      "window_close": true,
+      "port_released": true,
+      "own_script": true,
+      "source_preserved": true,
+      "matrix_and_anomaly": true,
+      "configured_probe_and_replot": true,
+      "automatic_harness_scope": true,
+      "shared_cli_history": true,
+      "offline_models": true,
+      "offline_report_privacy": true,
+      "result": "passed"
+    },
+    "terminals": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.5,
+      "unicode": true,
+      "real_python": true,
+      "real_cli": true,
+      "real_shell": true,
+      "concurrent_sessions": 3,
+      "minimize_restore_state": true,
+      "explicit_reconnect_history": true,
+      "owner_exit_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "installer_file": "Scientific Dataflow Inspector Setup 0.5.2.exe",
+    "installer_sha256": "6ff95ab066ada896e654b41e8168eb5b9c13a0fda4183e48ebc0e9b13ba8ef43"
+  },
+  "preservation": {
+    "result": "passed",
+    "checks": [
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "runs",
+        "before": 2,
+        "after": 2,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "events",
+        "before": 91,
+        "after": 91,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "snapshots",
+        "before": 24,
+        "after": 24,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "operations",
+        "before": 22,
+        "after": 22,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "control_summaries",
+        "before": 4,
+        "after": 4,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "control_details",
+        "before": 4,
+        "after": 4,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "control_receipts",
+        "before": 1,
+        "after": 1,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "artifact_leases",
+        "before": 0,
+        "after": 0,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\experiments.sqlite3",
+        "table": "research_migrations",
+        "before": 1,
+        "after": 1,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\research\\workbench.sqlite3",
+        "table": "records",
+        "before": 116,
+        "after": 117,
+        "method": "all original primary keys retained; graph records may migrate",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\settings\\models.sqlite3",
+        "table": "profiles",
+        "before": 0,
+        "after": 0,
+        "method": "all original row content retained",
+        "result": "passed"
+      },
+      {
+        "database": ".cdaf\\settings\\models.sqlite3",
+        "table": "calls",
+        "before": 0,
+        "after": 0,
+        "method": "all original row content retained",
+        "result": "passed"
+      }
+    ]
+  },
+  "package_bytes": {
+    "result": "passed",
+    "wheel_source_files": 248,
+    "desktop_files": 248,
+    "packaged_desktop_files": 248,
+    "source_archive_files": 248,
+    "wheel_sha256": "3d8f8dd05f9c427a1021ba77411c2d792c70f22d8d68cfb05d6f5c80aa69d425",
+    "source_sha256": "9d9816d4710524d820234ee89ab52dd88960b877d1545ab70138b726b4a95d3c"
+  },
+  "wheel": {
+    "wheel": "contract_driven_ai_flow-0.5.2-py3-none-any.whl",
+    "wheel_sha256": "3d8f8dd05f9c427a1021ba77411c2d792c70f22d8d68cfb05d6f5c80aa69d425",
+    "research": {
+      "result": "passed",
+      "version": "0.5.2",
+      "python": "3.11.9",
+      "cases": [
+        {
+          "failure": "none",
+          "id": "b250794c01f94e89aee30f00fcf2fb76",
+          "status": "completed",
+          "quality": "pass",
+          "exit_code": 0
+        },
+        {
+          "failure": "nan",
+          "id": "745ac4fde0f44a30a4c7385693736eb9",
+          "status": "completed",
+          "quality": "fail",
+          "exit_code": 0
+        },
+        {
+          "failure": "dimension",
+          "id": "b4ee5cd5a3ff472695347db2415b7927",
+          "status": "failed",
+          "quality": "pass",
+          "exit_code": 1
+        }
+      ],
+      "independent_interpreter": {
+        "tool_dependencies": false,
+        "value": 42,
+        "status": "completed"
+      },
+      "offline_privacy": "passed",
+      "offline_models": "passed",
+      "template_preserved": true,
+      "workbench_cli": "passed",
+      "actual_drawing_adapters": [
+        "matplotlib",
+        "seaborn",
+        "plotly",
+        "altair"
+      ],
+      "explicit_no_rerun": true,
+      "offline_resources": true,
+      "automatic_offline_harness": true,
+      "harness_http_tool_loop": "local fixture passed; no remote inference claimed"
+    },
+    "static_asset_count": 126,
+    "installed_studio_http": "passed",
+    "studio_background_lifecycle": "passed",
+    "first_use_workspace": "passed",
+    "installed_shortcuts": "passed",
+    "windowless_launcher": "passed",
+    "ordinary_install_needs_node": false,
+    "result": "passed"
+  },
+  "source_install": {
+    "source_archive": "contract_driven_ai_flow-0.5.2.tar.gz",
+    "source_sha256": "9d9816d4710524d820234ee89ab52dd88960b877d1545ab70138b726b4a95d3c",
+    "research": {
+      "result": "passed",
+      "version": "0.5.2",
+      "python": "3.11.9",
+      "cases": [
+        {
+          "failure": "none",
+          "id": "a6d7ac08e44049338ae3f938e9a14468",
+          "status": "completed",
+          "quality": "pass",
+          "exit_code": 0
+        },
+        {
+          "failure": "nan",
+          "id": "fcc15037a6ad4db4a50de4f7c9c62005",
+          "status": "completed",
+          "quality": "fail",
+          "exit_code": 0
+        },
+        {
+          "failure": "dimension",
+          "id": "fb24e738f3ce46608d15b01ee0b38f5a",
+          "status": "failed",
+          "quality": "pass",
+          "exit_code": 1
+        }
+      ],
+      "independent_interpreter": {
+        "tool_dependencies": false,
+        "value": 42,
+        "status": "completed"
+      },
+      "offline_privacy": "passed",
+      "offline_models": "passed",
+      "template_preserved": true,
+      "workbench_cli": "passed",
+      "actual_drawing_adapters": [
+        "matplotlib",
+        "seaborn",
+        "plotly",
+        "altair"
+      ],
+      "explicit_no_rerun": true,
+      "offline_resources": true,
+      "automatic_offline_harness": true,
+      "harness_http_tool_loop": "local fixture passed; no remote inference claimed"
+    },
+    "cli": "passed",
+    "bundled_studio": "passed",
+    "gui_entry_installed": true,
+    "result": "passed"
+  },
+  "performance": {
+    "paint": [
+      3.399999976158142,
+      3.800000011920929,
+      3.899999976158142,
+      4,
+      4.099999964237213,
+      4.100000023841858,
+      4.300000011920929,
+      4.400000035762787,
+      4.400000035762787,
+      4.5,
+      4.5,
+      4.699999988079071,
+      5.099999964237213,
+      5.099999964237213,
+      5.100000023841858,
+      5.299999952316284,
+      5.399999976158142,
+      5.700000047683716,
+      5.800000011920929,
+      6.300000011920929
+    ],
+    "hiddenPaint": [
+      13.099999964237213,
+      3.899999976158142,
+      6.5,
+      3.799999952316284,
+      5.800000011920929,
+      5,
+      3.799999952316284,
+      4.699999988079071,
+      3.699999988079071,
+      3.899999976158142,
+      3.5,
+      3.800000011920929,
+      4,
+      3.600000023841858,
+      4.900000035762787,
+      4.300000011920929,
+      4.099999964237213,
+      5.399999976158142,
+      4.099999964237213,
+      3.400000035762787
+    ],
+    "longTasks": [
+      239,
+      301,
+      196
+    ],
+    "api": [
+      {
+        "url": "/api/v1/research/info",
+        "duration": 92.39999997615814
+      },
+      {
+        "url": "/api/v1/research/workbench/configuration",
+        "duration": 93.19999998807907
+      },
+      {
+        "url": "/api/v1/research/workbench/probe-definitions",
+        "duration": 99.70000004768372
+      },
+      {
+        "url": "/api/v1/lifecycle",
+        "duration": 103.89999997615814
+      },
+      {
+        "url": "/api/v1/research/runs",
+        "duration": 102.39999997615814
+      },
+      {
+        "url": "/api/v1/research/workbench/tasks",
+        "duration": 103.30000001192093
+      },
+      {
+        "url": "/api/v1/research/runs",
+        "duration": 103.30000001192093
+      },
+      {
+        "url": "/api/v1/research/workbench/outputs?run_id=46dc8df87a994cc0a5f249f92d4bb5dc",
+        "duration": 14.400000035762787
+      },
+      {
+        "url": "/api/v1/research/workbench/runs/46dc8df87a994cc0a5f249f92d4bb5dc/analysis",
+        "duration": 33.40000003576279
+      },
+      {
+        "url": "/api/v1/research/workbench/settings",
+        "duration": 22.599999964237213
+      },
+      {
+        "url": "/api/v1/research/runs/46dc8df87a994cc0a5f249f92d4bb5dc/bootstrap",
+        "duration": 35.10000002384186
+      },
+      {
+        "url": "/api/v1/research/workbench/analyses",
+        "duration": 42.09999996423721
+      },
+      {
+        "url": "/api/v1/research/workbench/templates",
+        "duration": 38.60000002384186
+      },
+      {
+        "url": "/api/v1/research/runs/46dc8df87a994cc0a5f249f92d4bb5dc/events?after=10248",
+        "duration": 17
+      },
+      {
+        "url": "/api/v1/research/workbench/analyses/56fd45fff1d54e418b50ce26ed86b534/source",
+        "duration": 17.600000023841858
+      },
+      {
+        "url": "/api/v1/research/workbench/analyses/d84da3d45f9c4d72ae035a05c61b759b/occurrences",
+        "duration": 10.899999976158142
+      },
+      {
+        "url": "/api/v1/research/workbench/analyses/56fd45fff1d54e418b50ce26ed86b534/occurrences",
+        "duration": 12
+      },
+      {
+        "url": "/api/v1/research/workbench/runs/1feabb51473441ad831d41649f97766f/analysis",
+        "duration": 335.5
+      },
+      {
+        "url": "/api/v1/research/workbench/outputs?run_id=1feabb51473441ad831d41649f97766f",
+        "duration": 335.80000001192093
+      },
+      {
+        "url": "/api/v1/research/workbench/analyses/56fd45fff1d54e418b50ce26ed86b534/source",
+        "duration": 343.5
+      },
+      {
+        "url": "/api/v1/research/workbench/analyses/ae1a2cc538a24893846a05e5d7fd4695/occurrences",
+        "duration": 233.30000001192093
+      },
+      {
+        "url": "/api/v1/research/runs/1feabb51473441ad831d41649f97766f/bootstrap",
+        "duration": 1273.199999988079
+      },
+      {
+        "url": "/api/v1/research/runs/1feabb51473441ad831d41649f97766f/events?after=10001",
+        "duration": 27.80000001192093
+      },
+      {
+        "url": "/api/v1/research/workbench/runs/1feabb51473441ad831d41649f97766f/analysis",
+        "duration": 318.60000002384186
+      },
+      {
+        "url": "/api/v1/research/runs/1feabb51473441ad831d41649f97766f/bootstrap",
+        "duration": 484.2000000476837
+      },
+      {
+        "url": "/api/v1/research/workbench/analyses/ae1a2cc538a24893846a05e5d7fd4695/occurrences",
+        "duration": 294.10000002384186
+      },
+      {
+        "url": "/api/v1/research/runs/1feabb51473441ad831d41649f97766f/source",
+        "duration": 11.900000035762787
+      },
+      {
+        "url": "/api/v1/research/snapshots/s7-10",
+        "duration": 27.700000047683716
+      },
+      {
+        "url": "/api/v1/research/workbench/runs/1feabb51473441ad831d41649f97766f/analysis",
+        "duration": 320.30000001192093
+      },
+      {
+        "url": "/api/v1/research/workbench/outputs?snapshot_id=s7-10",
+        "duration": 301.89999997615814
+      },
+      {
+        "url": "/api/v1/research/runs/1feabb51473441ad831d41649f97766f/history?binding=main%3AX7",
+        "duration": 302.39999997615814
+      },
+      {
+        "url": "/api/v1/research/workbench/snapshots/s7-10/semantics",
+        "duration": 301.5
+      },
+      {
+        "url": "/api/v1/research/workbench/analyses/ae1a2cc538a24893846a05e5d7fd4695/occurrences",
+        "duration": 187.0999999642372
+      },
+      {
+        "url": "/api/v1/research/workbench/snapshots/s7-10/presenters",
+        "duration": 677.6000000238419
+      },
+      {
+        "url": "/api/v1/research/snapshots/s999-10",
+        "duration": 9.299999952316284
+      },
+      {
+        "url": "/api/v1/research/workbench/outputs?snapshot_id=s999-10",
+        "duration": 11.199999988079071
+      },
+      {
+        "url": "/api/v1/research/runs/1feabb51473441ad831d41649f97766f/history?binding=main%3AX999",
+        "duration": 14.200000047683716
+      },
+      {
+        "url": "/api/v1/research/workbench/snapshots/s999-10/semantics",
+        "duration": 20.599999964237213
+      },
+      {
+        "url": "/api/v1/research/workbench/snapshots/s999-10/presenters",
+        "duration": 237.89999997615814
+      },
+      {
+        "url": "/api/v1/research/snapshots/s15-10",
+        "duration": 12.5
+      },
+      {
+        "url": "/api/v1/research/workbench/snapshots/s15-10/semantics",
+        "duration": 11.599999964237213
+      },
+      {
+        "url": "/api/v1/research/workbench/outputs?snapshot_id=s15-10",
+        "duration": 12.400000035762787
+      },
+      {
+        "url": "/api/v1/research/runs/1feabb51473441ad831d41649f97766f/history?binding=main%3AX15",
+        "duration": 29.30000001192093
+      },
+      {
+        "url": "/api/v1/research/workbench/snapshots/s15-10/presenters",
+        "duration": 255.39999997615814
+      }
+    ],
+    "measuring": false,
+    "hidden": true,
+    "p95": 5.800000011920929,
+    "p50": 4.5,
+    "count": 20,
+    "hidden_p95": 6.5,
+    "hidden_count": 20,
+    "fixture": {
+      "logical_objects": 1000,
+      "versions": 10,
+      "events": 10000
+    },
+    "scope": "Synthetic saved-history fixture; selection event to next animation frame, with DOM effects checked. Excludes scientific computation and cold import."
+  },
+  "parser_performance": {
+    "objects": 1000,
+    "utf8": true,
+    "samples_ms": [
+      159.6459000138566,
+      153.8423000019975,
+      176.98780001956038
+    ],
+    "nodes": 2000,
+    "scope": "static import only; no code execution or plotting"
+  },
+  "production_file_sha256": {
+    "src/contract_driven_ai_flow/__init__.py": "dbe16c02aabd4d6d82c6af51d50b0d46f8ffe195d51521836c4ed21ce3874830",
+    "src/contract_driven_ai_flow/__main__.py": "41df9ff33d90dafa6210fdb1e8f045b09ae900258357114a424f36d0c845987a",
+    "src/contract_driven_ai_flow/adapters.py": "1fb9b56138830e93321aa4c887e24c49ecfeb1e74b20049dc7b46da853bd3771",
+    "src/contract_driven_ai_flow/api.py": "31a9240eabab41d1ec661355946010c47d8ffbf32da63c7a3e208106f579bf6f",
+    "src/contract_driven_ai_flow/application/__init__.py": "dd5a093743acb04d2e95137532ada8bcd8c5c1b953a5c501263a721e95446a6f",
+    "src/contract_driven_ai_flow/application/commands.py": "3c3c5bb68e4ed0611ed0c73333908c3a3d1b70bfe42724de16cccb29131c031a",
+    "src/contract_driven_ai_flow/application/desktop_host.py": "789097204d98823f7a8f0c06ede4dd12f1c2166d4b221d9737577d834c028952",
+    "src/contract_driven_ai_flow/application/lifecycle.py": "d628e2575307eae27e440f9cbf06abeb77048338da897da0527a9c7840fcae23",
+    "src/contract_driven_ai_flow/application/request.py": "2c6dcac27d48901d04a5f4b14521fb3e68ea33d4d1bfe7df6f9f11838100d933",
+    "src/contract_driven_ai_flow/changes.py": "0f714408e60662591ab4969a0048b39408451264b703fddeab47e2cf87c0f909",
+    "src/contract_driven_ai_flow/cli.py": "10aa818e387d307d36b01d8c0801b20bbc6794e3d98d36fa637e772dd2ac65d2",
+    "src/contract_driven_ai_flow/compat.py": "3e93938090aaa131282cb70916aabc8b42020f912a5ca408c25f4ebadb346211",
+    "src/contract_driven_ai_flow/compiler.py": "a3f1593e89f7bc1d9d49450e8799228af5161d9cddc37fdeeb0b33eb0eb752c4",
+    "src/contract_driven_ai_flow/context.py": "55c4428056b06977d50e58ce7b07f230ce6ae0f18824cf3f8ba809a0dab80187",
+    "src/contract_driven_ai_flow/examples.py": "cdc2161809b0b8af01f6d5b79915edc3a9b727567d2f8817cde4305aecb0c7f9",
+    "src/contract_driven_ai_flow/export.py": "cb17aa8c81ae4c8317a6b1c89e1322b2940e122977647305c49c576c1af5ccca",
+    "src/contract_driven_ai_flow/launcher.py": "0ac0f34e7cab7199e0fdf861d63a1fbe03e3f60c4edca4f499f43017c4d05ff9",
+    "src/contract_driven_ai_flow/migration.py": "0f5d4cc8497ed1ad4222a8b093d266e3125c5db2cdf79829111208a8aa05e934",
+    "src/contract_driven_ai_flow/models.py": "22e440f877b9df4c610173dde67254ee62eb4d1a7fc962afad2c14e73df74c6d",
+    "src/contract_driven_ai_flow/operations.py": "13b04e09c19c40ff7af02ef542e8dbc1f18e824a06a1f8bb8b45beea9945b475",
+    "src/contract_driven_ai_flow/paths.py": "f41e91c4af683b94347638dea08aad3b958e61e947d3a6f3cf020d9b42276978",
+    "src/contract_driven_ai_flow/privacy.py": "6fd2b62c9b64a248f7af510d4d5641f8e1149e63991e7bfe1edb99f44b7bb32a",
+    "src/contract_driven_ai_flow/privatefiles.py": "7a6857eabd787f461edcdc3628cefcada2a17095ebadf2d97e15257bd06a2c54",
+    "src/contract_driven_ai_flow/probes.py": "44b0c339bdcaf2692c05f204466d71fb1f56ae5b3cc07cf3b2114e64b4714834",
+    "src/contract_driven_ai_flow/providers.py": "8352dc95504f083ac9d743a45896da8870c0711ffb557ab0db01ec1b4c9b953d",
+    "src/contract_driven_ai_flow/redaction_restore.py": "3a2b9aef05ab45587a3fc74eaca4ca7e794dd7e58c99fe7558da0188d1d5752e",
+    "src/contract_driven_ai_flow/research/__init__.py": "b5ce0bf28275d21dd219f1d3698a8f07c5d2be0637acd442ee40bbf2eb0f1e0e",
+    "src/contract_driven_ai_flow/research/agent/__init__.py": "c940184e0228f7cf9bcb6b9b76f3272b722e1cbfc142710d00db055fd04ce58d",
+    "src/contract_driven_ai_flow/research/agent/adapters.py": "f04b9049b0deb5b7e8f88a715e5b5eec127840b32ddfb67796d63375ec000db8",
+    "src/contract_driven_ai_flow/research/agent/artifact_writer.py": "d965482d6edd57a05208cdd07bfbde34b1e926d96ee0030c237b2b165c0addf4",
+    "src/contract_driven_ai_flow/research/agent/bootstrap.py": "bb3616a28779dbcc396ec4b4441c96117f2a3bf92d3d635245b77ebd92fae10b",
+    "src/contract_driven_ai_flow/research/agent/budget.py": "538423eed3e48af5916aaa7219babbde05712d0572506953a612e0625ffa75ec",
+    "src/contract_driven_ai_flow/research/agent/control.py": "ea33de9ec3da7e23cc1a35c87d7d67914608a2f7e04ab78ee182a7636f6e11c4",
+    "src/contract_driven_ai_flow/research/agent/control_observation.py": "d15e73b02b7312cbbb3487b7ec3a01606fb91707c677d2fcd008a0252255725f",
+    "src/contract_driven_ai_flow/research/agent/entry.py": "0655047b91550dca248cf060f1ed0586f25a24e97fec0989a7ddb8ab3d1a0d01",
+    "src/contract_driven_ai_flow/research/agent/instrument.py": "b4b3bef2401c9495caa1b34ff90acf07b798280e3963e2ae4c301683a9e2988e",
+    "src/contract_driven_ai_flow/research/agent/privacy.py": "accea5f4e953851a6697e7e12f50c844cff836a1bcd61b550e54b8a07021f4f7",
+    "src/contract_driven_ai_flow/research/agent/registry.py": "27375bb7ad2e98f62e4b56473e58c371808f79ba5d008ca500eb8be5e907ca84",
+    "src/contract_driven_ai_flow/research/agent/runner.py": "c7b95ee42c83c58880b205771f94c5be4b2f5796d37e7aff5d4353087c3fbc95",
+    "src/contract_driven_ai_flow/research/agent/sdk.py": "a59d8b78f1809992b0672fb7759563597ee7386d8deaf48fd8c7188c6e8fd602",
+    "src/contract_driven_ai_flow/research/agent/source.py": "d07078286f27db661daa0c44cd6bf31e0efed8d01f47930718dd99780a896953",
+    "src/contract_driven_ai_flow/research/agent/transport.py": "03318eff40119b1e6177e6c65fa7d5ea209b1c041476b4e5417faaea8896e0e1",
+    "src/contract_driven_ai_flow/research/artifacts.py": "35119697712a7be58d9395c6fe7784e94837cc7c8b1749ce197a4dc3dd9ff2b4",
+    "src/contract_driven_ai_flow/research/export.py": "4491fa3fb4c2c1b27cb576f7fad4e2a3ad66719bf40bf8199674986a855ff1d0",
+    "src/contract_driven_ai_flow/research/legacy.py": "1f32e4433a21c74d6168d1f812d1e554f74b4729aa27143b26ca3a5b7123b4ed",
+    "src/contract_driven_ai_flow/research/models.py": "7faf6074cf4ab6a90687425eea621889f1fdd62c20413dfddaa9b727ca9ee615",
+    "src/contract_driven_ai_flow/research/probe_registry.py": "ef33ef95334e53729ba3ada4af0a7d119530d6ff2cd12bd7f8224ce3c8557e3c",
+    "src/contract_driven_ai_flow/research/probe_worker.py": "3aeeef3ee6f579b9399415a5aa6aa0b0602031b9d318ace46f6a8cb03047739c",
+    "src/contract_driven_ai_flow/research/probes.py": "32702f427c723d6dcd68702933426e618c02ff5250968778477295516da1ecd8",
+    "src/contract_driven_ai_flow/research/processes.py": "74e844c1582d25a105997f1fd9930724cacb5898b34a167baac18add624f8da8",
+    "src/contract_driven_ai_flow/research/routes.py": "773901f0b857dca4ecf44dc4e23c4618abbd57779804aecebca3dfebd8166997",
+    "src/contract_driven_ai_flow/research/runners.py": "d00f37b5f508e3b5b22e53a09429df6d136b4f9f086a84ac916b1b1bc03ae997",
+    "src/contract_driven_ai_flow/research/service.py": "2e84d2e724acc01ee0582ec3970b5e27ed2c64021b2d2362ec9a4b1d07953c08",
+    "src/contract_driven_ai_flow/research/store.py": "fed7b4c9b6a40569b8e473b58357916a24b8d0602ce0f05973391a38a447d888",
+    "src/contract_driven_ai_flow/research/workbench/__init__.py": "66bc23b1f4cfa328d9470b06ee7c5baaddcb899746c67b8a70e6249d4a2436a7",
+    "src/contract_driven_ai_flow/research/workbench/analysis.py": "0c4bece5ba8fe9b9bb5fe9c2cb6dd0d7b56db13820c815b77bd890a1fc5a35ab",
+    "src/contract_driven_ai_flow/research/workbench/bindings.py": "afd632efe32723f8f2e413c9958886d5e3d4fdae59d318bf44534ece8e15c273",
+    "src/contract_driven_ai_flow/research/workbench/catalog.py": "293675c7b7ead97f485d4688dcc29380d4b70c86ffec38e6804199c3a9f1118c",
+    "src/contract_driven_ai_flow/research/workbench/changes.py": "4c2c073d771474deab66beb92849486babdeebbcfe0c98c1f4a5bb1d561f0a8b",
+    "src/contract_driven_ai_flow/research/workbench/cli.py": "dc7f8211e9b2163cfd63eb4c5b09fee67fddc0d1e1a7314feb35968cae71aec0",
+    "src/contract_driven_ai_flow/research/workbench/commands.py": "49aaecaae1f7776e447cfd7ed543df75f303bd382868f18c373194d155b9bddd",
+    "src/contract_driven_ai_flow/research/workbench/configuration.py": "5e0b583b8ebde6c0a19111f8dcbfdeb68655605a193ee47761131aa0f0399833",
+    "src/contract_driven_ai_flow/research/workbench/data_semantics.py": "64d0d37ed1cc2b9b6ca155d84aa0db2075d561c1bba70a4748f83d1583b7fb50",
+    "src/contract_driven_ai_flow/research/workbench/derivation.py": "3f80e44519e2f64295a9856fb6c7c8bcefb4b4970da9e6c75589b36ec337e5ab",
+    "src/contract_driven_ai_flow/research/workbench/intelligence/__init__.py": "28fbf255b06a9407148899d4a8708d560db787733d89c23f642de05ce3f8f7cc",
+    "src/contract_driven_ai_flow/research/workbench/intelligence/context.py": "590e90a7a2be76a49f0e6e3dd6a33e07f1b543819736cdececcb8989b61b8448",
+    "src/contract_driven_ai_flow/research/workbench/intelligence/harness.py": "1417e6cd9ad7bf94d9801ebf2394e6fd2ff52e0ed76f68a9a153f2da6f996f37",
+    "src/contract_driven_ai_flow/research/workbench/intelligence/skills.py": "7527101bf2e59a95f6c988d559f1b72c32b7393bdc72b7fb550a950b253430ca",
+    "src/contract_driven_ai_flow/research/workbench/intelligence/tools.py": "f9e48f80ca46cbdaaa42c2e1eb751633791f736cf44677a537060643e3f123cc",
+    "src/contract_driven_ai_flow/research/workbench/jobs.py": "b3c3163fe41faf988df6a21233dc9c6e964ba6c905eebd4a3bfcdf62905c328d",
+    "src/contract_driven_ai_flow/research/workbench/joint_worker.py": "0c34e059e04d3f6010cd1923a121aa8b31ea62860e9d2e590716437d704c0fac",
+    "src/contract_driven_ai_flow/research/workbench/models.py": "1e82e69379f05b553faf75fb9d8b8c03835dc1c130085bfc48a69040c4cd08f9",
+    "src/contract_driven_ai_flow/research/workbench/override_keys.py": "6be7c2e89847aaf51a3c0a22af7b9326b21c808c8a5ed5ca87b04453b71ef5a8",
+    "src/contract_driven_ai_flow/research/workbench/ownership.py": "a8824bebefe890759b0d2d6d254f3fe296479e491a8e7843817e608c3d9699da",
+    "src/contract_driven_ai_flow/research/workbench/planning.py": "80d102c2519f1a8c3860b26b759cb4d5118d16d90e14b310a66570c66a887993",
+    "src/contract_driven_ai_flow/research/workbench/preferences.py": "3ccdbe50efe222dd62cfb702be575eed4c3a2657760410dc41dae19a061895dd",
+    "src/contract_driven_ai_flow/research/workbench/probe_defaults.py": "bb3c96be509918ed9d92a34a8164d32bb4ada1a982d29a0ad745e5fde93d0a1e",
+    "src/contract_driven_ai_flow/research/workbench/process.py": "5ed5e1450c3845048301ff82d9d5930550d2372ba0575d6f9a4ac437fb72bc26",
+    "src/contract_driven_ai_flow/research/workbench/program_worker.py": "5d6a33f0cb1ca08afa0a2328b57dced334edab3f356f69cb32f52e88f09e534c",
+    "src/contract_driven_ai_flow/research/workbench/programs.py": "93391a8dd88af9033fa3d005a0cc0b5c969a0cad643318d963b775ee193fd927",
+    "src/contract_driven_ai_flow/research/workbench/relations.py": "d0216be5f45b3401af9377a22948716e9dc1a8588711633a0f6acf71247a222a",
+    "src/contract_driven_ai_flow/research/workbench/rendering.py": "098fdd38dd5cf1fbdb82ce730387fb308b104f63c4b18facda60fa01af205935",
+    "src/contract_driven_ai_flow/research/workbench/resources.py": "1c968184bcafee111ce43606045e6b9b279db7c5dfe66086033996103e8a2e51",
+    "src/contract_driven_ai_flow/research/workbench/routes.py": "8764471aead503a6f6995f0c8e2703eb10887edd760f4bb969a56463b2780764",
+    "src/contract_driven_ai_flow/research/workbench/scopes.py": "cab78538f7ace6939219ff5ae4b598cd9d11aa8f61bab83d458ae4218946570e",
+    "src/contract_driven_ai_flow/research/workbench/semantic_models.py": "8e6629824328e91dc78d1cf17051a643bbd1ff51ff8f555d03cb3a304217c0c9",
+    "src/contract_driven_ai_flow/research/workbench/semantics.py": "64b4a239669b9ad2d7854ef7e71616b9b02fed0d28e30a8830b4c6cd13f66e83",
+    "src/contract_driven_ai_flow/research/workbench/service.py": "22cf235cafae2ce89a96dc13654133eede0b7dec5b9195c287b96dce5b29fc62",
+    "src/contract_driven_ai_flow/research/workbench/source_format.py": "571a39049442f8d0a4702501868e60dacea5be6904137f3ed9a6e05866c6d77d",
+    "src/contract_driven_ai_flow/research/workbench/source_occurrences.py": "5f5d9c87ebf4e39fe930b04f182931173cf11a406309ebad5f543557fbc7c7e7",
+    "src/contract_driven_ai_flow/research/workbench/store.py": "ab12836aeea1577645a7587e9ae6c67a2b3658568bb61ec28bff4eed76eee6e5",
+    "src/contract_driven_ai_flow/research/workbench/terminal.py": "872bb8d7802767b242df9bc9fadb22484bc705d5921bdb97c3c6a8907122288a",
+    "src/contract_driven_ai_flow/research/workbench/terminal_host.py": "0cdbdfb9ee9f1d213f09b212818b54d13ad249234f623873c6bb275c4b39eb3a",
+    "src/contract_driven_ai_flow/research/workbench/tool_metadata_worker.py": "6057e4dc08f418bdaf737a0487049c4b3e39eb84c124e317b5e632e2ea53dd7b",
+    "src/contract_driven_ai_flow/research/workbench/tool_worker.py": "2863c038b573373031b4ea1a464cfee95da64f4494bcef787a8cb3a6e79834d7",
+    "src/contract_driven_ai_flow/research/workbench/tools.py": "0d1456d2537022535ebe2dd0f56ec7845a8f9988e36a385a0a5f5a4f68eac0be",
+    "src/contract_driven_ai_flow/runtime.py": "c5671503bd9637803e550acf8f17893fd10b5866c56f19834a0464d259dbdcde",
+    "src/contract_driven_ai_flow/schemas/change.json": "a598829d88d032d3aef67310b964d99790f1f87322860c1f4781c5230445996a",
+    "src/contract_driven_ai_flow/schemas/event.json": "f6b028f646b32720c148e3cb4643c557dadf83293c4a4b3251dd84bab1214958",
+    "src/contract_driven_ai_flow/schemas/models.json": "7d10209b7d49c4e7a27440b3c4ea986d6bd44fcb187f8cb46da866820ecc31e1",
+    "src/contract_driven_ai_flow/schemas/project.json": "6380eaae3efc0798b58562304dc80acd795b2846590ef8b7ee5087d4575572ab",
+    "src/contract_driven_ai_flow/schemas/research.json": "54ebdb77dba082cfc875598296796d914bb5517f9ef99750d981cd56a1d0a64f",
+    "src/contract_driven_ai_flow/schemas/workbench.json": "bd9b5d7dc2213d6ff5eba145d53bba89572f01e67ed66036738570eea506d9f4",
+    "src/contract_driven_ai_flow/settings/__init__.py": "8646f57203d1954d034b06ce3ed1396131f34cc597673c2ed7493e731e87c3d5",
+    "src/contract_driven_ai_flow/settings/credentials.py": "5447806a64b16aaa067b403e7a9871f1c25d24421b9906f4ded040479e95b29d",
+    "src/contract_driven_ai_flow/settings/explanations.py": "62f2b7ce5644dc34f4dfaee6a1e5501193616112d64460b49099536707c2d65d",
+    "src/contract_driven_ai_flow/settings/models.py": "fd6c0a29a5ab4b4611f52f7af99395dbc961e0d34b3d0701b6c02756de040c0f",
+    "src/contract_driven_ai_flow/settings/routes.py": "14477b21ed2271c64022a8787ac14924bc054e3c5d7021b10c763dc5e588e0f5",
+    "src/contract_driven_ai_flow/settings/service.py": "3ce14c16fd9fcee8ccd8cc85180f6c7cf96fdda4accb246bc010ee0586a4f96a",
+    "src/contract_driven_ai_flow/shortcuts.py": "58ee7a2b14173ba09b1a472b08c2d789d9777da00a404f2babfca84cd92d92bd",
+    "src/contract_driven_ai_flow/source.py": "9f8941392dfef4d274c24c19b308de0896450fe1a3b2fa9ce8e0d6721ea2d524",
+    "src/contract_driven_ai_flow/static/assets/boot.js": "8b978ca83b8f7c7bbf26307762eee06c97d7dc9df994e85c8b63a5849fe0081c",
+    "src/contract_driven_ai_flow/static/assets/ChangeReview-CRBWQQmO.js": "03eb1085cae8e366d11f71af077816fa918f0b7a86dcd883571032fda32723ec",
+    "src/contract_driven_ai_flow/static/assets/CommandPane-DDGTF8rc.css": "98e9ef834903856257639ba3cc8cfe64401a8f6af89f9a6335280654fdfa22cb",
+    "src/contract_driven_ai_flow/static/assets/CommandPane-DdvtoaS8.js": "073bf5b4ae230993a2f2911f1536363cd06fcc55bde7568d42528cc0f3b3691a",
+    "src/contract_driven_ai_flow/static/assets/elk-worker.min-C9JGDOE-.js": "458fbe927f19d11d8d054e34b7587011b9a4d1ecbdfb688b60e491fbdfb2a8d7",
+    "src/contract_driven_ai_flow/static/assets/embed-DGsX6M5A.js": "a6689a151dc605486bf0df43649c0b25220baac873b12515a05142effd677ced",
+    "src/contract_driven_ai_flow/static/assets/index-DEgk8oVl.css": "9a23ef00ebe94531e5463fd120fa1b425dbd8985935d6dd1c2b480200cd2b3c0",
+    "src/contract_driven_ai_flow/static/assets/index-GBXttw8s.js": "57de7d4f40882aed3c8488dd9d70fed72980559a17260e1cfefa638dd8010129",
+    "src/contract_driven_ai_flow/static/assets/IntelligencePanel-CcmEommD.js": "1b3a8197daa81ae96e0fd387cb9453ce9f49384c07d1c57345a6af00bb28d184",
+    "src/contract_driven_ai_flow/static/assets/ProbeLibrary-BlHoW3T_.js": "e7c61b76d7d69a8658cc4d019407344625e63b3f2fd0d912e54d55fabfecd780",
+    "src/contract_driven_ai_flow/static/assets/RelationGraph-5-el1enO.css": "bec9e705f120d97b5ceb7ad6178636dcc6a55318591e54672bcbd83363cbae41",
+    "src/contract_driven_ai_flow/static/assets/RelationGraph-CeasefVF.js": "1eb1f4212cdc9420629ad2188ee9c556bfef3bd82f399c42c9cddddf69647028",
+    "src/contract_driven_ai_flow/static/assets/Workspace-CY7zd_kh.js": "564647aeeeb475f9dea698d3560ce8df0bfa66d54c6e55e612bb62c5c4c6f2c8",
+    "src/contract_driven_ai_flow/static/export/vega-lite.min.js": "35a9821df838825b05a6a73e9414b58747a1b18321583858ed903c66393a5c7e",
+    "src/contract_driven_ai_flow/static/export/vega.min.js": "8f6a3587cf8d4f42c7e08120e3eb05d067e746d554e39d2dcf52acc0bd5ba28f",
+    "src/contract_driven_ai_flow/static/index.html": "ae83ba6182125c71bf0001107ea28126dfc22d1382938f34dab4818b038e743f",
+    "src/contract_driven_ai_flow/static/licenses/@types__d3-color-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__d3-drag-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__d3-interpolate-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__d3-selection-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__d3-transition-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__d3-zoom-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__estree-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__geojson-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__react-dom-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@types__react-LICENSE": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+    "src/contract_driven_ai_flow/static/licenses/@xterm__addon-fit-LICENSE": "e256f01188af527e4d06d21d06fbf785ae9c50d4b328bf03cbe0ba7f0aa4228f",
+    "src/contract_driven_ai_flow/static/licenses/@xterm__xterm-LICENSE": "b569f629d00f2626a8100df2a1798210535621e42164dfd426a6fe5aac7b0ccd",
+    "src/contract_driven_ai_flow/static/licenses/@xyflow__react-LICENSE": "023119ac20fb1c8c9930abe0bcd196989a1960388529a96fc43cebf96f07c9ff",
+    "src/contract_driven_ai_flow/static/licenses/@xyflow__system-LICENSE": "023119ac20fb1c8c9930abe0bcd196989a1960388529a96fc43cebf96f07c9ff",
+    "src/contract_driven_ai_flow/static/licenses/ansi-regex-license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+    "src/contract_driven_ai_flow/static/licenses/ansi-styles-license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+    "src/contract_driven_ai_flow/static/licenses/classcat-LICENSE.md": "f101c761d255d0dddc77dd8a9327733b03d381798ec54a1bb718367207b48a8e",
+    "src/contract_driven_ai_flow/static/licenses/cliui-LICENSE.txt": "2dc0465729366c3a7890dfa9e972a1ba7048a26c02116fb8b419a6a1ac110149",
+    "src/contract_driven_ai_flow/static/licenses/commander-LICENSE": "04512a63dce4d2d506ad612dc0bd7681ccf6e3655f7b6eaef7dfac8323d1ec0b",
+    "src/contract_driven_ai_flow/static/licenses/csstype-LICENSE": "11d55bd4541c75ee7879547ac49089c489163dae49551389713c3d026cab383e",
+    "src/contract_driven_ai_flow/static/licenses/d3-array-LICENSE": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4",
+    "src/contract_driven_ai_flow/static/licenses/d3-color-LICENSE": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884",
+    "src/contract_driven_ai_flow/static/licenses/d3-delaunay-LICENSE": "582c3022bd01942336095f92b58a90b1be624dc547d987555c6c956512dd24c1",
+    "src/contract_driven_ai_flow/static/licenses/d3-dispatch-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-drag-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-dsv-LICENSE": "7842a82012622e5a37bfe4f6c1b67cd3bae6350716b5bf87f36cea0bdc1319dc",
+    "src/contract_driven_ai_flow/static/licenses/d3-ease-LICENSE": "b989d9085148d21ff64a75e14462aefa06b2589a55553b07b1460c70081c7d08",
+    "src/contract_driven_ai_flow/static/licenses/d3-force-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-format-LICENSE": "2a6d2d5f32ba0b755ddbc1c833f766e30cdbe6ebe9a6d4e3e24427721f0b63d3",
+    "src/contract_driven_ai_flow/static/licenses/d3-geo-LICENSE": "3e3edc1224eec9c39cd26491a21304a62883c1e5b6a65c5283ccc7a6cc94baee",
+    "src/contract_driven_ai_flow/static/licenses/d3-geo-projection-LICENSE": "8f4c30fd14045812de501fb1329e900c7507f96cfba1104caae929f0b217613d",
+    "src/contract_driven_ai_flow/static/licenses/d3-hierarchy-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-interpolate-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-path-LICENSE": "a09b0d6d76e768fca2085fad05743ee81ddd11946bcda160a3cf5e1081a479aa",
+    "src/contract_driven_ai_flow/static/licenses/d3-quadtree-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-scale-chromatic-LICENSE": "0986d93944902cca9af86824b6a641b4b7c2d10602fc510c433a8bcd443919fe",
+    "src/contract_driven_ai_flow/static/licenses/d3-scale-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-selection-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-shape-LICENSE": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884",
+    "src/contract_driven_ai_flow/static/licenses/d3-time-format-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-time-LICENSE": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884",
+    "src/contract_driven_ai_flow/static/licenses/d3-timer-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-transition-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/d3-zoom-LICENSE": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee",
+    "src/contract_driven_ai_flow/static/licenses/delaunator-LICENSE": "0b348fff56384b43dbb37593906904e56d0f9deb51eae590d4dc6d427fbf1808",
+    "src/contract_driven_ai_flow/static/licenses/dockview-core-LICENCE.md": "1d56757fdc06c9b33c0f80821efe4f4b11960dd7fb6544232cff61752101f513",
+    "src/contract_driven_ai_flow/static/licenses/dockview-LICENCE.md": "1d56757fdc06c9b33c0f80821efe4f4b11960dd7fb6544232cff61752101f513",
+    "src/contract_driven_ai_flow/static/licenses/dockview-react-LICENCE.md": "1d56757fdc06c9b33c0f80821efe4f4b11960dd7fb6544232cff61752101f513",
+    "src/contract_driven_ai_flow/static/licenses/elkjs-LICENSE.md": "89591d4578fb1ebd91501312a3d25f021bd865a2e436641c1cf7b1bc7e3c1617",
+    "src/contract_driven_ai_flow/static/licenses/escalade-license": "9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97",
+    "src/contract_driven_ai_flow/static/licenses/fast-json-patch-LICENSE.txt": "26593d78926902a82eb9bc7e40d1811fc381055f23516b92fe48ca8399bf02df",
+    "src/contract_driven_ai_flow/static/licenses/get-caller-file-LICENSE.md": "902dbb4154679fb2b8d7c33878183f45b268d01eae5e5033dddaa8852d45f213",
+    "src/contract_driven_ai_flow/static/licenses/get-east-asian-width-license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+    "src/contract_driven_ai_flow/static/licenses/iconv-lite-LICENSE": "ac779f7314c74f232ef847ea86e714abe25cf6eeb5cc97b69451b74e2af6492d",
+    "src/contract_driven_ai_flow/static/licenses/internmap-LICENSE": "9ea8903938dab5f12c4572d60725069bec2d1b0dc3bcc210b09bae946a5ebb1f",
+    "src/contract_driven_ai_flow/static/licenses/json-stringify-pretty-compact-LICENSE": "2d51145876dda3dd13253463b852aa83b78aa598b90fca1709f39f1740ff9a2f",
+    "src/contract_driven_ai_flow/static/licenses/react-dom-LICENSE": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+    "src/contract_driven_ai_flow/static/licenses/react-LICENSE": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+    "src/contract_driven_ai_flow/static/licenses/robust-predicates-LICENSE": "88d9b4eb60579c191ec391ca04c16130572d7eedc4a86daa58bf28c6e14c9bcd",
+    "src/contract_driven_ai_flow/static/licenses/rw-LICENSE": "e273680c43c2ab5bb3b50af28de6a08000b333396834db7bf6129cd6f130c9cd",
+    "src/contract_driven_ai_flow/static/licenses/safer-buffer-LICENSE": "4bc935e71be198c67ddf3c2b5fddb195f6edc182bfc155a96a6db61b44b494b9",
+    "src/contract_driven_ai_flow/static/licenses/scheduler-LICENSE": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+    "src/contract_driven_ai_flow/static/licenses/semver-LICENSE": "4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b",
+    "src/contract_driven_ai_flow/static/licenses/sources.json": "17a45eb8ed22da078b2de160a6444610182d87c8c9b2b774c53a21cbc75d09c4",
+    "src/contract_driven_ai_flow/static/licenses/string-width-license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+    "src/contract_driven_ai_flow/static/licenses/strip-ansi-license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+    "src/contract_driven_ai_flow/static/licenses/topojson-client-LICENSE": "4c4d15b635e04e691825a76db7d33f7f2033b55669a7430011694f31e6c65999",
+    "src/contract_driven_ai_flow/static/licenses/tslib-LICENSE.txt": "210b19e543130388c68654b7497e967119ce17145f66ab7d85688fbd70f08751",
+    "src/contract_driven_ai_flow/static/licenses/use-sync-external-store-LICENSE": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+    "src/contract_driven_ai_flow/static/licenses/vega-canvas-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-crossfilter-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-dataflow-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-embed-LICENSE": "32df67148f0fc3db0eb9e263a7b75d07f1eb14c61955005a4a39c6918d10d137",
+    "src/contract_driven_ai_flow/static/licenses/vega-encode-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-event-selector-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-expression-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-force-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-format-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-functions-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-geo-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-hierarchy-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-interpreter-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-label-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-lite-LICENSE": "f618900fd0d64046963b29f40590cdd1e341a2f41449f99110d82fd81fea808c",
+    "src/contract_driven_ai_flow/static/licenses/vega-loader-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-parser-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-projection-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-regression-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-runtime-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-scale-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-scenegraph-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-schema-url-parser-LICENSE": "eeb1606fda238f623c36d1eb5e27c33b986a446445340b220c141097424af045",
+    "src/contract_driven_ai_flow/static/licenses/vega-selections-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-statistics-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-themes-LICENSE": "ceb75fa4fbebbc381c0465442a502ffc13b73f36ccb385a66bcd5f55869e3979",
+    "src/contract_driven_ai_flow/static/licenses/vega-time-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-tooltip-LICENSE": "93cd20d9cee8c77c080d1a585e3b07644ad2c8e9ccdfc86e350136884d62d935",
+    "src/contract_driven_ai_flow/static/licenses/vega-transforms-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-typings-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-util-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-view-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-view-transforms-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-voronoi-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/vega-wordcloud-LICENSE": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8",
+    "src/contract_driven_ai_flow/static/licenses/wrap-ansi-license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+    "src/contract_driven_ai_flow/static/licenses/y18n-LICENSE": "2034cce3b6fafcddd642c4175e01d3ddfc332a53b9f20fdc46b1466dc89ac469",
+    "src/contract_driven_ai_flow/static/licenses/yargs-LICENSE": "2f1a503bfab84b3ba7393627308b3274501e459e3b5185bbb56bbf16cb1602d4",
+    "src/contract_driven_ai_flow/static/licenses/yargs-parser-LICENSE.txt": "365496ca1f56da40b23c9815fc40fa9005847b2f8f8fd1c1a4929ef25ec8cd1d",
+    "src/contract_driven_ai_flow/static/licenses/zustand-LICENSE": "c1e6e266563517467b1bf874817d23e426f3149252bd7d42758cd697514b8417",
+    "src/contract_driven_ai_flow/storage.py": "3c38fc622543acf8ab2df1c2d67cd6fa2ee2c36eb3283d7553f8452285df2152",
+    "src/contract_driven_ai_flow/studio.py": "c2f9e7f5016a091f40c69ccfc050f1ec40d3ef191b7ff43033379ab9b9d5fa3f",
+    "src/contract_driven_ai_flow/templates/research-analysis/analysis.py": "54a3e5412f54976b5db80484ba5ebb524e265f3ea9d7be14be3376eef4378359",
+    "src/contract_driven_ai_flow/templates/research-analysis/edge_cases.py": "7082e98d9fde6f97c625e5fd339626f3504cf1e62010f7ea9063acdb25c19e5a",
+    "src/contract_driven_ai_flow/terminal/__init__.py": "38cf437989cec63f110356b7d21f89cd04bdcdf03d776ffdc1da69a07a87c4f5",
+    "src/contract_driven_ai_flow/terminal/app.py": "a304d2a7ef33a3e420ed614ff35d8b3e50665ddd552e1b300dfa2df23f68f8bd",
+    "src/contract_driven_ai_flow/terminal/client.py": "70005724a89f3eef7dacdd7d79ee2788e33641fa7b0fa0e4ff13feb366c9ff9d",
+    "src/contract_driven_ai_flow/terminal/commands.py": "c007500a97b300ab4570765c9cd6a2fbc4cff6f89027b174a85141b91cc9735c",
+    "src/contract_driven_ai_flow/terminal/views.py": "9d23a1ec764381a493956ff3dd3c8ce4aca4596d629f1f5bb175834eba824b33",
+    "src/contract_driven_ai_flow/worker.py": "393854cceb4758af9432acb4ab31fab302bad05b0282d6f635e5aa71e7f78f42",
+    "src/contract_driven_ai_flow/workspace.py": "5919535aa468a9479bfbabadaee49ea0c6eb9449d84b3be9b05d63d78aea0633",
+    "src/sfa/__init__.py": "41362a5ea4931c546433d4c48290c5707bf02dbbea1c3aafa9f43d1225e47003",
+    "src/sfa/__main__.py": "beb133ee5d0ab501495e6781ac82f82497bfc0af69266c049330c6c6973b1e71",
+    "src/sfa/ai.py": "eb8c342f5b222775ada2dfcded20ff8b7507e22ed928c17a94e89519b3c55716",
+    "src/sfa/cli.py": "1befe3e0a24839f803c25e4165e01bf1440a31d40a2d7fc99171eb2250cb11b7",
+    "src/sfa/config.py": "12e4401e9e2d15a751582d20f46d7ea9cb8bf36c852c96158f6332f67d31135d",
+    "src/sfa/contract.py": "46402d8ab2b596b0ac1f5125770ef8c72f434fda8173243dfb8afb46ea0ce64b",
+    "src/sfa/execute.py": "dd65a74a2340d6eb288e4226e22ac1923d80e7e9f93a566f87f6346daa1c6dbd",
+    "src/sfa/extract.py": "975c85a11bf75e483616ee87a12be1334abdc2030b7a6d7e971ec7487ade80f6",
+    "src/sfa/generate.py": "06a1f6ddfb6c6074c4b58275c8b76eb5b3ae6227c0c0f64474b64cc95578a714",
+    "src/sfa/history.py": "ed02c9893d5755f5084ef0a143a86a150cbf2581077bbcc34bca972ca38522bc",
+    "src/sfa/init.py": "b7ca6c42a643d5deb2c3d6c1f4106163ef878c89677074ab428588b721419697",
+    "src/sfa/llm.py": "7239255a3071a08c8d244de189c69ed77262fc879ec7385ecae9d8be2bb66ac3",
+    "src/sfa/module.py": "b044b9c5af54b3cb2de84d34f9f4035e50a855ea0c8163b22da4c7623a534dc7",
+    "src/sfa/pipe.py": "a73d7b324e0746f95d603e54ce1ef7565f20cedfc8b7b73da00456a38988d0c4",
+    "src/sfa/probe.py": "7410fd7bf98bd72d9dec92bf7f086fc53d98a967ad247073c4ca88e28d9c048d",
+    "src/sfa/snapshot.py": "4bdd6a0315726e47d8ce232b36760393498191bcc8892781761cedb5f32c19a9",
+    "src/sfa/status.py": "3dcd9335d1e28a6b1fbd08611af0cc82afe5b467fd3ba39ec6f0f8f734091207",
+    "src/sfa/topology.py": "c5ba1cd4845c052d5671ddb09a777d96fc06f1f95c20c60f5c9db7e53a49eba3",
+    "src/sfa/view.py": "ed91a01e42b5414ab2789ac5c2409448abf6394617828ee84f9b75611cf3dd0e"
+  },
+  "limits": [
+    "paid_remote_model_inference_not_called",
+    "windows_native_only",
+    "folder_and_cross_file_protocol_only"
+  ]
+}

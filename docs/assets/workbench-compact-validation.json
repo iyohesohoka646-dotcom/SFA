@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "version": "0.5.3",
+  "date": "2026-10-04T18:58:56.983070+08:00",
+  "base_commit": "cac9a39",
+  "result": "passed",
+  "python": {
+    "total": 781,
+    "verified_passed": 773,
+    "skipped": 8,
+    "initial_full_passed": 772,
+    "initial_full_failed": 1,
+    "initial_failure": "test_release_identity_matches_desktop_and_python_clients",
+    "cause": "Editable installation metadata was still 0.5.2; application source and desktop were 0.5.3",
+    "repair": "Reinstall editable package without changing dependencies",
+    "targeted_retest_passed": 1,
+    "source_or_test_changes_for_repair": false
+  },
+  "frontend": {
+    "unit_passed": 103,
+    "unit_files": 15,
+    "types": "passed",
+    "production_build": "passed",
+    "licensed_frontend_components": 112
+  },
+  "browser": {
+    "passed": 87,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "duration_seconds": 373.377
+  },
+  "selection_performance": {
+    "objects": 1000,
+    "history_events": 10000,
+    "samples": 20,
+    "p95_ms": 6.1,
+    "hidden_graph_samples": 20,
+    "hidden_graph_p95_ms": 6.2,
+    "scope": "Click to next frame with actual selected-style checks; excludes cold import, calculation, plotting and model inference"
+  },
+  "desktop": {
+    "version": "0.5.3",
+    "core_version": "0.5.3",
+    "quiet_nsis_install": "passed",
+    "shortcut_default_project": "passed",
+    "controller_unit_passed": 2,
+    "render_errors": [],
+    "graph_modes": [
+      "Code",
+      "Data"
+    ],
+    "journey_125_percent": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.25,
+      "core_version": "0.5.3",
+      "window_close": true,
+      "port_released": true,
+      "own_script": true,
+      "source_preserved": true,
+      "matrix_and_anomaly": true,
+      "configured_probe_and_replot": true,
+      "automatic_harness_scope": true,
+      "shared_cli_history": true,
+      "offline_models": true,
+      "offline_report_privacy": true,
+      "result": "passed"
+    },
+    "terminal_150_percent": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.5,
+      "unicode": true,
+      "real_python": true,
+      "real_cli": true,
+      "real_shell": true,
+      "concurrent_sessions": 3,
+      "minimize_restore_state": true,
+      "explicit_reconnect_history": true,
+      "owner_exit_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "missing_runtime_renderer_backend_recovery": "passed",
+    "visible_exit_cleanup": "passed"
+  },
+  "preservation": {
+    "definition_files_unchanged": true,
+    "original_rows_retained": true,
+    "original_run_count": 3,
+    "no_automatic_new_run": true,
+    "tables": {
+      ".cdaf\\research\\experiments.sqlite3:runs": {
+        "before": 3,
+        "after": 3,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:events": {
+        "before": 133,
+        "after": 133,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:snapshots": {
+        "before": 36,
+        "after": 36,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:operations": {
+        "before": 33,
+        "after": 33,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:control_summaries": {
+        "before": 8,
+        "after": 8,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:control_details": {
+        "before": 8,
+        "after": 8,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:control_receipts": {
+        "before": 2,
+        "after": 2,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:artifact_leases": {
+        "before": 0,
+        "after": 0,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:research_migrations": {
+        "before": 1,
+        "after": 1,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\workbench.sqlite3:records": {
+        "before": 172,
+        "after": 173,
+        "original_rows_retained": true
+      },
+      ".cdaf\\settings\\models.sqlite3:profiles": {
+        "before": 0,
+        "after": 0,
+        "original_rows_retained": true
+      },
+      ".cdaf\\settings\\models.sqlite3:calls": {
+        "before": 0,
+        "after": 0,
+        "original_rows_retained": true
+      }
+    }
+  },
+  "delivery": {
+    "wheel": "contract_driven_ai_flow-0.5.3-py3-none-any.whl",
+    "wheel_sha256": "a412c3a8935eb52d8bd5cdaa909963c74f1dca7f046bce29982917f6bb1ef85c",
+    "isolated_wheel_install": "passed",
+    "source_archive": "contract_driven_ai_flow-0.5.3.tar.gz",
+    "source_archive_sha256": "52a1d1f68019fe854f34ded606d9e798fb706333605f8f0f88eadcb5f17b23bf",
+    "isolated_source_install": "passed",
+    "nsis_installer": "Scientific Dataflow Inspector Setup 0.5.3.exe",
+    "nsis_sha256": "3182c13fd465dbb93d1970968c839632cfafb2df32833803a56726d6c36be38b",
+    "identical_package_files": 248,
+    "ordinary_install_needs_node": false,
+    "signed": false
+  },
+  "delegation": {
+    "harness": "official DeepSeek Harness",
+    "model_route": "deepseek-official/deepseek-flash",
+    "accepted_contribution": "objectTree.ts",
+    "independent_review_and_integration": true,
+    "other_two_requests": "No additional accepted files before output or supervisor limits",
+    "owned_worker_exited": true
+  },
+  "limitations": [
+    "Interactive NSIS wizard was not exercised; quiet installation was",
+    "macOS/Linux native desktop installers were not validated",
+    "Workbench model inference used offline mode and local HTTP fixtures; DSH delegation used the official live Flash route",
+    "Directory import, cross-file parsing and overlapping branches remain extension protocols",
+    "Cross-platform CI is tracked against the branch head in GitHub Actions"
+  ]
+}

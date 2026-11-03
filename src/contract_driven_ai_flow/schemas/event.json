@@ -1,0 +1,88 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "sequence": {
+      "default": 0,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "time": {
+      "title": "Time",
+      "type": "string"
+    },
+    "kind": {
+      "title": "Kind",
+      "type": "string"
+    },
+    "revision": {
+      "title": "Revision",
+      "type": "string"
+    },
+    "module": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Module"
+    },
+    "binding": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Binding"
+    },
+    "attempt": {
+      "default": 0,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "contract_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contract Revision"
+    },
+    "links": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "data": {
+      "additionalProperties": true,
+      "title": "Data",
+      "type": "object"
+    }
+  },
+  "required": [
+    "run_id",
+    "time",
+    "kind",
+    "revision"
+  ],
+  "title": "RunEvent",
+  "type": "object"
+}

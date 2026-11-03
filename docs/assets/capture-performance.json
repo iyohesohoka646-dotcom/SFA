@@ -1,0 +1,42 @@
+{
+  "measured_at": "2026-09-30T21:36:51.283688+00:00",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "input_items": 1000,
+  "costs": {
+    "json_only": {
+      "iterations": 300,
+      "median_us": 39.7,
+      "p95_us": 63.8
+    },
+    "metadata": {
+      "iterations": 300,
+      "median_us": 364.15,
+      "p95_us": 533.7,
+      "captured_bytes": 120
+    },
+    "summary": {
+      "iterations": 300,
+      "median_us": 365.45000000000005,
+      "p95_us": 483.7,
+      "captured_bytes": 323
+    },
+    "sample": {
+      "iterations": 300,
+      "median_us": 373.7,
+      "p95_us": 543.1,
+      "captured_bytes": 343
+    },
+    "full": {
+      "iterations": 300,
+      "median_us": 398.75,
+      "p95_us": 535.9,
+      "captured_bytes": 4048
+    },
+    "sqlite_event": {
+      "iterations": 100,
+      "median_us": 4113.75,
+      "p95_us": 7928.0
+    }
+  },
+  "note": "Microbenchmarks in this host; no universal performance threshold. Worker startup is included in module duration, measured separately by the real examples."
+}

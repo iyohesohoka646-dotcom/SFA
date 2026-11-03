@@ -1,0 +1,1505 @@
+{
+  "nodes": [
+    {
+      "id": "file",
+      "type": "plate",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 300,
+        "height": 118
+      },
+      "data": {
+        "handles": []
+      }
+    },
+    {
+      "id": "n1",
+      "parentId": "file",
+      "type": "plate",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 320,
+        "height": 174
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h1",
+            "name": "X",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h2",
+            "name": "合流 X",
+            "direction": "input",
+            "kind": "merge",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "options",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h4",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h5",
+            "name": "X",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h6",
+            "name": "合流 X",
+            "direction": "output",
+            "kind": "merge",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n2",
+      "parentId": "file",
+      "type": "plate",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 300,
+        "height": 214
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "X",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h1",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h2",
+            "name": "X",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "X",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h4",
+            "name": "X",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h5",
+            "name": "X",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h6",
+            "name": "options",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h7",
+            "name": "np",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h8",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h9",
+            "name": "X",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h10",
+            "name": "合流 X",
+            "direction": "input",
+            "kind": "merge",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n3",
+      "parentId": "file",
+      "type": "plate",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 300,
+        "height": 194
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h1",
+            "name": "mu",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h2",
+            "name": "X",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "Z",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h4",
+            "name": "Z",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h5",
+            "name": "Z",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h6",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h7",
+            "name": "Z",
+            "direction": "output",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h8",
+            "name": "np",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h9",
+            "name": "sigma",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n4",
+      "parentId": "file",
+      "type": "plate",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 326,
+        "height": 274
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "options",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h1",
+            "name": "options",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h2",
+            "name": "C",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h4",
+            "name": "Z",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h5",
+            "name": "Z",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h6",
+            "name": "Z",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h7",
+            "name": "np",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          },
+          {
+            "id": "h8",
+            "name": "np",
+            "direction": "input",
+            "kind": "data",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n5",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 440,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n6",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "argparse",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n7",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "np",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n8",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "pd",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n9",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 255,
+        "height": 130
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "argparse",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "parser",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h2",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n10",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "parser",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "parser",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n11",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 440,
+        "height": 130
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "parser",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h2",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n12",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 130
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "parser",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "options",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h2",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n13",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "options",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "options",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n14",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 261,
+        "height": 130
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "np",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "rng",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h2",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n15",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "rng",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "rng",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n16",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 130
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "rng",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "X",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h2",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n17",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "X",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "X",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n18",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 440,
+        "height": 150
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "pd",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "X",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h2",
+            "name": "frame",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h4",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n19",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "frame",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n20",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 130
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "X",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "mu",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h2",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n21",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "mu",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "mu",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n22",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 130
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "X",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "sigma",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h2",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n23",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "sigma",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "sigma",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "n24",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 230,
+        "height": 150
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "Z",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "X",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h2",
+            "name": "C",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h3",
+            "name": "控制顺序",
+            "direction": "output",
+            "kind": "control",
+            "boundary": true
+          },
+          {
+            "id": "h4",
+            "name": "控制顺序",
+            "direction": "input",
+            "kind": "control",
+            "boundary": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "n25",
+      "parentId": "file",
+      "type": "semantic",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "width": 228,
+        "height": 110
+      },
+      "data": {
+        "handles": [
+          {
+            "id": "h0",
+            "name": "C",
+            "direction": "input",
+            "kind": "data",
+            "boundary": false
+          },
+          {
+            "id": "h1",
+            "name": "C",
+            "direction": "output",
+            "kind": "data",
+            "boundary": false
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e0",
+      "source": "n22",
+      "target": "n3",
+      "sourceHandle": "h2",
+      "targetHandle": "h0",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e1",
+      "source": "n22",
+      "target": "n23",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "sigma"
+    },
+    {
+      "id": "e2",
+      "source": "n5",
+      "target": "n9",
+      "sourceHandle": "h0",
+      "targetHandle": "h2",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e3",
+      "source": "n15",
+      "target": "n16",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "rng"
+    },
+    {
+      "id": "e4",
+      "source": "n16",
+      "target": "n17",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "X"
+    },
+    {
+      "id": "e5",
+      "source": "n16",
+      "target": "n1",
+      "sourceHandle": "h2",
+      "targetHandle": "h0",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e6",
+      "source": "n10",
+      "target": "n11",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "parser"
+    },
+    {
+      "id": "e7",
+      "source": "n10",
+      "target": "n12",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "parser"
+    },
+    {
+      "id": "e8",
+      "source": "n21",
+      "target": "n3",
+      "sourceHandle": "h1",
+      "targetHandle": "h1",
+      "label": "mu"
+    },
+    {
+      "id": "e9",
+      "source": "n11",
+      "target": "n12",
+      "sourceHandle": "h1",
+      "targetHandle": "h2",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e10",
+      "source": "n18",
+      "target": "n19",
+      "sourceHandle": "h2",
+      "targetHandle": "h0",
+      "label": "frame"
+    },
+    {
+      "id": "e11",
+      "source": "n18",
+      "target": "n20",
+      "sourceHandle": "h3",
+      "targetHandle": "h2",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e12",
+      "source": "n12",
+      "target": "n14",
+      "sourceHandle": "h3",
+      "targetHandle": "h2",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e13",
+      "source": "n12",
+      "target": "n13",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "options"
+    },
+    {
+      "id": "e14",
+      "source": "n2",
+      "target": "n22",
+      "sourceHandle": "h0",
+      "targetHandle": "h0",
+      "label": "X"
+    },
+    {
+      "id": "e15",
+      "source": "n2",
+      "target": "n18",
+      "sourceHandle": "h1",
+      "targetHandle": "h4",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e16",
+      "source": "n2",
+      "target": "n18",
+      "sourceHandle": "h2",
+      "targetHandle": "h1",
+      "label": "X"
+    },
+    {
+      "id": "e17",
+      "source": "n2",
+      "target": "n20",
+      "sourceHandle": "h3",
+      "targetHandle": "h0",
+      "label": "X"
+    },
+    {
+      "id": "e18",
+      "source": "n2",
+      "target": "n24",
+      "sourceHandle": "h4",
+      "targetHandle": "h1",
+      "label": "X"
+    },
+    {
+      "id": "e19",
+      "source": "n2",
+      "target": "n3",
+      "sourceHandle": "h5",
+      "targetHandle": "h2",
+      "label": "X"
+    },
+    {
+      "id": "e20",
+      "source": "n14",
+      "target": "n15",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "rng"
+    },
+    {
+      "id": "e21",
+      "source": "n14",
+      "target": "n16",
+      "sourceHandle": "h3",
+      "targetHandle": "h3",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e22",
+      "source": "n17",
+      "target": "n1",
+      "sourceHandle": "h1",
+      "targetHandle": "h1",
+      "label": "X"
+    },
+    {
+      "id": "e23",
+      "source": "n17",
+      "target": "n1",
+      "sourceHandle": "h1",
+      "targetHandle": "h2",
+      "label": "合流 X"
+    },
+    {
+      "id": "e24",
+      "source": "n20",
+      "target": "n22",
+      "sourceHandle": "h3",
+      "targetHandle": "h3",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e25",
+      "source": "n20",
+      "target": "n21",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "mu"
+    },
+    {
+      "id": "e26",
+      "source": "n13",
+      "target": "n2",
+      "sourceHandle": "h1",
+      "targetHandle": "h6",
+      "label": "options"
+    },
+    {
+      "id": "e27",
+      "source": "n13",
+      "target": "n4",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "options"
+    },
+    {
+      "id": "e28",
+      "source": "n13",
+      "target": "n4",
+      "sourceHandle": "h1",
+      "targetHandle": "h1",
+      "label": "options"
+    },
+    {
+      "id": "e29",
+      "source": "n13",
+      "target": "n1",
+      "sourceHandle": "h1",
+      "targetHandle": "h3",
+      "label": "options"
+    },
+    {
+      "id": "e30",
+      "source": "n9",
+      "target": "n10",
+      "sourceHandle": "h1",
+      "targetHandle": "h0",
+      "label": "parser"
+    },
+    {
+      "id": "e31",
+      "source": "n9",
+      "target": "n11",
+      "sourceHandle": "h3",
+      "targetHandle": "h2",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e32",
+      "source": "n8",
+      "target": "n18",
+      "sourceHandle": "h0",
+      "targetHandle": "h0",
+      "label": "pd"
+    },
+    {
+      "id": "e33",
+      "source": "n25",
+      "target": "n4",
+      "sourceHandle": "h1",
+      "targetHandle": "h2",
+      "label": "C"
+    },
+    {
+      "id": "e34",
+      "source": "n24",
+      "target": "n4",
+      "sourceHandle": "h3",
+      "targetHandle": "h3",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e35",
+      "source": "n24",
+      "target": "n25",
+      "sourceHandle": "h2",
+      "targetHandle": "h0",
+      "label": "C"
+    },
+    {
+      "id": "e36",
+      "source": "n3",
+      "target": "n4",
+      "sourceHandle": "h3",
+      "targetHandle": "h4",
+      "label": "Z"
+    },
+    {
+      "id": "e37",
+      "source": "n3",
+      "target": "n4",
+      "sourceHandle": "h4",
+      "targetHandle": "h5",
+      "label": "Z"
+    },
+    {
+      "id": "e38",
+      "source": "n3",
+      "target": "n4",
+      "sourceHandle": "h5",
+      "targetHandle": "h6",
+      "label": "Z"
+    },
+    {
+      "id": "e39",
+      "source": "n3",
+      "target": "n24",
+      "sourceHandle": "h6",
+      "targetHandle": "h4",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e40",
+      "source": "n3",
+      "target": "n24",
+      "sourceHandle": "h7",
+      "targetHandle": "h0",
+      "label": "Z"
+    },
+    {
+      "id": "e41",
+      "source": "n7",
+      "target": "n2",
+      "sourceHandle": "h0",
+      "targetHandle": "h7",
+      "label": "np"
+    },
+    {
+      "id": "e42",
+      "source": "n7",
+      "target": "n14",
+      "sourceHandle": "h0",
+      "targetHandle": "h0",
+      "label": "np"
+    },
+    {
+      "id": "e43",
+      "source": "n7",
+      "target": "n4",
+      "sourceHandle": "h0",
+      "targetHandle": "h7",
+      "label": "np"
+    },
+    {
+      "id": "e44",
+      "source": "n7",
+      "target": "n4",
+      "sourceHandle": "h0",
+      "targetHandle": "h8",
+      "label": "np"
+    },
+    {
+      "id": "e45",
+      "source": "n7",
+      "target": "n3",
+      "sourceHandle": "h0",
+      "targetHandle": "h8",
+      "label": "np"
+    },
+    {
+      "id": "e46",
+      "source": "n23",
+      "target": "n3",
+      "sourceHandle": "h1",
+      "targetHandle": "h9",
+      "label": "sigma"
+    },
+    {
+      "id": "e47",
+      "source": "n6",
+      "target": "n9",
+      "sourceHandle": "h0",
+      "targetHandle": "h0",
+      "label": "argparse"
+    },
+    {
+      "id": "e48",
+      "source": "n1",
+      "target": "n2",
+      "sourceHandle": "h4",
+      "targetHandle": "h8",
+      "label": "控制顺序"
+    },
+    {
+      "id": "e49",
+      "source": "n1",
+      "target": "n2",
+      "sourceHandle": "h5",
+      "targetHandle": "h9",
+      "label": "X"
+    },
+    {
+      "id": "e50",
+      "source": "n1",
+      "target": "n2",
+      "sourceHandle": "h6",
+      "targetHandle": "h10",
+      "label": "合流 X"
+    }
+  ]
+}

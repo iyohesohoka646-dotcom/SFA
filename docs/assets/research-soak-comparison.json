@@ -1,0 +1,34 @@
+{
+  "fixture": "Real 64x64 NumPy X updated at target 10 Hz for ten minutes, selected detail every second, no forced GC",
+  "before": {
+    "source": "research-soak-before-cache.json",
+    "duration_seconds": 603.437,
+    "sample_count": 582,
+    "detail_p50_ms": 21.39,
+    "detail_p95_ms": 36.92,
+    "js_heap_2min_median_mib": [
+      20.17,
+      31.64,
+      42.61,
+      52.87,
+      59.08
+    ],
+    "status": "completed"
+  },
+  "after": {
+    "source": "research-soak.json",
+    "duration_seconds": 603.531,
+    "sample_count": 577,
+    "detail_p50_ms": 24.81,
+    "detail_p95_ms": 62.86,
+    "js_heap_2min_median_mib": [
+      9.01,
+      11.23,
+      11.78,
+      13.38,
+      13.57
+    ],
+    "status": "completed"
+  },
+  "scope": "Observed Chromium JS heap and click-to-visible detail latency. Concurrent machine load differed; no speedup or universal stable-memory claim."
+}

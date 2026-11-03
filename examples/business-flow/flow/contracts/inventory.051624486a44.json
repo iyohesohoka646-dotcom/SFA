@@ -1,0 +1,27 @@
+{
+  "input": {
+    "type": "object",
+    "properties": {
+      "stock": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "stock"
+    ],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "available": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "available"
+    ],
+    "additionalProperties": false
+  },
+  "examples": []
+}

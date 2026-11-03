@@ -1,0 +1,27 @@
+{
+  "installer": "uv tool install",
+  "isolated_tools": true,
+  "ordinary_install_needs_node": false,
+  "cli": "passed",
+  "bundled_studio": "passed",
+  "first_use_workspace": "passed",
+  "native_shortcuts": "passed",
+  "gui_entry_installed": true,
+  "example": [
+    {
+      "case": "success",
+      "id": "f9a964a088de426e8ad66fc320891e97",
+      "execution": "completed",
+      "quality": "passed"
+    },
+    {
+      "case": "failure",
+      "id": "b02bfb2e5a8945aea5009c0ce6225606",
+      "execution": "completed",
+      "quality": "failed"
+    }
+  ],
+  "result": "passed",
+  "source_archive": "contract_driven_ai_flow-0.2.0.tar.gz",
+  "source_sha256": "8100762f61d4f7b61b466b2c4e4695a74f08b25c0b85a6e78d3ff15ac1b77137"
+}

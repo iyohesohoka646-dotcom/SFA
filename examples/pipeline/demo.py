@@ -2,8 +2,7 @@
 """SFA 示例项目一键引导脚本。
 
 依次调用 sfa CLI 从零构建 .sfa/ 元数据、连接管道、挂载探针、运行并观测。
-脚本可重复运行：每次先用 `sfa clean` 重置 .sfa/ 生成物（保留 sfa.yml），
-因此无需手动删除 .sfa/。
+脚本可重复运行：清理提取缓存，保留已有架构、契约和运行证据。
 
 用法：
     cd examples/pipeline
@@ -11,7 +10,6 @@
 """
 from __future__ import annotations
 
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -20,17 +18,20 @@ PROJECT = Path(__file__).resolve().parent
 
 
 def _sfa_cmd() -> list[str]:
-    """Prefer the installed `sfa` executable; fall back to `python -m sfa`."""
-    sfa_exe = shutil.which("sfa")
-    if sfa_exe:
-        return [sfa_exe]
-    return [sys.executable, "-m", "sfa"]
+    """Use this interpreter's explicit legacy namespace, with stable UTF-8 output."""
+    return [sys.executable, "-X", "utf8", "-m", "sfa"]
 
 
 SFA = _sfa_cmd()
 
 
 def run(*args: str, use_project: bool = True) -> None:
+    if args[:2] == ("probe", "add") and "--name" in args:
+        from sfa.probe import get_probe
+        name = args[args.index("--name") + 1]
+        if get_probe(PROJECT, name) is not None:
+            print(f"保留已有探针：{name}")
+            return
     cmd = SFA + list(args)
     if use_project:
         cmd += ["--project", str(PROJECT)]
@@ -49,8 +50,7 @@ def main() -> None:
     print("=" * 60)
 
     # --- M1: 初始化 + 重置 + 提取 ---
-    # init 幂等地创建脚手架与 sfa.yml；clean 清空 .sfa/ 生成物（保留 sfa.yml），
-    # 保证本脚本可重复运行而不残留旧模块/管道/探针/快照。
+    # init 与定义操作均幂等；clean 仅清理提取缓存。
     run("init", "--target", str(PROJECT), use_project=False)
     run("clean", "--yes")
     run("extract")
@@ -98,9 +98,11 @@ def main() -> None:
 
     print("\n" + "=" * 60)
     print("示例运行完成。")
-    print("提示：运行 `sfa observe positive` 或 `sfa graph negative` 继续探索。")
+    print("提示：运行 `sfa legacy observe positive` 或 `sfa legacy graph negative` 继续探索。")
     print("=" * 60)
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     main()

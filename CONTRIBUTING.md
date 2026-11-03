@@ -1,77 +1,39 @@
-# Contributing to SFA
+# Contributing to Scientific Dataflow Inspector
 
-Thanks for your interest in contributing to **Semantic Flow Architecture**.
-SFA is a structure-centric programming paradigm where engineers design the
-data-flow graph and AI fills in module implementations. This guide will get
-you set up and productive.
+The implementation is a modular Python application with thin CLI/HTTP adapters and a React workbench. Keep authored semantics separate from presentation and execution evidence. Make capability claims only after running the relevant acceptance path.
 
-## Development setup
+## Local development
 
-SFA is a CLI tool: install it once and the `sfa` command is available
-globally — you do not need a virtualenv per project. A venv is still
-recommended for development to keep dependencies isolated.
+Use Python 3.11+ and Node.js 22.12+ (Node is only needed to develop/build Studio).
 
-```bash
-# clone/copy the repo, then from the repo root:
-python -m venv .venv          # optional but recommended for dev
-# Windows
-.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
-
-pip install -e ".[dev]"       # editable install: `sfa` command + pytest
+```powershell
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -e ".[dev,research,tables,telemetry]"
+.venv\Scripts\python.exe scripts/export_schema.py
+cd web
+npm ci
+npm run build
+npm test
+cd ..
+.venv\Scripts\python.exe -X utf8 -m pytest -q
 ```
 
-The `dev` extra installs `pytest`. The `ai` extra (`pip install -e ".[ai]"`)
-adds the OpenAI and Anthropic SDKs if you want to exercise real LLM
-generation; the built-in `mock` provider needs no extra dependencies.
+On macOS/Linux, use `.venv/bin/python`. Playwright uses installed Edge on Windows; elsewhere run `npx playwright install --with-deps chromium` before browser tests. The test server creates a private temporary example and never opens a user's project.
 
-## Running tests
+`npm run dev` uses the Vite development server and proxies `/api` to port 8765. Start `cdaf studio --no-open` separately; use its session hash in the development page. The production wheel serves precompiled assets directly and needs no frontend toolchain.
 
-```bash
-pytest tests/ -v
-```
+## Verification and generated files
 
-Tests use `typer.testing.CliRunner` and the `tmp_path` fixture so they are
-isolated and offline. Every CLI command has at least one smoke test; engine
-modules (`contract`, `execute`, `probe`, …) have dedicated unit tests.
+Python models generate JSON Schema with `scripts/export_schema.py`; `npm run types` generates TypeScript from that schema. Include schemas, generated types and production static assets in a source release. Keep the npm lockfile. Do not commit `.cdaf/`, virtual environments, logs or node_modules.
 
-## Code style
+Run focused regressions for compiler boundaries, patch scope, privacy, interruption and actual worker behavior when those mechanisms change. Run the full suite, production build, browser acceptance and clean-wheel smoke test before a release. `scripts/build_examples.py` regenerates evidence only for unchanged reference models/source; it refuses to overwrite edited examples. `scripts/benchmark.py` measures capture and event costs. Test counts and host limits are recorded in `docs/release.md`.
 
-- **No comments in source code.** The codebase deliberately keeps `src/sfa/`
-  comment-free; intent lives in docstrings (module + function level) and in
-  the design documents at the repo root.
-- Follow the existing module pattern: one engine per file
-  (`topology.py`, `contract.py`, `execute.py`, …) with a pure functional
-  core and thin Typer wiring in `cli.py`.
-- Error messages always include the offending module name, the relevant file
-  path, and an actionable hint — see `SFAError` usages throughout.
-- Target Python 3.11+.
+## Code and review
 
-## Project layout
+Use concise comments for intent that the code cannot explain. Avoid speculative frameworks and silent fallbacks. A compiler diagnostic must identify the affected module or binding. Candidate code must remain inert until reviewed acceptance; architecture and view revisions must not be mixed. Probes observe values without modifying scheduling state themselves.
 
-```
-src/sfa/        the package (engines + cli)
-tests/          pytest suite
-examples/       runnable demo projects
-architecture.md system architecture (中文, for AI executors)
-total.md        project vision (中文)
-road.md         milestone roadmap (中文)
-```
+Module sources are user code with ordinary OS permissions. The patch checker constrains accepted changes, and does not make arbitrary project code a sandbox. Do not send credentials or fixture secrets to providers; keep provider configuration in process environment variables.
 
-The three `*.md` design documents at the repo root are written in Chinese
-and addressed to AI executors; they are the source of truth for design
-intent. Read them before making non-trivial architectural changes.
+The original `src/sfa/` package and `examples/pipeline/` support migration and compatibility tests. New features belong in `src/contract_driven_ai_flow/`; do not silently strengthen claims about the legacy executor.
 
-## Pull requests
-
-- Keep PRs focused: one feature or fix per PR.
-- Include or update tests for any behavior change.
-- Ensure `pytest tests/` passes before requesting review.
-- Do not commit the `.sfa/` metadata directory (it is gitignored) — except
-  generated artifacts belong to whoever runs the tool.
-
-## License
-
-By contributing you agree your contributions are licensed under the project's
-[MIT license](./LICENSE).
+Scientific adapters/probes/runners/renderers follow the documented version-1 interfaces. Keep unknown types safe, history bounded and fidelity visible. Run `npm run test:unit --prefix web` as well as browser checks. Desktop development and installed-window verification are in [desktop/README.md](desktop/README.md).

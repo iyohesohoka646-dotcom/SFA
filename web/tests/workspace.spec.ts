@@ -1,0 +1,124 @@
+import {session} from './session';
+import { test, expect } from '@playwright/test';
+import { mkdir, writeFile } from 'node:fs/promises';
+
+test.use({ baseURL: 'http://127.0.0.1:8878' });
+
+test('first-use workspace creates a contract-first project and completes reviewed execution', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto(`/?legacy=1#session=${session}`);
+  await expect(page.getByRole('heading', { name: 'Your code, contracts and execution evidence.' })).toBeVisible();
+  await expect(page.locator('.project-row')).toHaveCount(1);
+  await mkdir('../docs/assets', { recursive: true });
+  await page.screenshot({ path: '../docs/assets/studio-workspace.png', fullPage: true });
+  await page.getByLabel('Project name', { exact: true }).fill('Contract-first acceptance');
+  await page.getByRole('radio', { name: /Blank project/ }).check();
+  await page.getByRole('button', { name: 'Create & open project' }).click();
+  await expect(page.getByRole('heading', { name: 'Design with clear boundaries.' })).toBeVisible();
+  await expect(page.locator('.react-flow__node')).toHaveCount(0);
+  await page.getByRole('button', { name: 'New module', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Create module' })).toBeVisible();
+  await page.getByLabel('Module identifier').fill('answer');
+  await page.getByLabel('New module contract').fill(JSON.stringify({ input: { type: 'object', properties: {}, additionalProperties: false }, output: { type: 'integer' }, examples: [{ input: {}, output: 42 }] }));
+  await page.getByRole('button', { name: 'Add to architecture draft' }).click();
+  await page.getByRole('button', { name: 'Review & save', exact: true }).click();
+  let releaseRefresh!: () => void;
+  let refreshStarted!: () => void;
+  const refreshGate = new Promise<void>(resolve => { releaseRefresh = resolve; });
+  const refreshPending = new Promise<void>(resolve => { refreshStarted = resolve; });
+  await page.route('**/api/v1/project', async route => {
+    refreshStarted(); await refreshGate; await route.continue();
+  }, { times: 1 });
+  await page.getByRole('button', { name: 'Accept reviewed change' }).click();
+  await refreshPending;
+  await page.getByRole('button', { name: 'Context', exact: true }).click();
+  const inspect = page.getByRole('button', { name: 'Inspect exact context' });
+  try { await expect(inspect).toBeDisabled(); } finally { releaseRefresh(); }
+  await expect(inspect).toBeEnabled();
+  await inspect.click();
+  await expect(page.locator('.context-json')).toContainText('answer');
+  await page.getByRole('button', { name: 'Generate from offline fixtures' }).click();
+  await expect(page.locator('.diff')).toContainText('return 42');
+  await page.getByRole('button', { name: 'Accept reviewed change' }).click();
+  await page.getByRole('button', { name: 'Overview', exact: true }).click();
+  await page.getByRole('button', { name: 'Run with this input' }).click();
+  await expect(page.locator('.quality-pill').filter({ hasText: 'completed · quality passed' })).toBeVisible({ timeout: 30000 });
+  await page.getByRole('button', { name: 'Project tools' }).click();
+  await page.getByRole('button', { name: 'Show execution plan' }).click();
+  await expect(page.locator('.tool-result')).toContainText('answer');
+  await page.getByRole('tab', { name: 'Integrations' }).click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download integration export' }).click();
+  const artifact = await download; expect(artifact.suggestedFilename()).toContain('otel');
+  await page.getByRole('tab', { name: 'Command reference', exact: true }).click();
+  await page.getByLabel('Find a feature').fill('context');
+  await expect(page.locator('.feature-list')).toContainText('cdaf context --help');
+  await page.getByRole('link', { name: 'All projects', exact: true }).click();
+  await expect(page.locator('.project-row')).toHaveCount(2);
+  expect(errors).toEqual([]);
+});
+
+test('workspace and graph are usable on mobile, tabs use arrow keys, dialogs restore focus', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/?legacy=1#session=${session}`);
+  await expect(page.getByRole('heading', { name: 'Your code, contracts and execution evidence.' })).toBeVisible();
+  await expect(page.locator('.project-row').first()).toBeVisible();
+  const installation = page.getByRole('tab', { name: 'Installation' });
+  await installation.focus(); await installation.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'Command reference' })).toBeFocused();
+  await expect(page.getByRole('tab', { name: 'Command reference' })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('tab', { name: 'Projects', exact: true }).click();
+  await page.screenshot({ path: '../docs/assets/studio-workspace-mobile.png', fullPage: true });
+  const dimensions = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: innerWidth }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
+  await page.locator('.project-row').filter({ hasText: 'Signal quality' }).getByRole('button', { name: 'Open project' }).click();
+  await expect(page.locator('.react-flow__node')).toHaveCount(4);
+  const architecture = page.getByRole('tab', { name: 'Architecture', exact: true });
+  await architecture.focus(); await architecture.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'Runs', exact: true })).toBeFocused();
+  await page.getByRole('tab', { name: 'Architecture', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit flow settings & inputs' }).click();
+  await expect(page.getByRole('dialog', { name: 'Flow settings' })).toBeVisible();
+  await page.getByLabel('Project specification JSON').press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Edit flow settings & inputs' })).toBeFocused();
+  await page.screenshot({ path: '../docs/assets/studio-mobile.png', fullPage: true });
+  const graphSize = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: innerWidth }));
+  expect(graphSize.content).toBeLessThanOrEqual(graphSize.viewport);
+  await writeFile('../.work/mobile-acceptance.json', JSON.stringify({ workspace: dimensions, project: graphSize, keyboard_tabs: 'passed', dialog_focus_return: 'passed' }));
+});
+
+test('project tools and probe editing keep shared architecture and maintenance semantics', async ({ page }) => {
+  await page.goto(`/?legacy=1#session=${session}`);
+  await page.locator('.project-row').filter({ hasText: 'Signal quality' }).getByRole('button', { name: 'Open project' }).click();
+  await expect(page.locator('.react-flow__node')).toHaveCount(4);
+  await page.getByRole('tab', { name: 'Probes', exact: true }).click();
+  await page.locator('.probe-results button').filter({ hasText: 'mean_in_range' }).click();
+  await page.getByLabel('Probe expression', { exact: true }).fill('$output.mean <= 10');
+  await page.getByRole('button', { name: 'Update selected probe' }).click();
+  await page.getByLabel('Probe enabled', { exact: true }).uncheck();
+  await page.getByRole('button', { name: 'Review probe changes' }).click();
+  await expect(page.locator('.diff')).toContainText('$output.mean <= 10');
+  await page.getByRole('button', { name: 'Accept reviewed change' }).click();
+  const projectUrl = new URL(page.url()).pathname.replace(/\/$/, '');
+  const result = await (await page.request.get(projectUrl + '/api/v1/project', { headers: { Authorization: `Bearer ${session}` } })).json();
+  expect(result.project.probes.find((probe: any) => probe.id === 'mean_in_range').enabled).toBe(false);
+  await page.getByRole('button', { name: 'Project tools' }).click();
+  await page.getByRole('button', { name: 'Scan source symbols' }).click();
+  await expect(page.locator('.tool-result')).toContainText('src/steps.py');
+  await page.getByRole('tab', { name: 'Storage', exact: true }).click();
+  await page.getByRole('button', { name: 'Clear generated cache' }).click();
+  await expect(page.locator('.tool-result')).toContainText('"definitions_preserved": true');
+  await page.getByRole('tab', { name: 'Installation', exact: true }).click();
+  await expect(page.locator('.diagnostic-list')).toContainText('Bundled Web UI');
+  await expect(page.locator('.diagnostic-list')).toContainText('passed');
+});
+
+test('missing session provides connection recovery instead of an unusable blank screen', async ({ page }) => {
+  await page.goto('/?legacy=1');
+  await expect(page.getByRole('heading', { name: 'Connect to your local Studio' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry connection' })).toBeVisible();
+  await page.getByLabel('Session URL from the terminal').fill(`http://127.0.0.1:8878/?legacy=1#session=${session}`);
+  await page.getByRole('button', { name: 'Open session', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Your code, contracts and execution evidence.' })).toBeVisible();
+});

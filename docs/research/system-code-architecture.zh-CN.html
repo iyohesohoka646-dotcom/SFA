@@ -1,0 +1,466 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scientific Dataflow Inspector 系统与代码架构</title><style>:root{--ink:#162b36;--muted:#526975;--line:#d8e1e6;--accent:#146d73;--bg:#edf1f3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.85 'Microsoft YaHei','DengXian',sans-serif}a{color:#146d73;text-underline-offset:3px}aside{position:fixed;left:0;top:0;bottom:0;width:250px;padding:26px 20px;background:#102c39;color:#edf5f8;overflow:auto}aside strong{font-size:18px;line-height:1.5;display:block}aside small{display:block;color:#b7c9d1;margin:10px 0 26px}aside a{display:flex;gap:10px;padding:7px 0;color:#dce7ec;text-decoration:none;font-size:13px;line-height:1.5}aside a span{color:#81b4bf;font-variant-numeric:tabular-nums}aside a:hover,aside a.active{color:#fff;text-decoration:underline}main{max-width:1120px;margin:0 auto 0 280px;padding:35px 36px 70px}.intro,.chapter{background:white;padding:40px 46px;margin:0 0 24px;box-shadow:0 1px 4px #17394b0a}.intro{padding-top:44px;padding-bottom:30px}h1{font-size:34px;line-height:1.35;margin:0 0 18px;color:#000;letter-spacing:-.7px}h2{font-size:27px;line-height:1.45;margin:0 0 24px;color:#000}h3{font-size:20px;margin:28px 0 14px;color:#000}p{margin:14px 0}strong{font-weight:650}code{font-family:Consolas,'Microsoft YaHei',monospace;font-size:.88em;overflow-wrap:anywhere}pre{padding:18px 22px;background:#f3f6f7;border:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}table{border-collapse:collapse;width:100%;margin:22px 0;font-size:14px;line-height:1.65;table-layout:fixed}th,td{border:1px solid #d9d9d9;padding:11px 13px;vertical-align:middle;overflow-wrap:anywhere}th{background:#1f4354;color:white;text-align:left}tr:nth-child(even) td{background:#f3f7f9}th:first-child{width:25%}figure{margin:24px 0 22px;break-inside:avoid}figure svg,figure img{width:100%;height:auto;display:block}figcaption{color:var(--muted);font-size:13px;line-height:1.65;margin-top:10px}section p:last-child:has(a[href^="#source"]){font-size:12px;color:var(--muted);margin-top:22px}.chapter:last-child table{font-size:12px;line-height:1.55}.chapter:last-child th:first-child{width:9%}.chapter:last-child th:nth-child(2){width:65%}.chapter:last-child th:last-child{width:26%}dialog{border:0;padding:20px;max-width:96vw;max-height:96vh;background:#fff;box-shadow:0 8px 80px #102c3960}dialog::backdrop{background:#102c39b0}dialog button{float:right;font:inherit}dialog img,dialog svg{display:block;width:min(1400px,90vw);max-height:85vh;object-fit:contain}figure[tabindex]{cursor:zoom-in}figure:focus{outline:2px solid var(--accent);outline-offset:5px}.reader-tools{display:flex;gap:12px;margin:18px 0 28px}.reader-tools button{font:inherit;border:1px solid var(--line);background:#fff;padding:5px 15px;cursor:pointer}.intro p{font-size:14px;color:var(--muted)}.intro p:first-of-type{font-size:20px;color:var(--ink)}@media(min-width:1500px){main{margin-left:calc(250px + (100vw - 1400px)/2)}}@media(max-width:1000px){aside{display:none}main{margin:0;padding:14px}.intro,.chapter{padding:28px 24px}h1{font-size:28px}}@media print{@page{size:A4;margin:17mm 16mm 18mm}body{background:#fff;font-size:10.4pt;line-height:1.8;color:#111}aside,.reader-tools,dialog{display:none!important}main{max-width:none;margin:0;padding:0}.intro,.chapter{margin:0;padding:0;background:#fff;box-shadow:none}.intro{margin-bottom:7mm}.intro h1{font-size:25pt;line-height:1.3}.intro p{font-size:9pt;line-height:1.65;margin:5pt 0}.intro p:first-of-type{font-size:12pt}h2{font-size:19pt;margin:0 0 12pt;break-after:avoid}h3{font-size:12pt;break-after:avoid;margin:14pt 0 8pt}.chapter{break-before:page}.chapter:first-of-type{break-before:auto}p{margin:8pt 0;orphans:3;widows:3}figure{margin:12pt 0 10pt;break-inside:avoid}figcaption{font-size:8.2pt;line-height:1.5;margin-top:7pt}table{font-size:9pt;line-height:1.6;margin:10pt 0;break-inside:avoid}th,td{padding:6pt 7pt}tr{break-inside:avoid}thead{display:table-header-group}pre{font-size:9pt;padding:10pt 12pt;break-inside:avoid}a{color:#174d69;text-decoration:none}.chapter:last-child table{font-size:8.1pt}.chapter:last-child h3{break-before:page}.chapter:last-child td{padding:4.5pt 6pt}section p:last-child:has(a[href^="#source"]){font-size:8pt;margin-top:12pt}}
+
+.intro h1{font-size:31px}@media print{.intro h1{font-size:22pt}#chapter-1 figure{width:92%;margin-left:auto;margin-right:auto}#chapter-2 pre{font-size:8pt;line-height:1.35}#chapter-13 figure{width:95%;margin-left:auto;margin-right:auto}.chapter:last-child table{font-size:7.6pt;line-height:1.45}.chapter:last-child td{padding:4pt 5pt}.chapter:last-child th:nth-child(2){width:63%}.chapter:last-child th:last-child{width:28%}}</style></head><body><aside><strong>系统与代码架构</strong><small>Scientific Dataflow Inspector<br>0.6.0 · 1caa4ea</small><nav><a href="#chapter-1"><span>01</span>系统由哪些进程组成</a><a href="#chapter-2"><span>02</span>源码目录和实际依赖</a><a href="#chapter-3"><span>03</span>应用服务如何装配核心对象</a><a href="#chapter-4"><span>04</span>静态分析和项目索引的调用链</a><a href="#chapter-5"><span>05</span>核心模型如何连接源码与执行</a><a href="#chapter-6"><span>06</span>一次计算经过哪些方法和进程</a><a href="#chapter-7"><span>07</span>采集与传输为何分成两层</a><a href="#chapter-8"><span>08</span>探针子系统的内部结构</a><a href="#chapter-9"><span>09</span>前端组件和关系图渲染链</a><a href="#chapter-10"><span>10</span>智能层由哪些类组成</a><a href="#chapter-11"><span>11</span>跨文件修改的事务与恢复</a><a href="#chapter-12"><span>12</span>存储架构和数据关系</a><a href="#chapter-13"><span>13</span>并发 安全边界与关闭顺序</a><a href="#chapter-14"><span>14</span>扩展边界和代码阅读顺序</a><a href="#chapter-15"><span>15</span>固定版本源码索引</a></nav></aside><main><header class="intro"><h1>Scientific Dataflow Inspector<br>系统与代码架构</h1>
+<p>进程部署 模块依赖 核心类 调用链和数据存储</p>
+<p><strong>源码基准</strong>　0.6.0 开发候选版 · <code>1caa4ead427625815ee473bc3b9c965b795e0479</code></p>
+<p><strong>核对日期</strong>　2026 年 10 月 17 日</p>
+<p>本文以当前源码为准，图示对应真实进程、模块、类和方法，分别标明进程通信、对象持有与代码依赖。</p>
+<div class="reader-tools"><button onclick="print()">打印或保存 PDF</button><span>目录跳转 · 图示点击放大 · 可离线阅读</span></div></header><section class="chapter" id="chapter-1"><h2>01 系统由哪些进程组成</h2>
+<p>系统主体是 <strong>Python 模块化单体服务，加独立执行进程和 React 客户端</strong>。Electron 负责桌面宿主，FastAPI 承载本机接口，业务规则集中在 Python 应用服务。浏览器、桌面和命令行是入口，图形布局与科研计算运行在不同执行环境中。</p>
+<figure><svg role="img" aria-label="图 1 桌面启动路径与进程边界" xmlns="http://www.w3.org/2000/svg" width="1000" height="420" viewBox="0 0 1000 420"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="420" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="20" width="280" height="110" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="53" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">Electron main</tspan></text><text x="160" y="85" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">BackendController</tspan></text><rect x="360" y="20" width="280" height="110" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="53" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">Python desktop_host</tspan></text><text x="500" y="85" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">BackendOwner</tspan></text><rect x="700" y="20" width="280" height="110" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="53" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">Python HTTP server</tspan></text><text x="840" y="85" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">studio.serve / FastAPI</tspan></text><path d="M300,75 L360,75" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="330" y="65" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="330" dy="0">启动</tspan></text><path d="M640,75 L700,75" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="670" y="65" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="670" dy="0">启动</tspan></text><rect x="20" y="265" width="280" height="110" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="298" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">React renderer</tspan></text><text x="160" y="330" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">BrowserWindow / Web</tspan></text><rect x="360" y="265" width="280" height="110" rx="7" fill="#f0edf8" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="298" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ELK Web Worker</tspan></text><text x="500" y="330" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">浏览器内图布局</tspan></text><rect x="700" y="265" width="280" height="110" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="298" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">Python 子进程</tspan></text><text x="840" y="330" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">科研程序 检查 绘图</tspan></text><path d="M160,130 L160,265" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="160" y="187.5" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="160" dy="0">创建</tspan></text><path d="M300,320 L360,320" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="330" y="310" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="330" dy="0">布局</tspan></text><path d="M840,130 L840,265" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="840" y="187.5" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="840" dy="0">执行 / 监督</tspan></text><path d="M 300 288 H 330 V 190 H 740 V 130" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="515" y="180" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="515" dy="0">HTTP / SSE / WebSocket</tspan></text><text x="500" y="410" font-size="20" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">每个方框代表独立执行环境 图布局不在科研解释器中运行</tspan></text></g></svg><figcaption>图 1 桌面启动路径与进程边界</figcaption></figure>
+<p>桌面主进程的 <code>main.cjs</code> 创建 <code>BackendController</code>，后者使用 <code>BackendHost</code>。<code>backend.cjs</code> 启动 Python 模块 <code>application.desktop_host</code>，通过标准输入输出交换启动状态和停止命令。这个辅助进程持有 <code>BackendOwner</code>，再由 <code>studio.start()</code> 启动真正的 HTTP 服务进程。<strong>所有权辅助进程与 HTTP 服务进程是两个进程。</strong></p>
+<p><code>studio.serve()</code> 根据管理目录选择应用工厂：科研模式使用 <code>create_research_app()</code>，旧契约目录使用 <code>api.create_app()</code>，旧多项目工作空间使用 <code>create_workspace_app()</code>。这些分支共用科研路由能力，但初始化入口和宿主不同。桌面打包携带独立 Python；科研入口还可选择自己的解释器。</p>
+<p>CLI 批处理直接创建并调用应用服务；Textual 交互客户端既可以调用本地服务对象，也可以连接已有回环 HTTP 服务。普通 Web 客户端没有 Electron 辅助进程。ELK 使用浏览器 Worker，科研分析、检查和绘图使用操作系统子进程，不能将两类 Worker 混为一谈。</p>
+<p>源码：<a href="#code-c01">C01</a>、<a href="#code-c02">C02</a>、<a href="#code-c03">C03</a>、<a href="#code-c13">C13</a>。</p>
+</section><section class="chapter" id="chapter-2"><h2>02 源码目录和实际依赖</h2>
+<p>以下目录相对仓库根目录。Python 包名仍是 <code>contract_driven_ai_flow</code>，当前科研工作台主要位于它的 <code>research/</code> 下；根包保留了早期契约编排代码。</p>
+<pre><code class="language-text">src/contract_driven_ai_flow/
+  cli.py  studio.py  api.py       命令入口 服务启动 通用鉴权
+  application/                   命令分发 所有权与生命周期
+  research/
+    service.py  store.py          科研进程监督与实验记录
+    models.py  runners.py        证据模型与运行器协议
+    projects/                    多文件项目 索引 查询 运行 智能 修改
+    workbench/                   配置 探针 任务 绘图 推导 终端
+      intelligence/              共用模型工具循环
+    agent/                       科研解释器中的插桩 采集与传输
+  settings/                      模型配置 凭据和调用记录
+  terminal/                      Textual 交互客户端
+  compiler.py  execute.py ...     旧契约编排实现
+web/src/research/                 React 项目和单文件客户端
+desktop/src/                     Electron 宿主及受限 IPC
+</code></pre>
+<figure><svg role="img" aria-label="图 2 Python 核心包之间的实际导入方向" xmlns="http://www.w3.org/2000/svg" width="1000" height="510" viewBox="0 0 1000 510"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="510" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="350" y="10" width="300" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="43" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">research.projects</tspan></text><text x="500" y="75" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">项目 索引 查询 计划</tspan></text><rect x="20" y="200" width="300" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="170" y="233" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="170" dy="0">research.workbench</tspan></text><text x="170" y="265" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="170" dy="0">配置 探针 智能编排</tspan></text><rect x="680" y="200" width="300" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="830" y="233" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="830" dy="0">research 根模块</tspan></text><text x="830" y="265" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="830" dy="0">service / store / models</tspan></text><rect x="350" y="390" width="300" height="100" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="423" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">research.agent</tspan></text><text x="500" y="455" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">采集 插桩 传输</tspan></text><path d="M400,110 L170,200" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="285" y="145" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="285" dy="0">24 对</tspan></text><path d="M600,110 L830,200" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="715" y="145" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="715" dy="0">11 对</tspan></text><path d="M320,233 L680,233" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="223" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">16 对</tspan></text><path d="M680,278 L320,278" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="318" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">反向 3 对</tspan></text><path d="M200,300 L400,390" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="300" y="335" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="300" dy="0">24 对</tspan></text><path d="M800,300 L600,390" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="700" y="335" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="700" dy="0">11 对</tspan></text></g></svg><figcaption>图 2 Python 核心包之间的实际导入方向</figcaption></figure>
+<p>图 2 的实线表示源码中存在的 Python 导入方向，不表示跨进程通信。对当前 <code>src/contract_driven_ai_flow/</code> 的静态扫描得到 143 个 Python 文件、31,142 个物理行和 481 对模块导入关系；统计包含空行、注释和函数内导入，不含前端、测试或动态构造的导入。图中只保留主要关系。</p>
+<p>当前代码<strong>存在双向包依赖</strong>：项目层复用工作台和科研服务，科研路由又装配项目层；部分导入放在函数或属性内部。它是已有兼容路径上扩展出的模块化单体，没有严格满足“所有依赖只能单向向下”的分层模型。把它画成完全独立的微服务或无环整洁架构，会与实际代码不符。</p>
+<p>源码：<a href="#code-c04">C04</a>、<a href="#code-c05">C05</a>、<a href="#code-c06">C06</a>、<a href="#code-c07">C07</a>。</p>
+</section><section class="chapter" id="chapter-3"><h2>03 应用服务如何装配核心对象</h2>
+<p>项目科研服务由 <code>research.routes.create_research_app()</code> 作为装配入口创建。<code>ProjectApplication</code> 管理主机级项目登记、共享预算和项目专属服务缓存，HTTP 请求通过路径中的项目 ID 解析服务，后台没有可由另一个窗口覆盖的全局活动项目变量。</p>
+<figure><svg role="img" aria-label="图 3 主要服务的持有关系和继承关系" xmlns="http://www.w3.org/2000/svg" width="1000" height="440" viewBox="0 0 1000 440"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="440" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="350" y="10" width="300" height="95" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="43" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ProjectApplication</tspan></text><text x="500" y="75" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">主机级装配根</tspan></text><rect x="20" y="165" width="280" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="198" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">ProjectService</tspan></text><text x="160" y="230" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">项目登记 索引 存储</tspan></text><rect x="360" y="165" width="280" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="198" font-size="21.386800334168758" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">_services[project_id]</tspan></text><text x="500" y="230" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">项目专属服务缓存</tspan></text><rect x="700" y="165" width="280" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="198" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">共享资源</tspan></text><text x="840" y="230" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">executor / admission / budget</tspan></text><path d="M380,105 L160,165" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="270" y="125" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="270" dy="0">持有</tspan></text><path d="M500,105 L500,165" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="125" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">持有</tspan></text><path d="M620,105 L840,165" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="730" y="125" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="730" dy="0">持有</tspan></text><rect x="20" y="325" width="430" height="100" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="235" y="358" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="235" dy="0">ResearchService</tspan></text><text x="235" y="390" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="235" dy="0">ExperimentStore / ProbePool</tspan></text><rect x="550" y="325" width="430" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="765" y="358" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="765" dy="0">ProjectWorkbenchService</tspan></text><text x="765" y="390" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="765" dy="0">继承 WorkbenchService</tspan></text><path d="M 430 265 V 291 H 230 V 325" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M 570 265 V 291 H 760 V 325" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M450,366 L550,366" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M550,400 L450,400" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="346" font-size="17" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">互相引用</tspan></text></g></svg><figcaption>图 3 主要服务的持有关系和继承关系</figcaption></figure>
+<p><code>ProjectApplication._service(project_id)</code> 为项目创建一对服务：<code>ResearchService</code> 管运行进程与实验记录，<code>ProjectWorkbenchService</code> 管冻结计划及探针后处理。它们互相持有同一对象引用：<code>research._workbench = workbench</code>，<code>workbench.research = research</code>。这两个引用用于同项目内协作，不是进程通信。</p>
+<p><code>ProjectWorkbenchService</code> <strong>继承</strong> <code>WorkbenchService</code>。基类已经组合 <code>ConfigurationStore</code>、<code>WorkbenchStore</code>、<code>ProbeCatalog</code>、<code>ResourceManager</code>、<code>ToolManager</code>、<code>DrawingService</code>、<code>SemanticsService</code>、<code>PreferenceService</code> 和 <code>JobManager</code>；项目子类扩展入口、版本、清单与跨文件执行。绘图服务复用 <code>ResearchService.pool</code>，不会再创建一套独立检查池。</p>
+<p><code>ResearchService</code> 持有 <code>ExperimentStore</code>、<code>RunnerRegistry</code>、<code>ProbeRegistry</code>、<code>ProbePool</code> 与 <code>_active</code> 运行表。应用层把同一个计算预算、后台线程池和准入信号量注入各项目服务；资源是否由当前对象拥有，决定它在 <code>close()</code> 时能否关闭该资源。</p>
+<p>源码：<a href="#code-c04">C04</a>、<a href="#code-c05">C05</a>、<a href="#code-c06">C06</a>、<a href="#code-c07">C07</a>、<a href="#code-c33">C33</a>。</p>
+</section><section class="chapter" id="chapter-4"><h2>04 静态分析和项目索引的调用链</h2>
+<p>静态分析链负责读取文件和产生结构记录，不执行用户程序。它与后面的运行采集链有独立的数据入口和失败状态。</p>
+<figure><svg role="img" aria-label="图 4 从应用调用到项目版本发布" xmlns="http://www.w3.org/2000/svg" width="1000" height="370" viewBox="0 0 1000 370"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="370" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="20" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="53" font-size="18.71345029239766" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">ProjectApplication.index</tspan></text><text x="160" y="85" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">变更锁 / assert_ready</tspan></text><rect x="360" y="20" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="53" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ProjectService.index</tspan></text><text x="500" y="85" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">摘要比较 / 复用分析</tspan></text><rect x="700" y="20" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="53" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">analyze_source</tspan></text><text x="840" y="85" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">Python AST → 单文件模型</tspan></text><path d="M300,75 L360,75" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M640,75 L700,75" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="700" y="245" width="280" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="278" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">resolver / FileFacts</tspan></text><text x="840" y="310" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">跨文件符号与候选关系</tspan></text><rect x="360" y="245" width="280" height="100" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="278" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ProjectStore.session</tspan></text><text x="500" y="310" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">事务发布 ProjectRevision</tspan></text><rect x="20" y="245" width="280" height="100" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="278" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">ProjectQueryService</tspan></text><text x="160" y="310" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">分页对象与图切片</tspan></text><path d="M840,125 L840,245" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M700,295 L640,295" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M360,295 L300,295" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="192" font-size="21" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">不导入或执行用户代码 不拼接多个文件的源码</tspan></text></g></svg><figcaption>图 4 从应用调用到项目版本发布</figcaption></figure>
+<p>主要调用是 <code>ProjectApplication.index()</code> → <code>ProjectService.index()</code>。前者取得与修改应用共用的项目变更锁并检查恢复状态；后者调用 discovery 发现文件，以摘要判断是否复用旧分析，再调用 <code>workbench.analysis.analyze_source()</code> 和项目 resolver。索引写入 <code>ProjectStore.session()</code>，成功后发布新项目版本；异常或取消回滚未提交内容。</p>
+<p><code>analyze_source()</code> 使用 Python <code>ast.parse()</code>，构建 <code>AnalysisDocument</code>。平面对象和关系保留旧接口，<code>semantics.py</code> 进一步建立 <code>SemanticGraph</code>，包含结构块、计算节点、控制与数据边。<code>projects.resolver</code> 汇总每文件 facts 与模块名，解析导入、符号、直接调用、参数和返回候选。这里没有将文件拼接成一段源码。</p>
+<p>查询经 <code>ProjectQueryService</code> 读取已发布索引，提供树、对象、符号、引用和图切片。分页尽量使用 SQLite JSON 查询和紧凑记录，避免实例化全项目的完整分析。大项目图先用紧凑索引构造总览，再按范围取细节；单文件语法错误仍作为该文件的诊断保留。</p>
+<p>文件监听由 <code>ProjectIndexService</code> 和元数据轮询线程实现，按需启用后合并变化、取消与进度。它不等于每次点击图节点都重建索引。增量复用的是未变文件分析，项目关系发布仍有版本级工作。</p>
+<p>源码：<a href="#code-c08">C08</a>、<a href="#code-c09">C09</a>、<a href="#code-c10">C10</a>、<a href="#code-c11">C11</a>、<a href="#code-c12">C12</a>。</p>
+</section><section class="chapter" id="chapter-5"><h2>05 核心模型如何连接源码与执行</h2>
+<p>系统使用 Pydantic wire model 约束跨层数据。模型分布在 <code>research/models.py</code>、<code>workbench/models.py</code>、<code>workbench/semantic_models.py</code> 与 <code>projects/*_models.py</code>。不同模型族各有协议版本，不能把“项目协议版本”和“整个应用版本”当成同一个数。</p>
+<figure><svg role="img" aria-label="图 5 源码模型 计划和运行证据之间的引用" xmlns="http://www.w3.org/2000/svg" width="1000" height="350" viewBox="0 0 1000 350"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="350" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="15" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">ProjectRevision</tspan></text><text x="160" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">固定文件清单</tspan></text><rect x="360" y="15" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">SourceUnit</tspan></text><text x="500" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">file_id / digest / analysis_id</tspan></text><rect x="700" y="15" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">AnalysisDocument</tspan></text><text x="840" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">SemanticGraph / SourceRef</tspan></text><path d="M300,67 L360,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="330" y="57" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="330" dy="0">包含</tspan></text><path d="M640,67 L700,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="670" y="57" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="670" dy="0">引用</tspan></text><rect x="20" y="225" width="280" height="105" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="258" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">ExecutionPlan</tspan></text><text x="160" y="290" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">配置 入口 manifest</tspan></text><rect x="360" y="225" width="280" height="105" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="258" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">Run / SnapshotRef</tspan></text><text x="500" y="290" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">执行实例 / 实际值</tspan></text><rect x="700" y="225" width="280" height="105" rx="7" fill="#f0edf8" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="258" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">ProbeOutput</tspan></text><text x="840" y="290" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">目标和证据引用</tspan></text><path d="M160,120 L160,225" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="160" y="162.5" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="160" dy="0">冻结</tspan></text><path d="M300,277 L360,277" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="330" y="267" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="330" dy="0">执行</tspan></text><path d="M640,277 L700,277" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="670" y="267" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="670" dy="0">分析</tspan></text><path d="M840,120 L840,225" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" stroke-dasharray="6 5"/><text x="840" y="162.5" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="840" dy="0">来源引用</tspan></text></g></svg><figcaption>图 5 源码模型 计划和运行证据之间的引用</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th>模型族</th>
+<th>主要类型</th>
+<th>保存的事实</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>项目与源码</td>
+<td>ResearchProject、SourceUnit、ProjectRevision</td>
+<td>项目身份、相对路径、摘要和版本清单</td>
+</tr>
+<tr>
+<td>静态结构</td>
+<td>AnalysisDocument、SemanticGraph、SourceRef</td>
+<td>对象、作用域、计算结构与源码范围</td>
+</tr>
+<tr>
+<td>目标与意图</td>
+<td>TargetRef、ScopeSelector、RunConfiguration</td>
+<td>逻辑目标、选择范围和入口意图</td>
+</tr>
+<tr>
+<td>冻结执行</td>
+<td>ExecutionPlan、ResolvedProbeCall</td>
+<td>当时配置、定义、输入和清单引用</td>
+</tr>
+<tr>
+<td>真实证据</td>
+<td>ObservationEvent、SnapshotRef、OperationRecord</td>
+<td>事件序号、值版本和运算输入输出</td>
+</tr>
+<tr>
+<td>结果与修改</td>
+<td>ProbeOutput、DerivedData、ProjectChangeSet</td>
+<td>分析结果、父输入和待审查文件变更</td>
+</tr>
+</tbody></table>
+<p>项目 UUID 存在 <code>workbench.yaml</code>；文件 ID 从项目 ID 与相对路径派生。逻辑键还区分词法作用域，运行期作用域区分函数调用实例；快照 ID 指向某次实际采集值。文件重命名不天然保持同一个文件 ID，多次赋值也不能仅靠变量名合并。</p>
+<p><code>SourceRef</code> 把文件、摘要、行列、作用域、项目版本带到事件与结果。<code>TargetRef</code> 既可表示跨运行的逻辑目标，也可携带精确运行和快照引用。静态图边的 <code>provenance</code> 与快照 <code>fidelity</code> 分别说明关系来源和数据精度；两者表达不同维度。</p>
+<p>源码：<a href="#code-c17">C17</a>、<a href="#code-c18">C18</a>、<a href="#code-c30">C30</a>、<a href="#code-c31">C31</a>。</p>
+</section><section class="chapter" id="chapter-6"><h2>06 一次计算经过哪些方法和进程</h2>
+<p>科研程序由选定解释器运行，服务端负责冻结与监督，agent 在科研解释器中执行插桩和观察。下面只画真实计算 <code>compute</code> 路径；<code>probes</code> 和 <code>replot</code> 读取历史证据，跳过入口执行。</p>
+<figure><svg role="img" aria-label="图 6 项目执行的方法调用和跨进程链路" xmlns="http://www.w3.org/2000/svg" width="1000" height="465" viewBox="0 0 1000 465"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="465" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="15" width="450" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="245" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="245" dy="0">ProjectApplication.plan()</tspan></text><text x="245" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="245" dy="0">→ plan_project() / 保存 ExecutionPlan</tspan></text><rect x="550" y="15" width="430" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="765" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="765" dy="0">execute_plan()</tspan></text><text x="765" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="765" dy="0">JobManager.submit()</tspan></text><path d="M470,67 L550,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="550" y="195" width="430" height="105" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="765" y="228" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="765" dy="0">_execute_project()</tspan></text><text x="765" y="260" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="765" dy="0">ResearchService.start_analysis()</tspan></text><rect x="20" y="195" width="450" height="105" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="245" y="228" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="245" dy="0">PythonRunner.launch()</tspan></text><text x="245" y="260" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="245" dy="0">bootstrap.py → agent.entry.main()</tspan></text><path d="M765,120 L765,195" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M550,247 L470,247" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="20" y="375" width="450" height="80" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="245" y="408" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="245" dy="0">run_project() / ProjectRuntime</tspan></text><rect x="550" y="375" width="430" height="80" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="765" y="408" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="765" dy="0">ResearchService._supervise()</tspan></text><path d="M245,300 L245,375" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M470,413 L550,413" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="350" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">JSON 观察与控制</tspan></text></g></svg><figcaption>图 6 项目执行的方法调用和跨进程链路</figcaption></figure>
+<p><code>ProjectApplication</code> 校验项目版本与入口，创建源码 manifest。<code>ProjectWorkbenchService.plan_project()</code> 冻结工作台配置、定义、范围、清单引用，以及私有运行环境快照。项目模式保留紧凑选择器，不在启动前为项目内全部对象生成巨大调用列表；获得精确采集值后再解析有效探针调用。</p>
+<p><code>execute_plan()</code> 把任务提交到 <code>JobManager</code>；<code>_execute_project()</code> 复核清单与私有解释器环境，调用 <code>ResearchService.start_analysis()</code>。后者创建运行记录、回环监听 socket、私有 job 文件、<code>ActiveRun</code> 和进程树，再通过 <code>PythonRunner.launch()</code> 启动 <code>agent/bootstrap.py</code>。科研 stdout/stderr 与结构化事件使用不同通道。</p>
+<p>agent 的 <code>entry.main()</code> 创建 <code>AgentChannel</code>、<code>EventTransport</code>、<code>AdapterRegistry</code> 和 <code>TraceSession</code>，项目任务转入 <code>run_project()</code>。<code>ProjectRuntime</code> 仅包装标准 <code>SourceFileLoader</code>，对冻结清单内实际加载的项目源码插桩，保留包属性、相对导入与缓存行为。模块全局和各函数调用使用独立作用域，一次项目运行共用证据会话与控制收集器。</p>
+<p>父进程 <code>_supervise()</code> 收集事件、处理检查与控制、监测退出和超时，最后收束状态并释放预算。依赖文件变化时，摘要校验阻止将混合源码记作同一完整版本。第三方包、自定义加载器与子进程内部不会被无界自动追踪。</p>
+<p>源码：<a href="#code-c05">C05</a>、<a href="#code-c07">C07</a>、<a href="#code-c13">C13</a>、<a href="#code-c14">C14</a>、<a href="#code-c39">C39</a>、<a href="#code-c40">C40</a>。</p>
+</section><section class="chapter" id="chapter-7"><h2>07 采集与传输为何分成两层</h2>
+<p><code>TraceSession</code> 是科研解释器内的观察会话。插桩生成的 <code>ObservationRuntime</code> 在赋值、运算、函数和控制边界调用会话；适配器把活对象转成描述符、样例、统计和可选完整产物。数据编码完成后才进入队列，后续活对象变化不会改写已发布历史。</p>
+<figure><svg role="img" aria-label="图 7 agent 与服务之间的双向协议" xmlns="http://www.w3.org/2000/svg" width="1000" height="355" viewBox="0 0 1000 355"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="355" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="15" width="290" height="110" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="165" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="165" dy="0">TraceSession</tspan></text><text x="165" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="165" dy="0">适配器 → 冻结证据</tspan></text><rect x="360" y="15" width="280" height="110" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">EventTransport</tspan></text><text x="500" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">队列 合批 丢弃标记</tspan></text><rect x="700" y="15" width="280" height="110" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">AgentChannel</tspan></text><text x="840" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">回环 TCP / JSON</tspan></text><path d="M310,70 L360,70" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M640,70 L700,70" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="700" y="235" width="280" height="100" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="268" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">ResearchService</tspan></text><text x="840" y="300" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">校验 写入 处理 gate</tspan></text><rect x="360" y="235" width="280" height="100" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="268" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ExperimentStore</tspan></text><text x="500" y="300" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">事件 / 快照 / 产物</tspan></text><rect x="20" y="235" width="290" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="165" y="268" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="165" dy="0">React / CLI client</tspan></text><text x="165" y="300" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="165" dy="0">事件序号续接</tspan></text><path d="M865,125 L865,235" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="865" y="170" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="865" dy="0">events</tspan></text><path d="M795,235 L795,125" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="723" y="181" font-size="17" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="723" dy="0">resume</tspan><tspan x="723" dy="23.799999999999997">cancel</tspan></text><path d="M700,285 L640,285" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M 500 235 V 190 H 165 V 235" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="332" y="177" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="332" dy="0">HTTP / SSE 路由</tspan></text></g></svg><figcaption>图 7 agent 与服务之间的双向协议</figcaption></figure>
+<p><code>EventTransport</code> 提供有界普通队列、关键事件预留、合批发布和丢弃计数。<code>AgentChannel</code> 负责带 token 握手的回环 TCP 连接，采用换行分隔的严格 JSON 消息；这是私有 agent 协议。<code>events</code> 向父进程批量发布观察，反向 <code>continue / resume / cancel</code> 处理控制。需要阻断检查的边界等待父端答复，失联不能按通过继续。</p>
+<p><strong>有三个不同大小边界。</strong> 传输队列的单事件上限是 512 KiB，agent 发送帧上限是 1 MiB，公共 <code>ObservationEvent</code> 模型还限制自身序列化大小为 2 MiB。它们处于不同层次，某条路径实际受更小限制约束。事件队列默认 2048 条或 8 MiB，普通发布间隔默认 100 ms，控制明细上限 512 条。</p>
+<p>父服务将验证和脱敏后的记录写入 <code>ExperimentStore</code>。浏览器再通过可续接 SSE 读取存储事件，使用事件序号推进；agent 不直接向浏览器发消息。完整数值数据另存 NPY、表格可存 Arrow，JSON 只携带有界内容和产物引用；未知或截断保持显式状态。</p>
+<p>源码：<a href="#code-c14">C14</a>、<a href="#code-c15">C15</a>、<a href="#code-c16">C16</a>、<a href="#code-c31">C31</a>、<a href="#code-c36">C36</a>。</p>
+</section><section class="chapter" id="chapter-8"><h2>08 探针子系统的内部结构</h2>
+<p>探针子系统由能力注册、作者配置、范围解析、冻结调用、执行分发、结果存储和前端呈现共同组成。当前仍有集中分发方法，输入输出协议已经分开。</p>
+<figure><svg role="img" aria-label="图 8 上排是定义与配置的数据流 下排是执行调用分发" xmlns="http://www.w3.org/2000/svg" width="1000" height="450" viewBox="0 0 1000 450"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="450" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="10" width="290" height="110" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="165" y="43" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="165" dy="0">ProbeCatalog</tspan><tspan x="165" dy="30.799999999999997">ResourceManager</tspan></text><text x="165" y="104" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="165" dy="0">注册定义 校验与启用</tspan></text><rect x="360" y="10" width="280" height="110" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="43" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ConfigurationStore</tspan></text><text x="500" y="75" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">模板 / ProbeInstance</tspan></text><rect x="700" y="10" width="280" height="110" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="43" font-size="20.414673046251995" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">bindings.resolve_calls</tspan></text><text x="840" y="75" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">ResolvedProbeCall</tspan></text><path d="M310,60 L360,60" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M640,60 L700,60" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="360" y="175" width="280" height="95" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="208" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">_evaluate_call()</tspan></text><text x="500" y="240" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">冻结调用的执行分发</tspan></text><path d="M 840 110 V 145 H 500 V 175" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="15" y="345" width="220" height="95" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="125" y="378" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="125" dy="0">program worker</tspan></text><text x="125" y="410" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="125" dy="0">entrypoint</tspan></text><rect x="265" y="345" width="220" height="95" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="375" y="378" font-size="20.227038183694532" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="375" dy="0">DerivationService</tspan></text><text x="375" y="410" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="375" dy="0">joint 输入</tspan></text><rect x="515" y="345" width="220" height="95" rx="7" fill="#f0edf8" stroke="#b2c8d2" stroke-width="1.5"/><text x="625" y="378" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="625" dy="0">HarnessService</tspan></text><text x="625" y="410" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="625" dy="0">model / skill</tspan></text><rect x="765" y="345" width="220" height="95" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="875" y="378" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="875" dy="0">DrawingService</tspan></text><text x="875" y="410" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="875" dy="0">view / check</tspan></text><path d="M 410 270 V 300 H 125 V 345" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M 470 270 V 307 H 375 V 345" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M 530 270 V 314 H 625 V 345" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M 590 270 V 321 H 875 V 345" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /></g></svg><figcaption>图 8 上排是定义与配置的数据流 下排是执行调用分发</figcaption></figure>
+<p><code>ProbeCatalog</code> 保存 <code>ProbeDefinition</code>；<code>ResourceManager</code> 导入、校验并启用扩展定义；<code>ConfigurationStore</code> 在 YAML 保存模板和 <code>ProbeInstance</code>。<code>bindings.py</code> 处理选择器、有效默认与局部覆盖，生成 <code>ResolvedProbeCall</code>。模板应用复制成员参数，后续编辑模板不修改旧实例。</p>
+<p><code>WorkbenchService._postprocess()</code> 在配置上限内并行执行调用，并持久化 invocation 与 output。<code>_evaluate_call()</code> 按实际分发顺序处理：声明自定义 <code>entrypoint</code> 时交给独立程序 worker；<code>joint</code> 输入进入联合处理；模型和 Skill 使用 harness；结构、关系或时间等按其处理器计算；数据呈现和普通检查进入 <code>DrawingService</code>。联合路径再区分比较与派生计算，派生交给 <code>DerivationService</code>。</p>
+<p>运行期阻断检查是另一条路径：项目执行将检查配置传给 <code>ResearchService</code>，父端 <code>ProbePool</code> 产生结果，独立控制策略决定继续、暂停或取消。它不能与计算结束后的重绘、模型解释混成同一种同步 gate。历史结果读取不会再次触发运行控制。</p>
+<p>自动数据视图由 <code>auto-data</code> 模板中的 <code>view.auto</code> 成员提供。前端通过有效 presenter 配置呈现，绑定停用后不应存在额外自动绘制旁路。推导创建 <code>DerivedData</code> 与新快照，保存全部父输入引用，不修改原快照。</p>
+<p>源码：<a href="#code-c06">C06</a>、<a href="#code-c17">C17</a>、<a href="#code-c18">C18</a>、<a href="#code-c19">C19</a>、<a href="#code-c20">C20</a>、<a href="#code-c37">C37</a>。</p>
+</section><section class="chapter" id="chapter-9"><h2>09 前端组件和关系图渲染链</h2>
+<p>前端按项目宿主、工作区协调、领域文档和基础组件分工。它没有将科研解释器搬进浏览器；计算请求最终仍进入 Python 服务。</p>
+<figure><svg role="img" aria-label="图 9 前端组合 请求和布局链" xmlns="http://www.w3.org/2000/svg" width="1000" height="445" viewBox="0 0 1000 445"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="445" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="15" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">App / ProjectHost</tspan></text><text x="160" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">入口 项目 版本</tspan></text><rect x="360" y="15" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ProjectWorkbench</tspan></text><text x="500" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">组件与选择协调</tspan></text><rect x="700" y="15" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">useProjectWorkbench</tspan></text><text x="840" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">配置 任务 事件</tspan></text><path d="M300,67 L360,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M640,67 L700,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="20" y="215" width="280" height="105" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="248" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">Python graph query</tspan></text><text x="160" y="280" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">ProjectGraphSlice</tspan></text><rect x="360" y="215" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="248" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">graphPresentation</tspan></text><text x="500" y="280" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">投影 React Flow 对象</tspan></text><rect x="700" y="215" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="248" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">ProjectCanvas</tspan></text><text x="840" y="280" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">受控节点与连线</tspan></text><path d="M300,267 L360,267" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M640,267 L700,267" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M 840 120 V 155 H 160 V 215" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="147" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">项目专属 client / HTTP</tspan></text><rect x="360" y="365" width="280" height="70" rx="7" fill="#f0edf8" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="398" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ELK Web Worker</tspan></text><path d="M 840 320 V 397 H 640" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="770" y="388" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="770" dy="0">layoutSemantic()</tspan></text><path d="M 360 402 H 330 V 343 H 750 V 320" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" stroke-dasharray="6 5"/><text x="500" y="335" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">坐标与端口</tspan></text></g></svg><figcaption>图 9 前端组合 请求和布局链</figcaption></figure>
+<p><code>App</code> 选择项目工作台、单文件兼容入口或旧架构工作区。<code>ProjectHost</code> 管项目登记、重开、索引及版本；<code>ProjectWorkbench</code> 组合共享的 Dockview、探针、源码、任务和设置组件。<code>ResearchServicesProvider</code> 注入不可变的项目专属客户端；<code>projectCommands.ts</code> 和 <code>queries.ts</code> 显式携带项目 ID。</p>
+<p><code>useProjectWorkbench()</code> 协调配置保存队列、当前运行、SSE 事件、探针输出和后台任务。配置编辑有 dirty 标记和串行保存队列；订阅有取消与运行身份检查，迟到消息不能覆盖新运行。选择目标、浏览范围、文档标签和相机分别保存，没有塞入一个可变图对象。</p>
+<p>关系图链路是后端 <code>ProjectQueryService.graph()</code> → <code>ProjectGraphSlice</code> → <code>graphPresentation.presentProjectGraph()</code> → <code>ProjectCanvas</code>。其中共享 <code>graph-projection</code> 负责折叠与边界关系，<code>graph-semantic-layout</code> 构造 ELK 输入，<code>graph.layoutSemantic()</code> 在专用 Worker 执行，再返回真实节点和端口坐标给 React Flow。</p>
+<p>Code 与 Data 是同一 <code>SemanticGraph</code> 的两类投影；运行证据是其叠加信息。布局依赖图与折叠身份，选择覆盖层不进入布局依赖。后端协议由 Python 模型导出 Schema，再生成 TypeScript；前端仍有视图专属类型，不宣称所有 React 状态都由后端生成。</p>
+<p>源码：<a href="#code-c21">C21</a>、<a href="#code-c22">C22</a>、<a href="#code-c23">C23</a>、<a href="#code-c24">C24</a>。</p>
+</section><section class="chapter" id="chapter-10"><h2>10 智能层由哪些类组成</h2>
+<p>智能层复用模型设置、工具循环和任务管理，同时为项目模式注入独立上下文和工具集合。模型调用服务与项目数据读取授权有不同职责。</p>
+<figure><svg role="img" aria-label="图 10 项目智能层的依赖注入" xmlns="http://www.w3.org/2000/svg" width="1000" height="400" viewBox="0 0 1000 400"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="400" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="15" width="310" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="175" y="48" font-size="19.29824561403509" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="175" dy="0">ProjectIntelligenceService</tspan></text><text x="175" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="175" dy="0">execute(request)</tspan></text><rect x="370" y="15" width="260" height="105" rx="7" fill="#f0edf8" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">HarnessService</tspan></text><text x="500" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">共用工具循环</tspan></text><rect x="700" y="15" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">ModelSettingsService</tspan></text><text x="840" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">协议 / 配置 / 凭据</tspan></text><path d="M330,67 L370,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="350" y="57" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="350" dy="0">构造</tspan></text><path d="M630,67 L700,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="665" y="57" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="665" dy="0">调用</tspan></text><rect x="20" y="255" width="310" height="110" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="175" y="288" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="175" dy="0">ProjectContextBuilder</tspan></text><text x="175" y="320" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="175" dy="0">授权范围 冻结版本</tspan></text><rect x="370" y="255" width="260" height="110" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="288" font-size="21.79132040627886" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ProjectToolRegistry</tspan></text><text x="500" y="320" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">只读 / 惰性提案</tspan></text><rect x="700" y="255" width="280" height="110" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="288" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">contexts / receipts</tspan></text><text x="840" y="320" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">由 Harness 汇总与保存</tspan></text><path d="M 160 120 V 185 H 450 V 255" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="285" y="175" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="285" dy="0">按请求创建并注入</tspan></text><path d="M 160 185 V 255" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M500,120 L500,255" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="177.5" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">使用</tspan></text><path d="M630,310 L700,310" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="665" y="300" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="665" dy="0">工具回执</tspan></text><text x="500" y="394" font-size="20" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">没有 run / accept / terminal 工具 图关系不扩大读取授权</tspan></text></g></svg><figcaption>图 10 项目智能层的依赖注入</figcaption></figure>
+<p><code>ProjectIntelligenceService.execute()</code> 为每次请求创建 <code>ProjectContextBuilder</code> 和 <code>ProjectToolRegistry</code>，再将它们注入共用的 <code>HarnessService</code>。模型配置来自 <code>ModelSettingsService</code>，支持离线、OpenAI 兼容及 Anthropic 协议；凭据由系统凭据库或显式环境引用解析，项目只引用配置。</p>
+<p>上下文绑定项目、版本、范围和允许读取的文件。工具只从冻结索引与授权证据取内容，支持目录描述、符号搜索、引用查询、源码片段和探针目录。Harness 控制步骤、调用与消息预算，保存模型调用、工具回执和引用；token 预算采用保守估算，不保证与每家服务的精确 tokenizer 一致。</p>
+<p>代码角色增加 <code>changes.propose</code>，形成惰性的 <code>ProjectChangeSet</code>。项目工具没有直接运行、接受修改或终端执行功能；图上的数据、调用或包含边不自动扩大授权。终端输出也不会自动进入模型上下文。任务执行期间版本发生变化，构建器和工具返回冲突。</p>
+<p>离线与受控传输测试可以验证接口和隔离规则，真实外部模型的解释、建议和代码质量仍需独立验收。本文没有发起新的模型调用。</p>
+<p>源码：<a href="#code-c25">C25</a>、<a href="#code-c26">C26</a>、<a href="#code-c27">C27</a>、<a href="#code-c28">C28</a>、<a href="#code-c38">C38</a>。</p>
+</section><section class="chapter" id="chapter-11"><h2>11 跨文件修改的事务与恢复</h2>
+<p>跨文件编辑由 <code>ProjectChangeService</code> 管理，独立于模型。HTTP 接口和模型工具创建的提案都需要遵守同一摘要校验和恢复规则。<code>ProjectChangeSet</code> 保存基础项目版本、逐文件操作与摘要、验证记录、影响引用及状态。</p>
+<figure><svg role="img" aria-label="图 11 变更应用与恢复的状态路径" xmlns="http://www.w3.org/2000/svg" width="1000" height="410" viewBox="0 0 1000 410"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="410" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="15" width="280" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">propose()</tspan></text><text x="160" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">ready / invalid</tspan></text><rect x="360" y="15" width="280" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">accept() 预检</tspan></text><text x="500" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">版本 全部文件摘要</tspan></text><rect x="700" y="15" width="280" height="100" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">写入与 journal</tspan></text><text x="840" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">逐文件替换</tspan></text><path d="M300,65 L360,65" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M640,65 L700,65" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="700" y="240" width="280" height="110" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="273" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">accepted</tspan></text><text x="840" y="305" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">accepted_revision = null</tspan></text><rect x="360" y="240" width="280" height="110" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="273" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">index → mark_indexed</tspan></text><text x="500" y="305" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">复核后关联新版本</tspan></text><rect x="20" y="240" width="280" height="110" rx="7" fill="#f9e9e6" stroke="#b2c8d2" stroke-width="1.5"/><text x="160" y="273" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="160" dy="0">recovery_required</tspan></text><text x="160" y="305" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="160" dy="0">recover() 处理半套写入</tspan></text><path d="M840,115 L840,240" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M700,295 L640,295" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M 720 115 V 170 H 160 V 240" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" stroke-dasharray="6 5"/><text x="430" y="160" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="430" dy="0">写入中断</tspan></text><text x="500" y="394" font-size="20" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">路由 _run_accept 编排写入和索引 两个阶段分别记录</tspan></text></g></svg><figcaption>图 11 变更应用与恢复的状态路径</figcaption></figure>
+<p><code>propose()</code> 只建立待审查数据；<code>accept()</code> 先取得项目级跨进程锁，再检查基础版本和全部文件的修改前摘要。通过后用已保存候选、备份和 journal 逐文件替换，先记为 <code>accepted</code>，此时 <code>accepted_revision</code> 仍为空。路由中的编排函数再调用应用索引，并用 <code>mark_indexed()</code> 复核候选摘要后关联新版本。索引使用相同变更锁，避免观察到半套修改；“文件已写入”和“新索引已关联”仍是两个状态。</p>
+<p>这是<strong>可恢复的多文件变更协议</strong>。单文件替换可用原子替换，多文件整体不具备一次性文件系统原子提交。写入中断留下 <code>recovery_required</code>；<code>assert_ready()</code> 阻止计算、索引和智能请求继续使用不完整状态。<code>recover()</code> 对照已写文件和日志完成恢复，<code>rollback()</code> 产生新的反向提案，不覆盖后来的编辑。</p>
+<p>操作支持新建、修改与受约束格式调整。格式调整检查 AST、注释和语句顺序；语法与导入验证不等于运行科研测试。验证记录分别表达 pass、fail、not_run、not_validated，提案接受也不会自动执行实验。</p>
+<p>源码：<a href="#code-c29">C29</a>、<a href="#code-c30">C30</a>、<a href="#code-c04">C04</a>。</p>
+</section><section class="chapter" id="chapter-12"><h2>12 存储架构和数据关系</h2>
+<p>存储按职责拆成作者定义、项目索引、实验记录、工作台记录和主机设置。它们在一个本地应用里协作，没有统一跨库数据库事务，也没有把所有数据放进一个巨大 JSON 字段。</p>
+<figure><svg role="img" aria-label="图 12 两组核心数据库关系" xmlns="http://www.w3.org/2000/svg" width="1000" height="400" viewBox="0 0 1000 400"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="400" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><text x="250" y="28" font-size="24" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="250" dy="0">projects.sqlite3</tspan></text><text x="750" y="28" font-size="24" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="750" dy="0">experiments.sqlite3</tspan></text><rect x="20" y="70" width="220" height="85" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="130" y="103" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="130" dy="0">revisions</tspan></text><text x="130" y="135" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="130" dy="0">revision_id</tspan></text><rect x="270" y="70" width="220" height="85" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="380" y="103" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="380" dy="0">revision_files</tspan></text><text x="380" y="135" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="380" dy="0">revision_id + file_id</tspan></text><path d="M240,112 L270,112" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="20" y="235" width="220" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="130" y="268" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="130" dy="0">relationships</tspan></text><text x="130" y="300" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="130" dy="0">revision / file refs</tspan></text><rect x="270" y="235" width="220" height="100" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="380" y="268" font-size="19.103313840155945" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="380" dy="0">analyses / sources</tspan></text><text x="380" y="300" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="380" dy="0">analysis_id / digest</tspan></text><path d="M130,155 L130,235" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M380,155 L380,235" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="540" y="70" width="180" height="85" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="630" y="103" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="630" dy="0">runs</tspan></text><text x="630" y="135" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="630" dy="0">run_id</tspan></text><rect x="770" y="70" width="210" height="85" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="875" y="103" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="875" dy="0">events</tspan></text><text x="875" y="135" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="875" dy="0">sequence / run_id</tspan></text><path d="M720,112 L770,112" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><rect x="540" y="235" width="180" height="100" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="630" y="268" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="630" dy="0">snapshots</tspan></text><text x="630" y="300" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="630" dy="0">run / version</tspan></text><rect x="770" y="235" width="210" height="100" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="875" y="268" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="875" dy="0">operations</tspan></text><text x="875" y="300" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="875" dy="0">inputs / outputs</tspan></text><path d="M630,155 L630,235" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M 700 155 V 190 H 875 V 235" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="500" y="385" font-size="20" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="500" dy="0">workbench.sqlite3 使用 records(kind, id, payload) 单表保存控制记录</tspan></text></g></svg><figcaption>图 12 两组核心数据库关系</figcaption></figure>
+<p><code>ProjectStore</code> 的 <code>projects.sqlite3</code> 用 <code>revisions</code> 和 <code>revision_files</code> 保存历史文件清单，<code>analyses</code> 保存每文件分析与 facts，<code>sources</code> 按摘要归档，<code>relationships</code> 关联一个版本内的文件关系。<code>files</code> 只是当前文件索引，回看历史必须走版本清单。</p>
+<p><code>ExperimentStore</code> 的 <code>experiments.sqlite3</code> 保存 runs、events、snapshots、operations、control_summaries、control_details、control_receipts 和产物保留引用。事件序号在数据库中自增，并通过运行 ID 过滤；不能假定每次运行的序号都从 1 连续开始。快照与运算包含运行引用和 JSON body，数值大产物另存文件。</p>
+<p><code>WorkbenchStore</code> 的 <code>workbench.sqlite3</code> 使用一张 <code>records(kind,id,payload,created)</code> 表，分别保存 plans、tasks、outputs、contexts、resources、invocations、derived 等小型记录，单条限制 4 MiB。它不是为每个 Python 类都建一张表。图 12 的连线表示逻辑键关系，不表示全部由 SQL 外键强制维护。</p>
+<p><code>workbench.yaml</code> 保存入口、绑定和模板，由配置版本校验加原子替换保存。主机注册表、运行环境引用、模型设置和系统凭据分开；<code>.cdaf/studio.json</code> 含会话令牌，不能共享。SQLite 连接按事务关闭，项目索引提供线程局部 session；跨数据库和文件的一致性依靠清单、摘要、任务状态及恢复日志配合。</p>
+<p>源码：<a href="#code-c12">C12</a>、<a href="#code-c31">C31</a>、<a href="#code-c32">C32</a>、<a href="#code-c37">C37</a>、<a href="#code-c38">C38</a>。</p>
+</section><section class="chapter" id="chapter-13"><h2>13 并发 安全边界与关闭顺序</h2>
+<p>并发分为后台任务、科研进程、探针后处理、独立检查池和浏览器布局。每种限额控制不同资源，不能简单相加为一个“最大并发数”。</p>
+<figure><svg role="img" aria-label="图 13 所有权与并发资源" xmlns="http://www.w3.org/2000/svg" width="1000" height="270" viewBox="0 0 1000 270"><defs><marker id="a" refX="8" refY="4.5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 1 L8 4.5 L0 8" stroke="#557b8c" stroke-width="1.4" fill="none"/></marker></defs><rect width="1000" height="270" fill="white"/><g font-family="Microsoft YaHei,DengXian,sans-serif"><rect x="20" y="15" width="290" height="105" rx="7" fill="#e7f4ef" stroke="#b2c8d2" stroke-width="1.5"/><text x="165" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="165" dy="0">ProjectApplication</tspan></text><text x="165" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="165" dy="0">executor 3 / admission 16</tspan></text><rect x="360" y="15" width="280" height="105" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ResearchService</tspan></text><text x="500" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">共享运行预算 4</tspan></text><rect x="700" y="15" width="280" height="105" rx="7" fill="#fff3d9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="48" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">ProbePool</tspan></text><text x="840" y="80" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">检查进程 ≤ 2</tspan></text><path d="M310,67 L360,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="335" y="57" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="335" dy="0">注入</tspan></text><path d="M640,67 L700,67" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><text x="670" y="57" font-size="18" text-anchor="middle" font-weight="400" fill="#18394b"><tspan x="670" dy="0">持有</tspan></text><rect x="20" y="170" width="290" height="85" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="165" y="203" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="165" dy="0">各项目 JobManager</tspan></text><text x="165" y="235" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="165" dy="0">共享 executor</tspan></text><rect x="360" y="170" width="280" height="85" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="500" y="203" font-size="19.52707856598017" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="500" dy="0">ActiveRun / ProcessTree</tspan></text><text x="500" y="235" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="500" dy="0">科研进程监督</tspan></text><rect x="700" y="170" width="280" height="85" rx="7" fill="#e9f2f9" stroke="#b2c8d2" stroke-width="1.5"/><text x="840" y="203" font-size="22" text-anchor="middle" font-weight="600" fill="#18394b"><tspan x="840" dy="0">ProbeWorker</tspan></text><text x="840" y="235" font-size="18" text-anchor="middle" font-weight="400" fill="#526f7e"><tspan x="840" dy="0">独立检查子进程</tspan></text><path d="M165,120 L165,170" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M500,120 L500,170" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /><path d="M840,120 L840,170" fill="none" stroke="#557b8c" stroke-width="2.2" marker-end="url(#a)" /></g></svg><figcaption>图 13 所有权与并发资源</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th>资源</th>
+<th>当前默认</th>
+<th>所有权与用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用后台 executor</td>
+<td>3 线程</td>
+<td>ProjectApplication 共享给各 JobManager</td>
+</tr>
+<tr>
+<td>任务准入 semaphore</td>
+<td>16 槽</td>
+<td>提交持久任务前申请，满时明确拒绝</td>
+</tr>
+<tr>
+<td>科研运行预算</td>
+<td>4 槽</td>
+<td>各项目与兼容入口共享</td>
+</tr>
+<tr>
+<td>探针后处理</td>
+<td>配置默认 4，限制 1…16</td>
+<td>每个后处理任务中的线程池；模型调用另加锁</td>
+</tr>
+<tr>
+<td>ProbePool</td>
+<td>最多 2 子进程，默认 16 待处理</td>
+<td>ResearchService 持有，DrawingService 复用</td>
+</tr>
+<tr>
+<td>终端</td>
+<td>真实 PTY 会话</td>
+<td>TerminalService 管理进程与有界输出</td>
+</tr>
+</tbody></table>
+<p>任务提交复制请求上下文；取消信号传给工作进程和任务函数。任务、计算、质量结果和采集完整性保留不同状态。服务重启将失去所有者的运行或任务标记中断，不能把它们当作正常完成。已经持久提交的修改不应被迟到取消重写成未提交。</p>
+<p>本地 HTTP 经过 <code>secure_app()</code> 校验会话、Host 和 Origin；Electron preload 只暴露有限 IPC，renderer 不启用 Node 集成。agent 使用私有握手连接，终端通过受控 WebSocket。<strong>这些控制并不构成用户代码或插件的操作系统沙箱。</strong></p>
+<p>关闭时先由所有者停止自己管理的任务与子进程，再结束后端与辅助进程；浏览器租约提供刷新宽限，借用已运行服务的窗口不会获得该服务的所有权。当前 <code>backend.cjs</code> 仍丢弃辅助 Python 的 stderr，部分清理路径捕获异常后不记录，这构成诊断盲点；本文记录现状，没有顺带修改启动实现。</p>
+<p>源码：<a href="#code-c01">C01</a>、<a href="#code-c03">C03</a>、<a href="#code-c05">C05</a>、<a href="#code-c33">C33</a>、<a href="#code-c34">C34</a>、<a href="#code-c35">C35</a>。</p>
+</section><section class="chapter" id="chapter-14"><h2>14 扩展边界和代码阅读顺序</h2>
+<p>扩展接口分别位于采集、检查、运行、呈现和智能层。新增类型或第三方包应先明确落在哪条边界，避免直接修改主工作台组件。</p>
+<table>
+<thead>
+<tr>
+<th>扩展</th>
+<th>实际协议或入口</th>
+<th>必须保留的条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>新数据类型</td>
+<td>DataAdapter 的 supports、describe、capture</td>
+<td>有界捕获，描述精度，不隐式物化</td>
+</tr>
+<tr>
+<td>新科学检查</td>
+<td>ProbeRegistry、evaluate(context)</td>
+<td>冻结证据，独立进程，结构化结果</td>
+</tr>
+<tr>
+<td>新运行环境</td>
+<td>RunnerAdapter.launch(job, job_file)</td>
+<td>父进程保留监督和证据所有权</td>
+</tr>
+<tr>
+<td>自定义程序与绘图</td>
+<td>ProbeResource、ProbeDefinition.entrypoint</td>
+<td>清单审查、参数 Schema、版本与预算</td>
+</tr>
+<tr>
+<td>新前端呈现</td>
+<td>renderer-registry 的 supports 与组件</td>
+<td>受有效探针控制，重新构建前端</td>
+</tr>
+<tr>
+<td>新模型协议</td>
+<td>ProviderProfile 和 ModelSettingsService</td>
+<td>凭据引用、超时、工具与用量回执</td>
+</tr>
+</tbody></table>
+<p>Python 插件入口组包括 <code>cdaf.research.adapters</code>、<code>cdaf.research.probes</code> 与 <code>cdaf.research.runners</code>，均要求显式启用。接口可扩展不等于目前已经具备 Notebook、多语言、GPU、稀疏和分布式执行支持。前端也不从网络加载任意 JavaScript 插件。</p>
+<p>建议阅读顺序为：<strong>装配 → 模型 → 计划与执行 → 证据 → 探针 → 前端 → 智能和修改</strong>。先读 <code>ProjectApplication._service()</code>，再读 <code>ProjectWorkbenchService.plan_project()</code>、<code>_execute_project()</code> 和 <code>ResearchService.start_analysis()</code>，能最快建立整套调用关系。</p>
+<p>当前的主要维护成本在集中编排与兼容耦合：<code>projects/queries.py</code> 1185 行、<code>projects/resolver.py</code> 1041 行、<code>workbench/service.py</code> 993 行、<code>projects/workbench.py</code> 970 行。这里统计物理行，包含空行与注释；行数只帮助定位大文件。后续拆分应围绕查询投影、计划编译、调用执行和服务装配，保留现有版本与证据边界，而不把仅有目录分组误认为已经解耦。</p>
+<p>本文的调用关系来自源码读取与静态导入核对；没有执行科研入口、模型调用、安装升级或全量软件回归。下方索引固定到核对提交，图示可与对应类和方法逐项对照。</p>
+<p>源码：<a href="#code-c04">C04</a>、<a href="#code-c06">C06</a>、<a href="#code-c07">C07</a>、<a href="#code-c13">C13</a>、<a href="#code-c36">C36</a>。</p>
+</section><section class="chapter" id="chapter-15"><h2>15 固定版本源码索引</h2>
+<p>以下 Python 路径相对 <code>src/contract_driven_ai_flow/</code>；<code>web/</code> 与 <code>desktop/</code> 路径相对仓库根目录。链接固定到核对提交，行号在生成时从实际定义定位。</p>
+<!-- CODE_INDEX -->
+
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>源码位置</th>
+<th>对应职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a id="code-c01"></a>C01</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/studio.py#L205">studio.py:205</a></td>
+<td>服务进程启动与应用工厂</td>
+</tr>
+<tr>
+<td><a id="code-c02"></a>C02</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/desktop/src/main.cjs#L1">desktop/src/main.cjs:1</a></td>
+<td>Electron 宿主</td>
+</tr>
+<tr>
+<td><a id="code-c03"></a>C03</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/desktop/src/backend.cjs#L3">desktop/src/backend.cjs:3</a></td>
+<td>所有权辅助进程启动</td>
+</tr>
+<tr>
+<td><a id="code-c04"></a>C04</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/application.py#L26">research/projects/application.py:26</a></td>
+<td>应用装配与共享预算</td>
+</tr>
+<tr>
+<td><a id="code-c05"></a>C05</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/service.py#L98">research/service.py:98</a></td>
+<td>科研进程监督与控制</td>
+</tr>
+<tr>
+<td><a id="code-c06"></a>C06</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/service.py#L26">research/workbench/service.py:26</a></td>
+<td>探针和工作台组合服务</td>
+</tr>
+<tr>
+<td><a id="code-c07"></a>C07</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/workbench.py#L52">research/projects/workbench.py:52</a></td>
+<td>项目冻结计划与执行</td>
+</tr>
+<tr>
+<td><a id="code-c08"></a>C08</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/service.py#L56">research/projects/service.py:56</a></td>
+<td>项目索引与版本发布</td>
+</tr>
+<tr>
+<td><a id="code-c09"></a>C09</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/analysis.py#L32">research/workbench/analysis.py:32</a></td>
+<td>单文件 AST 分析</td>
+</tr>
+<tr>
+<td><a id="code-c10"></a>C10</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/resolver.py#L325">research/projects/resolver.py:325</a></td>
+<td>跨文件候选关系</td>
+</tr>
+<tr>
+<td><a id="code-c11"></a>C11</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/queries.py#L100">research/projects/queries.py:100</a></td>
+<td>分页和图投影查询</td>
+</tr>
+<tr>
+<td><a id="code-c12"></a>C12</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/store.py#L12">research/projects/store.py:12</a></td>
+<td>规范化索引表与事务</td>
+</tr>
+<tr>
+<td><a id="code-c13"></a>C13</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/runners.py#L10">research/runners.py:10</a></td>
+<td>运行器协议与 Python 启动</td>
+</tr>
+<tr>
+<td><a id="code-c14"></a>C14</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/agent/sdk.py#L26">research/agent/sdk.py:26</a></td>
+<td>科研解释器中的观察会话</td>
+</tr>
+<tr>
+<td><a id="code-c15"></a>C15</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/agent/transport.py#L11">research/agent/transport.py:11</a></td>
+<td>有界事件队列</td>
+</tr>
+<tr>
+<td><a id="code-c16"></a>C16</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/agent/control.py#L11">research/agent/control.py:11</a></td>
+<td>agent 双向 JSON 协议</td>
+</tr>
+<tr>
+<td><a id="code-c17"></a>C17</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/models.py#L83">research/workbench/models.py:83</a></td>
+<td>定义 模板 绑定和调用模型</td>
+</tr>
+<tr>
+<td><a id="code-c18"></a>C18</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/bindings.py#L127">research/workbench/bindings.py:127</a></td>
+<td>有效绑定和调用展开</td>
+</tr>
+<tr>
+<td><a id="code-c19"></a>C19</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/rendering.py#L18">research/workbench/rendering.py:18</a></td>
+<td>呈现和普通检查分发</td>
+</tr>
+<tr>
+<td><a id="code-c20"></a>C20</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/derivation.py#L24">research/workbench/derivation.py:24</a></td>
+<td>联合比较和派生数据</td>
+</tr>
+</tbody></table>
+<h3>源码索引续表</h3>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>源码位置</th>
+<th>对应职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a id="code-c21"></a>C21</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/web/src/research/projects/ProjectWorkbench.tsx#L74">web/src/research/projects/ProjectWorkbench.tsx:74</a></td>
+<td>React 组件组合</td>
+</tr>
+<tr>
+<td><a id="code-c22"></a>C22</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/web/src/research/projects/useProjectWorkbench.ts#L19">web/src/research/projects/useProjectWorkbench.ts:19</a></td>
+<td>前端任务与运行协调</td>
+</tr>
+<tr>
+<td><a id="code-c23"></a>C23</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/web/src/research/projects/graphPresentation.ts#L217">web/src/research/projects/graphPresentation.ts:217</a></td>
+<td>图切片到 React Flow 对象</td>
+</tr>
+<tr>
+<td><a id="code-c24"></a>C24</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/web/src/graph.ts#L66">web/src/graph.ts:66</a></td>
+<td>ELK Worker 调用</td>
+</tr>
+<tr>
+<td><a id="code-c25"></a>C25</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/intelligence.py#L25">research/projects/intelligence.py:25</a></td>
+<td>项目智能服务</td>
+</tr>
+<tr>
+<td><a id="code-c26"></a>C26</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/context.py#L48">research/projects/context.py:48</a></td>
+<td>读取授权与上下文</td>
+</tr>
+<tr>
+<td><a id="code-c27"></a>C27</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/ai_tools.py#L45">research/projects/ai_tools.py:45</a></td>
+<td>模型项目工具目录</td>
+</tr>
+<tr>
+<td><a id="code-c28"></a>C28</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/intelligence/harness.py#L30">research/workbench/intelligence/harness.py:30</a></td>
+<td>共用模型工具循环</td>
+</tr>
+<tr>
+<td><a id="code-c29"></a>C29</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/changes.py#L111">research/projects/changes.py:111</a></td>
+<td>变更预检与恢复日志</td>
+</tr>
+<tr>
+<td><a id="code-c30"></a>C30</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/change_models.py#L46">research/projects/change_models.py:46</a></td>
+<td>跨文件修改模型</td>
+</tr>
+<tr>
+<td><a id="code-c31"></a>C31</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/store.py#L40">research/store.py:40</a></td>
+<td>实验数据库与快照</td>
+</tr>
+<tr>
+<td><a id="code-c32"></a>C32</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/store.py#L11">research/workbench/store.py:11</a></td>
+<td>kind id payload 存储</td>
+</tr>
+<tr>
+<td><a id="code-c33"></a>C33</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/jobs.py#L16">research/workbench/jobs.py:16</a></td>
+<td>后台任务和取消</td>
+</tr>
+<tr>
+<td><a id="code-c34"></a>C34</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/terminal.py#L210">research/workbench/terminal.py:210</a></td>
+<td>PTY 会话所有权</td>
+</tr>
+<tr>
+<td><a id="code-c35"></a>C35</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/api.py#L78">api.py:78</a></td>
+<td>本地会话和来源校验</td>
+</tr>
+<tr>
+<td><a id="code-c36"></a>C36</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/agent/registry.py#L5">research/agent/registry.py:5</a></td>
+<td>数据适配器注册</td>
+</tr>
+<tr>
+<td><a id="code-c37"></a>C37</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/workbench/configuration.py#L18">research/workbench/configuration.py:18</a></td>
+<td>作者配置保存</td>
+</tr>
+<tr>
+<td><a id="code-c38"></a>C38</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/settings/service.py#L21">settings/service.py:21</a></td>
+<td>模型配置与调用</td>
+</tr>
+<tr>
+<td><a id="code-c39"></a>C39</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/agent/project_runner.py#L149">research/agent/project_runner.py:149</a></td>
+<td>实际加载模块的插桩</td>
+</tr>
+<tr>
+<td><a id="code-c40"></a>C40</td>
+<td><a href="https://github.com/iyohesohoka646-dotcom/SFA/blob/1caa4ead427625815ee473bc3b9c965b795e0479/src/contract_driven_ai_flow/research/projects/runtime.py#L25">research/projects/runtime.py:25</a></td>
+<td>源码清单与摘要核对</td>
+</tr>
+</tbody></table>
+</section></main><dialog id="zoom"><button aria-label="关闭大图" onclick="this.parentElement.close()">关闭 ×</button><div></div></dialog><script>const dialog=document.querySelector('#zoom');document.querySelectorAll('figure').forEach(f=>{f.tabIndex=0;f.setAttribute('aria-label',f.querySelector('figcaption').textContent+' 点击放大');function open(){dialog.querySelector('div').innerHTML=f.querySelector('svg').outerHTML;dialog.showModal()}f.addEventListener('click',open);f.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();open()}})});dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});</script></body></html>

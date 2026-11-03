@@ -1,0 +1,262 @@
+schema_version: 1
+name: Order approval · 本地外部服务
+input_schema:
+  type: object
+  properties:
+    amount:
+      type: number
+    stock:
+      type: integer
+  required:
+  - amount
+  - stock
+  additionalProperties: false
+modules:
+- id: inventory
+  name: Inventory
+  description: Call a loopback HTTP inventory stub; no remote credential required
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: inventory
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        stock:
+          type: integer
+      required:
+      - stock
+      additionalProperties: false
+    output:
+      type: object
+      properties:
+        available:
+          type: boolean
+      required:
+      - available
+      additionalProperties: false
+    examples: []
+  parent: null
+  outputs: {}
+  condition: null
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - http.server
+  - http
+  - socketserver
+  - threading
+  - urllib
+  - json
+  dependencies: []
+  side_effects: true
+- id: approve
+  name: Approve order
+  description: ''
+  kind: decision
+  symbol: null
+  contract:
+    input:
+      type: object
+      properties:
+        available:
+          type: boolean
+      required:
+      - available
+      additionalProperties: false
+    output:
+      type: boolean
+    examples: []
+  parent: null
+  outputs: {}
+  condition: $input.available == True
+  guard: null
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+- id: fulfill
+  name: Fulfill
+  description: ''
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: fulfill
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        amount:
+          type: number
+      required:
+      - amount
+      additionalProperties: false
+    output:
+      type: object
+      properties:
+        total:
+          type: number
+      required:
+      - total
+      additionalProperties: false
+    examples: []
+  parent: null
+  outputs: {}
+  condition: null
+  guard:
+    decision: approve
+    when: true
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+- id: decline
+  name: Decline
+  description: ''
+  kind: python
+  symbol:
+    path: src/steps.py
+    qualname: decline
+    digest: ''
+  contract:
+    input:
+      type: object
+      properties:
+        amount:
+          type: number
+      required:
+      - amount
+      additionalProperties: false
+    output:
+      type: string
+    examples: []
+  parent: null
+  outputs: {}
+  condition: null
+  guard:
+    decision: approve
+    when: false
+  timeout_seconds: 30.0
+  retries: 0
+  idempotent: false
+  allowed_imports:
+  - json
+  - math
+  - typing
+  - dataclasses
+  - __future__
+  dependencies: []
+  side_effects: false
+bindings:
+- id: input_inventory_stock
+  target: inventory
+  port: stock
+  source:
+    kind: project
+    module: null
+    pointer: /stock
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: inventory_approve_available
+  target: approve
+  port: available
+  source:
+    kind: module
+    module: inventory
+    pointer: /available
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: input_fulfill_amount
+  target: fulfill
+  port: amount
+  source:
+    kind: project
+    module: null
+    pointer: /amount
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+- id: input_decline_amount
+  target: decline
+  port: amount
+  source:
+    kind: project
+    module: null
+    pointer: /amount
+    value: null
+  dynamic: false
+  visibility: L2
+  provenance: designed
+probes:
+- id: stock_available
+  module: inventory
+  binding: null
+  boundary: output
+  kind: assertion
+  expression: $output.available == True
+  policy: continue
+  pointer: ''
+  enabled: true
+  language_version: 1
+  true_target: null
+  false_target: null
+- id: legacy_observation
+  module: inventory
+  binding: null
+  boundary: output
+  kind: branch_observer
+  expression: $output.available == True
+  policy: continue
+  pointer: ''
+  enabled: true
+  language_version: 1
+  true_target: fulfill
+  false_target: decline
+capture:
+  level: summary
+  sensitive_fields:
+  - password
+  - token
+  - secret
+  - api_key
+  - authorization
+  - email
+  max_bytes: 16384
+  sample_items: 5
+  retention_days: 7
+concurrency: 1
+metadata:
+  example: business-flow
+  inputs:
+    success:
+      amount: 120
+      stock: 3
+    failure:
+      amount: 120
+      stock: 0
+  description: Reproducible local example; failure demonstrates a completed execution
+    with failed quality.

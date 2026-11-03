@@ -1,0 +1,112 @@
+{
+  "version": "0.5.0",
+  "verified_at": "2026-10-03T02:01:09.840348+00:00",
+  "code_commit": "a8454ee03425ded8403b4d76b05732bc0079cbc8",
+  "python_tests": 686,
+  "python_skipped_on_windows": 8,
+  "real_wsl_posix_tests": 8,
+  "frontend_unit_tests": 29,
+  "browser_tests": 65,
+  "browser_failures": 0,
+  "desktop_unit_tests": 2,
+  "fresh_wheel_install": "passed",
+  "fresh_source_install": "passed",
+  "package_bytes": {
+    "result": "passed",
+    "matched_files_per_target": 261,
+    "targets": [
+      "checkout",
+      "wheel",
+      "source_archive",
+      "private_runtime",
+      "packaged_win_unpacked"
+    ],
+    "exact_static_file_set": 124,
+    "wheel_sha256": "18977d82bfe72a2f63f6c1a79b83a22c678712f065a7add6988e5ed461e37081",
+    "source_sha256": "ba9d55ba910be3e825a8cea28e1c8fcf08774dbe8ddc3eb3fa0a3157e6de91c5"
+  },
+  "selection_performance": {
+    "visible_p95_ms": 2.5,
+    "hidden_mounted_p95_ms": 2.199999988079071,
+    "samples_each": 20,
+    "fixture": {
+      "logical_objects": 1000,
+      "versions": 10,
+      "events": 10000
+    },
+    "scope": "Synthetic saved-history fixture; selection event to next animation frame, with DOM effects checked. Excludes scientific computation and cold import."
+  },
+  "layout_effects": {
+    "widths": [
+      900,
+      1100,
+      1280,
+      1600
+    ],
+    "browser_device_scale_factors": [
+      1.25,
+      1.5
+    ]
+  },
+  "windows_native": {
+    "platform": "win32",
+    "installed": true,
+    "device_scale_factor": 1.25,
+    "core_version": "0.5.0",
+    "window_close": true,
+    "port_released": true,
+    "backend_pid": 30844,
+    "own_script": true,
+    "source_preserved": true,
+    "matrix_and_anomaly": true,
+    "configured_probe_and_replot": true,
+    "automatic_harness_scope": true,
+    "shared_cli_history": true,
+    "offline_models": true,
+    "offline_report_privacy": true,
+    "run_id": "2c55a86f96e7492b82a5fb9622360bcc",
+    "result": "passed",
+    "mode": "packaged_win_unpacked",
+    "nsis_wizard_executed": false
+  },
+  "windows_native_terminal": {
+    "platform": "win32",
+    "installed": true,
+    "device_scale_factor": 1.5,
+    "unicode": true,
+    "real_python": true,
+    "real_cli": true,
+    "real_shell": true,
+    "concurrent_sessions": 3,
+    "owner_exit_cleanup": true,
+    "port_released": true,
+    "result": "passed",
+    "mode": "packaged_win_unpacked"
+  },
+  "installer": {
+    "filename": "Scientific Dataflow Inspector Setup 0.5.0.exe",
+    "bytes": 240275661,
+    "sha256": "3b551cabed02fd58ba254a939657d6d2abe3015f4b6809e652ce368eeb6893c5",
+    "wizard_executed": false,
+    "signed": false
+  },
+  "remote_model_inference": "unverified; offline and HTTP protocol fixture passed",
+  "macos_linux_native_desktop": "unverified; Python CI and real WSL terminal checks are separate",
+  "cross_platform_ci": {
+    "status_at_archive": "awaiting_final_head_checks",
+    "checkpoint_commit": "a8454ee03425ded8403b4d76b05732bc0079cbc8",
+    "checkpoint_run": 37086935183,
+    "checkpoint_python_matrix": "9 passed",
+    "checkpoint_browser": "64 passed; configuration fixture keep-alive reset reproduced and fixed without retries; final head must pass",
+    "latest_branch_required": true,
+    "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions?query=branch%3Afeat%2Fcontract-driven-ai-flow"
+  },
+  "review": {
+    "fresh_reviews": 1,
+    "material_findings_fixed": 10,
+    "minor_findings": 0,
+    "report": "docs/research/hierarchical-review-report.md",
+    "ledger": "docs/research/hierarchical-workbench-ledger.md"
+  },
+  "result": "passed_local_acceptance"
+}

@@ -1,0 +1,60 @@
+{
+  "requested_revision": "110786c5c996d796237398c0ae3f62c7f57e4c43",
+  "run_id": 36930328576,
+  "conclusion": "success",
+  "run_url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36930328576",
+  "jobs": [
+    {
+      "id": 110597725621,
+      "name": "python (macos-latest, 3.13)",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597725815,
+      "name": "python (windows-latest, 3.13)",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597725958,
+      "name": "studio",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597725961,
+      "name": "python (windows-latest, 3.11)",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597725997,
+      "name": "python (macos-latest, 3.11)",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597726003,
+      "name": "python (ubuntu-latest, 3.11)",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597726088,
+      "name": "python (macos-latest, 3.12)",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597726137,
+      "name": "python (ubuntu-latest, 3.12)",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597726192,
+      "name": "python (ubuntu-latest, 3.13)",
+      "conclusion": "success"
+    },
+    {
+      "id": 110597726213,
+      "name": "python (windows-latest, 3.12)",
+      "conclusion": "success"
+    }
+  ],
+  "source": "GitHub MCP commit workflow runs and workflow jobs; Code Review checks connector unavailable",
+  "scope": "Product-fix commit; subsequent acceptance-document commit is checked separately in the PR."
+}

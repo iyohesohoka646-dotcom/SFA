@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "version": "0.5.4",
+  "date": "2026-10-04T21:31:36.674622+08:00",
+  "base_commit": "1ad6e14",
+  "result": "passed",
+  "python": {
+    "verified_passed": 783,
+    "skipped": 8,
+    "full_failed": 0
+  },
+  "frontend": {
+    "unit_passed": 111,
+    "unit_files": 17,
+    "types": "passed",
+    "production_build": "passed",
+    "licensed_frontend_components": 112
+  },
+  "browser": {
+    "verified_unique_scenarios": 92,
+    "initial_full_passed": 88,
+    "initial_full_failed": 4,
+    "repaired_scenarios_passed": 4,
+    "final_changed_feature_scenarios_passed": 5,
+    "unresolved_failed": 0,
+    "note": "Full-suite first pass plus targeted regression repairs; final five feature scenarios also passed after file-template scope validation. Not a single clean 92-scenario local run."
+  },
+  "selection_performance": {
+    "objects": 1000,
+    "history_events": 10000,
+    "samples": 20,
+    "p95_ms": 5.2,
+    "hidden_graph_p95_ms": 5.3,
+    "scope": "Synthetic saved-history fixture; selection event to next animation frame, with DOM effects checked. Excludes scientific computation and cold import."
+  },
+  "desktop": {
+    "version": "0.5.4",
+    "core_version": "0.5.4",
+    "quiet_nsis_install": "passed",
+    "shortcut_default_project": "passed",
+    "controller_unit_passed": 2,
+    "render_errors": [],
+    "graph_modes": [
+      "Code",
+      "Data"
+    ],
+    "journey_125_percent": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.25,
+      "core_version": "0.5.4",
+      "window_close": true,
+      "port_released": true,
+      "own_script": true,
+      "source_preserved": true,
+      "matrix_and_anomaly": true,
+      "configured_probe_and_replot": true,
+      "automatic_harness_scope": true,
+      "shared_cli_history": true,
+      "offline_models": true,
+      "offline_report_privacy": true,
+      "result": "passed"
+    },
+    "terminal_150_percent": {
+      "platform": "win32",
+      "installed": true,
+      "device_scale_factor": 1.5,
+      "unicode": true,
+      "real_python": true,
+      "real_cli": true,
+      "real_shell": true,
+      "concurrent_sessions": 3,
+      "minimize_restore_state": true,
+      "explicit_reconnect_history": true,
+      "owner_exit_cleanup": true,
+      "port_released": true,
+      "result": "passed"
+    },
+    "missing_runtime_renderer_backend_recovery": "passed",
+    "visible_exit_cleanup": "passed"
+  },
+  "preservation": {
+    "result": "passed",
+    "definition_files_unchanged": true,
+    "original_rows_retained": true,
+    "no_automatic_new_run": true,
+    "tables": {
+      ".cdaf\\research\\experiments.sqlite3:runs": {
+        "before": 6,
+        "after": 6,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:events": {
+        "before": 235,
+        "after": 235,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:snapshots": {
+        "before": 64,
+        "after": 64,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:operations": {
+        "before": 59,
+        "after": 59,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:control_summaries": {
+        "before": 16,
+        "after": 16,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:control_details": {
+        "before": 16,
+        "after": 16,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:control_receipts": {
+        "before": 5,
+        "after": 5,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:artifact_leases": {
+        "before": 0,
+        "after": 0,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\experiments.sqlite3:research_migrations": {
+        "before": 1,
+        "after": 1,
+        "original_rows_retained": true
+      },
+      ".cdaf\\research\\workbench.sqlite3:records": {
+        "before": 255,
+        "after": 257,
+        "original_rows_retained": true
+      },
+      ".cdaf\\settings\\models.sqlite3:profiles": {
+        "before": 0,
+        "after": 0,
+        "original_rows_retained": true
+      },
+      ".cdaf\\settings\\models.sqlite3:calls": {
+        "before": 0,
+        "after": 0,
+        "original_rows_retained": true
+      }
+    },
+    "original_run_count": 6
+  },
+  "delivery": {
+    "wheel": "contract_driven_ai_flow-0.5.4-py3-none-any.whl",
+    "wheel_sha256": "58a018c2a4dc009aca31c13839d15f014dc970534c19dcc4464f2bb4168488e1",
+    "isolated_wheel_install": "passed",
+    "source_archive": "contract_driven_ai_flow-0.5.4.tar.gz",
+    "source_archive_sha256": "be095eca9ba3954914fc6e9dd9b0f72df1e6a24636060e42d12e6bf27d6896ba",
+    "isolated_source_install": "passed",
+    "nsis_installer": "Scientific Dataflow Inspector Setup 0.5.4.exe",
+    "nsis_sha256": "357bd7d9513d5af5fd3c192aca44536b4f599e091d53344c1616873043c1fda5",
+    "identical_package_files": 249,
+    "ordinary_install_needs_node": false,
+    "signed": false
+  },
+  "delegation": {
+    "harness": "official DeepSeek Harness",
+    "model_route": "deepseek-official/deepseek-flash",
+    "accepted_contribution": "Five provider form/service files, independently reviewed and integrated",
+    "independent_review_and_integration": true,
+    "owned_worker_exited": true
+  },
+  "limitations": [
+    "Code graph is a source-grounded projection, not complete alias or side-effect analysis",
+    "Interactive NSIS wizard was not exercised; quiet installation was",
+    "macOS/Linux native desktop installers were not validated",
+    "Workbench model inference used offline mode and local HTTP fixtures; DSH delegation used the live official Flash route",
+    "Intelligent context and real research-model application tests remain next-round work",
+    "Directory import, cross-file parsing and overlapping branches remain extension protocols",
+    "Cross-platform CI is tracked against the branch head in GitHub Actions"
+  ]
+}

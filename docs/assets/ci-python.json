@@ -1,0 +1,72 @@
+{
+  "scope": "Python 3.11-3.13 matrix: tests, build and isolated installed wheel; browser acceptance recorded separately",
+  "source_revision": "47409193a872175f3902d7a52104a2d9be4d619a",
+  "run_url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865",
+  "event": "pull_request",
+  "jobs": [
+    {
+      "name": "python (windows-latest, 3.11)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528346",
+      "startedAt": "2026-10-01T08:38:17Z",
+      "completedAt": "2026-10-01T08:41:15Z"
+    },
+    {
+      "name": "python (macos-latest, 3.13)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528349",
+      "startedAt": "2026-10-01T08:38:26Z",
+      "completedAt": "2026-10-01T08:40:08Z"
+    },
+    {
+      "name": "python (windows-latest, 3.12)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528399",
+      "startedAt": "2026-10-01T08:38:50Z",
+      "completedAt": "2026-10-01T08:41:43Z"
+    },
+    {
+      "name": "python (windows-latest, 3.13)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528416",
+      "startedAt": "2026-10-01T08:38:17Z",
+      "completedAt": "2026-10-01T08:41:39Z"
+    },
+    {
+      "name": "python (ubuntu-latest, 3.11)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528432",
+      "startedAt": "2026-10-01T08:38:17Z",
+      "completedAt": "2026-10-01T08:39:24Z"
+    },
+    {
+      "name": "python (ubuntu-latest, 3.13)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528481",
+      "startedAt": "2026-10-01T08:38:17Z",
+      "completedAt": "2026-10-01T08:39:47Z"
+    },
+    {
+      "name": "python (ubuntu-latest, 3.12)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528510",
+      "startedAt": "2026-10-01T08:38:17Z",
+      "completedAt": "2026-10-01T08:39:26Z"
+    },
+    {
+      "name": "python (macos-latest, 3.12)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528560",
+      "startedAt": "2026-10-01T08:38:24Z",
+      "completedAt": "2026-10-01T08:40:17Z"
+    },
+    {
+      "name": "python (macos-latest, 3.11)",
+      "conclusion": "success",
+      "url": "https://github.com/iyohesohoka646-dotcom/SFA/actions/runs/36837388865/job/110288528595",
+      "startedAt": "2026-10-01T08:38:24Z",
+      "completedAt": "2026-10-01T08:39:56Z"
+    }
+  ],
+  "result": "passed"
+}

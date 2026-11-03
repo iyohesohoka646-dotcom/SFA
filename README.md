@@ -1,235 +1,121 @@
-# SFA — Semantic Flow Architecture
+# Scientific Dataflow Inspector
 
-[![GitHub](https://img.shields.io/badge/GitHub-iyohesohoka646--dotcom%2FSFA-blue?logo=github)](https://github.com/iyohesohoka646-dotcom/SFA)
+**Understand scientific Python through dataflow graphs, real variable values, and extensible probes.**
 
-**SFA is a programming paradigm that first defines the structure, then lets AI fill in the code.** Engineers predefine each module’s input/output contracts and data flow directions. AI then generates implementations module by module under the constraints of these contracts. At runtime, input and output snapshots are automatically recorded at every module boundary.
+Open a Python project. Follow its computations. Inspect matrices and tables. Find where a numerical problem starts.
 
-The core difference from conversational AI programming (Cursor, Copilot, etc.): system structure is persisted as machine‑readable metadata in the `.sfa/` directory, not scattered across chat logs and source code. When a module is modified, AI never touches module boundaries or data flows—those are decided by humans alone.
+[简体中文](README.zh-CN.md) · [Quick start](docs/research/projects.md) · [CLI reference](docs/research/cli.md) · [System architecture](docs/research/system-code-architecture.zh-CN.md) · [Validation](docs/release.md)
 
-```
-Engineer → defines modules + contracts + data flow topology
-AI      → generates implementations module by module within contracts (never crosses boundaries)
-Runtime → automatically snapshots every module boundary; locate problems via data summaries, not by reading code
-```
+> **Development candidate · 0.6.0.** The current workbench lives on [`feat/contract-driven-ai-flow`](https://github.com/iyohesohoka646-dotcom/SFA/tree/feat/contract-driven-ai-flow), reviewed in [PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1). `master` contains the earlier SFA code. Use the branch below to try this version; it has not been published to PyPI.
 
-## What Problem It Solves
+![Python project, variable evidence and probe workbench](docs/assets/project-workbench.png)
 
-Conversational AI programming has three structural issues:
+## What you can do
 
-1. **System structure is invisible.** Dependencies between modules exist only in the developer’s mind; AI neither knows nor maintains them. Every change requires the developer to rebuild structural awareness from the code text.
-2. **AI context is uncontrolled.** AI can read the entire project; a single change may affect unrelated modules or even modify the interface contracts between modules arbitrarily.
-3. **Debugging relies on reading code.** When something goes wrong, you can only ask AI to explain the logic or read line by line—there is no module‑level input/output view.
+- **Explore a project:** index Python files without importing or executing them; browse folders, functions and variables, then choose a script or `python -m` entry to run.
+- **Read the computation:** switch between **Code** structure and **Data** dependencies. Expand one group or one level at a time; named ports, directed connections and relation highlighting make the links traceable.
+- **Inspect actual values:** open immutable variable versions with source references, type, shape, matrix/table previews, axes, units and capture coverage. NumPy and pandas are the first built-in adapters.
+- **Apply probes:** present, check, interpret or derive data. Reusable templates create independent bindings; disabling a presentation probe removes its view. Compare objects or derive data with parent-input references.
+- **Use optional AI:** select a saved provider/model profile, inspect the sending scope and review proposed code changes before applying them. Basic inspection needs no API key.
 
-SFA addresses these by:
+This is a local research tool for understanding and debugging existing analysis code. Importing a project only parses it; computation, plotting and model calls require explicit actions.
 
-- **Explicitly** representing module boundaries and interface contracts as JSON Schema, stored in `.sfa/modules/{name}/contract.json`
-- Defining the data flow (module → pipe → module) as a directed graph, stored in `.sfa/pipeline.yml`
-- When generating code, AI only sees the contract of the current module + upstream module information according to visibility levels; it **cannot see downstream**
-- After each run, automatically saving input/output/duration snapshots at every module boundary, so problems can be pinpointed directly to a module
+## Try it locally
 
-## Core Concepts
+Use **Python 3.11–3.13** in a virtual environment and Git:
 
-| Concept | Description |
-|---------|-------------|
-| **Module** | A computational unit, corresponding to a piece of Python code. Can be atomic (single source file) or composite (nested sub‑modules and sub‑pipes). |
-| **Contract** | The interface specification of a module: Input Schema, Output Schema (JSON Schema format), and a natural language summary. Modules do not share memory; they communicate only through the data formats defined by contracts. |
-| **Pipe** | A directed edge connecting two modules, indicating that data flows from the upstream module’s output to the downstream module’s input. |
-| **Snapshot** | The actual input/output data, duration, and status automatically recorded at module boundaries after each run. Stored in `.sfa/snapshots/{run_id}/{module}.json`. |
-| **Probe** | A non‑intrusive observer attached to a pipe. Two types: Router (conditional branch recording) and Assertion (assertion validation). Does not modify the data flow. |
-| **Visibility Levels (L1–L4)** | Parameters on a pipe that control how much upstream information AI can see when generating a downstream module. L1: schema only, L4: full source code. Default is L2. |
-
-## Installation
-
-Requires Python 3.11+.
-
-```bash
-git clone https://github.com/iyohesohoka646-dotcom/SFA.git
+```console
+git clone --branch feat/contract-driven-ai-flow https://github.com/iyohesohoka646-dotcom/SFA.git
 cd SFA
-pip install .
+python -m pip install ".[research,tables]"
+cdaf studio --project ./examples/research/projects/matrix-lab
 ```
 
-After installation, the `sfa` command becomes available in your current environment.
+The package contains the built Web UI. **Node.js and a model key are not required for normal use.** Optional third-party plotting adapters can be installed with `python -m pip install ".[views]"`.
 
-For development installation (editable mode + test tools):
+1. In the workbench, choose **Open folder** and select `examples/research/projects/matrix-lab`. In a browser, use the local folder-path field; the Windows desktop app uses a native folder picker.
+2. Open **运行入口 / Run entries**, choose `main.py`, save the entry and click **运行 / Run**. Code runs with the selected scientific interpreter and its dependencies.
+3. Expand a file/function in the object browser. Double-click a variable to inspect its saved value; **打开探针台 / Open probe bench** shows its bindings.
+4. Change or apply probes, then explicitly run the required computation or replot. Disabling the automatic data-view template removes its presentation bindings.
 
-```bash
-pip install -e ".[dev]"
+The [example projects](examples/research/projects/README.md) include flat and `src/` layouts, matrices/tables, and successful/failing paths. For `src/` layouts, install the example package in the selected interpreter as described in that guide.
+
+## A graph you can explore
+
+![Compact project graph with named ports and directed relationships](docs/assets/project-diagram-overview.png)
+
+A click selects; explicit navigation opens source or enters a scope. **Focus** optionally dims unrelated content. Drag a node header to reposition it; **Arrange** aligns blocks and reroutes connections. Hand-positioned layouts and folding state are saved. **Fit** gives an overview; large graphs are explored through local expansion and scope navigation. Panels support docking, resizing, minimize/maximize and saved layouts.
+
+Graph presentation draws on [dbdiagram's detail levels](https://docs.dbdiagram.io/diagram-detail-levels/) and grouped relationships. Static inferred links remain distinct from runtime evidence. See [implementation and checks](docs/research/diagram-presentation.zh-CN.md).
+
+## Web, desktop and CLI
+
+| Entry | Purpose |
+| --- | --- |
+| `cdaf studio --project PATH` | Open the local browser workbench |
+| `cdaf serve --project PATH` | Keep a local service running independently of browser tabs |
+| Windows desktop | Same workbench with private Python and a native folder picker; [build instructions](desktop/README.md) |
+| `cdaf terminal --project PATH` | Interactive terminal client with `/open`, `/run`, `/vars`, `/probe`, `/model`, `/help` |
+| `cdaf workbench project --help` | Project open/index/info/graph/entries/plan/run commands |
+| `cdaf observe analysis.py --python PATH --project PATH` | Batch capture using a selected scientific interpreter |
+| `cdaf --json research runs --project PATH` | Read saved runs for automation without executing them again |
+
+Closing the final browser tab started by `studio` stops its owned service after a refresh grace period. Closing the desktop window stops its owned backend. Use `serve` for persistent operation. Embedded Python/CLI/Shell terminals are real PTY sessions. [Local deployment](docs/local-deployment.md).
+
+**Model settings** are in the top bar. Save multiple provider-neutral profiles once, then select one for a task or probe. OpenAI-compatible and Anthropic services are supported; credentials use explicit environment/key-vault references. Connection checks and inference checks are separate. Model interpretation needs review. [Model and CLI setup](docs/research/cli.md).
+
+## How it is built
+
+```mermaid
+flowchart LR
+  Web[React workbench] --> API[FastAPI project API]
+  Desktop[Electron desktop] --> API
+  CLI[Typer / Textual CLI] --> Services[Python application services]
+  API --> Services
+  Services --> Index[AST index and semantic graph]
+  Services --> Runs[Isolated execution and probe processes]
+  Services --> Store[SQLite events and immutable artifacts]
+  Services --> AI[Optional scoped AI tools and change review]
 ```
 
-To enable LLM integration (requires an API key; replaces the built‑in mock provider):
+A Python modular monolith shares application services across entry points. React Flow renders graphs, ELK computes layout in a browser Worker, and Dockview manages panels. Python source remains file-based; runtime evidence is version-addressed. [Detailed system/code architecture with diagrams](docs/research/system-code-architecture.zh-CN.md) · [Project protocol](docs/research/project-protocol.md).
 
-```bash
-pip install ".[ai]"
+## Extend it
+
+| Extension point | Responsibility |
+| --- | --- |
+| `cdaf.research.adapters` | Capture a native data type and declare fidelity/capabilities |
+| `cdaf.research.probes` | Add bounded, read-only analysis/checks |
+| `cdaf.research.runners` | Emit the observation protocol from another execution backend |
+| Frontend renderer registry | Render another data descriptor/sample |
+
+Probes separate **definitions → templates → bindings → execution → results**. Functional purposes are **present / check / interpret / derive**; implementations may be built-in, custom programs, models, Skills or human judgment. Installing a resource and binding it to data are separate operations. Plugins are explicitly enabled.
+
+[Adapter API](docs/research/adapter-api.md) · [Probe API](docs/research/probe-api.md) · [Point-cloud example](examples/research/custom-adapter.py) · [Custom renderer](web/src/research/PointCloudView.tsx)
+
+## Status and boundaries
+
+- Local Python multi-file projects, script/module entry points, Code/Data graphs, probes, versioned evidence and reviewed multi-file changes are implemented. Windows native acceptance and cross-platform CI are recorded separately in [release evidence](docs/release.md).
+- Full capture is opt-in and bounded; default previews/summaries are not the complete dataset. Uncaptured historical values stay unavailable. Execution completion does not imply that quality probes passed.
+- Async/generator/dynamic code has explicit coverage limits. GPU, sparse, distributed and non-Python backends have extension boundaries, without built-in support in this candidate. Notebook execution and real-time collaboration are outside this version.
+- Local child processes retain the user's file/network permissions. Windows installers are unsigned; macOS/Linux native installers and real external-model effectiveness have not been acceptance-tested for this candidate.
+- Historical performance figures are fixture-specific measurements, not production or universal-overhead guarantees. [Performance](docs/research/performance.md) · [Instrumentation](docs/research/instrumentation.md) · [Limitations](docs/research/limitations.md).
+
+## Development and contribution
+
+```console
+python -m pip install -e ".[dev,research,tables,views]"
+npm ci --prefix web
+npm run build --prefix web
+python -m pytest -q
+npm run test:unit --prefix web
+npm run test:e2e --prefix web
 ```
 
-The built‑in mock provider requires no API key and is suitable for offline demos and testing.
+Browser tests require Playwright's browser dependencies; see [.github/workflows/ci.yml](.github/workflows/ci.yml) for the configured CI environment. Windows browser tests use Edge. Desktop packaging and native acceptance have their own [instructions](desktop/README.md).
 
-## Quick Start
+[Contributing](CONTRIBUTING.md) · [Migration](docs/research/migration.md) · [Legacy contract workflow](docs/workflow.md) · [Notices](NOTICE.md)
 
-Run the following commands in your working directory. The final output will be a completed pipeline with its snapshots, no API key required.
+Scientific Dataflow Inspector is the current display name. Repository `SFA`, package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, and CLI `cdaf` remain compatible; `sfa` is a legacy alias. Earlier contract-first architecture workflows remain accessible through the legacy entry.
 
-```bash
-# 1. Initialize the project, create .sfa/ directory and sfa.yml config file
-sfa init
-
-# 2. Edit source_dir in sfa.yml to point to your code directory, then extract code elements
-sfa extract
-
-# 3. Define modules from the extracted elements (contracts are auto‑inferred from function signatures)
-sfa module add --name loader --entry load_data
-sfa module add --name scorer --entry score
-
-# 4. Connect pipes to define data flow directions
-sfa pipe add loader scorer
-
-# 5. Let AI generate module implementations (mock mode outputs function skeletons; can be connected to a real LLM)
-sfa generate scorer
-
-# 6. Execute the pipeline in topological order, with automatic snapshots at every module boundary
-sfa run --input input.json
-
-# 7. Observe the results—without reading code, just data summaries
-sfa observe          # status lights for all modules + input/output summaries
-sfa observe scorer   # detailed snapshot of a single module
-
-# 8. Index and visualise
-sfa list             # table: module name, type, last run status, one‑line input/output summary
-sfa graph            # ASCII data flow graph
-sfa graph scorer     # neighbourhood subgraph around the scorer module
-```
-
-Sample `sfa list` output:
-
-```
-ID          Name        Type     Status  Input                                           Output
-----------  ----------  ------  ----    ----------------------------------------------  ----
-loader      loader      Atomic  OK      {"seed": 42}                                    {"rows": [...], "n": 2}
-scorer      scorer      Atomic  OK      {"features": [43.0, 85.0]}                      {"score": 0.64}
-```
-
-Sample `sfa graph` output:
-
-```
-Top‑level data flow graph (3 modules, 2 pipes):
-
-  [loader] --> [scorer]
-  [scorer]
-```
-
-## Visibility Levels
-
-The visibility level on a pipe controls how much upstream context AI can see when generating a downstream module. This is the core mechanism by which SFA limits the scope of AI behaviour.
-
-| Level | Upstream information visible to AI |
-|-------|------------------------------------|
-| L1    | Upstream module’s Output Schema only |
-| L2    | L1 + upstream module’s natural‑language summary + input/output examples (default) |
-| L3    | L2 + upstream module’s function signatures |
-| L4    | L3 + full source code of the upstream module |
-
-Information about **downstream modules is never visible to AI**—generation is strictly local.
-
-## Command Reference
-
-All commands accept `--project/-p` to specify the project root (defaults to the current directory).
-
-### Project Management
-
-| Command | Description |
-|---------|-------------|
-| `sfa init [--target DIR] [--force]` | Create `.sfa/` metadata and `sfa.yml` in the target directory |
-| `sfa status [--project DIR]` | Project overview: configuration, counts of elements/modules/pipes/probes, last run status |
-| `sfa clean [--project DIR] [--yes]` | Clear generated data in `.sfa/`, keeping `sfa.yml` |
-
-### Code Extraction
-
-| Command | Description |
-|---------|-------------|
-| `sfa extract [--project DIR]` | Parse Python files in `source_dir` using tree‑sitter, generate `.sfa/elements.json` |
-
-### Modules & Pipes
-
-| Command | Description |
-|---------|-------------|
-| `sfa module add -n NAME -e ENTRY [--validation strict\|lenient\|none]` | Create a module with auto‑inferred contract (idempotent) |
-| `sfa module remove ID` | Delete a module |
-| `sfa module list` | List all modules |
-| `sfa pipe add SRC TGT [--visibility L1–L4]` | Connect a pipe (idempotent) |
-| `sfa pipe remove ID` | Delete a pipe |
-| `sfa pipe list` | List all pipes |
-| `sfa group IDS… -n NAME` | Bundle several modules into a composite module |
-| `sfa ungroup ID` | Unpack a composite module |
-| `sfa drill ID` | Drill into the internal view of a composite module |
-
-### AI Generation
-
-| Command | Description |
-|---------|-------------|
-| `sfa generate ID [--yes]` | Generate an implementation for the module (shown as a diff; written after human confirmation) |
-| `sfa rollback ID [--version V]` | Roll back module code to a historical version |
-
-### Execution & Observation
-
-| Command | Description |
-|---------|-------------|
-| `sfa run [--input FILE]` | Execute the pipeline in topological order, snapshots at every module boundary |
-| `sfa observe [ID] [--run RUN_ID]` | Show run summary or detailed snapshot for a specified module |
-| `sfa list` | Tabular display of all modules (name, type, status, input/output summary) |
-| `sfa graph [ID] [--hops N]` | ASCII data flow graph / neighbourhood subgraph of a specified module |
-
-### Probes
-
-| Command | Description |
-|---------|-------------|
-| `sfa probe add router PIPE -c EXPR --on-true T --on-false F -n NAME` | Create a router probe on a pipe |
-| `sfa probe add assertion PIPE -c EXPR -n NAME` | Create an assertion probe on a pipe |
-| `sfa probe list` | List all probes |
-| `sfa probe remove ID` | Remove a probe |
-
-Probe expressions use a restricted DSL: `$output.field`, subscript `$output[0]`, comparisons/arithmetic/booleans, constants. Field paths are statically validated at definition time and must exist in the upstream module’s Output Schema.
-
-```
-sfa probe add assertion pipe_scorer_positive -c '$output.score >= 0.5' -n score_threshold
-```
-
-## Example
-
-[`examples/pipeline/`](./examples/pipeline) contains a complete 5‑module data processing pipeline with assertion and router probes. Run it with one command:
-
-```bash
-cd examples/pipeline
-python demo.py
-```
-
-The script sequentially executes `init → extract → module add ×5 → pipe add ×4 → probe add ×2 → run → observe → list → graph`—no API key required. It can be run repeatedly.
-
-Sample `sfa observe` output:
-
-```
-Run f25582be... (success)
-OK  loader       Input={"seed": 42}   Output={"rows": [...], "n": 2}  0ms
-OK  featurizer   Input={"rows": [...], "n": 2}   Output={"features": [43.0, 85.0]}  0ms
-OK  scorer       Input={"features": [43.0, 85.0]}   Output={"score": 0.64}  0ms
-OK  positive     Input={"score": 0.64}   Output={"label": "positive", "score": 0.64}  0ms
-OK  negative     Input={"score": 0.64}   Output={"label": "negative", "score": 0.64}  0ms
-
-Probes (2):
-  [PASS] score_threshold         → $output.score >= 0.5
-  [ROUTE] high_confidence_router → condition false, branch=on_false/negative
-```
-
-## Design Documents
-
-Three Chinese design documents are available in the project root, describing SFA’s design intent from different perspectives:
-
-- [`total.md`](./total.md) — Project vision: why SFA, core philosophy
-- [`architecture.md`](./architecture.md) — System architecture: domain model, layered design, data storage specifications
-- [`road.md`](./road.md) — Development roadmap: M1–M6 milestones and completion criteria
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-## License
-
-[MIT](./LICENSE)
+MIT · Based on SFA. Diagram/dataflow inspiration includes Archify, Hamilton, dbdiagram, drawDB and Easy RD; see the linked implementation notes and third-party notices.

@@ -1,0 +1,70 @@
+.project-host {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+}
+.project-session {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.project-workbench {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  position: relative;
+}
+.project-graph-document {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.project-graph-document > .project-canvas {
+  flex: 1;
+  min-height: 0;
+}
+.project-entry-popover {
+  position: absolute;
+  z-index: 60;
+  top: 90px;
+  left: 80px;
+  width: min(720px, calc(100% - 100px));
+  max-height: 75%;
+  overflow: auto;
+  background: var(--panel, #fff);
+  border: 1px solid var(--border, #bccbd2);
+  box-shadow: 0 12px 34px #132a3833;
+  padding: 12px;
+}
+.project-workbench .wb-main-toolbar {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 42px;
+  gap: 5px;
+}
+.project-workbench .wb-main-toolbar select {
+  max-width: 210px;
+}
+.project-workbench .wb-activity {
+  width: 66px;
+  flex-shrink: 0;
+}
+.project-workbench .wb-activity button {
+  font-size: 11px;
+  white-space: normal;
+}
+.project-workbench .wb-statusbar {
+  min-height: 28px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.project-workbench .wb-statusbar [role="alert"] {
+  color: var(--danger, #a83137);
+  overflow: auto;
+  max-width: 75%;
+}
