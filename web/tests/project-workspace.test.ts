@@ -356,6 +356,35 @@ describe("object scope and selection identity", () => {
 // --- pure graph presentation ----------------------------------------------
 
 describe("project graph presentation", () => {
+  it("keeps named connection rows, visible direction and distinct relation styles", () => {
+    const presentation = presentProjectGraph(slice({ view: "data" }), new Set());
+    expect(presentation.nodes.find(n => n.id === "data")!.data.handles.find(h => h.id === "data:in")!.name).toBe("x");
+    const relation = presentation.edges.find(e => e.data?.original_ids.includes("data-edge"))!;
+    expect(relation.data?.title).toContain("x");
+    expect(relation.markerEnd).toBeTruthy();
+    const branch = presentation.edges.find(e => e.data?.original_ids.includes("true"))!;
+    expect(branch.style?.stroke).not.toBe(relation.style?.stroke);
+    expect(branch.style?.strokeDasharray).toBeTruthy();
+    expect(presentation.nodes.find(n => n.id === "fn")!.dragHandle).toBe(".project-node-header");
+  });
+
+  it("summarizes hidden content without expanding source bodies", () => {
+    const presentation = presentProjectGraph(slice(), new Set(["fn"]));
+    const fn = presentation.nodes.find(n => n.id === "fn")!;
+    expect(fn.data.memberCount).toBe(5);
+    expect(fn.data.summary).toContain("5");
+    expect(fn.data.summary).not.toContain("SECRET_BODY");
+  });
+
+  it("keeps the original variable on unlabeled folded boundaries", () => {
+    const value = slice();
+    value.graph.edges = [edge("anonymous", "data", "g", "data")];
+    const presentation = presentProjectGraph(value, new Set(["fn"]));
+    const relation = presentation.edges[0];
+    expect(relation.data?.title).toContain("x");
+    expect(presentation.nodes.find(n => n.id === "fn")!.data.handles[0].name).toBe("x");
+  });
+
   it("assigns control, operation and data shapes plus distinct plates", () => {
     const presentation = presentProjectGraph(slice(), new Set());
     const shape = (id: string) => presentation.nodes.find((n) => n.id === id)?.data.shape;

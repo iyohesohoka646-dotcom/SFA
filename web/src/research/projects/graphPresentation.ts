@@ -6,7 +6,7 @@
  * style.width/height and parentId, and it resolves folded predicates back to
  * their original condition nodes instead of the collapsed plate.
  */
-import type { Edge, Node } from "@xyflow/react";
+import { MarkerType, type Edge, type Node } from "@xyflow/react";
 import type { ProjectGraphSlice, TargetRef } from "./generated";
 import {
   projectGraph,
@@ -47,6 +47,9 @@ export type ProjectCanvasNodeData = {
   collapsed: boolean;
   handles: CanvasHandle[];
   target: TargetRef;
+  summary: string;
+  memberCount: number;
+  headerHeight: number;
 };
 
 export type ProjectCanvasEdgeData = {
@@ -57,6 +60,8 @@ export type ProjectCanvasEdgeData = {
   condition: string;
   original_ids: string[];
   route?: CanvasRoute;
+  sourceLabel: string;
+  targetLabel: string;
 };
 
 export type CanvasNode = Node<ProjectCanvasNodeData, "project">;
@@ -250,7 +255,7 @@ export function presentProjectGraph(
     ordered.map((node) => [node.id, new Set(node.handles.map((handle: GraphHandle) => handle.id))]),
   );
 
-  const handleCategory = new Map<string, string>();
+  const handleNames = new Map<string, string>();
   const edges: CanvasEdge[] = [];
   for (const edge of projection.edges as ProjectionEdge[]) {
     const sourceHandles = handleIds.get(edge.source);
@@ -261,9 +266,21 @@ export function presentProjectGraph(
     if (!sourceHandle || !targetHandle) continue;
     const category = edgeCategory(edge);
     const condition = conditionFor(edge);
-    const title = condition ? `${category} \u00b7 ${condition}` : edge.label || category;
-    handleCategory.set(edge.source + "::" + sourceHandle, category);
-    handleCategory.set(edge.target + "::" + targetHandle, category);
+    const sourceNode = projectionSource.get(edge.source)!;
+    const targetNode = projectionSource.get(edge.target)!;
+    const originalData = edge.original_ids.flatMap(id => {
+      const original = originalEdges.get(id);
+      return original ? [originalNodes.get(original.source), originalNodes.get(original.target)] : [];
+    }).find(node => node?.kind === "data" || node?.kind === "parameter");
+    const variable = originalData?.label || (sourceNode.kind === "data" || sourceNode.kind === "parameter" ? sourceNode.label
+      : targetNode.kind === "data" || targetNode.kind === "parameter" ? targetNode.label : "");
+    const name = condition ? `${category} · ${condition}` : collapse(edge.label || variable || category, 64);
+    const title = `${category} · ${name}`;
+    handleNames.set(edge.source + "::" + sourceHandle, name);
+    handleNames.set(edge.target + "::" + targetHandle, name);
+    const family = ["control", "merge", "backedge"].includes(edge.kind) ? "control"
+      : ["call", "argument"].includes(edge.kind) ? "call" : edge.kind === "return" ? "return" : "data";
+    const color = `var(--project-relation-${family})`;
     edges.push({
       id: edge.id,
       type: "project",
@@ -271,7 +288,14 @@ export function presentProjectGraph(
       target: edge.target,
       sourceHandle,
       targetHandle,
-      label: category,
+      // Named rows carry ordinary data labels; reserve canvas labels for
+      // decisions, where hiding the branch would change the visible meaning.
+      label: condition ? collapse(`${category} · ${condition}`, 40) : undefined,
+      className: `project-relation relation-${family}`,
+      style: { stroke: color, strokeWidth: 1.5, ...(family === "control" ? { strokeDasharray: "5 4" } : {}) },
+      markerEnd: { type: MarkerType.ArrowClosed, color, width: 16, height: 16 },
+      labelStyle: { fill: "var(--project-text)", fontSize: 10 },
+      labelBgStyle: { fill: "var(--project-surface)" },
       data: {
         category,
         title,
@@ -279,16 +303,28 @@ export function presentProjectGraph(
         count: edge.count || edge.original_ids.length || 1,
         condition,
         original_ids: [...edge.original_ids],
+        sourceLabel: nodeLabel(projectionSource.get(edge.source)!),
+        targetLabel: nodeLabel(projectionSource.get(edge.target)!),
       },
     });
   }
 
+  const memberCounts = new Map<string, number>();
+  for (const node of graph.nodes) {
+    let parent: string | null = node.block_id;
+    const seen = new Set<string>();
+    while (parent && !seen.has(parent)) {
+      seen.add(parent);
+      memberCounts.set(parent, (memberCounts.get(parent) ?? 0) + 1);
+      parent = originalBlocks.get(parent)?.parent_id ?? null;
+    }
+  }
   const nodes: CanvasNode[] = ordered.map((node) => {
     const label = nodeLabel(node);
     const shape = nodeShape(node.kind, node.plate);
     const handles: CanvasHandle[] = node.handles.map((handle: GraphHandle) => ({
       id: handle.id,
-      name: handleCategory.get(node.id + "::" + handle.id) ?? HANDLE_NAME[handle.kind] ?? "Link",
+      name: !handle.boundary ? handle.name : handleNames.get(node.id + "::" + handle.id) ?? HANDLE_NAME[handle.kind] ?? "Link",
       direction: handle.direction,
       kind: handle.kind,
       boundary: handle.boundary,
@@ -304,6 +340,15 @@ export function presentProjectGraph(
       kind: node.kind,
       expression,
     });
+    // The project canvas uses compact entity-like connection rows. Measure
+    // the wrapped header separately so text and ports never share a row.
+    dimensions.width = node.plate ? 300 : 260;
+    const labelLines = Math.min(4, Math.max(1, Math.ceil([...label].reduce((w, c) => w + (c.charCodeAt(0) > 255 ? 12 : 7), 0) / (dimensions.width - 88))));
+    const headerHeight = Math.max(50, 24 + labelLines * 16);
+    const portCount = Math.max(handles.filter(h => h.direction === "input").length, handles.filter(h => h.direction === "output").length);
+    dimensions.height = headerHeight + portCount * 22 + (node.collapsed ? 30 : 12);
+    const rows = { input: 0, output: 0 };
+    handles.forEach(handle => { handle.y = headerHeight + rows[handle.direction]++ * 22 + 11; });
     const parent = node.parent_id && visible.has(node.parent_id) ? node.parent_id : undefined;
     return {
       id: node.id,
@@ -314,6 +359,8 @@ export function presentProjectGraph(
       height: dimensions.height,
       style: { width: dimensions.width, height: dimensions.height },
       draggable: true,
+      dragHandle: ".project-node-header",
+      connectable: false,
       ariaLabel: `${categoryLabel(node.kind)} ${label}`,
       data: {
         kind: node.kind,
@@ -326,6 +373,9 @@ export function presentProjectGraph(
         collapsed: node.collapsed,
         handles,
         target: nodeTarget(node, slice),
+        memberCount: memberCounts.get(node.id) ?? 0,
+        summary: `${memberCounts.get(node.id) ?? 0} units`,
+        headerHeight,
       },
     };
   });

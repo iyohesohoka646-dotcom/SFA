@@ -98,15 +98,19 @@ export function buildSemanticLayout(nodes: Node[], edges: Edge[], direction = "R
       const count = handles.filter(h => h.direction === p.direction).length;
       const y = p.y ?? (n.data.compact ? height / 2 + (row - (count - 1) / 2) * 16 : (n.type === "plate" ? 64 : 62) + row * 20 + 10);
       const vertical = direction === "DOWN";
+      const pitch = Math.min(16, Math.max(0, width - 24) / Math.max(1, count - 1));
       const side = vertical ? p.direction === "input" ? "NORTH" : "SOUTH" : p.direction === "input" ? "WEST" : "EAST";
       return {
-        id: portIdentity(n.id, p.id), x: vertical ? width / 2 + (row - (count - 1) / 2) * 16 - 4 : p.direction === "input" ? -4 : width - 4,
+        id: portIdentity(n.id, p.id), x: vertical ? width / 2 + (row - (count - 1) / 2) * pitch - 4 : p.direction === "input" ? -4 : width - 4,
         y: vertical ? p.direction === "input" ? -4 : height - 4 : y - 4, width: 8, height: 8,
         layoutOptions: { "elk.port.side": side, "elk.port.index": String(row) },
       };
     });
     handlesById.set(n.id, new Set(handles.map(p => p.id)));
-    all.set(n.id, { id: n.id, width, height, children: [], ports, layoutOptions: { ...layoutOptions(direction), "elk.portConstraints": "FIXED_POS" } });
+    const headerHeight = typeof n.data.headerHeight === "number" ? n.data.headerHeight : undefined;
+    all.set(n.id, { id: n.id, width, height, children: [], ports, layoutOptions: { ...layoutOptions(direction),
+      ...(headerHeight ? { "elk.padding": `[top=${headerHeight + 12},left=24,bottom=24,right=24]` } : {}),
+      "elk.portConstraints": "FIXED_POS" } });
   }
   const roots: ElkNode[] = [];
   for (const n of nodes) {

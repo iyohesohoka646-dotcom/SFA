@@ -1,87 +1,121 @@
 # Scientific Dataflow Inspector
 
-**Live matrix inspection, computational provenance, and extensible probes for scientific code.**
+**Understand scientific Python through dataflow graphs, real variable values, and extensible probes.**
 
-Open existing analysis code. Observe real values. Follow transformations. Find numerical failures.
+Open a Python project. Follow its computations. Inspect matrices and tables. Find where a numerical problem starts.
 
-[简体中文](README.zh-CN.md) · [Quick start](docs/research/quickstart.md) · [CLI](docs/research/cli.md) · [Extensions](docs/research/adapter-api.md) · [Release evidence](docs/release.md)
+[简体中文](README.zh-CN.md) · [Quick start](docs/research/projects.md) · [CLI reference](docs/research/cli.md) · [System architecture](docs/research/system-code-architecture.zh-CN.md) · [Validation](docs/release.md)
 
-![Project files, real matrix evidence and independently managed probes](docs/assets/project-workbench.png)
+> **Development candidate · 0.6.0.** The current workbench lives on [`feat/contract-driven-ai-flow`](https://github.com/iyohesohoka646-dotcom/SFA/tree/feat/contract-driven-ai-flow), reviewed in [PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1). `master` contains the earlier SFA code. Use the branch below to try this version; it has not been published to PyPI.
 
-A local research workbench for understanding what an experiment computed. Source lines, variable versions, matrix previews, transformations and probe results share one screen. Basic inspection and rule explanations work without a key. The observation protocol supports multiple data types; NumPy and pandas are the first built-in adapters.
-## Project workbench 0.6
+![Python project, variable evidence and probe workbench](docs/assets/project-workbench.png)
 
-Open a local Python folder, choose a script or module entry, and inspect a real run across files. The default view starts with one expanded project level. Code and Data graphs, revision-addressed source, variables, probes, reviewed multi-file changes and real terminals share explicit project ownership. Indexing never imports the project. See the [project guide](docs/research/projects.md) and [protocol boundaries](docs/research/project-protocol.md).
+## What you can do
 
-Existing single-file workspaces remain available through **Single-file workspace**. Historical evidence keeps its original IDs and source versions; opening a folder does not reassign old runs.
+- **Explore a project:** index Python files without importing or executing them; browse folders, functions and variables, then choose a script or `python -m` entry to run.
+- **Read the computation:** switch between **Code** structure and **Data** dependencies. Expand one group or one level at a time; named ports, directed connections and relation highlighting make the links traceable.
+- **Inspect actual values:** open immutable variable versions with source references, type, shape, matrix/table previews, axes, units and capture coverage. NumPy and pandas are the first built-in adapters.
+- **Apply probes:** present, check, interpret or derive data. Reusable templates create independent bindings; disabling a presentation probe removes its view. Compare objects or derive data with parent-input references.
+- **Use optional AI:** select a saved provider/model profile, inspect the sending scope and review proposed code changes before applying them. Basic inspection needs no API key.
 
-The workbench offers compact **Code** and **Data** graphs, collapsible function/control plates, orthogonal routing and optional execution summaries. Code shows computations; Data shows variable dependencies with repeated versions merged. The object browser lists logical variables with type, shape and probe count. Click selects; double-click or the context menu opens evidence. Unrelated objects stay visible by default. Dockview groups support resizing, minimize/maximize, fixed slots and saved layouts.
-
-Probes determine the data presentation: each enabled presentation binding has its own collapsible view, with no duplicate view selector. Reusable probe templates freeze member parameters into independently managed bindings; the default automatic data view is a template. Disabling every probe leaves the variable name and inspector entry. Manage resources independently from bindings, with target categories, **present / check / interpret / derive** purposes and builtin/program/model/Skill/manual implementations. Matrix numbers, axes and units are editable. Joint probes compare or derive immutable data with exact parent references. Import and configuration remain inert; Run, probe execution and Replot are explicit actions. Windows/Web terminals use real PTYs.
-
-The automatic task harness discovers the selected environment and registered tools, reads scoped evidence, records actual messages/tool calls and proposes bounded code changes for human review. Web, desktop and `cdaf research import/plan/run/probes/tools/ask/changes` use common services. See [workbench guide](docs/research/workbench.md) and [CLI](docs/research/cli.md).
-
+This is a local research tool for understanding and debugging existing analysis code. Importing a project only parses it; computation, plotting and model calls require explicit actions.
 
 ## Try it locally
 
-Python 3.11–3.13, from this checkout:
+Use **Python 3.11–3.13** in a virtual environment and Git:
 
 ```console
-python -m pip install ".[research,views]"
-cdaf studio --project ./experiment
+git clone --branch feat/contract-driven-ai-flow https://github.com/iyohesohoka646-dotcom/SFA.git
+cd SFA
+python -m pip install ".[research,tables]"
+cdaf studio --project ./examples/research/projects/matrix-lab
 ```
 
-Choose **Open folder**, then use **运行入口 / Run entries** to save a script or module entry and its scientific interpreter reference. Click **运行 / Run** explicitly. Expand a file and scope; double-click a variable to open evidence, then configure or disable its probes. The [flat and src examples](examples/research/projects/README.md) include successful and failing runs.
+The package contains the built Web UI. **Node.js and a model key are not required for normal use.** Optional third-party plotting adapters can be installed with `python -m pip install ".[views]"`.
 
-The package includes the compiled Web UI; ordinary use needs neither Node.js nor a key. Install the locally built candidate wheel with:
+1. In the workbench, choose **Open folder** and select `examples/research/projects/matrix-lab`. In a browser, use the local folder-path field; the Windows desktop app uses a native folder picker.
+2. Open **运行入口 / Run entries**, choose `main.py`, save the entry and click **运行 / Run**. Code runs with the selected scientific interpreter and its dependencies.
+3. Expand a file/function in the object browser. Double-click a variable to inspect its saved value; **打开探针台 / Open probe bench** shows its bindings.
+4. Change or apply probes, then explicitly run the required computation or replot. Disabling the automatic data-view template removes its presentation bindings.
 
-```console
-python -m pip install "./dist/contract_driven_ai_flow-0.6.0-py3-none-any.whl[research,views]"
-cdaf studio --project ./experiment
-```
+The [example projects](examples/research/projects/README.md) include flat and `src/` layouts, matrices/tables, and successful/failing paths. For `src/` layouts, install the example package in the selected interpreter as described in that guide.
 
-Closing the last tab stops its owned service after a three-second refresh grace period. Use `cdaf serve --project PATH` for persistent operation. Windows desktop builds wrap this interface with private Python; closing the window stops its owned backend. [Local deployment](docs/local-deployment.md) · [Desktop build](desktop/README.md).
+## A graph you can explore
+
+![Compact project graph with named ports and directed relationships](docs/assets/project-diagram-overview.png)
+
+A click selects; explicit navigation opens source or enters a scope. **Focus** optionally dims unrelated content. Drag a node header to reposition it; **Arrange** aligns blocks and reroutes connections. Hand-positioned layouts and folding state are saved. **Fit** gives an overview; large graphs are explored through local expansion and scope navigation. Panels support docking, resizing, minimize/maximize and saved layouts.
+
+Graph presentation draws on [dbdiagram's detail levels](https://docs.dbdiagram.io/diagram-detail-levels/) and grouped relationships. Static inferred links remain distinct from runtime evidence. See [implementation and checks](docs/research/diagram-presentation.zh-CN.md).
 
 ## Web, desktop and CLI
 
-| Entry | Use |
+| Entry | Purpose |
 | --- | --- |
-| `cdaf studio --project PATH` | Source, data, local flow, probes and timeline |
-| Windows desktop | Same workbench, single instance, close cleanup and Open Terminal |
-| `cdaf terminal --project PATH` or bare `cdaf` in a TTY | `/open /run /vars /probe /model /explain /help` |
-| `cdaf --json workbench project --help` | Open/index a folder, save entries, compile frozen plans and run them |
-| `cdaf observe analysis.py --python PATH --project PATH` | Batch observation in a separate scientific environment |
-| `cdaf --json research runs --project PATH` | Saved evidence for automation; no rerun |
+| `cdaf studio --project PATH` | Open the local browser workbench |
+| `cdaf serve --project PATH` | Keep a local service running independently of browser tabs |
+| Windows desktop | Same workbench with private Python and a native folder picker; [build instructions](desktop/README.md) |
+| `cdaf terminal --project PATH` | Interactive terminal client with `/open`, `/run`, `/vars`, `/probe`, `/model`, `/help` |
+| `cdaf workbench project --help` | Project open/index/info/graph/entries/plan/run commands |
+| `cdaf observe analysis.py --python PATH --project PATH` | Batch capture using a selected scientific interpreter |
+| `cdaf --json research runs --project PATH` | Read saved runs for automation without executing them again |
 
-The agent uses the standard library as its base; the selected interpreter supplies scientific libraries. Independent CLI analyses can continue after a viewer closes.
+Closing the final browser tab started by `studio` stops its owned service after a refresh grace period. Closing the desktop window stops its owned backend. Use `serve` for persistent operation. Embedded Python/CLI/Shell terminals are real PTY sessions. [Local deployment](docs/local-deployment.md).
 
-**Model settings are in the top bar.** Offline rules are default. OpenAI-compatible and Anthropic profiles share project configuration with `/model` and `cdaf models`. Connection and inference tests differ. Keys use explicit environment or OS-vault references. Preview sending scope before requesting an explanation; samples are opt-in. Model output is unverified interpretation.
+**Model settings** are in the top bar. Save multiple provider-neutral profiles once, then select one for a task or probe. OpenAI-compatible and Anthropic services are supported; credentials use explicit environment/key-vault references. Connection checks and inference checks are separate. Model interpretation needs review. [Model and CLI setup](docs/research/cli.md).
 
-## Inspection and extensibility
+## How it is built
 
-Arrays, scalars and tables cover complex/high-dimensional/empty values, missing data and duplicate indices. Observations retain source digests, immutable versions, declared axes/units and fidelity. Canvas previews, historical slices, virtualized lists and sanitized offline reports show saved evidence. Execution and quality differ: `completed` can coexist with a failed probe.
+```mermaid
+flowchart LR
+  Web[React workbench] --> API[FastAPI project API]
+  Desktop[Electron desktop] --> API
+  CLI[Typer / Textual CLI] --> Services[Python application services]
+  API --> Services
+  Services --> Index[AST index and semantic graph]
+  Services --> Runs[Isolated execution and probe processes]
+  Services --> Store[SQLite events and immutable artifacts]
+  Services --> AI[Optional scoped AI tools and change review]
+```
 
-Preview is bounded to 32×32 cells, saved-data slices to 64×64. Full capture is opt-in, normally limited to 64 MiB per artifact and 256 MiB per run. Missing historical data stays unavailable.
+A Python modular monolith shares application services across entry points. React Flow renders graphs, ELK computes layout in a browser Worker, and Dockview manages panels. Python source remains file-based; runtime evidence is version-addressed. [Detailed system/code architecture with diagrams](docs/research/system-code-architecture.zh-CN.md) · [Project protocol](docs/research/project-protocol.md).
 
-| Extension | Responsibility |
+## Extend it
+
+| Extension point | Responsibility |
 | --- | --- |
-| `cdaf.research.adapters` | Capture another native type with declared capabilities |
-| `cdaf.research.probes` | Read-only checks in separate processes with explicit budgets |
-| `cdaf.research.runners` | Produce the same events from another execution backend |
-| Frontend renderer registry | Present a descriptor/sample through a custom view |
+| `cdaf.research.adapters` | Capture a native data type and declare fidelity/capabilities |
+| `cdaf.research.probes` | Add bounded, read-only analysis/checks |
+| `cdaf.research.runners` | Emit the observation protocol from another execution backend |
+| Frontend renderer registry | Render another data descriptor/sample |
 
-Plugins are explicitly enabled. The [point-cloud adapter](examples/research/custom-adapter.py) and [renderer](web/src/research/PointCloudView.tsx) demonstrate an independent type without core registry edits. [Protocols](docs/research/adapter-api.md) · [Probes](docs/research/probe-api.md). GPU, sparse, lazy, distributed and non-Python backends have extension boundaries but no built-in support in this candidate.
+Probes separate **definitions → templates → bindings → execution → results**. Functional purposes are **present / check / interpret / derive**; implementations may be built-in, custom programs, models, Skills or human judgment. Installing a resource and binding it to data are separate operations. Plugins are explicitly enabled.
 
-## Evidence and compatibility
+[Adapter API](docs/research/adapter-api.md) · [Probe API](docs/research/probe-api.md) · [Point-cloud example](examples/research/custom-adapter.py) · [Custom renderer](web/src/research/PointCloudView.tsx)
 
-[Performance](docs/research/performance.md) covers 1,000 logical variables / 80 visible nodes / 10,000 events and two ten-minute 10 Hz matrix runs. Metadata-only indexes reduced the final two-minute browser heap median from 59.08 to 13.57 MiB on this host. This is no universal overhead guarantee or production certification.
+## Status and boundaries
 
-Instrumentation has [explicit limits](docs/research/instrumentation.md); observed, inferred and declared relations are distinct. Code and plugins retain user file/network permissions. [Limitations](docs/research/limitations.md).
+- Local Python multi-file projects, script/module entry points, Code/Data graphs, probes, versioned evidence and reviewed multi-file changes are implemented. Windows native acceptance and cross-platform CI are recorded separately in [release evidence](docs/release.md).
+- Full capture is opt-in and bounded; default previews/summaries are not the complete dataset. Uncaptured historical values stay unavailable. Execution completion does not imply that quality probes passed.
+- Async/generator/dynamic code has explicit coverage limits. GPU, sparse, distributed and non-Python backends have extension boundaries, without built-in support in this candidate. Notebook execution and real-time collaboration are outside this version.
+- Local child processes retain the user's file/network permissions. Windows installers are unsigned; macOS/Linux native installers and real external-model effectiveness have not been acceptance-tested for this candidate.
+- Historical performance figures are fixture-specific measurements, not production or universal-overhead guarantees. [Performance](docs/research/performance.md) · [Instrumentation](docs/research/instrumentation.md) · [Limitations](docs/research/limitations.md).
 
-Scientific Dataflow Inspector is the working display name. Package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, command `cdaf` and repository `SFA` stay compatible. This is a **0.6.0 local candidate**; no remote rename or PyPI publication. See the [project guide](docs/research/projects.md) and [release evidence](docs/release.md). `sfa` remains an alias. Contract workflows remain in **旧版架构 / Legacy architecture** and [their reference](docs/workflow.md). [Migration](docs/research/migration.md) preserves originals and IDs without inventing scientific evidence.
+## Development and contribution
 
-## Development
+```console
+python -m pip install -e ".[dev,research,tables,views]"
+npm ci --prefix web
+npm run build --prefix web
+python -m pytest -q
+npm run test:unit --prefix web
+npm run test:e2e --prefix web
+```
 
-Archify informs diagrams, Hamilton Python dataflow, and Codex/Kilo/DeepSeek Harness event-driven clients and lifecycle. [Architecture](docs/architecture.md) · [Design](docs/superpowers/specs/2026-10-01-scientific-dataflow-refactor-design.md) · [Contributing](CONTRIBUTING.md) · [Notices](NOTICE.md).
+Browser tests require Playwright's browser dependencies; see [.github/workflows/ci.yml](.github/workflows/ci.yml) for the configured CI environment. Windows browser tests use Edge. Desktop packaging and native acceptance have their own [instructions](desktop/README.md).
 
-MIT. Based on original SFA. [Draft PR #1](https://github.com/iyohesohoka646-dotcom/SFA/pull/1).
+[Contributing](CONTRIBUTING.md) · [Migration](docs/research/migration.md) · [Legacy contract workflow](docs/workflow.md) · [Notices](NOTICE.md)
+
+Scientific Dataflow Inspector is the current display name. Repository `SFA`, package `contract-driven-ai-flow`, import `contract_driven_ai_flow`, and CLI `cdaf` remain compatible; `sfa` is a legacy alias. Earlier contract-first architecture workflows remain accessible through the legacy entry.
+
+MIT · Based on SFA. Diagram/dataflow inspiration includes Archify, Hamilton, dbdiagram, drawDB and Easy RD; see the linked implementation notes and third-party notices.

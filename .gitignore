@@ -5,6 +5,7 @@ node_modules/
 *.egg-info/
 dist/
 build/
+output/
 web/dist/
 .venv*/
 playwright-report/

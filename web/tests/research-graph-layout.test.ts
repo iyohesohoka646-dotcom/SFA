@@ -12,6 +12,13 @@ const handles = (input: number, output: number) => [
 const node = (id: string, parentId?: string, plate = false, ports = handles(1, 1)): Node => ({ id, parentId, type: plate ? "plate" : "semantic", position: { x: 0, y: 0 }, style: semanticDimensions({ plate, label: id, handles: ports }), data: { label: id, handles: ports, collapsed: false } });
 
 describe("measured semantic compound layout", () => {
+  it("keeps high-fanout vertical ports inside a compact node", () => {
+    const item = node("fanout", undefined, false, handles(2, 20));
+    item.style = { width: 260, height: 520 };
+    const input = buildSemanticLayout([item], [], "DOWN").children![0];
+    expect(input.ports!.every(port => port.x! >= 8 && port.x! + port.width! <= input.width! - 8)).toBe(true);
+    expect(new Set(input.ports!.filter(port => port.layoutOptions!["elk.port.side"] === "SOUTH").map(port => port.x)).size).toBe(20);
+  });
   it("routes the actual nested loop projection vertically without experimental scanline compaction", async () => {
     const graph = structuredClone(compactLoop.graph) as ReturnType<typeof buildSemanticLayout>;
     const options = buildSemanticLayout([], [], 'DOWN').layoutOptions!;

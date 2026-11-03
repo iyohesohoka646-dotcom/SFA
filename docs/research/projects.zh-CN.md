@@ -1,5 +1,7 @@
 # Python 项目工作台
 
+进程部署、模块依赖、核心类、方法调用与数据库结构见[系统与代码架构](system-code-architecture.zh-CN.md)，也可打开[离线图文阅读版](system-code-architecture.zh-CN.html)。另有[功能与概念导读](architecture-guide.zh-CN.md)。
+
 0.6 支持本地多文件 Python 科研项目，普通脚本与 `src/` 包布局共用相同的项目、运行和探针协议。Web 与桌面打开同一工作台；CLI 调用同一应用服务。
 
 ## 打开与运行
